@@ -7,16 +7,21 @@ export function useWhisper() {
   const chunksRef = useRef([]);
   const flushTimerRef = useRef(null);
   const clientRef = useRef(null);
+  const isFlushing = useRef(false);
 
   useEffect(() => {
     clientRef.current = createWhisperClient({
       onTranscript: (text) => {
-        setTranscript(prev => [...prev, {
-          id: crypto.randomUUID(),
-          type: 'TRANSCRIPT',
-          text,
-          timestamp: new Date().toISOString(),
-        }]);
+        setTranscript(prev => {
+          // Cap at 500 entries to prevent memory/DB bloat
+          const next = [...prev, {
+            id: crypto.randomUUID(),
+            type: 'TRANSCRIPT',
+            text,
+            timestamp: new Date().toISOString(),
+          }];
+          return next.length > 500 ? next.slice(next.length - 500) : next;
+        });
       },
       onError: (err) => {
         console.error('Whisper error:', err);
@@ -27,10 +32,13 @@ export function useWhisper() {
   }, []);
 
   const flush = useCallback(() => {
-    if (chunksRef.current.length === 0) return;
+    // Guard: skip if no chunks or already flushing
+    if (chunksRef.current.length === 0 || isFlushing.current) return;
+    isFlushing.current = true;
     const chunks = chunksRef.current.splice(0);
     const blob = new Blob(chunks, { type: 'audio/webm' });
     clientRef.current?.enqueue(blob);
+    isFlushing.current = false;
   }, []);
 
   const addChunk = useCallback((chunk) => {
@@ -44,6 +52,7 @@ export function useWhisper() {
     clearInterval(flushTimerRef.current);
     flushTimerRef.current = null;
     chunksRef.current = [];
+    isFlushing.current = false;
     setTranscript([]);
     setStatus('Bersedia');
   }, []);
@@ -51,7 +60,8 @@ export function useWhisper() {
   useEffect(() => {
     return () => {
       clearInterval(flushTimerRef.current);
-      flush();
+      // Only flush on unmount if there are actually chunks waiting
+      if (chunksRef.current.length > 0) flush();
     };
   }, [flush]);
 

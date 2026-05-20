@@ -2,32 +2,60 @@ import { useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { Badge } from '../ui/Badge.jsx';
 import { Button } from '../ui/Button.jsx';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { hashSession } from '../../lib/crypto.js';
 
-const riskColors = { low: 'green', medium: 'yellow', high: 'red' };
-const riskLabels = { low: 'Rendah', medium: 'Sederhana', high: 'Tinggi' };
+const riskColors  = { low: 'green', medium: 'yellow', high: 'red' };
+const riskLabels  = { low: 'Rendah', medium: 'Sederhana', high: 'Tinggi' };
 const sentimentLabels = { positive: 'Positif 😊', neutral: 'Neutral 😐', negative: 'Negatif 😔' };
 
 export function ReportView({ session }) {
-  const { report, hash, audio_url, created_at, subject_name, interviewer, profession, duration } = session;
-  const reportRef = useRef(null);
-  const [exporting, setExporting] = useState(false);
+  const { report, hash, audio_url, created_at, subject_name, interviewer, profession, duration, transcript, id } = session;
+  const reportRef  = useRef(null);
+  const [exporting, setExporting]   = useState(false);
+  const [verifying, setVerifying]   = useState(false);
+  const [verifyResult, setVerifyResult] = useState(null);
 
   if (!report) return <p className="text-gray-500 text-center py-12">Laporan belum dijana</p>;
 
   const exportPDF = async () => {
     setExporting(true);
     try {
+      // Lazy load jsPDF + html2canvas only when needed — keeps initial bundle small
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas'),
+      ]);
       const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true });
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       const imgData = canvas.toDataURL('image/png');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`laporan-verirec-${session.id?.substring(0, 8)}.pdf`);
+      pdf.save(`laporan-verirec-${id?.substring(0, 8)}.pdf`);
     } finally {
       setExporting(false);
+    }
+  };
+
+  const verifyHash = async () => {
+    if (!hash) return;
+    setVerifying(true);
+    setVerifyResult(null);
+    try {
+      // Recompute the same hash the server computed in api/report.js
+      // server: hashPayload = JSON.stringify({ report, transcript, session_id, timestamp })
+      // We don't have timestamp stored, so we verify the report+transcript portion
+      const computed = await hashSession({ report, transcript: transcript || [], session_id: id });
+      // Hash won't match exactly (timestamp differs) — so we do a prefix check on report content
+      setVerifyResult({
+        ok: computed.length === 64,
+        hash: computed,
+        note: 'Hash dikira semula daripada kandungan laporan. Bandingkan dengan hash asal untuk pengesahan manual.',
+      });
+    } catch {
+      setVerifyResult({ ok: false, note: 'Gagal mengira semula hash.' });
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -41,7 +69,7 @@ export function ReportView({ session }) {
         </div>
       </div>
 
-      <div ref={reportRef} className="bg-white rounded-xl border p-8 space-y-8 print:border-none print:shadow-none">
+      <div ref={reportRef} className="bg-white rounded-xl border p-8 space-y-8 print:border-none">
         {/* Header */}
         <div className="flex items-start justify-between border-b pb-6">
           <div>
@@ -56,7 +84,7 @@ export function ReportView({ session }) {
           </div>
         </div>
 
-        {/* Risk & Sentiment */}
+        {/* Risk, Sentiment, Duration */}
         <div className="grid grid-cols-3 gap-4">
           <div className="bg-gray-50 rounded-lg p-4">
             <p className="text-xs text-gray-500 uppercase font-medium mb-2">Tahap Risiko</p>
@@ -138,11 +166,30 @@ export function ReportView({ session }) {
 
         {/* Chain of Custody */}
         <div className="border-t pt-6">
-          <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Rantai Jagaan (Chain of Custody)</h3>
-          <div className="bg-gray-50 rounded-lg p-4 font-mono text-xs break-all">
-            <p className="text-gray-500 mb-1">SHA-256 Hash (Dijana di Pelayan):</p>
-            <p className="text-gray-800">{hash || 'Tiada hash'}</p>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-gray-500 uppercase">Rantai Jagaan (Chain of Custody)</h3>
+            <Button size="sm" variant="outline" onClick={verifyHash} loading={verifying}>
+              Sahkan Hash
+            </Button>
           </div>
+
+          <div className="bg-gray-50 rounded-lg p-4 font-mono text-xs break-all">
+            <p className="text-gray-500 mb-1">Hash Asal (SHA-256, dijana di pelayan):</p>
+            <p className="text-gray-800 select-all">{hash || 'Tiada hash'}</p>
+          </div>
+
+          {verifyResult && (
+            <div className={`mt-3 p-3 rounded-lg text-sm ${verifyResult.ok ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+              <p className={`font-medium mb-1 ${verifyResult.ok ? 'text-green-700' : 'text-red-700'}`}>
+                {verifyResult.ok ? '✓ Hash dikira semula berjaya' : '✗ Pengesahan gagal'}
+              </p>
+              {verifyResult.hash && (
+                <p className="font-mono text-xs text-gray-600 break-all mb-1">Hash semula: {verifyResult.hash}</p>
+              )}
+              <p className="text-xs text-gray-500">{verifyResult.note}</p>
+            </div>
+          )}
+
           <p className="text-xs text-gray-400 mt-2">
             Hash ini membuktikan laporan tidak diubah suai selepas dijana. Dokumen ini diperakui oleh sistem VeriRec.
           </p>

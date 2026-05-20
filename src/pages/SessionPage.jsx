@@ -57,7 +57,12 @@ export default function SessionPage() {
       setEntries(prev => {
         const ids = new Set(prev.map(e => e.id));
         const newOnes = transcript.filter(e => !ids.has(e.id));
-        return [...prev, ...newOnes];
+        const combined = [...prev, ...newOnes];
+        // Cap at 500 entries — warn user if limit approaching
+        if (combined.length >= 490 && prev.length < 490) {
+          toast('Transkrip menghampiri had 500 entri.', { icon: '⚠️' });
+        }
+        return combined.length > 500 ? combined.slice(combined.length - 500) : combined;
       });
     }
   }, [transcript]);

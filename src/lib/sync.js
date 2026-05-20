@@ -1,7 +1,8 @@
 import { supabase } from './supabase.js';
-import { getAll, remove, getById } from './idb.js';
+import { getAll, remove } from './idb.js';
 
 const listeners = {};
+let syncLock = false; // mutex — prevents concurrent sync runs
 
 function emit(event, data) {
   (listeners[event] || []).forEach(fn => fn(data));
@@ -26,6 +27,8 @@ async function retryWithBackoff(fn, maxRetries = 3) {
 
 export async function syncQueue() {
   if (!navigator.onLine) return;
+  if (syncLock) return; // already running
+  syncLock = true;
   emit('sync:start', {});
 
   try {
@@ -36,15 +39,16 @@ export async function syncQueue() {
     for (const item of queue) {
       try {
         await retryWithBackoff(async () => {
-          if (item.audioBlob) {
+          const sessionData = { ...item };
+
+          if (sessionData.audioBlob) {
             const { data: audioData } = await supabase.storage
               .from('audio')
-              .upload(`${item.user_id}/${item.id}.webm`, item.audioBlob, { upsert: true });
-            item.audio_url = audioData?.path;
-            delete item.audioBlob;
+              .upload(`${item.user_id}/${item.id}.webm`, sessionData.audioBlob, { upsert: true });
+            sessionData.audio_url = audioData?.path;
+            delete sessionData.audioBlob;
           }
 
-          const { created_at, updated_at, ...sessionData } = item;
           const { error } = await supabase
             .from('sessions')
             .upsert({ ...sessionData, synced: true, updated_at: new Date().toISOString() });
@@ -63,5 +67,7 @@ export async function syncQueue() {
   } catch (err) {
     emit('sync:error', err);
     console.error('syncQueue error:', err);
+  } finally {
+    syncLock = false;
   }
 }

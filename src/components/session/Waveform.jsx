@@ -1,23 +1,44 @@
+import { useEffect, useRef } from 'react';
+
+const BARS = 20;
+
 export function Waveform({ level, isRecording, isPaused }) {
-  const bars = 20;
+  const barsRef = useRef([]);
+  const rafRef = useRef(null);
+  const frameRef = useRef(0);
+
+  useEffect(() => {
+    const animate = () => {
+      frameRef.current += 0.08;
+      barsRef.current.forEach((el, i) => {
+        if (!el) return;
+        const active = isRecording && !isPaused;
+        if (active) {
+          const h = Math.max(4, (level / 100) * 44 * ((Math.sin(frameRef.current + i * 0.5) + 1) / 2) + 4);
+          el.style.height = `${h}px`;
+          el.style.backgroundColor = `hsl(${220 + (level / 100) * 20}, 80%, 55%)`;
+        } else {
+          el.style.height = '4px';
+          el.style.backgroundColor = '#d1d5db';
+        }
+      });
+      rafRef.current = requestAnimationFrame(animate);
+    };
+
+    rafRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [level, isRecording, isPaused]);
 
   return (
     <div className="flex items-end gap-0.5 h-12">
-      {Array.from({ length: bars }).map((_, i) => {
-        const isActive = isRecording && !isPaused;
-        const randomFactor = isActive ? (Math.sin(Date.now() / 200 + i) + 1) / 2 : 0;
-        const height = isActive ? Math.max(4, (level / 100) * 48 * randomFactor + 4) : 4;
-        return (
-          <div
-            key={i}
-            className="w-1 rounded-full transition-all duration-75"
-            style={{
-              height: `${height}px`,
-              backgroundColor: isActive ? `hsl(${220 + (level / 100) * 20}, 80%, 55%)` : '#d1d5db',
-            }}
-          />
-        );
-      })}
+      {Array.from({ length: BARS }).map((_, i) => (
+        <div
+          key={i}
+          ref={el => { barsRef.current[i] = el; }}
+          className="w-1 rounded-full"
+          style={{ height: '4px', backgroundColor: '#d1d5db', transition: 'height 60ms ease' }}
+        />
+      ))}
     </div>
   );
 }
