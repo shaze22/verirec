@@ -1,0 +1,126 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { generateConsentId } from '../lib/crypto.js';
+import { supabase } from '../lib/supabase.js';
+import { useAuthStore } from '../store/authStore.js';
+import { Button } from '../components/ui/Button.jsx';
+import toast from 'react-hot-toast';
+
+const CONSENT_VERSION = 'VERIREC-CONSENT-v1.0';
+
+const CONSENT_ITEMS = [
+  'Saya memahami bahawa sesi temuduga ini akan dirakam (audio) dan ditranskripsikan.',
+  'Saya bersetuju bahawa rakaman dan transkrip akan digunakan untuk tujuan profesional yang dinyatakan.',
+  'Saya faham bahawa maklumat peribadi saya dilindungi di bawah Akta Perlindungan Data Peribadi 2010 (PDPA).',
+  'Saya bersetuju untuk meneruskan sesi temuduga ini dengan sukarela dan boleh berhenti pada bila-bila masa.',
+];
+
+export default function ConsentPage() {
+  const { user } = useAuthStore();
+  const navigate = useNavigate();
+  const [checked, setChecked] = useState([false, false, false, false]);
+  const [loading, setLoading] = useState(false);
+
+  const setup = JSON.parse(sessionStorage.getItem('session_setup') || '{}');
+  const allChecked = checked.every(Boolean);
+
+  const toggle = (i) => setChecked(prev => prev.map((v, idx) => idx === i ? !v : v));
+
+  const handleConsent = async () => {
+    if (!allChecked) return;
+    setLoading(true);
+    try {
+      const consentId = generateConsentId();
+      const timestamp = new Date().toISOString();
+
+      const consentData = {
+        id: consentId,
+        version: CONSENT_VERSION,
+        timestamp,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        items: CONSENT_ITEMS,
+        subject_name: setup.subject_name,
+        interviewer: setup.interviewer,
+        profession: setup.profession,
+        user_id: user?.id,
+      };
+
+      const { data: session, error } = await supabase
+        .from('sessions')
+        .insert({
+          user_id: user.id,
+          title: setup.title,
+          profession: setup.profession,
+          interviewer: setup.interviewer,
+          subject_name: setup.subject_name,
+          subject_role: setup.subject_role,
+          context_notes: setup.context_notes,
+          consent_signed: true,
+          consent_data: consentData,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      sessionStorage.setItem('active_session_id', session.id);
+      navigate('/session/active');
+    } catch (err) {
+      console.error('consent error:', err);
+      toast.error('Gagal menyimpan persetujuan. Cuba lagi.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-lg max-w-2xl w-full p-8">
+        <div className="text-center mb-8">
+          <div className="text-5xl mb-4">📋</div>
+          <h1 className="text-2xl font-bold text-gray-900">Borang Persetujuan Maklum</h1>
+          <p className="text-gray-500 mt-2">Sila baca dan tandakan setiap perkara di bawah sebelum sesi bermula</p>
+        </div>
+
+        <div className="bg-blue-50 rounded-xl p-4 mb-6">
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div><span className="text-gray-500">Penemuduga:</span> <span className="font-medium">{setup.interviewer}</span></div>
+            <div><span className="text-gray-500">Subjek:</span> <span className="font-medium">{setup.subject_name}</span></div>
+            <div><span className="text-gray-500">Sesi:</span> <span className="font-medium">{setup.title}</span></div>
+            <div><span className="text-gray-500">Tarikh:</span> <span className="font-medium">{new Date().toLocaleDateString('ms-MY')}</span></div>
+          </div>
+        </div>
+
+        <div className="space-y-4 mb-8">
+          {CONSENT_ITEMS.map((item, i) => (
+            <label key={i} className="flex items-start gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={checked[i]}
+                onChange={() => toggle(i)}
+                className="mt-0.5 w-5 h-5 rounded border-gray-300 text-blue-600 cursor-pointer"
+              />
+              <span className={`text-sm leading-relaxed ${checked[i] ? 'text-gray-800' : 'text-gray-600'}`}>{item}</span>
+            </label>
+          ))}
+        </div>
+
+        <div className="flex gap-3">
+          <Button variant="secondary" onClick={() => navigate(-1)}>Kembali</Button>
+          <Button
+            className="flex-1"
+            disabled={!allChecked}
+            loading={loading}
+            onClick={handleConsent}
+          >
+            Saya Bersetuju — Mulakan Sesi
+          </Button>
+        </div>
+
+        <p className="text-center text-xs text-gray-400 mt-4">
+          Versi persetujuan: {CONSENT_VERSION} • Masa: {new Date().toISOString()}
+        </p>
+      </div>
+    </div>
+  );
+}
