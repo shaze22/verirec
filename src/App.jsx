@@ -34,8 +34,13 @@ const AudioLibraryPage      = lazy(() => import('./pages/AudioLibraryPage.jsx'))
 const NotFoundPage          = lazy(() => import('./pages/NotFoundPage.jsx'));
 const LogoutPage            = lazy(() => import('./pages/LogoutPage.jsx'));
 const SharedReportPage      = lazy(() => import('./pages/SharedReportPage.jsx'));
-const QuestionTemplatesPage = lazy(() => import('./pages/QuestionTemplatesPage.jsx'));
-const SchedulePage          = lazy(() => import('./pages/SchedulePage.jsx'));
+const QuestionTemplatesPage   = lazy(() => import('./pages/QuestionTemplatesPage.jsx'));
+const SchedulePage            = lazy(() => import('./pages/SchedulePage.jsx'));
+const PublicBookingPage       = lazy(() => import('./pages/PublicBookingPage.jsx'));
+const KaunslorSetupPage       = lazy(() => import('./pages/kaunselor/KaunslorSetupPage.jsx'));
+const KaunslorAppointmentsPage = lazy(() => import('./pages/kaunselor/KaunslorAppointmentsPage.jsx'));
+const KaunslorClientsPage     = lazy(() => import('./pages/kaunselor/KaunslorClientsPage.jsx'));
+const KaunslorClientFilePage  = lazy(() => import('./pages/kaunselor/KaunslorClientFilePage.jsx'));
 
 function PageTracker() {
   const location = useLocation();
@@ -215,6 +220,15 @@ export default function App() {
 
               {/* Public shared report — no auth required */}
               <Route path="/laporan/:token" element={<SharedReportPage />} />
+
+              {/* Public booking — no auth required */}
+              <Route path="/book/:code" element={<PublicBookingPage />} />
+
+              {/* Counselor module — protected */}
+              <Route path="/kaunselor/setup" element={<ProtectedRoute><KaunslorSetupPage /></ProtectedRoute>} />
+              <Route path="/kaunselor/appointments" element={<ProtectedRoute><AppLayout><KaunslorAppointmentsPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/kaunselor/clients" element={<ProtectedRoute><AppLayout><KaunslorClientsPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/kaunselor/clients/:id" element={<ProtectedRoute><AppLayout><KaunslorClientFilePage /></AppLayout></ProtectedRoute>} />
 
               {/* Session flow — full screen, no sidebar/nav */}
               <Route path="/session/consent" element={
