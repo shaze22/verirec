@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase.js';
+import { useAuthStore } from '../store/authStore.js';
 import { professionLabel as getProfessionLabel } from '../data/professions.js';
 import { Button } from '../components/ui/Button.jsx';
 import { Input } from '../components/ui/Input.jsx';
@@ -78,17 +79,22 @@ export default function AuthPage() {
   const [mfaCode, setMfaCode] = useState('');
   const [mfaLoading, setMfaLoading] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuthStore();
 
   const professionFromUrl = searchParams.get('profession');
   const professionLabel = getProfessionLabel(professionFromUrl);
 
+  // Redirect to dashboard when user is set (covers OAuth callback timing)
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    if (user && mode !== 'reset') navigate('/dashboard');
+  }, [user, mode, navigate]);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') setMode('reset');
-      if (event === 'SIGNED_IN' && session) navigate('/dashboard');
     });
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, []);
 
   const handlePasswordReset = async (e) => {
     e.preventDefault();
