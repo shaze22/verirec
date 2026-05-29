@@ -5,8 +5,8 @@ import { useBillingStore } from '../../store/billingStore.js';
 import { Button } from '../ui/Button.jsx';
 
 const DISCLAIMER_KEY = 'ai_disclaimer_accepted';
-const AUTO_TRIGGER_EVERY = 2;   // new entries before auto-analysis
-const MIN_INTERVAL_MS = 12000;  // minimum gap between analyses (ms)
+const AUTO_TRIGGER_EVERY = 1;   // trigger after every new entry
+const MIN_INTERVAL_MS = 15000;  // minimum gap between analyses (ms)
 
 // Per-profession display config
 const PROFESSION_CONFIG = {
@@ -171,7 +171,12 @@ function AutoAnalysis({ profession, phase, entries, isActive, hasAI, onSuggest }
   const debounceRef = useRef(null);
 
   const relevantEntries = entries.filter(e => e.type === 'TRANSCRIPT' || e.type === 'INTERVIEWER');
-  const transcriptTexts = relevantEntries.map(e => e.text);
+  const transcriptTexts = relevantEntries.map(e => {
+    if (e.type === 'INTERVIEWER') return `Penemuduga: ${e.text}`;
+    if (e.speaker === 'subject') return `Subjek: ${e.text}`;
+    if (e.speaker === 'interviewer') return `Penemuduga: ${e.text}`;
+    return e.text;
+  });
   const recentTexts = transcriptTexts.slice(-5);
 
   const analyze = useCallback(async () => {

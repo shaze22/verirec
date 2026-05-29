@@ -16,6 +16,13 @@ const TYPE_BG = {
   SYSTEM: 'bg-gray-50',
 };
 
+function speakerStyle(entry) {
+  if (entry.type !== 'TRANSCRIPT') return {};
+  if (entry.speaker === 'subject') return { bg: 'bg-green-50 border-l-2 border-green-400', label: 'text-green-700' };
+  if (entry.speaker === 'interviewer') return { bg: 'bg-blue-50 border-l-2 border-blue-300', label: 'text-blue-600' };
+  return {};
+}
+
 export function TranscriptPanel({ entries = [], interim = '' }) {
   const [search, setSearch] = useState('');
   const bottomRef = useRef(null);
@@ -64,24 +71,32 @@ export function TranscriptPanel({ entries = [], interim = '' }) {
             {search ? 'Tiada hasil' : 'Transkrip akan muncul di sini...'}
           </p>
         )}
-        {filtered.map(entry => (
-          <div key={entry.id} className={clsx('p-2 rounded-lg text-sm', TYPE_BG[entry.type])}>
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-xs text-gray-400">
-                {format(new Date(entry.timestamp), 'HH:mm:ss')}
-              </span>
-              {entry.speaker && (
-                <span className="text-xs font-medium text-blue-600">{entry.speaker}</span>
-              )}
-              {entry.type === 'FLAG' && (
-                <span className="text-xs font-medium text-red-600">🚩 Bendera</span>
-              )}
+        {filtered.map(entry => {
+          const ss = speakerStyle(entry);
+          return (
+            <div key={entry.id} className={clsx('p-2 rounded-lg text-sm', ss.bg || TYPE_BG[entry.type])}>
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="text-xs text-gray-400">
+                  {format(new Date(entry.timestamp), 'HH:mm:ss')}
+                </span>
+                {entry.type === 'TRANSCRIPT' && entry.speaker && (
+                  <span className={clsx('text-xs font-medium', ss.label || 'text-gray-500')}>
+                    {entry.speaker === 'interviewer' ? '🎙️ Penemuduga' : entry.speaker === 'subject' ? '👤 Subjek' : entry.speaker}
+                  </span>
+                )}
+                {entry.type === 'INTERVIEWER' && entry.speaker && (
+                  <span className="text-xs font-medium text-blue-600">🎙️ {entry.speaker}</span>
+                )}
+                {entry.type === 'FLAG' && (
+                  <span className="text-xs font-medium text-red-600">🚩 Bendera</span>
+                )}
+              </div>
+              <p className={clsx('leading-relaxed', TYPE_COLORS[entry.type] || TYPE_COLORS.TRANSCRIPT)}>
+                {entry.text}
+              </p>
             </div>
-            <p className={clsx('leading-relaxed', TYPE_COLORS[entry.type] || TYPE_COLORS.TRANSCRIPT)}>
-              {entry.text}
-            </p>
-          </div>
-        ))}
+          );
+        })}
         {/* Interim text — live preview while speaking */}
         {interim && (
           <div className="p-3 rounded-xl text-sm bg-blue-600 shadow-sm">

@@ -32,12 +32,14 @@ export function useWhisper() {
   }, []);
 
   const flush = useCallback(() => {
-    // Guard: skip if no chunks or already flushing
     if (chunksRef.current.length === 0 || isFlushing.current) return;
     isFlushing.current = true;
     const chunks = chunksRef.current.splice(0);
     const blob = new Blob(chunks, { type: 'audio/webm' });
-    clientRef.current?.enqueue(blob);
+    // Skip blobs < 4KB — too short for Whisper to detect any speech
+    if (blob.size >= 4096) {
+      clientRef.current?.enqueue(blob);
+    }
     isFlushing.current = false;
   }, []);
 

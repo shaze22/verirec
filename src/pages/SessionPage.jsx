@@ -50,6 +50,9 @@ export default function SessionPage() {
   const [crisisAlert, setCrisisAlert] = useState(null);
   const [transcriptLang, setTranscriptLang] = useState('ms-MY');
   const [endError, setEndError] = useState(false);
+  const [currentSpeaker, setCurrentSpeaker] = useState('interviewer');
+  const currentSpeakerRef = useRef('interviewer');
+  useEffect(() => { currentSpeakerRef.current = currentSpeaker; }, [currentSpeaker]);
 
   const isResuming = sessionStorage.getItem('resuming') === 'true';
 
@@ -86,7 +89,8 @@ export default function SessionPage() {
     if (transcript.length > 0) {
       setEntries(prev => {
         const ids = new Set(prev.map(e => e.id));
-        const newOnes = transcript.filter(e => !ids.has(e.id));
+        const newOnes = transcript.filter(e => !ids.has(e.id))
+        .map(e => ({ ...e, speaker: currentSpeakerRef.current }));
         const combined = [...prev, ...newOnes];
         if (combined.length >= 490 && prev.length < 490) {
           toast('Transkrip menghampiri had 500 entri.', { icon: '⚠️' });
@@ -188,7 +192,7 @@ export default function SessionPage() {
   }, []);
 
   const { interim, start: startRealtime, stop: stopRealtime } = useRealtimeTranscript({
-    onFinalResult: useCallback((text) => addEntry({ type: 'TRANSCRIPT', text }), [addEntry]),
+    onFinalResult: useCallback((text) => addEntry({ type: 'TRANSCRIPT', text, speaker: currentSpeakerRef.current }), [addEntry]),
     lang: transcriptLang,
   });
 
@@ -346,6 +350,26 @@ export default function SessionPage() {
             )}
           </div>
         </div>
+
+        {/* Speaker toggle — shows when session is active */}
+        {started && (
+          <div className="px-4 py-2 bg-white border-t flex items-center gap-2">
+            <span className="text-xs text-gray-400 font-medium flex-shrink-0">Penutur semasa:</span>
+            <button
+              onClick={() => setCurrentSpeaker('interviewer')}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-all flex-shrink-0 ${currentSpeaker === 'interviewer' ? 'bg-blue-100 text-blue-700 border border-blue-300 shadow-sm' : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-200'}`}
+            >
+              🎙️ {setup.interviewer || 'Penemuduga'}
+            </button>
+            <button
+              onClick={() => setCurrentSpeaker('subject')}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-all flex-shrink-0 ${currentSpeaker === 'subject' ? 'bg-green-100 text-green-700 border border-green-300 shadow-sm' : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-200'}`}
+            >
+              👤 {setup.subject_name || 'Subjek'}
+            </button>
+            <span className="ml-auto text-xs text-gray-300 hidden md:block">Tekan butang untuk tukar penutur sebelum bercakap</span>
+          </div>
+        )}
 
         {/* Session context bar */}
         <div className="px-4 py-1.5 bg-gray-50 border-t flex items-center gap-4 text-xs text-gray-500 overflow-x-auto">
