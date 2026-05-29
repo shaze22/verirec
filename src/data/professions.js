@@ -4,6 +4,9 @@ export const PROFESSIONS = [
     label: 'Kaunselor',
     icon: '💬',
     color: '#10b981',
+    interviewerLabel: 'Nama Kaunselor',
+    subjectLabel: 'Nama Klien',
+    sessionType: 'Sesi Kaunseling',
     frameworks: ['CBT', 'Pendekatan Person-Centered', 'Terapi Solusi Ringkas'],
     phases: ['Pembinaan Hubungan', 'Penilaian', 'Penerokaan', 'Intervensi', 'Penamatan'],
     questions: {
@@ -41,12 +44,15 @@ export const PROFESSIONS = [
     label: 'Polis',
     icon: '👮',
     color: '#3b82f6',
+    interviewerLabel: 'Pegawai Penyoal',
+    subjectLabel: 'Nama Saksi / Suspek',
+    sessionType: 'Soal Siasat',
     frameworks: ['PEACE Model', 'Cognitive Interview', 'Reid Technique'],
-    phases: ['Pra-Temuduga', 'Pembukaan', 'Penerokaan Bebas', 'Penyoalan', 'Penutup'],
+    phases: ['Pra-Siasat', 'Pembukaan', 'Penerokaan Bebas', 'Penyoalan', 'Penutup'],
     questions: {
-      'Pra-Temuduga': [
+      'Pra-Siasat': [
         'Sila nyatakan nama penuh, nombor kad pengenalan dan alamat anda.',
-        'Adakah anda faham mengapa anda ditemuduga hari ini?',
+        'Adakah anda faham tujuan soal siasat hari ini?',
         'Adakah anda memerlukan peguam atau jurubahasa?',
       ],
       'Pembukaan': [
@@ -78,6 +84,9 @@ export const PROFESSIONS = [
     label: 'SPRM/MACC',
     icon: '⚖️',
     color: '#8b5cf6',
+    interviewerLabel: 'Pegawai Penyiasat SPRM',
+    subjectLabel: 'Nama Individu yang Disiasat',
+    sessionType: 'Soal Siasat',
     frameworks: ['Skim Rasuah', 'FIAU Guidelines', 'UNCAC'],
     phases: ['Pemberitahuan Hak', 'Maklumat Latar Belakang', 'Penerokaan Kes', 'Dokumentasi', 'Penutup'],
     questions: {
@@ -114,6 +123,9 @@ export const PROFESSIONS = [
     label: 'Doktor',
     icon: '🏥',
     color: '#ef4444',
+    interviewerLabel: 'Nama Pengamal Perubatan',
+    subjectLabel: 'Nama Pesakit',
+    sessionType: 'Perundingan Klinikal',
     frameworks: ['SOAP Note', 'Calgary-Cambridge Guide', 'HEADSS Assessment'],
     phases: ['Pembukaan', 'Sejarah Penyakit', 'Kajian Sistem', 'Penilaian Psikososial', 'Penutup'],
     questions: {
@@ -153,8 +165,11 @@ export const PROFESSIONS = [
     label: 'Juruaudit ISO',
     icon: '📋',
     color: '#f59e0b',
+    interviewerLabel: 'Nama Juruaudit',
+    subjectLabel: 'Nama Auditee / Wakil',
+    sessionType: 'Sesi Audit',
     frameworks: ['ISO 9001:2015', 'ISO 19011:2018', 'PDCA Cycle'],
-    phases: ['Mesyuarat Pembukaan', 'Penilaian Dokumentasi', 'Temu Bual', 'Pemerhatian', 'Mesyuarat Penutup'],
+    phases: ['Mesyuarat Pembukaan', 'Penilaian Dokumentasi', 'Temu Bual Audit', 'Pemerhatian', 'Mesyuarat Penutup'],
     questions: {
       'Mesyuarat Pembukaan': [
         'Sila terangkan skop sistem pengurusan kualiti organisasi ini.',
@@ -166,7 +181,7 @@ export const PROFESSIONS = [
         'Bagaimana anda mengawal dokumen-dokumen terkawal?',
         'Tunjukkan rekod kawalan yang paling terkini.',
       ],
-      'Temu Bual': [
+      'Temu Bual Audit': [
         'Apakah objektif kualiti jabatan ini untuk tahun semasa?',
         'Bagaimana anda menilai kepuasan pelanggan?',
         'Apakah proses yang anda ikuti apabila terdapat ketidakpatuhan?',
@@ -186,16 +201,142 @@ export const PROFESSIONS = [
     redFlagKeywords: ['penipuan', 'pemalsuan', 'rekod palsu', 'tidak mematuhi'],
   },
   {
+    id: 'jkm',
+    label: 'Pegawai JKM',
+    icon: '🤝',
+    color: '#0d9488',
+    interviewerLabel: 'Nama Pegawai Kebajikan',
+    subjectLabel: 'Nama Klien / Penjaga / Kanak-kanak',
+    sessionType: 'Temubual Kebajikan',
+    frameworks: ['Akta Kanak-kanak 2001', 'Akta Keganasan Rumah Tangga 1994', 'Garis Panduan JKM'],
+    phases: ['Pengambilan Kes', 'Penilaian Risiko', 'Temubual Keluarga', 'Temubual Kanak-kanak', 'Perancangan Intervensi'],
+    questions: {
+      'Pengambilan Kes': [
+        'Sila ceritakan situasi atau insiden yang menyebabkan aduan ini dibuat.',
+        'Siapakah semua pihak yang terlibat dalam situasi ini?',
+        'Adakah ini kali pertama kes seperti ini dilaporkan untuk keluarga ini?',
+      ],
+      'Penilaian Risiko': [
+        'Adakah kanak-kanak atau individu berisiko masih berada dalam persekitaran yang sama?',
+        'Siapakah yang tinggal serumah pada masa ini?',
+        'Adakah terdapat sejarah keganasan atau penderaan sebelum ini dalam keluarga ini?',
+        'Apakah tahap keselamatan segera individu berisiko pada masa ini?',
+      ],
+      'Temubual Keluarga': [
+        'Ceritakan tentang rutin harian keluarga anda.',
+        'Bagaimana anda menangani tekanan atau konflik dalam keluarga?',
+        'Adakah terdapat masalah kewangan, ketagihan, atau kesihatan mental dalam keluarga?',
+        'Apakah sokongan yang ada untuk anda — keluarga besar, jiran, atau agensi?',
+      ],
+      'Temubual Kanak-kanak': [
+        'Apa khabar awak hari ini? Awak selesa bercakap dengan saya?',
+        'Ceritakan tentang kehidupan awak di rumah — apa yang awak suka dan tak suka.',
+        'Adakah sesiapa pernah menyakiti awak atau buat awak berasa takut?',
+        'Siapa yang awak rasa selamat untuk bercakap jika ada masalah?',
+      ],
+      'Perancangan Intervensi': [
+        'Apakah perubahan yang perlu berlaku untuk memastikan keselamatan individu berisiko?',
+        'Apakah sumber sokongan komuniti atau keluarga yang boleh digunakan?',
+        'Apakah keupayaan keluarga untuk melaksanakan perubahan yang diperlukan?',
+      ],
+    },
+    redFlagKeywords: ['penderaan', 'keganasan', 'cabul', 'rogol', 'pengabaian', 'takut', 'bekas luka', 'tidak selamat', 'bunuh', 'sakiti', 'lapar', 'terkurung'],
+  },
+  {
+    id: 'peguam',
+    label: 'Peguam',
+    icon: '📜',
+    color: '#0891b2',
+    interviewerLabel: 'Nama Peguam',
+    subjectLabel: 'Nama Klien / Saksi',
+    sessionType: 'Perundingan Guaman',
+    frameworks: ['Legal Professional Privilege', 'Akta Profesion Undang-Undang 1976', 'Bar Council Malaysia Guidelines'],
+    phases: ['Perundingan Awal', 'Fakta Kes', 'Analisa Undang-undang', 'Persediaan Kes', 'Penilaian Penyelesaian'],
+    questions: {
+      'Perundingan Awal': [
+        'Ceritakan masalah atau situasi yang membawa anda berjumpa saya hari ini.',
+        'Apakah hasil yang anda harapkan daripada kes ini?',
+        'Adakah anda pernah mendapatkan nasihat guaman sebelum ini berkaitan perkara yang sama?',
+      ],
+      'Fakta Kes': [
+        'Bilakah kejadian atau transaksi ini berlaku?',
+        'Siapakah pihak-pihak lain yang terlibat dalam perkara ini?',
+        'Adakah terdapat dokumen, kontrak, atau bukti bertulis yang berkaitan?',
+        'Apakah kerugian atau kesan yang anda alami akibat perkara ini?',
+      ],
+      'Analisa Undang-undang': [
+        'Berdasarkan fakta anda, terdapat beberapa isu undang-undang yang perlu diteliti.',
+        'Adakah terdapat had masa (limitation period) yang mungkin terpakai dalam kes ini?',
+        'Apakah keterangan atau saksi yang ada untuk menyokong kedudukan anda?',
+      ],
+      'Persediaan Kes': [
+        'Siapakah saksi-saksi yang boleh dikemukakan untuk menyokong kes anda?',
+        'Adakah terdapat dokumen lain yang perlu dikumpulkan atau dipohon pendedahan?',
+        'Apakah kedudukan pihak lawan yang anda ketahui setakat ini?',
+      ],
+      'Penilaian Penyelesaian': [
+        'Adakah anda bersedia untuk mempertimbangkan penyelesaian di luar mahkamah?',
+        'Apakah syarat minimum yang boleh anda terima untuk menyelesaikan perkara ini?',
+        'Adakah anda faham risiko dan kos jika kes ini diteruskan ke mahkamah?',
+      ],
+    },
+    redFlagKeywords: ['konflik kepentingan', 'penipuan', 'salah nyata', 'suap', 'ancaman saksi', 'keterangan palsu', 'pecah amanah'],
+  },
+  {
+    id: 'court',
+    label: 'Mahkamah',
+    icon: '🏛️',
+    color: '#1e40af',
+    interviewerLabel: 'Peguam / Hakim / Majistret',
+    subjectLabel: 'Saksi / Tertuduh / Plaintif',
+    sessionType: 'Prosiding Mahkamah',
+    frameworks: ['Akta Keterangan 1950', 'Kanun Prosedur Jenayah', 'Kaedah-Kaedah Mahkamah 2012'],
+    phases: ['Pemeriksaan Utama', 'Pemeriksaan Balas', 'Pemeriksaan Semula', 'Hujahan Penutup', 'Penghakiman'],
+    questions: {
+      'Pemeriksaan Utama': [
+        'Sila nyatakan nama penuh dan hubungan anda dengan kes ini.',
+        'Ceritakan apa yang anda lihat atau alami pada [tarikh/masa] kejadian.',
+        'Di manakah anda berada ketika kejadian berlaku?',
+        'Adakah anda mengenali orang yang terlibat dalam kejadian tersebut?',
+      ],
+      'Pemeriksaan Balas': [
+        'Anda menyatakan bahawa [X] — bukankah sebenarnya [Y]?',
+        'Boleh anda jelaskan percanggahan antara penyataan anda hari ini dengan keterangan awal anda?',
+        'Adakah mungkin anda silap mengenal pasti [orang/tempat/masa]?',
+        'Berapa jarak anda dari tempat kejadian semasa ia berlaku?',
+        'Adakah terdapat halangan penglihatan anda semasa kejadian?',
+      ],
+      'Pemeriksaan Semula': [
+        'Dalam pemeriksaan balas tadi, peguam bertanya tentang [X]. Boleh anda jelaskan semula?',
+        'Adakah jawapan anda tadi bercanggah dengan apa yang anda maksudkan?',
+        'Apakah konteks sebenar bagi penyataan yang anda buat?',
+      ],
+      'Hujahan Penutup': [
+        'Apakah fakta-fakta utama yang tidak dapat disangkal dalam kes ini?',
+        'Bagaimana keterangan saksi-saksi menyokong hujahan ini?',
+        'Apakah prinsip undang-undang yang terpakai dalam situasi ini?',
+      ],
+      'Penghakiman': [
+        'Adakah kedua-dua pihak mempunyai sebarang tambahan sebelum penghakiman dibacakan?',
+        'Mahkamah ingin menjelaskan beberapa perkara sebelum keputusan diumumkan.',
+      ],
+    },
+    redFlagKeywords: ['keterangan palsu', 'berbohong', 'suap', 'ugutan', 'intimidasi saksi', 'tutup mulut', 'beli saksi'],
+  },
+  {
     id: 'hr',
-    label: 'HR/Penyiasat',
+    label: 'Penyiasat HR',
     icon: '👔',
     color: '#6366f1',
-    frameworks: ['Siasatan Dalaman', 'Prosedur Tatatertib', 'EA 1955'],
+    interviewerLabel: 'Pegawai Penyiasat HR',
+    subjectLabel: 'Nama Pekerja',
+    sessionType: 'Inkuiri Domestik',
+    frameworks: ['Inkuiri Domestik (ID)', 'Prosedur Tatatertib', 'EA 1955'],
     phases: ['Taklimat Awal', 'Siasatan Aduan', 'Pengesahan Fakta', 'Penyata Penutup', 'Cadangan'],
     questions: {
       'Taklimat Awal': [
         'Apakah jawatan anda dan berapa lama anda bekerja di sini?',
-        'Anda menerima surat panggilan siasatan. Adakah anda memahami tujuan siasatan ini?',
+        'Anda menerima surat panggilan siasatan. Adakah anda memahami tujuan inkuiri ini?',
         'Adakah anda ingin diwakili oleh wakil kesatuan sekerja?',
       ],
       'Siasatan Aduan': [
@@ -224,4 +365,8 @@ export const PROFESSIONS = [
 
 export function getProfession(id) {
   return PROFESSIONS.find(p => p.id === id);
+}
+
+export function professionLabel(id) {
+  return PROFESSIONS.find(p => p.id === id)?.label ?? id;
 }

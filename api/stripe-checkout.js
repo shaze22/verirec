@@ -5,7 +5,6 @@ const supabaseAdmin = createClient(
   process.env.VITE_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
 );
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Map plan+annual to Stripe price IDs (set these in Stripe dashboard)
 const PRICE_IDS = {
@@ -20,6 +19,12 @@ const PRICE_IDS = {
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return res.status(500).json({ error: 'Stripe not configured' });
+  }
+
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
@@ -58,16 +63,21 @@ export default async function handler(req, res) {
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
+      automatic_payment_methods: { enabled: true },
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${process.env.VITE_APP_URL}/settings?payment=success`,
       cancel_url:  `${process.env.VITE_APP_URL}/pricing?payment=cancelled`,
       metadata: { user_id: user.id, plan },
+      subscription_data: {
+        trial_period_days: 14,
+        metadata: { user_id: user.id, plan },
+      },
     });
 
     return res.status(200).json({ url: session.url });
   } catch (err) {
     console.error('stripe-checkout error:', err);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: err.message || 'Internal server error' });
   }
 }
 

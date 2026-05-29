@@ -8,7 +8,7 @@ export function QuestionPanel({ questions = {}, phases = [], currentPhase, onPha
   return (
     <div className="flex flex-col h-full">
       <div className="p-3 border-b">
-        <p className="text-xs font-medium text-gray-500 mb-2">FASA TEMUDUGA</p>
+        <p className="text-xs font-medium text-gray-500 mb-2">FASA SESI</p>
         <div className="flex flex-wrap gap-1.5">
           {phases.map(phase => (
             <button

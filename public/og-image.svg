@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1e3a8a"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1200" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Soft glow circles -->
+  <circle cx="1080" cy="160" r="320" fill="#2563eb" opacity="0.07"/>
+  <circle cx="120" cy="510" r="220" fill="#7c3aed" opacity="0.06"/>
+
+  <!-- Top accent bar -->
+  <rect x="0" y="0" width="1200" height="6" fill="url(#accent)"/>
+
+  <!-- Logo icon -->
+  <rect x="60" y="72" width="88" height="88" rx="20" fill="#2563eb"/>
+  <polyline points="72,116 85,97 98,135 111,88 124,148 137,97 150,120 163,108 174,116"
+    stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- VeriRec wordmark -->
+  <text x="168" y="136" font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="62" font-weight="700" fill="white" letter-spacing="-1">VeriRec</text>
+
+  <!-- Horizontal divider -->
+  <rect x="60" y="192" width="540" height="2" fill="#1d4ed8" opacity="0.5"/>
+
+  <!-- Main headline -->
+  <text x="60" y="270" font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="46" font-weight="700" fill="white">Platform Rakaman Sesi Profesional</text>
+
+  <!-- Sub headline -->
+  <text x="60" y="324" font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="25" font-weight="400" fill="#94a3b8">Transkripsi AI • Laporan Automatik • PDPA Compliant</text>
+
+  <!-- Profession list -->
+  <text x="60" y="378" font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="21" font-weight="400" fill="#64748b">Kaunselor · Polis · SPRM · Doktor · HR · Mahkamah · Peguam · JKM</text>
+
+  <!-- Feature pills -->
+  <rect x="60" y="418" width="210" height="48" rx="24" fill="#1d4ed8" opacity="0.9"/>
+  <text x="165" y="448" text-anchor="middle"
+    font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="18" font-weight="600" fill="white">AI Transkripsi</text>
+
+  <rect x="286" y="418" width="242" height="48" rx="24" fill="#5b21b6" opacity="0.9"/>
+  <text x="407" y="448" text-anchor="middle"
+    font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="18" font-weight="600" fill="white">Laporan Automatik</text>
+
+  <rect x="544" y="418" width="218" height="48" rx="24" fill="#065f46" opacity="0.9"/>
+  <text x="653" y="448" text-anchor="middle"
+    font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="18" font-weight="600" fill="white">Selamat &amp; PDPA</text>
+
+  <!-- Domain pill -->
+  <rect x="60" y="532" width="278" height="44" rx="10" fill="#0f172a" opacity="0.85"/>
+  <text x="199" y="560" text-anchor="middle"
+    font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="20" font-weight="500" fill="#60a5fa">verirec.vercel.app</text>
+
+  <!-- Plan label -->
+  <rect x="356" y="532" width="110" height="44" rx="10" fill="#1d4ed8" opacity="0.7"/>
+  <text x="411" y="560" text-anchor="middle"
+    font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="18" font-weight="600" fill="white">Percuma</text>
+
+  <!-- Animated waveform illustration (right side) -->
+  <polyline points="840,240 865,280 890,195 915,320 940,158 965,348 990,142 1015,368 1040,172 1065,305 1090,225 1115,270 1140,245"
+    stroke="#3b82f6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.32"/>
+  <polyline points="855,360 880,400 905,328 930,435 955,305 980,455 1005,290 1030,468 1055,316 1080,418 1105,352 1130,395 1155,368"
+    stroke="#8b5cf6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.18"/>
+</svg>

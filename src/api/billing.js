@@ -23,8 +23,21 @@ export async function createStripeCheckout(plan, annual = false) {
   return authFetch(CONFIG.api.stripeCheckout, { plan, annual });
 }
 
-export async function createBillplzBill(plan, annual = false) {
-  return authFetch(CONFIG.api.billplzCreate, { plan, annual });
+export async function createStripePortalSession() {
+  return authFetch(CONFIG.api.stripeBilling, {});
+}
+
+export async function getStripeInvoices() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('auth_expired');
+  const res = await fetch(CONFIG.api.stripeBilling, {
+    headers: { Authorization: `Bearer ${session.access_token}` },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'failed');
+  }
+  return res.json();
 }
 
 export async function getSubscription(userId) {

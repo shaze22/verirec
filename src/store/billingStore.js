@@ -49,8 +49,20 @@ export const useBillingStore = create((set, get) => ({
     if (error) return { error: error.message };
 
     if (data?.ok) {
-      // Use server-returned value, not our local guess
       set({ subscription: { ...sub, sessions_used: data.used } });
+
+      // Fire-and-forget usage warning email at 80% threshold
+      const limit = sub.sessions_limit;
+      if (limit !== -1 && data.used / limit >= 0.8) {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session?.access_token) {
+            fetch('/api/user-notifications?type=limit-warning', {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${session.access_token}` },
+            }).catch(() => {});
+          }
+        });
+      }
     }
 
     return data;

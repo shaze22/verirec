@@ -2,9 +2,12 @@ import { CONFIG } from '../config.js';
 import { supabase } from '../lib/supabase.js';
 
 export function createWhisperClient({ onTranscript, onError, onStatus } = {}) {
-  let queue = Promise.resolve();
+  let inFlight = 0;
+  const MAX_CONCURRENT = 3;
 
   async function sendChunk(blob) {
+    if (inFlight >= MAX_CONCURRENT) return;
+    inFlight++;
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('auth_expired');
@@ -32,12 +35,14 @@ export function createWhisperClient({ onTranscript, onError, onStatus } = {}) {
     } catch (err) {
       onError?.(err);
       onStatus?.('Ralat pentranskripan');
+    } finally {
+      inFlight--;
     }
   }
 
   return {
     enqueue(blob) {
-      queue = queue.then(() => sendChunk(blob));
+      sendChunk(blob);
     },
   };
 }

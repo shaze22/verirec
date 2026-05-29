@@ -1,9 +1,15 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 
+function pickMimeType() {
+  const candidates = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'];
+  return candidates.find(t => MediaRecorder.isTypeSupported(t)) || '';
+}
+
 export function useAudioRecorder() {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [audioURL, setAudioURL] = useState(null);
+  const [audioBlob, setAudioBlob] = useState(null);
   const [level, setLevel] = useState(0);
   const [error, setError] = useState(null);
 
@@ -11,6 +17,7 @@ export function useAudioRecorder() {
   const streamRef = useRef(null);
   const chunksRef = useRef([]);
   const analyserRef = useRef(null);
+  const ctxRef = useRef(null);
   const levelTimerRef = useRef(null);
   const onChunkRef = useRef(null);
 
@@ -24,6 +31,7 @@ export function useAudioRecorder() {
 
   const start = useCallback(async ({ onChunk } = {}) => {
     setError(null);
+    setAudioBlob(null);
     onChunkRef.current = onChunk;
 
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -38,6 +46,7 @@ export function useAudioRecorder() {
       streamRef.current = stream;
 
       const ctx = new AudioContext();
+      ctxRef.current = ctx;
       const source = ctx.createMediaStreamSource(stream);
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 256;
@@ -45,7 +54,8 @@ export function useAudioRecorder() {
       analyserRef.current = analyser;
       levelTimerRef.current = setInterval(measureLevel, 50);
 
-      const mr = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+      const mimeType = pickMimeType();
+      const mr = new MediaRecorder(stream, mimeType ? { mimeType } : {});
       mediaRecorderRef.current = mr;
       chunksRef.current = [];
 
@@ -57,7 +67,8 @@ export function useAudioRecorder() {
       };
 
       mr.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        const blob = new Blob(chunksRef.current, { type: mimeType || 'audio/webm' });
+        setAudioBlob(blob);
         setAudioURL(URL.createObjectURL(blob));
       };
 
@@ -92,6 +103,8 @@ export function useAudioRecorder() {
       mediaRecorderRef.current.stop();
     }
     streamRef.current?.getTracks().forEach(t => t.stop());
+    ctxRef.current?.close();
+    ctxRef.current = null;
     setIsRecording(false);
     setIsPaused(false);
   }, []);
@@ -100,8 +113,9 @@ export function useAudioRecorder() {
     return () => {
       clearInterval(levelTimerRef.current);
       streamRef.current?.getTracks().forEach(t => t.stop());
+      ctxRef.current?.close();
     };
   }, []);
 
-  return { start, pause, resume, stop, audioURL, level, isRecording, isPaused, error };
+  return { start, pause, resume, stop, audioURL, audioBlob, level, isRecording, isPaused, error };
 }

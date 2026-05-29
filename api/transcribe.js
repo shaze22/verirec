@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import Busboy from 'busboy';
+import { checkRateLimit } from './_rateLimit.js';
 
 const supabaseAdmin = createClient(
   process.env.VITE_SUPABASE_URL,
@@ -41,6 +42,11 @@ export default async function handler(req, res) {
 
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     if (authError || !user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const rl = await checkRateLimit(user.id, 'transcribe');
+    if (!rl.ok) {
+      return res.status(429).json({ error: 'Terlalu banyak permintaan. Cuba lagi sebentar.' });
+    }
 
     const { audioBuffer, audioMime } = await parseMultipart(req);
     if (!audioBuffer || audioBuffer.length === 0) {

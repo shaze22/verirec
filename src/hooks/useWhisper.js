@@ -44,7 +44,7 @@ export function useWhisper() {
   const addChunk = useCallback((chunk) => {
     chunksRef.current.push(chunk);
     if (!flushTimerRef.current) {
-      flushTimerRef.current = setInterval(flush, 25000);
+      flushTimerRef.current = setInterval(flush, 2000);
     }
   }, [flush]);
 

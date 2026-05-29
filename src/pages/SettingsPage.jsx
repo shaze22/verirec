@@ -1,15 +1,40 @@
-import { useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore.js';
 import { useBillingStore } from '../store/billingStore.js';
+import { supabase } from '../lib/supabase.js';
+import { getSessions } from '../api/sessions.js';
+import { logEvent } from '../api/auditLog.js';
 import { TopBar } from '../components/layout/TopBar.jsx';
+import { Button } from '../components/ui/Button.jsx';
+import { Modal } from '../components/ui/Modal.jsx';
 import { BillingSettings } from '../components/billing/BillingSettings.jsx';
 import toast from 'react-hot-toast';
 
 export default function SettingsPage() {
-  const { user } = useAuthStore();
+  const { user, signOut } = useAuthStore();
   const { fetchSubscription } = useBillingStore();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const [pwForm, setPwForm] = useState({ newPassword: '', confirm: '' });
+  const [pwLoading, setPwLoading] = useState(false);
+
+  // 2FA state
+  const [mfaFactors, setMfaFactors] = useState([]);
+  const [mfaLoading, setMfaLoading] = useState(true);
+  const [enrollData, setEnrollData] = useState(null);
+  const [enrollCode, setEnrollCode] = useState('');
+  const [enrollVerifying, setEnrollVerifying] = useState(false);
+  const [unenrolling, setUnenrolling] = useState(false);
+
+  const [exportLoading, setExportLoading] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [retentionDays, setRetentionDays] = useState(() => localStorage.getItem('retention_days') || '');
+  const [referralCount, setReferralCount] = useState(null);
+  const referralCode = user?.id?.replace(/-/g, '').slice(0, 10);
 
   useEffect(() => {
     const payment = searchParams.get('payment');
@@ -21,11 +46,159 @@ export default function SettingsPage() {
     }
   }, []);
 
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('referrals')
+      .select('id', { count: 'exact', head: true })
+      .eq('referrer_id', user.id)
+      .eq('status', 'completed')
+      .then(({ count }) => setReferralCount(count || 0))
+      .catch(() => {});
+  }, [user]);
+
+  useEffect(() => {
+    supabase.auth.mfa.listFactors()
+      .then(({ data }) => setMfaFactors(data?.totp || []))
+      .catch(() => {})
+      .finally(() => setMfaLoading(false));
+  }, []);
+
+  const handleMfaEnroll = async () => {
+    try {
+      const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp', issuer: 'VeriRec', friendlyName: 'VeriRec Authenticator' });
+      if (error) throw error;
+      setEnrollData(data);
+      setEnrollCode('');
+    } catch (err) {
+      toast.error(err.message || 'Gagal memulakan pendaftaran 2FA.');
+    }
+  };
+
+  const handleMfaVerify = async (e) => {
+    e.preventDefault();
+    if (!enrollCode || !enrollData) return;
+    setEnrollVerifying(true);
+    try {
+      const { data: challenge, error: ce } = await supabase.auth.mfa.challenge({ factorId: enrollData.id });
+      if (ce) throw ce;
+      const { error: ve } = await supabase.auth.mfa.verify({ factorId: enrollData.id, challengeId: challenge.id, code: enrollCode });
+      if (ve) throw ve;
+      setMfaFactors([{ id: enrollData.id, factor_type: 'totp', status: 'verified', friendly_name: 'VeriRec Authenticator' }]);
+      setEnrollData(null);
+      setEnrollCode('');
+      toast.success('Pengesahan dua faktor (2FA) berjaya diaktifkan!');
+      logEvent(user.id, 'mfa.enroll');
+    } catch (err) {
+      toast.error(err.message?.includes('Invalid') ? 'Kod tidak sah. Cuba lagi.' : (err.message || 'Pengesahan gagal.'));
+    } finally {
+      setEnrollVerifying(false);
+    }
+  };
+
+  const handleMfaUnenroll = async (factorId) => {
+    if (!window.confirm('Nyahaktifkan 2FA? Akaun anda hanya akan dilindungi oleh kata laluan sahaja.')) return;
+    setUnenrolling(true);
+    try {
+      const { error } = await supabase.auth.mfa.unenroll({ factorId });
+      if (error) throw error;
+      setMfaFactors([]);
+      toast.success('2FA berjaya dinyahaktifkan.');
+      logEvent(user.id, 'mfa.unenroll');
+    } catch (err) {
+      toast.error(err.message || 'Gagal menyahaktifkan 2FA.');
+    } finally {
+      setUnenrolling(false);
+    }
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    if (pwForm.newPassword !== pwForm.confirm) {
+      toast.error('Kata laluan baharu tidak sepadan.');
+      return;
+    }
+    if (pwForm.newPassword.length < 8) {
+      toast.error('Kata laluan mesti sekurang-kurangnya 8 aksara.');
+      return;
+    }
+    setPwLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: pwForm.newPassword });
+      if (error) throw error;
+      toast.success('Kata laluan berjaya dikemas kini.');
+      setPwForm({ newPassword: '', confirm: '' });
+    } catch (err) {
+      toast.error(err.message || 'Gagal mengemas kini kata laluan.');
+    } finally {
+      setPwLoading(false);
+    }
+  };
+
+  const handleExportData = async () => {
+    setExportLoading(true);
+    try {
+      const sessions = await getSessions(user.id);
+      const exportData = {
+        exported_at: new Date().toISOString(),
+        user: { id: user.id, email: user.email, created_at: user.created_at },
+        sessions,
+      };
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `verirec-data-export-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Data berjaya dieksport.');
+    } catch {
+      toast.error('Gagal mengeksport data.');
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirm !== user?.email) {
+      toast.error('E-mel tidak sepadan.');
+      return;
+    }
+    setDeleteModal(true);
+  };
+
+  const confirmDeleteAccount = async () => {
+    setDeleteLoading(true);
+    try {
+      await supabase.from('sessions').delete().eq('user_id', user.id);
+      await supabase.from('subscriptions').delete().eq('user_id', user.id);
+      await signOut();
+      toast.success('Semua data anda telah dipadam.');
+      navigate('/');
+    } catch {
+      toast.error('Gagal memadamkan data. Hubungi sokongan di hello@verirec.my.');
+      setDeleteModal(false);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const handleRetentionSave = () => {
+    if (retentionDays) {
+      localStorage.setItem('retention_days', retentionDays);
+      toast.success(`Tetapan pengekalan data dikemas kini: ${retentionDays} hari.`);
+    } else {
+      localStorage.removeItem('retention_days');
+      toast.success('Pengekalan data: Simpan selama-lamanya.');
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen">
       <TopBar title="Tetapan" />
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-auto p-6 pb-20 md:pb-6">
         <div className="max-w-2xl mx-auto space-y-8">
+
+          {/* Profil Akaun */}
           <section className="bg-white rounded-xl border p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Profil Akaun</h2>
             <div className="space-y-2 text-sm">
@@ -44,12 +217,263 @@ export default function SettingsPage() {
             </div>
           </section>
 
+          {/* Tukar Kata Laluan */}
+          <section className="bg-white rounded-xl border p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Tukar Kata Laluan</h2>
+            <form onSubmit={handlePasswordChange} className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Kata Laluan Baharu</label>
+                <input
+                  type="password"
+                  value={pwForm.newPassword}
+                  onChange={e => setPwForm(p => ({ ...p, newPassword: e.target.value }))}
+                  placeholder="Sekurang-kurangnya 8 aksara"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Sahkan Kata Laluan Baharu</label>
+                <input
+                  type="password"
+                  value={pwForm.confirm}
+                  onChange={e => setPwForm(p => ({ ...p, confirm: e.target.value }))}
+                  placeholder="Masukkan semula kata laluan baharu"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <Button type="submit" loading={pwLoading} variant="secondary">Kemas Kini Kata Laluan</Button>
+            </form>
+          </section>
+
+          {/* Pengesahan Dua Faktor */}
+          <section className="bg-white rounded-xl border p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">Pengesahan Dua Faktor (2FA)</h2>
+            <p className="text-sm text-gray-500 mb-4">Tambah lapisan keselamatan tambahan menggunakan aplikasi pengesah seperti Google Authenticator atau Authy.</p>
+
+            {mfaLoading ? (
+              <div className="h-10 bg-gray-100 rounded-lg animate-pulse" />
+            ) : mfaFactors.length > 0 ? (
+              <div className="space-y-3">
+                {mfaFactors.map(f => (
+                  <div key={f.id} className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-green-900">{f.friendly_name || 'Authenticator App'}</p>
+                        <p className="text-xs text-green-700">Aktif · TOTP</p>
+                      </div>
+                    </div>
+                    <Button variant="danger" size="sm" onClick={() => handleMfaUnenroll(f.id)} loading={unenrolling}>
+                      Nyahaktifkan
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : enrollData ? (
+              <div className="space-y-4">
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                  <p className="text-sm font-medium text-blue-900 mb-3">1. Imbas kod QR ini dengan aplikasi pengesah anda:</p>
+                  <div
+                    className="flex justify-center mb-3 bg-white p-3 rounded-xl border"
+                    dangerouslySetInnerHTML={{ __html: enrollData.totp.qr_code }}
+                  />
+                  <p className="text-xs text-blue-700 mb-1">Atau masukkan kod manual:</p>
+                  <p className="font-mono text-sm text-blue-900 bg-white border rounded px-3 py-2 text-center tracking-widest select-all">
+                    {enrollData.totp.secret}
+                  </p>
+                </div>
+                <form onSubmit={handleMfaVerify} className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">2. Masukkan kod 6-digit dari aplikasi untuk mengesahkan:</label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={enrollCode}
+                      onChange={e => setEnrollCode(e.target.value.replace(/\D/g, ''))}
+                      placeholder="000000"
+                      className="w-full text-center text-2xl tracking-widest px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      autoFocus
+                    />
+                  </div>
+                  <div className="flex gap-3">
+                    <Button type="button" variant="secondary" onClick={() => setEnrollData(null)}>Batal</Button>
+                    <Button type="submit" className="flex-1" loading={enrollVerifying} disabled={enrollCode.length !== 6}>
+                      Aktifkan 2FA
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            ) : (
+              <Button onClick={handleMfaEnroll}>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                Aktifkan 2FA
+              </Button>
+            )}
+          </section>
+
+          {/* Langganan & Penggunaan */}
           <section className="bg-white rounded-xl border p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Langganan & Penggunaan</h2>
             <BillingSettings />
           </section>
+
+          {/* PDPA — Eksport & Privasi */}
+          <section className="bg-white rounded-xl border p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">Privasi & Data (PDPA 2010)</h2>
+            <p className="text-sm text-gray-500 mb-5">Anda mempunyai hak untuk mengakses, mengeksport, atau memadamkan data peribadi anda di bawah Akta Perlindungan Data Peribadi 2010.</p>
+
+            <div className="space-y-4">
+              {/* Eksport */}
+              <div className="flex items-start justify-between gap-4 p-4 bg-blue-50 rounded-xl">
+                <div>
+                  <p className="font-medium text-sm text-gray-900">Eksport Semua Data Saya</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Muat turun semua sesi, laporan, dan maklumat akaun dalam format JSON.</p>
+                </div>
+                <Button variant="outline" size="sm" loading={exportLoading} onClick={handleExportData}>
+                  Eksport JSON
+                </Button>
+              </div>
+
+              {/* Pengekalan Data */}
+              <div className="p-4 bg-gray-50 rounded-xl">
+                <p className="font-medium text-sm text-gray-900 mb-1">Tetapan Pengekalan Data</p>
+                <p className="text-xs text-gray-500 mb-3">Sesi yang lebih lama daripada tempoh yang ditetapkan akan diberi peringatan untuk dipadam.</p>
+                <div className="flex items-center gap-3">
+                  <select
+                    value={retentionDays}
+                    onChange={e => setRetentionDays(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Simpan selama-lamanya</option>
+                    <option value="90">90 hari</option>
+                    <option value="180">180 hari (6 bulan)</option>
+                    <option value="365">365 hari (1 tahun)</option>
+                    <option value="730">730 hari (2 tahun)</option>
+                  </select>
+                  <Button variant="secondary" size="sm" onClick={handleRetentionSave}>Simpan</Button>
+                </div>
+              </div>
+
+              {/* Penarikan Kebenaran */}
+              <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl">
+                <p className="font-medium text-sm text-amber-900 mb-1">Penarikan Semula Kebenaran</p>
+                <p className="text-xs text-amber-700 mb-3">
+                  Untuk menarik balik kebenaran pemprosesan data tertentu, hubungi kami di{' '}
+                  <a href="mailto:privacy@verirec.my" className="underline">privacy@verirec.my</a>.
+                  Rekod persetujuan sesi tidak boleh dipadam kerana keperluan audit PDPA.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Program Rujukan */}
+          <section className="bg-white rounded-xl border p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">Program Rujukan</h2>
+            <p className="text-sm text-gray-500 mb-5">Kongsi VeriRec dengan rakan sejawat. Setiap pendaftaran melalui pautan anda dikira sebagai rujukan.</p>
+            <div className="space-y-4">
+              <div className="bg-blue-50 rounded-xl p-4">
+                <p className="text-xs font-medium text-gray-500 mb-2">Pautan Rujukan Anda</p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 text-xs bg-white border border-blue-200 rounded-lg px-3 py-2 text-blue-800 truncate">
+                    {window.location.origin}/auth?ref={referralCode}
+                  </code>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/auth?ref=${referralCode}`)
+                        .then(() => toast.success('Pautan disalin!'))
+                        .catch(() => toast.error('Gagal menyalin.'));
+                    }}
+                    className="px-3 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors flex-shrink-0"
+                  >
+                    Salin
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Rujukan Berjaya</p>
+                  <p className="text-xs text-gray-500">Pengguna yang mendaftar melalui pautan anda</p>
+                </div>
+                <span className="text-2xl font-bold text-blue-600">
+                  {referralCount === null ? '—' : referralCount}
+                </span>
+              </div>
+            </div>
+          </section>
+
+          {/* Padam Akaun */}
+          <section className="bg-white rounded-xl border border-red-200 p-6">
+            <h2 className="text-lg font-semibold text-red-700 mb-1">Padam Akaun</h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Tindakan ini akan memadamkan semua sesi, laporan, dan data peribadi anda secara kekal. Tindakan ini tidak boleh dibatalkan.
+            </p>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Taip e-mel anda untuk mengesahkan: <span className="font-mono text-gray-400">{user?.email}</span>
+                </label>
+                <input
+                  type="email"
+                  value={deleteConfirm}
+                  onChange={e => setDeleteConfirm(e.target.value)}
+                  placeholder="Masukkan e-mel anda"
+                  className="w-full px-3 py-2 border border-red-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+              </div>
+              <Button
+                variant="danger"
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirm !== user?.email}
+              >
+                Padam Semua Data & Akaun
+              </Button>
+            </div>
+          </section>
+
         </div>
       </div>
+
+      {/* Delete confirmation Modal */}
+      <Modal
+        open={deleteModal}
+        onClose={() => !deleteLoading && setDeleteModal(false)}
+        title="Pengesahan Akhir"
+        footer={
+          <div className="flex gap-3 justify-end">
+            <Button variant="secondary" onClick={() => setDeleteModal(false)} disabled={deleteLoading}>
+              Batal
+            </Button>
+            <Button variant="danger" onClick={confirmDeleteAccount} loading={deleteLoading}>
+              Ya, Padam Semua Data
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 p-4 bg-red-50 rounded-xl border border-red-100">
+            <svg className="w-6 h-6 text-red-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <div>
+              <p className="text-sm font-semibold text-red-800">Tindakan ini tidak boleh dibatalkan</p>
+              <p className="text-xs text-red-600 mt-0.5">Semua sesi, laporan, transkrip, dan data peribadi anda akan dipadam selama-lamanya.</p>
+            </div>
+          </div>
+          <p className="text-sm text-gray-600">
+            Akaun yang akan dipadam: <strong className="text-gray-900">{user?.email}</strong>
+          </p>
+          <p className="text-xs text-gray-400">Rekod persetujuan PDPA akan dikekalkan selama 7 tahun mengikut keperluan audit undang-undang.</p>
+        </div>
+      </Modal>
     </div>
   );
 }

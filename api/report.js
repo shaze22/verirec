@@ -1,12 +1,98 @@
 import { createClient } from '@supabase/supabase-js';
 import Anthropic from '@anthropic-ai/sdk';
 import crypto from 'crypto';
+import { checkRateLimit } from './_rateLimit.js';
+import { sendEmail, reportReadyEmail } from './_mailer.js';
 
 const supabaseAdmin = createClient(
   process.env.VITE_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
 );
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+const MAX_BODY_BYTES = 3 * 1024 * 1024;
+
+async function callClaudeWithRetry(params, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await anthropic.messages.create(params);
+    } catch (err) {
+      if (err.status === 529 && i < retries - 1) {
+        await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+        continue;
+      }
+      throw err;
+    }
+  }
+}
+
+function professionPromptExtra(profession) {
+  switch (profession) {
+    case 'doctor':
+      return `
+Tambah medan "soapNote" dalam JSON:
+{
+  "soapNote": {
+    "subjective": "aduan pesakit dalam kata-katanya sendiri",
+    "objective": "penemuan klinikal yang boleh diperhatikan/diukur",
+    "assessment": "penilaian dan diagnosis klinikal",
+    "plan": "rancangan rawatan dan susulan"
+  }
+}`;
+
+    case 'iso':
+      return `
+Tambah medan "ncrReport" dalam JSON:
+{
+  "ncrReport": {
+    "nonconformance": "penerangan ketidakpatuhan yang ditemui",
+    "isoClause": "klausa ISO yang berkaitan (cth. Klausa 8.4.1)",
+    "rootCause": "punca akar yang dikenalpasti",
+    "correctiveAction": "tindakan pembetulan yang dicadangkan",
+    "targetDate": "tarikh sasaran penyelesaian"
+  }
+}`;
+
+    case 'hr':
+      return `
+Tambah medan "dcpReport" dalam JSON (ID = Inkuiri Domestik berdasarkan EA 1955):
+{
+  "dcpReport": {
+    "allegation": "tuduhan atau aduan yang disiasat dalam inkuiri domestik",
+    "findings": "penemuan siasatan berdasarkan transkrip",
+    "recommendation": "cadangan tindakan",
+    "proposedPenalty": "hukuman yang dicadangkan berdasarkan EA 1955 / IRA 1967 jika berkenaan"
+  }
+}`;
+
+    case 'police':
+    case 'sprm':
+      return `
+Tambah medan "statementSummary" dalam JSON:
+{
+  "statementSummary": {
+    "keyFacts": ["fakta utama 1", "fakta utama 2"],
+    "inconsistencies": ["ketidakkonsistenan yang dikenal pasti jika ada"],
+    "evidenceNotes": "nota berkaitan bukti atau dokumen yang disebutkan"
+  }
+}`;
+
+    case 'counselor':
+      return `
+Tambah medan "crisisIndicators" dalam JSON:
+{
+  "crisisIndicators": {
+    "detected": true/false,
+    "level": "none|watch|critical",
+    "resources": ["Talian Kasih 15999", "MIASA 03-2780 6803", "Befrienders KL 03-7627 2929"]
+  }
+}
+Tetapkan "detected": true jika ada tanda-tanda risiko diri, keganasan, atau krisis psikologi.`;
+
+    default:
+      return '';
+  }
+}
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -19,35 +105,56 @@ export default async function handler(req, res) {
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     if (authError || !user) return res.status(401).json({ error: 'Unauthorized' });
 
-    const body = await readBody(req);
-    const { session_id, transcript, flags, session_info } = body;
+    const rl = await checkRateLimit(user.id, 'report');
+    if (!rl.ok) {
+      return res.status(429).json({ error: 'Terlalu banyak permintaan. Cuba lagi sebentar.' });
+    }
 
+    let body;
+    try {
+      body = await readBody(req, MAX_BODY_BYTES);
+    } catch (err) {
+      return res.status(413).json({ error: err.message });
+    }
+
+    const { session_id, transcript, flags, session_info } = body;
     if (!session_id || !transcript) return res.status(400).json({ error: 'Missing required fields' });
 
     const { data: session, error: sessionError } = await supabaseAdmin
       .from('sessions')
-      .select('id, user_id')
+      .select('id, user_id, report, hash')
       .eq('id', session_id)
       .eq('user_id', user.id)
       .single();
 
     if (sessionError || !session) return res.status(403).json({ error: 'Forbidden' });
 
+    if (session.report) {
+      return res.status(200).json({ report: session.report, hash: session.hash });
+    }
+
+    const profession = session_info?.profession || 'umum';
     const transcriptText = transcript
       .filter(e => e.type === 'TRANSCRIPT')
+      .slice(0, 300)
       .map(e => `[${e.speaker || 'Tidak diketahui'}]: ${e.text}`)
       .join('\n');
 
-    const message = await anthropic.messages.create({
+    const extraPrompt = professionPromptExtra(profession);
+
+    const message = await callClaudeWithRetry({
       model: 'claude-opus-4-7',
-      max_tokens: 2048,
+      max_tokens: 3000,
       messages: [{
         role: 'user',
-        content: `Anda adalah penganalisis temuduga profesional untuk ${session_info?.profession || 'umum'} Malaysia.
+        content: `Anda adalah penganalisis sesi profesional untuk ${profession} Malaysia.
 
 Maklumat sesi:
-- Penemuduga: ${session_info?.interviewer || 'Tidak diketahui'}
+- Profesion: ${profession}
+- Pengendali sesi: ${session_info?.interviewer || 'Tidak diketahui'}
 - Subjek: ${session_info?.subject_name || 'Tidak diketahui'} (${session_info?.subject_role || ''})
+- No. Kes: ${session_info?.case_number || 'Tiada'}
+- Pegawai Saksi: ${session_info?.witness_officer || 'Tiada'}
 - Konteks: ${session_info?.context_notes || 'Tiada'}
 - Tempoh: ${Math.round((session_info?.duration || 0) / 60)} minit
 
@@ -57,7 +164,7 @@ ${transcriptText}
 Bendera yang ditanda:
 ${flags?.map(f => `- ${f.text}`).join('\n') || '(tiada)'}
 
-Balas dalam JSON sahaja:
+Balas dalam JSON sahaja dengan medan berikut:
 {
   "summary": "ringkasan eksekutif 2-3 ayat",
   "keyFindings": ["penemuan 1", "penemuan 2", "penemuan 3"],
@@ -68,10 +175,12 @@ Balas dalam JSON sahaja:
   "recommendations": ["cadangan 1", "cadangan 2"],
   "redFlags": ["bendera merah jika ada"],
   "followUpRequired": true,
-  "followUpReason": "sebab susulan diperlukan jika ada"
+  "followUpReason": "sebab susulan diperlukan jika ada",
+  "followUpItems": ["tindakan susulan spesifik 1", "tindakan susulan spesifik 2"]
 }
+${extraPrompt}
 
-Semua teks dalam Bahasa Malaysia.`
+Semua teks dalam Bahasa Malaysia. Jika sesuatu medan tidak berkaitan atau tiada maklumat, kembalikan array kosong atau null.`
       }]
     });
 
@@ -79,10 +188,14 @@ Semua teks dalam Bahasa Malaysia.`
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return res.status(500).json({ error: 'Invalid AI response' });
 
-    const report = JSON.parse(jsonMatch[0]);
-    const timestamp = new Date().toISOString();
+    let report;
+    try {
+      report = JSON.parse(jsonMatch[0]);
+    } catch {
+      return res.status(500).json({ error: 'Malformed AI response — could not parse JSON' });
+    }
 
-    const hashPayload = JSON.stringify({ report, transcript, session_id, timestamp });
+    const hashPayload = JSON.stringify({ report, transcript, session_id });
     const hash = crypto.createHash('sha256').update(hashPayload).digest('hex');
 
     await supabaseAdmin
@@ -90,17 +203,30 @@ Semua teks dalam Bahasa Malaysia.`
       .update({ report, hash, updated_at: new Date().toISOString() })
       .eq('id', session_id);
 
-    return res.status(200).json({ report, hash, timestamp });
+    // Fire-and-forget: notify user that report is ready
+    const { subject, html } = reportReadyEmail(session_info?.title, session_id);
+    sendEmail({ to: user.email, subject, html }).catch(() => {});
+
+    return res.status(200).json({ report, hash });
   } catch (err) {
     console.error('report error:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
 
-function readBody(req) {
+function readBody(req, maxBytes) {
   return new Promise((resolve, reject) => {
     let data = '';
-    req.on('data', chunk => { data += chunk; });
+    let size = 0;
+    req.on('data', chunk => {
+      size += chunk.length;
+      if (size > maxBytes) {
+        req.destroy();
+        reject(new Error('Request body too large'));
+        return;
+      }
+      data += chunk;
+    });
     req.on('end', () => {
       try { resolve(JSON.parse(data)); } catch { reject(new Error('Invalid JSON')); }
     });

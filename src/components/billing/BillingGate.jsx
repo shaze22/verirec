@@ -17,7 +17,7 @@ export function BillingGate({ plan, children, sessionCheck = false }) {
   const requiredLevel = planOrder[plan] || 0;
   const hasPlan = currentLevel >= requiredLevel;
   const hasSessionsLeft = !sessionCheck || subscription?.sessions_limit === -1 ||
-    (subscription?.sessions_used ?? 0) < (subscription?.sessions_limit ?? 3);
+    (subscription?.sessions_used ?? 0) < (subscription?.sessions_limit ?? 2);
 
   if (hasPlan && hasSessionsLeft) return <>{children}</>;
 

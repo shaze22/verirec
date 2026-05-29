@@ -16,13 +16,13 @@ const TYPE_BG = {
   SYSTEM: 'bg-gray-50',
 };
 
-export function TranscriptPanel({ entries = [], onExport }) {
+export function TranscriptPanel({ entries = [], interim = '' }) {
   const [search, setSearch] = useState('');
   const bottomRef = useRef(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [entries.length]);
+  }, [entries.length, interim]);
 
   const filtered = search
     ? entries.filter(e => e.text?.toLowerCase().includes(search.toLowerCase()))
@@ -82,6 +82,16 @@ export function TranscriptPanel({ entries = [], onExport }) {
             </p>
           </div>
         ))}
+        {/* Interim text — live preview while speaking */}
+        {interim && (
+          <div className="p-3 rounded-xl text-sm bg-blue-600 shadow-sm">
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="w-2 h-2 bg-white rounded-full animate-pulse inline-block" />
+              <span className="text-xs text-blue-100 font-medium">Sedang ditranskrip...</span>
+            </div>
+            <p className="leading-relaxed text-white font-medium">{interim}</p>
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
     </div>

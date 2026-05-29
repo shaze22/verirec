@@ -1,10 +1,54 @@
 <!doctype html>
-<html lang="en">
+<html lang="ms">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>VeriRec — Platform Rakaman Temuduga Profesional</title>
+    <meta name="description" content="Platform rakaman dan analitik temuduga profesional untuk kaunselor, polis, SPRM, doktor, HR, dan ISO auditor Malaysia." />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
+
+    <!-- PWA -->
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="VeriRec" />
+    <meta name="application-name" content="VeriRec" />
+
+    <!-- Open Graph (for sharing) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://verirec.vercel.app" />
+    <meta property="og:title" content="VeriRec — Platform Rakaman Sesi Profesional Malaysia" />
+    <meta property="og:description" content="Rakam, transkrip, dan analisis sesi secara automatik. Untuk Kaunselor, Polis, SPRM, Doktor, HR, dan Mahkamah." />
+    <meta property="og:image" content="https://verirec.vercel.app/og-image.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="ms_MY" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="VeriRec — Platform Rakaman Sesi Profesional" />
+    <meta name="twitter:description" content="Rakam, transkrip, dan analisis sesi secara automatik." />
+    <meta name="twitter:image" content="https://verirec.vercel.app/og-image.svg" />
+
+    <!-- Google Analytics (loaded only when VITE_GA_ID is set at build time) -->
+    <script>window.__GA_ID__='%VITE_GA_ID%';</script>
+    <script>
+      if(window.__GA_ID__ && window.__GA_ID__ !== '%VITE_GA_ID%' && window.__GA_ID__.startsWith('G-')) {
+        var s=document.createElement('script');
+        s.async=true;
+        s.src='https://www.googletagmanager.com/gtag/js?id='+window.__GA_ID__;
+        document.head.appendChild(s);
+        window.dataLayer=window.dataLayer||[];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js',new Date());
+        gtag('config',window.__GA_ID__,{send_page_view:false});
+        window.gtag=gtag;
+      }
+    </script>
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />

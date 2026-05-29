@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /session/
+Disallow: /settings
+Disallow: /analytics
+Disallow: /subjects
+Disallow: /cases
+Disallow: /audit
+Disallow: /team
+
+Sitemap: https://verirec.vercel.app/sitemap.xml

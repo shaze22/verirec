@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VeriRec — Investor Pitch 2026</title>
+<style>
+  :root {
+    --blue: #2563eb; --blue-light: #3b82f6; --blue-dark: #1d4ed8;
+    --navy: #0f172a; --navy2: #1e293b; --white: #ffffff;
+    --gray: #94a3b8; --green: #10b981; --amber: #f59e0b; --red: #ef4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--navy); color: var(--white); line-height: 1.6; }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 48px;
+    background: rgba(15,23,42,0.92); backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; }
+  .nav-logo svg { width: 30px; height: 30px; }
+  .nav-logo span { font-size: 17px; font-weight: 700; letter-spacing: -0.5px; }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .nav-pill { font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px; }
+  .nav-pill.blue { background: var(--blue); color: white; }
+  .nav-pill.outline { border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.5); }
+
+  /* SLIDES */
+  .slide {
+    min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
+    padding: 100px 80px 80px; position: relative; overflow: hidden;
+  }
+  .slide-inner { max-width: 1100px; margin: 0 auto; width: 100%; }
+  .slide-num { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--blue-light); text-transform: uppercase; margin-bottom: 18px; }
+  h1 { font-size: clamp(36px, 5vw, 62px); font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; }
+  h2 { font-size: clamp(26px, 3.5vw, 42px); font-weight: 700; line-height: 1.2; letter-spacing: -1px; }
+  h3 { font-size: 18px; font-weight: 600; }
+  p { color: rgba(255,255,255,0.65); font-size: 16px; }
+  .hi { color: var(--blue-light); }
+  .gi { color: var(--green); }
+  .card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 26px; }
+  .tag { font-size: 12px; font-weight: 600; padding: 5px 14px; border-radius: 20px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.55); }
+  .divider { height: 1px; background: rgba(255,255,255,0.06); margin: 32px 0; }
+
+  /* COVER */
+  #cover {
+    background: radial-gradient(ellipse at 65% 50%, rgba(37,99,235,0.22) 0%, transparent 65%),
+                radial-gradient(ellipse at 10% 80%, rgba(16,185,129,0.08) 0%, transparent 50%), var(--navy);
+    text-align: center; align-items: center;
+  }
+  #cover h1 span { background: linear-gradient(135deg, var(--blue-light), var(--green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  #cover .sub { font-size: 19px; color: rgba(255,255,255,0.5); max-width: 620px; margin: 16px auto 36px; }
+  #cover .tags { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  #cover .note { margin-top: 60px; font-size: 12px; color: rgba(255,255,255,0.2); }
+
+  /* PROBLEM */
+  #problem { background: var(--navy); }
+  .prob-list { margin-top: 40px; display: flex; flex-direction: column; gap: 18px; }
+  .prob-item { display: flex; align-items: flex-start; gap: 20px; padding: 22px 26px; border-radius: 14px; background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.14); }
+  .prob-n { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.25); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; color: #fca5a5; }
+  .prob-item h3 { color: #fca5a5; margin-bottom: 4px; font-size: 16px; }
+  .prob-item p { font-size: 14px; }
+
+  /* SOLUTION */
+  #solution { background: radial-gradient(ellipse at 80% 30%, rgba(37,99,235,0.18), transparent 60%), var(--navy); }
+  .feat-grid { margin-top: 36px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .feat { padding: 22px; border-radius: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); display: flex; gap: 14px; align-items: flex-start; }
+  .feat-icon { width: 42px; height: 42px; flex-shrink: 0; border-radius: 10px; background: linear-gradient(135deg, var(--blue), var(--blue-dark)); display: flex; align-items: center; justify-content: center; }
+  .feat-icon svg { width: 20px; height: 20px; }
+  .feat h3 { font-size: 15px; margin-bottom: 4px; }
+  .feat p { font-size: 13px; }
+
+  /* WHY NOW */
+  #whynow { background: var(--navy2); }
+  .why-grid { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  .why-card { padding: 28px; border-radius: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+  .why-icon { font-size: 36px; margin-bottom: 16px; }
+  .why-card h3 { font-size: 17px; margin-bottom: 10px; }
+  .why-card p { font-size: 14px; }
+  .why-stat { display: inline-block; margin-top: 12px; font-size: 13px; font-weight: 700; padding: 4px 12px; border-radius: 8px; }
+
+  /* MARKET */
+  #market { background: var(--navy); }
+  .tam-stack { margin-top: 36px; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 32px; align-items: start; }
+  .tam-bars { display: flex; flex-direction: column; gap: 16px; }
+  .tam-row { display: flex; align-items: center; gap: 16px; }
+  .tam-label { width: 50px; font-size: 12px; font-weight: 700; color: var(--gray); }
+  .tam-track { flex: 1; height: 52px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; position: relative; }
+  .tam-fill { height: 100%; border-radius: 10px; display: flex; align-items: center; padding: 0 16px; }
+  .tam-fill.t1 { background: linear-gradient(90deg, rgba(37,99,235,0.6), rgba(37,99,235,0.3)); width: 100%; }
+  .tam-fill.t2 { background: linear-gradient(90deg, rgba(37,99,235,0.8), rgba(59,130,246,0.5)); width: 58%; }
+  .tam-fill.t3 { background: linear-gradient(90deg, var(--blue), var(--blue-light)); width: 16%; }
+  .tam-fill-text { font-size: 13px; font-weight: 700; white-space: nowrap; }
+  .tam-fill-sub { font-size: 11px; color: rgba(255,255,255,0.6); white-space: nowrap; margin-left: 8px; }
+  .seg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .seg { padding: 16px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+  .seg-n { font-size: 24px; font-weight: 800; color: var(--blue-light); }
+  .seg-name { font-size: 13px; font-weight: 600; margin-top: 2px; }
+  .seg-lbl { font-size: 11px; color: var(--gray); margin-top: 2px; }
+  .tam-note { margin-top: 12px; font-size: 12px; color: var(--gray); padding: 12px 16px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); line-height: 1.7; }
+
+  /* PRODUCT */
+  #product { background: var(--navy2); }
+  .demo-wrap { margin-top: 32px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; overflow: hidden; }
+  .demo-bar { background: rgba(255,255,255,0.05); padding: 10px 18px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .demo-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .demo-body { display: grid; grid-template-columns: 1fr 1fr; }
+  .demo-col { padding: 24px; }
+  .demo-col:first-child { border-right: 1px solid rgba(255,255,255,0.06); }
+  .demo-lbl { font-size: 10px; font-weight: 700; letter-spacing: 2px; color: var(--gray); text-transform: uppercase; margin-bottom: 12px; }
+  .t-line { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 8px; background: rgba(255,255,255,0.04); font-size: 13px; margin-bottom: 8px; }
+  .t-sp { font-weight: 700; color: var(--blue-light); white-space: nowrap; font-size: 11px; min-width: 56px; }
+  .t-tx { color: rgba(255,255,255,0.7); line-height: 1.5; }
+  .r-block { padding: 12px 14px; border-radius: 10px; margin-bottom: 8px; }
+  .r-block.green { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); }
+  .r-block.red { background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.18); }
+  .r-block.blue { background: rgba(37,99,235,0.08); border: 1px solid rgba(37,99,235,0.2); }
+  .r-lbl { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px; }
+  .r-block.green .r-lbl { color: var(--green); }
+  .r-block.red .r-lbl { color: #fca5a5; }
+  .r-block.blue .r-lbl { color: var(--blue-light); }
+  .r-block p { font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.5; }
+  .rec-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; color: #fca5a5; margin-left: auto; }
+  .rec-dot { width: 7px; height: 7px; border-radius: 50%; background: #ef4444; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .hash-badge { font-family: monospace; font-size: 11px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09); padding: 8px 12px; border-radius: 8px; color: var(--gray); word-break: break-all; line-height: 1.6; margin-top: 8px; }
+
+  /* BIZ MODEL */
+  #bizmodel { background: var(--navy); }
+  .plans { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 36px; }
+  .plan { padding: 24px 18px; border-radius: 14px; text-align: center; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); position: relative; }
+  .plan.pop { background: linear-gradient(135deg, rgba(37,99,235,0.22), rgba(29,78,216,0.12)); border-color: rgba(59,130,246,0.4); }
+  .plan-badge { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: var(--blue); color: white; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 10px; letter-spacing: 0.5px; white-space: nowrap; }
+  .plan-name { font-size: 12px; font-weight: 700; color: var(--gray); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+  .plan-price { font-size: 32px; font-weight: 900; letter-spacing: -1px; }
+  .plan-period { font-size: 12px; color: var(--gray); }
+  .plan-sess { font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 10px; }
+  .unit-econ { margin-top: 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .ue-box { padding: 22px; border-radius: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+  .ue-box h3 { font-size: 13px; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+  .ue-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
+  .ue-row:last-child { border-bottom: none; }
+  .ue-row .label { color: rgba(255,255,255,0.5); }
+  .ue-caveat { margin-top: 14px; font-size: 11px; color: rgba(255,255,255,0.3); padding: 10px 12px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); line-height: 1.6; }
+
+  /* TEAM */
+  #team { background: var(--navy2); }
+  .team-grid { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .team-card { padding: 28px; border-radius: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09); display: flex; gap: 20px; align-items: flex-start; }
+  .avatar { width: 56px; height: 56px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; }
+  .av-blue { background: linear-gradient(135deg, var(--blue), var(--blue-dark)); }
+  .av-green { background: linear-gradient(135deg, #059669, var(--green)); }
+  .av-purple { background: linear-gradient(135deg, #7c3aed, #9d50bb); }
+  .av-amber { background: linear-gradient(135deg, #d97706, var(--amber)); }
+  .team-card .name { font-size: 17px; font-weight: 700; margin-bottom: 2px; }
+  .team-card .role { font-size: 12px; color: var(--blue-light); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+  .team-card .bio { font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.6; }
+  .team-card .creds { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .cred { font-size: 11px; padding: 3px 10px; border-radius: 8px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.55); }
+  .advisors { margin-top: 24px; padding: 20px 24px; border-radius: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); }
+  .advisors h3 { font-size: 13px; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+  .advisor-row { display: flex; gap: 24px; flex-wrap: wrap; }
+  .advisor { display: flex; align-items: center; gap: 10px; }
+  .advisor-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue-light); flex-shrink: 0; }
+  .advisor p { font-size: 13px; color: rgba(255,255,255,0.6); }
+  .advisor strong { color: white; }
+
+  /* TRACTION */
+  #traction { background: var(--navy); }
+  .tract-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 36px; }
+  .ts { padding: 24px; border-radius: 14px; text-align: center; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+  .ts-num { font-size: 40px; font-weight: 900; line-height: 1; }
+  .ts-label { font-size: 13px; color: var(--gray); margin-top: 6px; }
+  .ts-sub { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 4px; }
+  .timeline { margin-top: 36px; position: relative; }
+  .timeline::before { content: ''; position: absolute; left: 18px; top: 0; bottom: 0; width: 2px; background: rgba(255,255,255,0.08); }
+  .tl-item { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 20px; padding-left: 48px; position: relative; }
+  .tl-dot { position: absolute; left: 10px; top: 4px; width: 18px; height: 18px; border-radius: 50%; background: var(--blue); border: 3px solid var(--navy); flex-shrink: 0; }
+  .tl-dot.done { background: var(--green); }
+  .tl-dot.now { background: var(--amber); border-color: var(--navy); }
+  .tl-date { font-size: 12px; font-weight: 700; color: var(--blue-light); white-space: nowrap; min-width: 80px; padding-top: 1px; }
+  .tl-text { font-size: 14px; color: rgba(255,255,255,0.65); }
+  .tl-text strong { color: white; }
+
+  /* PROJECTIONS */
+  #projections { background: var(--navy2); }
+  .proj-grid { margin-top: 36px; display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 28px; align-items: start; }
+  .bar-chart { display: flex; flex-direction: column; gap: 14px; }
+  .bar-row { display: flex; align-items: center; gap: 14px; }
+  .bar-yr { font-size: 13px; font-weight: 700; width: 40px; flex-shrink: 0; }
+  .bar-track { flex: 1; height: 38px; background: rgba(255,255,255,0.05); border-radius: 8px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 8px; display: flex; align-items: center; padding-left: 12px; font-size: 13px; font-weight: 700; white-space: nowrap; }
+  .bar-fill.b1 { background: linear-gradient(90deg, var(--blue-dark), var(--blue)); width: 7%; }
+  .bar-fill.b2 { background: linear-gradient(90deg, var(--blue), var(--blue-light)); width: 35%; }
+  .bar-fill.b3 { background: linear-gradient(90deg, #059669, var(--green)); width: 100%; }
+  .proj-notes { font-size: 12px; color: var(--gray); margin-top: 16px; line-height: 1.7; }
+  .proj-table { display: flex; flex-direction: column; gap: 10px; }
+  .pt-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-radius: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); }
+  .pt-row .lbl { font-size: 12px; color: rgba(255,255,255,0.5); }
+  .pt-row .val { font-size: 15px; font-weight: 700; }
+
+  /* COMPETITION */
+  #competition { background: var(--navy); }
+  .comp-wrap { margin-top: 36px; border-radius: 14px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
+  .comp-hdr { display: grid; grid-template-columns: 1.8fr 1fr 1fr 1fr 1fr 1fr; padding: 12px 20px; background: rgba(255,255,255,0.06); font-size: 11px; font-weight: 700; color: var(--gray); letter-spacing: 1px; text-transform: uppercase; }
+  .comp-row { display: grid; grid-template-columns: 1.8fr 1fr 1fr 1fr 1fr 1fr; padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.06); align-items: center; font-size: 13px; }
+  .comp-row.us { background: rgba(37,99,235,0.1); }
+  .comp-name { font-weight: 600; }
+  .comp-name small { display: block; font-size: 11px; color: var(--gray); font-weight: 400; margin-top: 1px; }
+  .ck { color: var(--green); font-size: 16px; }
+  .cx { color: rgba(255,255,255,0.18); font-size: 16px; }
+  .cp { color: var(--amber); font-size: 12px; font-weight: 600; }
+  .moat { margin-top: 24px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .moat-card { padding: 20px; border-radius: 12px; background: linear-gradient(135deg, rgba(37,99,235,0.15), rgba(29,78,216,0.08)); border: 1px solid rgba(59,130,246,0.25); }
+  .moat-card h3 { font-size: 15px; margin-bottom: 8px; }
+  .moat-card p { font-size: 13px; }
+
+  /* GTM */
+  #gtm { background: var(--navy2); }
+  .gtm-phases { margin-top: 36px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .phase { padding: 26px; border-radius: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+  .phase-num { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--blue-light); margin-bottom: 10px; }
+  .phase h3 { font-size: 17px; margin-bottom: 12px; }
+  .phase ul { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+  .phase li { font-size: 13px; color: rgba(255,255,255,0.6); display: flex; gap: 8px; }
+  .phase li::before { content: '→'; color: var(--blue-light); flex-shrink: 0; }
+  .phase .note { margin-top: 14px; font-size: 11px; color: rgba(255,255,255,0.3); padding: 8px 10px; background: rgba(255,255,255,0.03); border-radius: 6px; }
+  .gtm-metrics { margin-top: 24px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .gm { padding: 18px; border-radius: 12px; text-align: center; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+  .gm-n { font-size: 26px; font-weight: 900; }
+  .gm-l { font-size: 11px; color: var(--gray); margin-top: 4px; }
+
+  /* RISKS */
+  #risks { background: var(--navy); }
+  .risk-grid { margin-top: 36px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .risk-card { padding: 24px; border-radius: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+  .risk-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .risk-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .risk-card h3 { font-size: 15px; }
+  .risk-desc { font-size: 13px; color: rgba(255,255,255,0.55); margin-bottom: 12px; line-height: 1.6; }
+  .mit-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--green); margin-bottom: 6px; }
+  .mit-text { font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.6; }
+
+  /* ASK */
+  #ask { background: radial-gradient(ellipse at 50% 50%, rgba(37,99,235,0.25), transparent 60%), var(--navy2); text-align: center; align-items: center; }
+  .raise { font-size: clamp(56px, 8vw, 90px); font-weight: 900; letter-spacing: -2px; background: linear-gradient(135deg, #60a5fa, var(--green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 20px 0 8px; }
+  .ask-sub { font-size: 17px; color: rgba(255,255,255,0.45); }
+  .ask-note { font-size: 13px; color: rgba(255,255,255,0.3); margin-top: 6px; }
+  .funds { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 36px; text-align: left; }
+  .fund { padding: 22px; border-radius: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+  .fund-pct { font-size: 32px; font-weight: 900; color: var(--blue-light); }
+  .fund h3 { font-size: 14px; margin: 8px 0 6px; }
+  .fund p { font-size: 13px; }
+  .milestones { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 20px; }
+  .ms { padding: 16px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); text-align: left; }
+  .ms-q { font-size: 10px; font-weight: 700; color: var(--blue-light); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+  .ms p { font-size: 13px; }
+
+  /* CLOSE */
+  #close {
+    background: radial-gradient(ellipse at 40% 60%, rgba(16,185,129,0.12), transparent 55%),
+                radial-gradient(ellipse at 80% 30%, rgba(37,99,235,0.18), transparent 50%), var(--navy);
+    text-align: center; align-items: center;
+  }
+  .story-box { margin: 32px auto 0; max-width: 720px; padding: 28px 36px; border-radius: 18px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09); }
+  .story-box p { font-size: 17px; font-style: italic; color: rgba(255,255,255,0.65); line-height: 1.8; }
+  .contact-row { display: flex; gap: 14px; justify-content: center; margin-top: 36px; flex-wrap: wrap; }
+  .cc { padding: 18px 28px; border-radius: 12px; text-align: left; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); min-width: 180px; }
+  .cc-l { font-size: 10px; color: var(--gray); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+  .cc-v { font-size: 15px; font-weight: 600; }
+  .cc a { color: var(--blue-light); text-decoration: none; }
+  .disclaimer { margin-top: 52px; font-size: 11px; color: rgba(255,255,255,0.18); max-width: 680px; margin-left: auto; margin-right: auto; line-height: 1.7; }
+
+  @media print { nav { display: none; } .slide { page-break-after: always; } }
+  @media (max-width: 768px) {
+    .slide { padding: 80px 20px 56px; }
+    nav { padding: 12px 20px; }
+    .feat-grid, .why-grid, .tam-stack, .unit-econ, .team-grid,
+    .demo-body, .proj-grid, .moat, .risk-grid, .funds, .milestones,
+    .gtm-phases, .gtm-metrics, .tract-stats, .plans, .comp-hdr, .comp-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+      <rect width="32" height="32" rx="8" fill="#2563eb"/>
+      <polyline points="4,16 7,11 10,21 13,9 16,23 19,11 22,18 25,14 28,16" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+    <span>VeriRec</span>
+  </div>
+  <div class="nav-right">
+    <span class="nav-pill outline">PRE-SEED · 2026</span>
+    <span class="nav-pill blue">SULIT</span>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════ -->
+<!-- 01 · COVER                        -->
+<!-- ══════════════════════════════════ -->
+<section class="slide" id="cover">
+  <div class="slide-inner">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" style="width:72px;height:72px;margin:0 auto 32px">
+      <rect width="32" height="32" rx="8" fill="#2563eb"/>
+      <polyline points="4,16 7,11 10,21 13,9 16,23 19,11 22,18 25,14 28,16" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+    <h1>Dokumentasi Sesi Profesional<br/><span>Berkuasa AI, Patuh Undang-undang</span></h1>
+    <p class="sub">Platform pertama di Malaysia yang menggabungkan rakaman, transkripsi AI, laporan berstruktur, dan rantai penyelian keterangan (chain of custody) untuk profesional bertauliah.</p>
+    <div class="tags">
+      <span class="tag">🇲🇾 Dibina untuk Malaysia</span>
+      <span class="tag">⚖️ Patuh PDPA 2010</span>
+      <span class="tag">🤖 OpenAI Whisper + Claude AI</span>
+      <span class="tag">🔐 Chain of Custody SHA-256</span>
+    </div>
+    <p class="note">Pitch Deck Sulit · Mei 2026 · Untuk Pengedaran Terhad Sahaja</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════ -->
+<!-- 02 · MASALAH                      -->
+<!-- ══════════════════════════════════ -->
+<section class="slide" id="problem">
+  <div class="slide-inner">
+    <p class="slide-num">01 · Masalah</p>
+    <h2>Setiap hari, profesional bertauliah di Malaysia<br/>bergantung pada kaedah yang <span class="hi">berisiko tinggi</span></h2>
+    <div class="prob-list">
+      <div class="prob-item">
+        <div class="prob-n">1</div>
+        <div>
+          <h3>Tiada Standard Rakaman & Dokumentasi</h3>
+          <p>Pegawai polis, pengurus HR, doktor, dan juruaudit merakam sesi menggunakan telefon peribadi tanpa enkripsi, protokol, atau format yang konsisten. Data sensitif disimpan di mana-mana — atau langsung tidak disimpan.</p>
+        </div>
+      </div>
+      <div class="prob-item">
+        <div class="prob-n">2</div>
+        <div>
+          <h3>Keterangan Ditolak, Kes Kalah di Tribunal & Mahkamah</h3>
+          <p>Tanpa chain of custody yang boleh dibuktikan, rakaman tidak sah sebagai keterangan. Syarikat tewas dalam inkuiri domestik. Pegawai dituduh memalsukan catatan. Doktor terdedah kepada tuntutan malpraktis kerana catatan klinikal tidak lengkap.</p>
+        </div>
+      </div>
+      <div class="prob-item">
+        <div class="prob-n">3</div>
+        <div>
+          <h3>Laporan Manual Makan Masa 3–5 Jam Setiap Sesi</h3>
+          <p>Setiap inkuiri domestik, soal siasat, atau sesi klinikal memerlukan laporan bertulis yang mengambil masa berjam-jam. Produktiviti terjejas, ralat manusia meningkat, dan backlog dokumen berkumpul.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════ -->
+<!-- 03 · PENYELESAIAN                 -->
+<!-- ══════════════════════════════════ -->
+<section class="slide" id="solution">
+  <div class="slide-inner">
+    <p class="slide-num">02 · Penyelesaian</p>
+    <h2>VeriRec — satu platform,<br/><span class="hi">dari rakaman hingga laporan siap</span></h2>
+    <div class="feat-grid">
+      <div class="feat">
+        <div class="feat-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+        </div>
+        <div>
+          <h3>Transkripsi AI Masa Nyata</h3>
+          <p>OpenAI Whisper menyalin audio dengan ketepatan tinggi dalam Bahasa Malaysia dan Inggeris semasa sesi berjalan.</p>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+        <div>
+          <h3>Laporan AI Berstruktur</h3>
+          <p>Claude AI menjana laporan profesional dalam masa 2 minit — ringkasan, bendera risiko, dan cadangan tindakan susulan.</p>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        </div>
+        <div>
+          <h3>Chain of Custody Beraudit</h3>
+          <p>Hash SHA-256 dikira server-side untuk setiap laporan. Integriti data boleh dibuktikan di mahkamah dan tribunal tanpa pertikaian.</p>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        </div>
+        <div>
+          <h3>Pematuhan PDPA 2010 Penuh</h3>
+          <p>Persetujuan digital yang sah, rekod audit kekal, dan kawalan pengekalan data memenuhi keperluan undang-undang Malaysia.</p>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </div>
+        <div>
+          <h3>Cadangan Soalan AI</h3>
+          <p>AI menjana soalan kontekstual berdasarkan profesion semasa sesi berjalan — membantu menjalankan soal siasat yang lebih menyeluruh.</p>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+        </div>
+        <div>
+          <h3>Sokongan Luar Talian</h3>
+          <p>Rakaman tidak terputus walaupun sambungan internet lemah. Data disimpan tempatan dan disegerak bila sambungan pulih.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════ -->
+<!-- 04 · EXPLAINER                    -->
+<!-- ══════════════════════════════════ -->
+<section class="slide" id="explainer" style="background:var(--navy2);">
+  <div class="slide-inner">
+    <p class="slide-num">03b · Cara Ia Berfungsi</p>
+    <h2>Dari rakaman hingga laporan siap —<br/><span class="hi">dalam masa 2 minit selepas sesi tamat</span></h2>
+
+    <!-- Steps flow -->
+    <div style="margin-top:40px; display:grid; grid-template-columns:repeat(6,1fr); gap:0; position:relative;">
+
+      <!-- connector line -->
+      <div style="position:absolute; top:36px; left:calc(100%/12); right:calc(100%/12); height:2px; background:linear-gradient(90deg, rgba(37,99,235,0.3), rgba(16,185,129,0.5)); z-index:0;"></div>
+
+      <!-- Step 1 -->
+      <div style="display:flex; flex-direction:column; align-items:center; position:relative; z-index:1; padding:0 6px;">
+        <div style="width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,#1e3a8a,#2563eb); border:3px solid rgba(37,99,235,0.4); display:flex; align-items:center; justify-content:center; margin-bottom:14px; box-shadow:0 0 24px rgba(37,99,235,0.25);">
+          <svg width="30" height="30" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        </div>
+        <div style="font-size:10px; font-weight:700; color:var(--blue-light); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px;">Langkah 1</div>
+        <div style="font-size:14px; font-weight:700; text-align:center; margin-bottom:6px;">Persediaan Sesi</div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.5); text-align:center; line-height:1.5;">Masukkan profesion, nama subjek, nombor kes</div>
+        <div style="margin-top:10px; font-size:11px; font-weight:700; color:var(--blue-light); background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.2); padding:3px 10px; border-radius:8px;">~30 saat</div>
+      </div>
+
+      <!-- Step 2 -->
+      <div style="display:flex; flex-direction:column; align-items:center; position:relative; z-index:1; padding:0 6px;">
+        <div style="width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,#1e3a8a,#2563eb); border:3px solid rgba(37,99,235,0.4); display:flex; align-items:center; justify-content:center; margin-bottom:14px; box-shadow:0 0 24px rgba(37,99,235,0.25);">
+          <svg width="30" height="30" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div style="font-size:10px; font-weight:700; color:var(--blue-light); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px;">Langkah 2</div>
+        <div style="font-size:14px; font-weight:700; text-align:center; margin-bottom:6px;">Persetujuan Digital</div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.5); text-align:center; line-height:1.5;">Subjek baca & tandatangan persetujuan yang sah dari segi undang-undang</div>
+        <div style="margin-top:10px; font-size:11px; font-weight:700; color:var(--blue-light); background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.2); padding:3px 10px; border-radius:8px;">Patuh PDPA</div>
+      </div>
+
+      <!-- Step 3 -->
+      <div style="display:flex; flex-direction:column; align-items:center; position:relative; z-index:1; padding:0 6px;">
+        <div style="width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,#991b1b,#dc2626); border:3px solid rgba(220,38,38,0.4); display:flex; align-items:center; justify-content:center; margin-bottom:14px; box-shadow:0 0 24px rgba(220,38,38,0.25);">
+          <svg width="30" height="30" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+        </div>
+        <div style="font-size:10px; font-weight:700; color:#fca5a5; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px;">Langkah 3</div>
+        <div style="font-size:14px; font-weight:700; text-align:center; margin-bottom:6px;">Rakaman + Transkripsi</div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.5); text-align:center; line-height:1.5;">Whisper AI salin setiap perkataan secara masa nyata dalam Bahasa Malaysia</div>
+        <div style="margin-top:10px; font-size:11px; font-weight:700; color:#fca5a5; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); padding:3px 10px; border-radius:8px;">Semasa sesi</div>
+      </div>
+
+      <!-- Step 4 -->
+      <div style="display:flex; flex-direction:column; align-items:center; position:relative; z-index:1; padding:0 6px;">
+        <div style="width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,#1e3a8a,#2563eb); border:3px solid rgba(37,99,235,0.4); display:flex; align-items:center; justify-content:center; margin-bottom:14px; box-shadow:0 0 24px rgba(37,99,235,0.25);">
+          <svg width="30" height="30" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </div>
+        <div style="font-size:10px; font-weight:700; color:var(--blue-light); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px;">Langkah 4</div>
+        <div style="font-size:14px; font-weight:700; text-align:center; margin-bottom:6px;">Analisis AI</div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.5); text-align:center; line-height:1.5;">Claude AI jana laporan penuh, bendera risiko & cadangan tindakan</div>
+        <div style="margin-top:10px; font-size:11px; font-weight:700; color:var(--blue-light); background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.2); padding:3px 10px; border-radius:8px;">~2 minit</div>
+      </div>
+
+      <!-- Step 5 -->
+      <div style="display:flex; flex-direction:column; align-items:center; position:relative; z-index:1; padding:0 6px;">
+        <div style="width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,#064e3b,#059669); border:3px solid rgba(5,150,105,0.4); display:flex; align-items:center; justify-content:center; margin-bottom:14px; box-shadow:0 0 24px rgba(16,185,129,0.25);">
+          <svg width="30" height="30" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        </div>
+        <div style="font-size:10px; font-weight:700; color:var(--green); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px;">Langkah 5</div>
+        <div style="font-size:14px; font-weight:700; text-align:center; margin-bottom:6px;">Chain of Custody</div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.5); text-align:center; line-height:1.5;">Hash SHA-256 dikunci — laporan tidak boleh diubah, sah di mahkamah</div>
+        <div style="margin-top:10px; font-size:11px; font-weight:700; color:var(--green); background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.2); padding:3px 10px; border-radius:8px;">Automatik</div>
+      </div>
+
+      <!-- Step 6 -->
+      <div style="display:flex; flex-direction:column; align-items:center; position:relative; z-index:1; padding:0 6px;">
+        <div style="width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,#064e3b,#059669); border:3px solid rgba(5,150,105,0.4); display:flex; align-items:center; justify-content:center; margin-bottom:14px; box-shadow:0 0 24px rgba(16,185,129,0.25);">
+          <svg width="30" height="30" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+        <div style="font-size:10px; font-weight:700; color:var(--green); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px;">Langkah 6</div>
+        <div style="font-size:14px; font-weight:700; text-align:center; margin-bottom:6px;">Laporan Siap</div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.5); text-align:center; line-height:1.5;">Muat turun, kongsi, atau simpan dalam dashboard untuk rujukan masa hadapan</div>
+        <div style="margin-top:10px; font-size:11px; font-weight:700; color:var(--green); background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.2); padding:3px 10px; border-radius:8px;">Sedia guna</div>
+      </div>
+    </div>
+
+    <!-- Before / After -->
+    <div style="margin-top:40px; display:grid; grid-template-columns:1fr auto 1fr; gap:20px; align-items:center;">
+      <div style="padding:22px 26px; border-radius:14px; background:rgba(239,68,68,0.06); border:1px solid rgba(239,68,68,0.15);">
+        <div style="font-size:11px; font-weight:700; letter-spacing:1.5px; color:#fca5a5; text-transform:uppercase; margin-bottom:12px;">❌ Sebelum VeriRec</div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; justify-content:space-between; font-size:13px;"><span style="color:rgba(255,255,255,0.5);">Masa tulis laporan</span><strong style="color:#fca5a5;">3–5 jam</strong></div>
+          <div style="display:flex; justify-content:space-between; font-size:13px;"><span style="color:rgba(255,255,255,0.5);">Ketepatan keterangan</span><strong style="color:#fca5a5;">Bergantung manusia</strong></div>
+          <div style="display:flex; justify-content:space-between; font-size:13px;"><span style="color:rgba(255,255,255,0.5);">Sah di mahkamah</span><strong style="color:#fca5a5;">Dipersoalkan</strong></div>
+          <div style="display:flex; justify-content:space-between; font-size:13px;"><span style="color:rgba(255,255,255,0.5);">Pematuhan PDPA</span><strong style="color:#fca5a5;">Tiada jaminan</strong></div>
+          <div style="display:flex; justify-content:space-between; font-size:13px;"><span style="color:rgba(255,255,255,0.5);">Kos kesilapan</span><strong style="color:#fca5a5;">Sehingga RM 180K</strong></div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; align-items:center; gap:6px;">
+        <div style="font-size:28px;">→</div>
+        <div style="font-size:11px; color:rgba(255,255,255,0.3); text-align:center; max-width:80px;">VeriRec</div>
+      </div>
+
+      <div style="padding:22px 26px; border-radius:14px; background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.2);">
+        <div style="font-size:11px; font-weight:700; letter-spacing:1.5px; color:var(--green); text-transform:uppercase; margin-bottom:12px;">✓ Selepas VeriRec</div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; justify-content:space-between; font-size:13px;"><span style="color:rgba(255,255,255,0.5);">Masa jana laporan</span><strong style="color:var(--green);">2 minit</strong></div>
+          <div style="display:flex; justify-content:space-between; font-size:13px;"><span style="color:rgba(255,255,255,0.5);">Ketepatan keterangan</span><strong style="color:var(--green);">AI + disahkan hash</strong></div>
+          <div style="display:flex; justify-content:space-between; font-size:13px;"><span style="color:rgba(255,255,255,0.5);">Sah di mahkamah</span><strong style="color:var(--green);">Chain of custody penuh</strong></div>
+          <div style="display:flex; justify-content:space-between; font-size:13px;"><span style="color:rgba(255,255,255,0.5);">Pematuhan PDPA</span><strong style="color:var(--green);">Terbina dalam</strong></div>
+          <div style="display:flex; justify-content:space-between; font-size:13px;"><span style="color:rgba(255,255,255,0.5);">Kos langganan/tahun</span><strong style="color:var(--green);">RM 1,788 (Starter)</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════ -->
+<!-- 04 · WHY NOW                      -->
+<!-- ══════════════════════════════════ -->
+<section class="slide" id="whynow">
+  <div class="slide-inner">
+    <p class="slide-num">03 · Kenapa Sekarang?</p>
+    <h2>Tiga perubahan besar yang menjadikan<br/><span class="hi">2026 masa yang tepat</span></h2>
+    <div class="why-grid">
+      <div class="why-card">
+        <div class="why-icon">🤖</div>
+        <h3>AI Generatif Baru Matang</h3>
+        <p>Sehingga 2024, transkripsi automatik dalam Bahasa Malaysia tidak praktikal. Kini, Whisper Large v3 dan Claude 3 menjadikannya tepat dan berpatutan — kos transkripsi turun 94% dalam 3 tahun.</p>
+        <span class="why-stat" style="background:rgba(37,99,235,0.15); color:var(--blue-light)">Kos AI: −94% sejak 2021</span>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">⚖️</div>
+        <h3>Penguatkuasaan PDPA Semakin Ketat</h3>
+        <p>Berikutan pindaan PDPA 2024, denda boleh mencapai RM 1 juta bagi pelanggaran data. Kementerian KKMM mula mengaudit syarikat swasta secara aktif. Organisasi kini mencari penyelesaian pematuhan secara proaktif.</p>
+        <span class="why-stat" style="background:rgba(239,68,68,0.12); color:#fca5a5">Denda PDPA: sehingga RM 1 juta</span>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">🏛️</div>
+        <h3>Gelombang Digitalisasi Sektor Profesional</h3>
+        <p>Inisiatif MyDigital Blueprint mendorong semua jabatan kerajaan dan sektor profesional beralih kepada alur kerja digital menjelang 2030. Bajet 2025 memperuntukkan RM 6.5B untuk transformasi digital — permintaan penyelesaian sedang meningkat.</p>
+        <span class="why-stat" style="background:rgba(16,185,129,0.12); color:var(--green)">MyDigital: RM 6.5B diperuntukkan</span>
+      </div>
+    </div>
+    <div style="margin-top:28px; padding:20px 26px; border-radius:14px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); display:flex; align-items:center; gap:20px;">
+      <div style="font-size:36px; flex-shrink:0">💡</div>
+      <p style="font-size:15px; color:rgba(255,255,255,0.6)"><strong style="color:white">Tetingkap peluang:</strong> Pasaran ini belum dimenangi oleh sesiapa. Pesaing asing tidak memahami PDPA Malaysia. Pemain tempatan tidak mempunyai keupayaan AI. VeriRec mempunyai peluang 18–24 bulan untuk menguasai pasaran sebelum persaingan bermakna muncul.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════ -->
+<!-- 05 · PASARAN                      -->
+<!-- ══════════════════════════════════ -->
+<section class="slide" id="market">
+  <div class="slide-inner">
+    <p class="slide-num">04 · Peluang Pasaran</p>
+    <h2>Pasaran yang besar, <span class="hi">kurang dilayan</span>,<br/>dan sangat bersedia untuk penyelesaian digital</h2>
+    <div class="tam-stack">
+      <div>
+        <div class="tam-bars">
+          <div class="tam-row">
+            <div class="tam-label" style="color:rgba(255,255,255,0.3); font-size:11px">TAM</div>
+            <div class="tam-track">
+              <div class="tam-fill t1">
+                <span class="tam-fill-text">RM 2.6B</span>
+                <span class="tam-fill-sub">248K profesional × RM 899 × 12 bln</span>
+              </div>
+            </div>
+          </div>
+          <div class="tam-row">
+            <div class="tam-label" style="color:rgba(255,255,255,0.5); font-size:11px">SAM</div>
+            <div class="tam-track">
+              <div class="tam-fill t2">
+                <span class="tam-fill-text">RM 150M</span>
+                <span class="tam-fill-sub">Sektor swasta boleh capai kini</span>
+              </div>
+            </div>
+          </div>
+          <div class="tam-row">
+            <div class="tam-label" style="font-size:11px">SOM</div>
+            <div class="tam-track">
+              <div class="tam-fill t3">
+                <span class="tam-fill-text">RM 22M</span>
+                <span class="tam-fill-sub">Sasaran 5 tahun: 3% SAM</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tam-note">
+          <strong>Metodologi SAM:</strong> 50,000 profesional sektor swasta (HR, klinik persendirian, firma guaman, syarikat audit) × ARPU RM 249/bulan × 12 = RM 149M. Tidak termasuk sektor awam dan kerajaan yang memerlukan tender berasingan.<br/><br/>
+          <strong>Metodologi SOM:</strong> 3% penetrasi SAM dalam 5 tahun = 1,500 pengguna berbayar × RM 249 × 12 = RM 4.5M ARR. Sasaran dalaman 2 tahun = 600 pengguna = RM 1.8M ARR.
+        </div>
+      </div>
+      <div>
+        <p style="font-size:13px; color:var(--gray); margin-bottom:14px; text-transform:uppercase; letter-spacing:1px; font-weight:700;">Segmen Utama (SAM)</p>
+        <div class="seg-grid">
+          <div class="seg">
+            <div class="seg-n">80K+</div>
+            <div class="seg-name">Pengurus HR</div>
+            <div class="seg-lbl">Inkuiri domestik</div>
+          </div>
+          <div class="seg">
+            <div class="seg-n">35K+</div>
+            <div class="seg-name">Doktor Swasta</div>
+            <div class="seg-lbl">Nota klinikal</div>
+          </div>
+          <div class="seg">
+            <div class="seg-n">15K+</div>
+            <div class="seg-name">Peguam & Firma</div>
+            <div class="seg-lbl">Temubual klien</div>
+          </div>
+          <div class="seg" style="background:rgba(37,99,235,0.1); border-color:rgba(59,130,246,0.3)">
+            <div class="seg-n" style="color:var(--green)">50K+</div>
+            <div class="seg-name" style="color:white">Jumlah SAM</div>
+            <div class="seg-lbl">Sasaran 3 tahun</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════ -->
+<!-- 06 · PRODUK                       -->
+<!-- ══════════════════════════════════ -->
+<section class="slide" id="product">
+  <div class="slide-inner">
+    <p class="slide-num">05 · Produk</p>
+    <h2>Dibina khusus untuk <span class="hi">6 profesion bertauliah</span><br/>— bukan alat rakaman generik</h2>
+    <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+      <span class="tag">🚔 Polis PDRM</span>
+      <span class="tag">🏛️ SPRM / MACC</span>
+      <span class="tag">👔 HR / Inkuiri Domestik</span>
+      <span class="tag">🏥 Doktor & Kaunselor</span>
+      <span class="tag">📋 Juruaudit ISO</span>
+    </div>
+    <div class="demo-wrap">
+      <div class="demo-bar">
+        <div class="demo-dot" style="background:#ef4444"></div>
+        <div class="demo-dot" style="background:#f59e0b"></div>
+        <div class="demo-dot" style="background:#10b981"></div>
+        <span style="font-size:12px; color:rgba(255,255,255,0.35); margin-left:8px;">VeriRec · Inkuiri Domestik · Sesi Aktif</span>
+        <div class="rec-badge"><div class="rec-dot"></div>Merakam · 00:07:42</div>
+      </div>
+      <div class="demo-body">
+        <div class="demo-col">
+          <div class="demo-lbl">Transkripsi Langsung</div>
+          <div class="t-line"><span class="t-sp">Pegawai:</span><span class="t-tx">Boleh anda terangkan di mana anda berada pada 14 Mei antara pukul 2 hingga 5 petang?</span></div>
+          <div class="t-line"><span class="t-sp">Ahmad:</span><span class="t-tx">Saya berada di pejabat sepanjang masa itu. Rakan sekerja saya boleh sahkan.</span></div>
+          <div class="t-line"><span class="t-sp">Pegawai:</span><span class="t-tx">Rekod swipe kad anda menunjukkan anda keluar pukul 1.47 petang. Boleh jelaskan?</span></div>
+          <div class="t-line" style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2)">
+            <span class="t-sp" style="color:#fcd34d">⚑ AI</span>
+            <span class="t-tx" style="color:#fcd34d">Pengesanan: Kenyataan subjek bercanggah dengan rekod kad akses</span>
+          </div>
+          <div style="margin-top:14px">
+            <div class="demo-lbl">Hash SHA-256 · Dikira Server-Side</div>
+            <div class="hash-badge">3f8a2c1e...b4d7f9a2 · Dijana 14:32:07 · Tidak boleh diubah</div>
+          </div>
+        </div>
+        <div class="demo-col">
+          <div class="demo-lbl">Laporan AI (Dijana dalam 2 Minit)</div>
+          <div class="r-block green"><div class="r-lbl">Ringkasan Inkuiri</div><p>Subjek memberikan keterangan bercanggah dengan rekod kad akses pejabat. Terdapat jurang masa 3 jam 13 minit yang tidak dapat dijelaskan.</p></div>
+          <div class="r-block red"><div class="r-lbl">Bendera Risiko</div><p>• Alibi utama tidak boleh disahkan secara bebas<br/>• Rekod swipe bercanggah dengan kenyataan lisan<br/>• Gagal menyebut pertemuan di luar pejabat</p></div>
+          <div class="r-block blue"><div class="r-lbl">Cadangan Tindakan</div><p>• Semak rakaman CCTV lobi pada 14 Mei<br/>• Dapatkan keterangan bertulis rakan sekerja<br/>• Minta semak semula rekod kehadiran 30 hari</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════ -->
+<!-- 07 · MODEL PERNIAGAAN             -->
+<!-- ══════════════════════════════════ -->
+<section class="slide" id="bizmodel">
+  <div class="slide-inner">
+    <p class="slide-num">06 · Model Perniagaan</p>
+    <h2>SaaS langganan bulanan dengan <span class="hi">margin tinggi</span><br/>dan kos pemerolehan yang rendah</h2>
+    <div class="plans">
+      <div class="plan">
+        <div class="plan-name">Percuma</div>
+        <div class="plan-price">RM 0</div>
+        <div class="plan-period">/bulan</div>
+        <div class="plan-sess">3 sesi/bulan</div>
+        <p style="font-size:12px; color:var(--gray); margin-top:10px;">Pemerolehan organik & ujian produk</p>
+      </div>
+      <div class="plan">
+        <div class="plan-name">Starter</div>
+        <div class="plan-price">RM 149</div>
+        <div class="plan-period">/bulan</div>
+        <div class="plan-sess">20 sesi/bulan</div>
+        <p style="font-size:12px; color:var(--gray); margin-top:10px;">Individu & firma kecil</p>
+      </div>
+      <div class="plan pop">
+        <div class="plan-badge">PALING POPULAR</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">RM 399</div>
+        <div class="plan-period">/bulan</div>
+        <div class="plan-sess">100 sesi/bulan</div>
+        <p style="font-size:12px; color:rgba(255,255,255,0.5); margin-top:10px;">Firma sederhana & jabatan</p>
+      </div>
+      <div class="plan">
+        <div class="plan-name">Enterprise</div>
+        <div class="plan-price">RM 899</div>
+        <div class="plan-period">/bulan</div>
+        <div class="plan-sess">Sesi tanpa had</div>
+        <p style="font-size:12px; color:var(--gray); margin-top:10px;">Organisasi besar & GLC</p>
+      </div>
+    </div>
+    <div class="unit-econ">
+      <div class="ue-box">
+        <h3>Unit Ekonomi (Anggaran Awal)</h3>
+        <div class="ue-row"><span class="label">ARPU (gabungan andaian)</span><strong>RM 235/bln</strong></div>
+        <div class="ue-row"><span class="label">Kos AI + infrastruktur/pengguna</span><strong style="color:#fca5a5">~RM 42/bln</strong></div>
+        <div class="ue-row"><span class="label">Gross Margin sasaran</span><strong style="color:var(--green)">~82%</strong></div>
+        <div class="ue-row"><span class="label">CAC sasaran</span><strong>&lt; RM 400</strong></div>
+        <div class="ue-row"><span class="label">Churn tahunan sasaran</span><strong>&lt; 30%/tahun</strong></div>
+        <div class="ue-row" style="border-top:1px solid rgba(255,255,255,0.1); padding-top:12px; margin-top:4px;"><span class="label">LTV:CAC sasaran (3 tahun)</span><strong style="color:var(--green)">7–8:1</strong></div>
+        <div class="ue-caveat">⚠ Nombor ini adalah andaian pra-hasil. CAC dan LTV sebenar akan disemak selepas 90 hari data pengguna berbayar pertama.</div>
+      </div>
+      <div class="ue-box">
+        <h3>Saluran Hasil Tambahan</h3>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+          <div style="padding:14px; border-radius:10px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07);">
+            <div style="font-size:13px; font-weight:600; margin-bottom:4px;">Lesen Enterprise Tahunan</div>
+            <div style="font-size:13px; color:var(--gray);">Kontrak tetap dengan GLC, hospital swasta besar — RM 30K–120K/tahun. Kitaran jualan 3–6 bulan.</div>
+          </div>
+          <div style="padding:14px; border-radius:10px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07);">
+            <div style="font-size:13px; font-weight:600; margin-bottom:4px;">Integrasi API (Fasa 2)</div>
+            <div style="font-size:13px; color:var(--gray);">Integrasi dengan sistem HRMS (SAP, Oracle), rekod perubatan, dan platform kes sedia ada.</div>
+          </div>
+          <div style="padding:14px; border-radius:10px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07);">
+            <div style="font-size:13px; font-weight:600; margin-bottom:4px;">Latihan & Pensijilan</div>
+            <div style="font-size:13px; color:var(--gray);">Bengkel pematuhan PDPA dan dokumentasi sesi profesional untuk jabatan HR.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════ -->
+<!-- 08 · PASUKAN                      -->
+<!-- ══════════════════════════════════ -->
+<section class="slide" id="team">
+  <div class="slide-inner">
+    <p class="slide-num">07 · Pasukan</p>
+    <h2>Pengasas yang <span class="hi">faham pasaran</span><br/>dan tahu cara membina produk</h2>
+    <div class="team-grid">
+      <div class="team-card">
+        <div class="avatar av-blue">S</div>
+        <div>
+          <div class="name">Syed Shazni</div>
+          <div class="role">Pengasas & Ketua Pegawai Eksekutif</div>
+          <div class="bio">Pengasas dengan latar belakang dalam teknologi dan perniagaan digital. Pengalaman membina produk dari idea ke pasaran. Mengenal pasti jurang pasaran ini setelah berinteraksi langsung dengan profesional HR dan perundangan yang menghadapi cabaran dokumentasi.</div>
+          <div class="creds">
+            <span class="cred">Pembangunan Produk</span>
+            <span class="cred">Strategi Perniagaan</span>
+            <span class="cred">AI & Teknologi</span>
+          </div>
+        </div>
+      </div>
+      <div class="team-card" style="background:rgba(255,255,255,0.02); border-style:dashed; border-color:rgba(255,255,255,0.12)">
+        <div class="avatar" style="background:rgba(255,255,255,0.07); border:1px dashed rgba(255,255,255,0.2)">+</div>
+        <div>
+          <div class="name" style="color:rgba(255,255,255,0.4)">Jawatan Terbuka</div>
+          <div class="role" style="color:rgba(255,255,255,0.25)">Ketua Teknologi (CTO)</div>
+          <div class="bio" style="font-size:13px;">Kami sedang mencari CTO dengan kepakaran dalam AI/ML dan infrastruktur cloud. Sebahagian daripada peruntukan pelaburan akan digunakan untuk pengambilan jawatan kritikal ini.</div>
+          <div class="creds">
+            <span class="cred" style="border-color:rgba(255,255,255,0.07); color:rgba(255,255,255,0.3)">Dijangka Q3 2026</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="advisors">
+      <h3>Penasihat & Rangkaian</h3>
+      <div class="advisor-row">
+        <div class="advisor">
+          <div class="advisor-dot"></div>
+          <p><strong>Penasihat Undang-undang</strong> — Kepakaran PDPA 2010 dan undang-undang pekerjaan Malaysia [Dalam perbincangan]</p>
+        </div>
+        <div class="advisor">
+          <div class="advisor-dot"></div>
+          <p><strong>Penasihat Industri HR</strong> — Pengamal HR berpengalaman 15+ tahun dengan rangkaian MIHRM [Dalam perbincangan]</p>
+        </div>
+        <div class="advisor">
+          <div class="advisor-dot" style="background:rgba(255,255,255,0.2)"></div>
+          <p style="color:rgba(255,255,255,0.4)"><strong style="color:rgba(255,255,255,0.5)">Penasihat Perubatan</strong> — Dijangka Q3 2026</p>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:20px; padding:18px 22px; border-radius:12px; background:rgba(245,158,11,0.07); border:1px solid rgba(245,158,11,0.2);">
+      <p style="font-size:13px; color:rgba(245,158,11,0.85);">⚡ <strong style="color:#fcd34d">Kelebihan pengasas solo:</strong> Keputusan cepat, tiada kos gaji eksekutif tambahan pada peringkat awal. Pelan pengambilan pasukan yang jelas apabila pembiayaan diperoleh.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════ -->
+<!-- 09 · TRACTION                     -->
+<!-- ══════════════════════════════════ -->
+<section class="slide" id="traction">
+  <div class="slide-inner">
+    <p class="slide-num">08 · Status Semasa</p>
+    <h2>Produk <span class="hi">siap digunakan</span> —<br/>mencari pengguna berbayar pertama</h2>
+    <div class="tract-stats">
+      <div class="ts">
+        <div class="ts-num" style="color:var(--green)">100%</div>
+        <div class="ts-label">Ciri teras siap</div>
+        <div class="ts-sub">Rakaman, transkripsi, laporan AI, PDPA, chain of custody</div>
+      </div>
+      <div class="ts">
+        <div class="ts-num" style="color:var(--blue-light)">6</div>
+        <div class="ts-label">Profesion disokong</div>
+        <div class="ts-sub">Polis, SPRM, HR, Doktor, Kaunselor, ISO</div>
+      </div>
+      <div class="ts">
+        <div class="ts-num" style="color:var(--amber)">20+</div>
+        <div class="ts-label">Temu bual pengguna</div>
+        <div class="ts-sub">HR, peguam, polis — pengesahan masalah</div>
+      </div>
+      <div class="ts">
+        <div class="ts-num" style="color:rgba(255,255,255,0.3)">0</div>
+        <div class="ts-label">Pengguna berbayar</div>
+        <div class="ts-sub">Beta belum dibuka — jujur, pre-revenue</div>
+      </div>
+    </div>
+    <div class="timeline" style="margin-top:32px;">
+      <div class="tl-item">
+        <div class="tl-dot done"></div>
+        <div class="tl-date">Jan 2026</div>
+        <div class="tl-text"><strong>Penyelidikan Pasaran</strong> — 20+ temu bual dengan HR, polis, dan doktor. Pengesahan 3 masalah utama.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot done"></div>
+        <div class="tl-date">Mar 2026</div>
+        <div class="tl-text"><strong>Pembangunan MVP</strong> — Rakaman + Whisper + Claude AI + PDPA + chain of custody SHA-256 selesai.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot done"></div>
+        <div class="tl-date">Mei 2026</div>
+        <div class="tl-text"><strong>Produk Lengkap</strong> — Dashboard, analitik, pengebilan Stripe, landing page per-profesion, 6 konteks profesion.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot now"></div>
+        <div class="tl-date">Jun–Jul 2026</div>
+        <div class="tl-text"><strong>Beta Tertutup</strong> — Sasaran 20–30 pengguna awal dari rangkaian peribadi. Pengesahan product-market fit dan iterasi.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-date">Ogos 2026</div>
+        <div class="tl-text"><strong>Pelancaran Awam</strong> — Buka pendaftaran umum. Sasaran 50 pengguna berbayar dalam 90 hari pertama.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-date">2027</div>
+        <div class="tl-text"><strong>Skala & Perkongsian</strong> — MIHRM, MMA (Malaysian Medical Association), dan BAR Malaysia sebagai saluran pengagihan.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════ -->
+<!-- 10 · UNJURAN                      -->
+<!-- ══════════════════════════════════ -->
+<section class="slide" id="projections">
+  <div class="slide-inner">
+    <p class="slide-num">09 · Unjuran Kewangan</p>
+    <h2>Laluan ke <span class="hi">titik pulang modal</span><br/>dalam 18 bulan dari pelancaran</h2>
+    <div class="proj-grid">
+      <div>
+        <p style="font-size:12px; color:var(--gray); margin-bottom:18px; text-transform:uppercase; letter-spacing:1px; font-weight:700;">Hasil Tahunan Berulang (ARR)</p>
+        <div class="bar-chart">
+          <div class="bar-row">
+            <div class="bar-yr">2026</div>
+            <div class="bar-track"><div class="bar-fill b1">RM 100K</div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-yr">2027</div>
+            <div class="bar-track"><div class="bar-fill b2">RM 480K</div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-yr">2028</div>
+            <div class="bar-track"><div class="bar-fill b3">RM 1.8M</div></div>
+          </div>
+        </div>
+        <div class="proj-notes">
+          <strong>Andaian utama:</strong><br/>
+          • 2026: 35 pengguna berbayar purata, ARPU RM 235, separuh tahun operasi<br/>
+          • 2027: 200 pengguna berbayar akhir tahun, churn 30% tahunan<br/>
+          • 2028: 600 pengguna + 2 lesen enterprise (RM 60K/tahun)<br/>
+          • Tidak termasuk: Kontrak kerajaan dan tender (kitaran jualan 12–24 bulan)<br/>
+          • Titik pulang modal: ~150 pengguna berbayar (~Q1 2027 jika beta berjaya)
+        </div>
+      </div>
+      <div class="proj-table">
+        <p style="font-size:12px; color:var(--gray); margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; font-weight:700;">Metrik Sasaran 2027</p>
+        <div class="pt-row"><span class="lbl">Pengguna berbayar</span><span class="val" style="color:var(--blue-light)">200</span></div>
+        <div class="pt-row"><span class="lbl">MRR akhir tahun</span><span class="val" style="color:var(--green)">RM 47K</span></div>
+        <div class="pt-row"><span class="lbl">Gross Margin</span><span class="val" style="color:var(--green)">~82%</span></div>
+        <div class="pt-row"><span class="lbl">Churn tahunan</span><span class="val">&lt; 30%</span></div>
+        <div class="pt-row"><span class="lbl">Nisbah Freemium→Bayar</span><span class="val">~8%</span></div>
+        <div class="pt-row" style="background:rgba(16,185,129,0.08); border-color:rgba(16,185,129,0.2)"><span class="lbl">Titik pulang modal</span><span class="val" style="color:var(--amber)">~Q1 2027</span></div>
+        <div class="pt-row" style="background:rgba(37,99,235,0.08); border-color:rgba(59,130,246,0.2); margin-top:4px;"><span class="lbl">ARR 2028</span><span class="val" style="color:var(--green); font-size:18px">RM 1.8M</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════ -->
+<!-- 11 · PERSAINGAN                   -->
+<!-- ══════════════════════════════════ -->
+<section class="slide" id="competition">
+  <div class="slide-inner">
+    <p class="slide-num">10 · Landskap Persaingan</p>
+    <h2>Tiada pesaing yang <span class="hi">menggabungkan kesemua</span><br/>ciri kritikal untuk pasaran Malaysia</h2>
+    <div class="comp-wrap">
+      <div class="comp-hdr">
+        <span>Platform</span>
+        <span>BM / Tempatan</span>
+        <span>Patuh PDPA</span>
+        <span>Chain of Custody</span>
+        <span>Laporan AI</span>
+        <span>Per-Profesion</span>
+      </div>
+      <div class="comp-row us">
+        <div class="comp-name">VeriRec <small>🇲🇾 Malaysia · Dibina khusus</small></div>
+        <div class="ck">✓</div><div class="ck">✓</div><div class="ck">✓</div><div class="ck">✓</div><div class="ck">✓</div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-name">Otter.ai <small>🇺🇸 Alat mesyuarat generik</small></div>
+        <div class="cx">✗</div><div class="cx">✗</div><div class="cx">✗</div><div class="cp">Terhad</div><div class="cx">✗</div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-name">Fireflies.ai <small>🇺🇸 Fokus mesyuarat korporat</small></div>
+        <div class="cx">✗</div><div class="cx">✗</div><div class="cx">✗</div><div class="cp">Mesyuarat</div><div class="cx">✗</div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-name">Penyelesaian HR Tempatan <small>🇲🇾 HRMS sedia ada</small></div>
+        <div class="cp">Sebahagian</div><div class="cp">Asas</div><div class="cx">✗</div><div class="cx">✗</div><div class="cx">✗</div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-name">Rakaman Manual / Telefon <small>Status quo semasa</small></div>
+        <div class="cx">✗</div><div class="cx">✗</div><div class="cx">✗</div><div class="cx">✗</div><div class="cx">✗</div>
+      </div>
+    </div>
+    <div class="moat">
+      <div class="moat-card">
+        <h3>Parit Bahasa</h3>
+        <p>Model AI dioptimumkan untuk Bahasa Malaysia dan Manglish. Pesaing asing memerlukan 12–18 bulan untuk meniru ketepatan ini bagi pasaran Malaysia.</p>
+      </div>
+      <div class="moat-card">
+        <h3>Parit Regulasi</h3>
+        <p>Dibina dari hari pertama untuk PDPA 2010, Akta Pekerjaan 1955, dan IRA 1967. Bukan ciri yang boleh ditambah kemudian — ia memerlukan reka bentuk semula sepenuhnya.</p>
+      </div>
+      <div class="moat-card">
+        <h3>Parit Konteks Profesion</h3>
+        <p>AI dilatih dengan kerangka inkuiri domestik, soal siasat polis, dan nota klinikal Malaysia. Konteks ini tidak wujud dalam model umum.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════ -->
+<!-- 12 · GO-TO-MARKET                 -->
+<!-- ══════════════════════════════════ -->
+<section class="slide" id="gtm">
+  <div class="slide-inner">
+    <p class="slide-num">11 · Strategi Go-to-Market</p>
+    <h2>Masuk melalui <span class="hi">komuniti profesional</span>,<br/>bukan pemasaran massa yang mahal</h2>
+    <div class="gtm-phases">
+      <div class="phase">
+        <div class="phase-num">Fasa 1 · Q3 2026</div>
+        <h3>Beta Tertutup</h3>
+        <ul>
+          <li>20–30 pengguna dari rangkaian pengasas</li>
+          <li>Fokus: HR dan klinik persendirian</li>
+          <li>Kumpul data penggunaan dan testimonial</li>
+          <li>Iterasi berdasarkan maklum balas mingguan</li>
+          <li>Sahkan product-market fit sebelum skala</li>
+        </ul>
+        <div class="note">💡 Jika beta gagal mencapai 50% pengguna aktif selepas 60 hari, semak semula positioning sebelum teruskan</div>
+      </div>
+      <div class="phase">
+        <div class="phase-num">Fasa 2 · Q4 2026–Q2 2027</div>
+        <h3>Pertumbuhan Organik</h3>
+        <ul>
+          <li>Perkongsian dengan MIHRM (55K+ ahli)</li>
+          <li>Seminar undang-undang pekerjaan & PDPA</li>
+          <li>Program rujukan: 1 bulan percuma per rujukan</li>
+          <li>SEO untuk "inkuiri domestik Malaysia"</li>
+          <li>Kandungan: panduan PDPA, templat ID percuma</li>
+        </ul>
+        <div class="note">📊 Sasaran: 200 pengguna berbayar pada akhir 2027</div>
+      </div>
+      <div class="phase">
+        <div class="phase-num">Fasa 3 · 2028+</div>
+        <h3>Enterprise (Swasta Dahulu)</h3>
+        <ul>
+          <li>Firma guaman dan GLC swasta — kitaran 3–6 bulan</li>
+          <li>Klinik swasta besar dan hospital swasta</li>
+          <li>Integrasi dengan vendor HRMS sedia ada</li>
+          <li>Sektor awam melalui rakan kongsi kerajaan</li>
+          <li><em style="color:rgba(255,255,255,0.4)">Tender kerajaan: fasa 4, selepas akreditasi lengkap</em></li>
+        </ul>
+        <div class="note">⚠ Tender kerajaan memerlukan 12–24 bulan dan tidak dimasukkan dalam unjuran 2028</div>
+      </div>
+    </div>
+    <div class="gtm-metrics">
+      <div class="gm"><div class="gm-n" style="color:var(--blue-light)">&lt; RM 400</div><div class="gm-l">CAC Sasaran</div></div>
+      <div class="gm"><div class="gm-n" style="color:var(--green)">7–8:1</div><div class="gm-l">Nisbah LTV:CAC</div></div>
+      <div class="gm"><div class="gm-n" style="color:var(--amber)">~8%</div><div class="gm-l">Kadar Tukar Freemium</div></div>
+      <div class="gm"><div class="gm-n" style="color:white">1.7 bln</div><div class="gm-l">Bayar Balik CAC</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════ -->
+<!-- 13 · RISIKO                       -->
+<!-- ══════════════════════════════════ -->
+<section class="slide" id="risks">
+  <div class="slide-inner">
+    <p class="slide-num">12 · Risiko &amp; Mitigasi</p>
+    <h2>Kami sedar tentang risiko —<br/>dan mempunyai <span class="hi">rancangan untuk setiap satu</span></h2>
+    <div class="risk-grid">
+      <div class="risk-card">
+        <div class="risk-header">
+          <div class="risk-icon" style="background:rgba(239,68,68,0.12)">⚡</div>
+          <h3>Pesaing Besar Masuk Pasaran</h3>
+        </div>
+        <div class="risk-desc">Microsoft (Copilot), Google (Gemini), atau AWS boleh membina ciri yang serupa dalam masa 12–18 bulan.</div>
+        <div class="mit-label">Mitigasi</div>
+        <div class="mit-text">Kepakaran PDPA Malaysia, konteks undang-undang tempatan, dan hubungan dengan komuniti profesional adalah parit yang sukar ditiru oleh syarikat global. Pegang pasaran niche sebelum mereka tiba.</div>
+      </div>
+      <div class="risk-card">
+        <div class="risk-header">
+          <div class="risk-icon" style="background:rgba(245,158,11,0.12)">🏛️</div>
+          <h3>Kitaran Jualan Enterprise Panjang</h3>
+        </div>
+        <div class="risk-desc">Pelanggan enterprise dan kerajaan memerlukan 6–24 bulan untuk membuat keputusan pembelian. Cash flow boleh terjejas.</div>
+        <div class="mit-label">Mitigasi</div>
+        <div class="mit-text">Fasa 1 & 2 menumpukan sepenuhnya pada SME dan individu (kitaran jualan 1–7 hari). Enterprise adalah bonus, bukan tunjang utama unjuran 2026–2027.</div>
+      </div>
+      <div class="risk-card">
+        <div class="risk-header">
+          <div class="risk-icon" style="background:rgba(37,99,235,0.12)">💰</div>
+          <h3>Kenaikan Kos API AI</h3>
+        </div>
+        <div class="risk-desc">Kos OpenAI Whisper dan Anthropic Claude boleh meningkat, menekan margin. Kos API hari ini boleh berbeza pada 2027.</div>
+        <div class="mit-label">Mitigasi</div>
+        <div class="mit-text">Model AI sumber terbuka (Whisper.cpp, Llama) sedang matang — pilihan alternatif kos rendah sedia ada jika diperlukan. Harga produk direka bentuk dengan margin buffer 40%.</div>
+      </div>
+      <div class="risk-card">
+        <div class="risk-header">
+          <div class="risk-icon" style="background:rgba(16,185,129,0.12)">👤</div>
+          <h3>Risiko Pengasas Tunggal</h3>
+        </div>
+        <div class="risk-desc">Syarikat bergantung terlalu besar pada satu individu pada peringkat ini. Risiko jika pengasas tidak dapat meneruskan.</div>
+        <div class="mit-label">Mitigasi</div>
+        <div class="mit-text">Pengambilan CTO adalah keutamaan pertama apabila pembiayaan diperoleh. Dokumentasi teknikal lengkap. Kod sumber disimpan di repositori dengan akses berbilang pihak.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════ -->
+<!-- 14 · ASK                          -->
+<!-- ══════════════════════════════════ -->
+<section class="slide" id="ask" style="padding-top:110px; padding-bottom:80px;">
+  <div class="slide-inner">
+    <p class="slide-num">13 · Cadangan Pelaburan</p>
+    <h2>Kami mencari <span class="hi">rakan kongsi strategik</span><br/>untuk membawa VeriRec ke pasaran</h2>
+    <div class="raise">RM 500,000</div>
+    <p class="ask-sub">Pusingan Pre-Seed · Nota Boleh Tukar (Convertible Note)</p>
+    <p class="ask-note">Penilaian Cap: RM 3.5M · Diskaun: 20% · Faedah: 6%/tahun · Tempoh: 24 bulan</p>
+    <div class="funds">
+      <div class="fund">
+        <div class="fund-pct">40%</div>
+        <h3>Pasukan & Produk</h3>
+        <p>Pengambilan CTO, pembangunan aplikasi mudah alih, penambahbaikan model AI untuk Bahasa Malaysia, dan keselamatan data (pentest, audit).</p>
+      </div>
+      <div class="fund">
+        <div class="fund-pct">35%</div>
+        <h3>Jualan & Pemasaran</h3>
+        <p>Pengambilan Sales Executive, kempen digital tertumpu, pameran profesional, dan program perkongsian dengan persatuan MIHRM dan MMA.</p>
+      </div>
+      <div class="fund">
+        <div class="fund-pct">25%</div>
+        <h3>Operasi & Pematuhan</h3>
+        <p>Kos undang-undang pematuhan PDPA, pendaftaran syarikat, audit keselamatan, dan kos operasi sehingga titik pulang modal.</p>
+      </div>
+    </div>
+    <p style="font-size:13px; color:var(--gray); margin-top:28px; text-align:center;">Pencapaian yang disasar dengan pembiayaan ini</p>
+    <div class="milestones">
+      <div class="ms">
+        <div class="ms-q">Q3 2026</div>
+        <p>30 pengguna beta aktif, pengesahan product-market fit, kadar penggunaan semula &gt; 70%</p>
+      </div>
+      <div class="ms">
+        <div class="ms-q">Q1 2027</div>
+        <p>100 pengguna berbayar, MRR RM 23K, titik pulang modal dicapai, CTO onboard</p>
+      </div>
+      <div class="ms">
+        <div class="ms-q">Q3 2027</div>
+        <p>200 pengguna, MRR RM 47K, 1 kontrak enterprise swasta, sedia untuk Siri A</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════ -->
+<!-- 15 · PENUTUP                      -->
+<!-- ══════════════════════════════════ -->
+<section class="slide" id="close">
+  <div class="slide-inner">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" style="width:60px;height:60px;margin:0 auto">
+      <rect width="32" height="32" rx="8" fill="#2563eb"/>
+      <polyline points="4,16 7,11 10,21 13,9 16,23 19,11 22,18 25,14 28,16" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+    <h2 style="margin-top:24px;">Ini bukan soal teknologi —<br/>ini soal <span class="gi">keadilan prosedural</span></h2>
+    <p style="font-size:18px; color:rgba(255,255,255,0.5); margin-top:12px; max-width:680px; margin-left:auto; margin-right:auto;">Setiap tahun, kes inkuiri domestik gagal, keterangan ditolak, dan pesakit kehilangan hak mereka — bukan kerana salah prosedur, tetapi kerana dokumentasi yang tidak sempurna. VeriRec mengakhiri ini.</p>
+    <div class="story-box">
+      <p>"Seorang pengurus HR menceritakan kepada saya bagaimana syarikatnya kalah dalam kes tribunal pecat salah — bukan kerana pegawai itu tidak bersalah, tetapi kerana rakaman inkuiri domestik tidak boleh digunakan sebagai keterangan. Kos penyelesaian: RM 180,000. Kos VeriRec Pro setahun: RM 4,788. Ini masalah yang perlu diselesaikan."</p>
+      <p style="font-size:13px; margin-top:12px; color:rgba(255,255,255,0.3);">— Syed Shazni, Pengasas VeriRec</p>
+    </div>
+    <div class="contact-row">
+      <div class="cc"><div class="cc-l">E-mel</div><div class="cc-v"><a href="mailto:hello@verirec.my">hello@verirec.my</a></div></div>
+      <div class="cc"><div class="cc-l">Laman Web</div><div class="cc-v"><a href="#">verirec.my</a></div></div>
+      <div class="cc"><div class="cc-l">Demo Langsung</div><div class="cc-v"><a href="#">Tempah 30 Minit</a></div></div>
+    </div>
+    <p class="disclaimer">
+      Dokumen ini mengandungi maklumat sulit VeriRec dan hanya untuk pengedaran terhad kepada pelabur yang berpotensi. Unjuran kewangan adalah berdasarkan andaian pengasas dan bukan jaminan prestasi masa hadapan. Nota Boleh Tukar tertakluk kepada terma dan syarat yang akan dipersetujui antara kedua-dua pihak. Maklumat pematuhan undang-undang hendaklah disahkan dengan penasihat undang-undang yang berkelayakan. © 2026 VeriRec. Semua hak terpelihara.
+    </p>
+  </div>
+</section>
+
+</body>
+</html>
