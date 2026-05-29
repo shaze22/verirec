@@ -85,20 +85,13 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('react-dom') || id.includes('react-router') || id.includes('/react/')) {
-              return 'react-vendor';
-            }
-            if (id.includes('@supabase')) return 'supabase';
-            if (id.includes('date-fns'))  return 'date-vendor';
-            if (id.includes('@sentry'))   return 'sentry';
-            if (
-              id.includes('react-hot-toast') ||
-              id.includes('react-helmet') ||
-              id.includes('zustand') ||
-              id.includes('clsx')
-            ) return 'ui-vendor';
-          }
+          const pkg = id.match(/node_modules[\\/]((?:@[^\\/]+[\\/])?[^\\/]+)/)?.[1];
+          if (!pkg) return;
+          if (['react', 'react-dom', 'react-router-dom', 'react-router'].includes(pkg)) return 'react-vendor';
+          if (pkg.startsWith('@supabase/'))  return 'supabase';
+          if (pkg === 'date-fns')            return 'date-vendor';
+          if (pkg.startsWith('@sentry/'))    return 'sentry';
+          if (['react-hot-toast', 'react-helmet-async', 'zustand', 'clsx'].includes(pkg)) return 'ui-vendor';
         },
       },
     },
