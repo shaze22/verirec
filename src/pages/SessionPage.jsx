@@ -11,6 +11,7 @@ import { updateSession } from '../api/sessions.js';
 import { generateReport } from '../api/claude.js';
 import { put } from '../lib/idb.js';
 import { uploadAudio } from '../api/audioLibrary.js';
+import { diarizeAudio, pollDiarization } from '../api/whisper.js';
 import { getSessionById } from '../api/sessions.js';
 import { Waveform } from '../components/session/Waveform.jsx';
 import { TranscriptPanel } from '../components/session/TranscriptPanel.jsx';
@@ -64,6 +65,7 @@ export default function SessionPage() {
   const autoSaveRef = useRef(null);
   const detectedFlagsRef = useRef(new Set());
   const durationAtStopRef = useRef(0);
+  const fullAudioChunksRef = useRef([]); // collect all chunks for AssemblyAI diarization
 
   useEffect(() => {
     if (!sessionId) { navigate('/session/new'); return; }
@@ -157,12 +159,17 @@ export default function SessionPage() {
   }, [audioBlob]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleStart = async () => {
-    await start({ onChunk: isSpeechRecognitionSupported ? undefined : addChunk });
+    fullAudioChunksRef.current = [];
+    await start({
+      onChunk: (chunk) => {
+        fullAudioChunksRef.current.push(chunk); // always collect for diarization
+        if (!isSpeechRecognitionSupported) addChunk(chunk); // also feed Whisper
+      },
+    });
     if (isSpeechRecognitionSupported) startRealtime();
     timer.start();
     setStarted(true);
     addEntry({ type: 'SYSTEM', text: `Sesi dimulakan — ${new Date().toLocaleTimeString('ms-MY')}` });
-    // Mark as in_progress so it appears as resumable from dashboard
     if (sessionId) updateSession(sessionId, { recording_status: 'in_progress' }).catch(() => {});
   };
 
@@ -223,9 +230,56 @@ export default function SessionPage() {
     setEndError(false);
     setGenerateStep('Menyimpan data sesi...');
 
+    // Capture full audio blob synchronously before state updates
+    const fullAudioBlob = fullAudioChunksRef.current.length > 0
+      ? new Blob(fullAudioChunksRef.current, { type: 'audio/webm' })
+      : null;
+
     try {
+      // 1. Diarize full audio with AssemblyAI (if audio captured)
+      let diarizedEntries = entries;
+      if (fullAudioBlob && fullAudioBlob.size > 10_000) {
+        try {
+          setGenerateStep('Menghantar audio untuk diarization speaker...');
+          const jobId = await diarizeAudio(fullAudioBlob);
+          setGenerateStep('Memproses diarization speaker (ini mengambil masa ~30 saat)...');
+          const utterances = await pollDiarization(jobId, {
+            onProgress: (status) => {
+              if (status === 'processing') setGenerateStep('Memproses diarization speaker...');
+            },
+          });
+          if (utterances.length > 0) {
+            // Map speaker 'A' → interviewer, 'B' → subject, others → label
+            const firstSpeaker = utterances[0]?.speaker;
+            const speakerMap = {};
+            const uniqueSpeakers = [...new Set(utterances.map(u => u.speaker))];
+            uniqueSpeakers.forEach((s, i) => {
+              if (i === 0) speakerMap[s] = 'interviewer';
+              else if (i === 1) speakerMap[s] = 'subject';
+              else speakerMap[s] = `speaker_${s.toLowerCase()}`;
+            });
+            // Keep SYSTEM/NOTE/FLAG entries, replace TRANSCRIPT with diarized
+            const nonTranscript = entries.filter(e => e.type !== 'TRANSCRIPT');
+            const diarized = utterances.map(u => ({
+              id: crypto.randomUUID(),
+              type: 'TRANSCRIPT',
+              text: u.text,
+              speaker: speakerMap[u.speaker],
+              timestamp: new Date(Date.now() - (utterances[utterances.length - 1].end - u.start)).toISOString(),
+            }));
+            diarizedEntries = [...nonTranscript, ...diarized].sort((a, b) =>
+              new Date(a.timestamp) - new Date(b.timestamp)
+            );
+          }
+        } catch (diarizeErr) {
+          console.warn('Diarization failed, continuing with original transcript:', diarizeErr.message);
+          // Non-fatal — continue with existing transcript
+        }
+      }
+
+      setGenerateStep('Menyimpan data sesi...');
       await updateSession(sessionId, {
-        transcript: entries,
+        transcript: diarizedEntries,
         flags,
         duration: timer.elapsed,
         recording_status: 'completed',
@@ -235,7 +289,7 @@ export default function SessionPage() {
       setGenerateStep('Menganalisis transkrip dengan AI...');
       await generateReport({
         session_id: sessionId,
-        transcript: entries,
+        transcript: diarizedEntries,
         flags,
         session_info: { ...setup, duration: timer.elapsed },
       });
@@ -246,7 +300,6 @@ export default function SessionPage() {
       toast.success('Laporan berjaya dijana!');
       navigate(`/session/${sessionId}`);
     } catch {
-      // Data is saved — stay in modal, let user retry or go to report page
       setEndError(true);
     } finally {
       localStorage.removeItem(lockKey);

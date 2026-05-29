@@ -7,7 +7,6 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-// Required: disable Vercel's default bodyParser so we can handle multipart manually
 export const config = { api: { bodyParser: false } };
 
 function parseMultipart(req) {
@@ -16,51 +15,130 @@ function parseMultipart(req) {
     const fields = {};
     let audioBuffer = null;
     let audioMime = 'audio/webm';
-
     bb.on('file', (name, stream, info) => {
       audioMime = info.mimeType || 'audio/webm';
       const chunks = [];
       stream.on('data', d => chunks.push(d));
       stream.on('end', () => { audioBuffer = Buffer.concat(chunks); });
     });
-
     bb.on('field', (name, val) => { fields[name] = val; });
     bb.on('close', () => resolve({ fields, audioBuffer, audioMime }));
     bb.on('error', reject);
-
     req.pipe(bb);
   });
 }
 
+async function authUser(req) {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (!token) return null;
+  const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+  if (error || !user) return null;
+  return user;
+}
+
+// GET /api/transcribe?job_id=xxx — poll AssemblyAI diarization job
+async function handlePoll(req, res) {
+  const user = await authUser(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+  const job_id = req.query?.job_id;
+  if (!job_id) return res.status(400).json({ error: 'Missing job_id' });
+
+  if (!process.env.ASSEMBLYAI_API_KEY) {
+    return res.status(503).json({ error: 'AssemblyAI not configured' });
+  }
+
+  try {
+    const r = await fetch(`https://api.assemblyai.com/v2/transcript/${job_id}`, {
+      headers: { Authorization: process.env.ASSEMBLYAI_API_KEY },
+    });
+    const data = await r.json();
+
+    if (data.status === 'completed') {
+      // Map AssemblyAI utterances to VeriRec format
+      const utterances = (data.utterances || []).map(u => ({
+        speaker: u.speaker,  // 'A', 'B', 'C'…
+        text: u.text,
+        start: u.start,
+        end: u.end,
+      }));
+      return res.status(200).json({ status: 'completed', utterances });
+    }
+
+    if (data.status === 'error') {
+      return res.status(502).json({ status: 'error', error: data.error || 'AssemblyAI error' });
+    }
+
+    return res.status(200).json({ status: data.status }); // 'queued' | 'processing'
+  } catch (err) {
+    console.error('poll error:', err);
+    return res.status(500).json({ error: 'Poll failed' });
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
+
+  if (req.method === 'GET') return handlePoll(req, res);
+
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) return res.status(401).json({ error: 'Unauthorized' });
-
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
-    if (authError || !user) return res.status(401).json({ error: 'Unauthorized' });
+    const user = await authUser(req);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
     const rl = await checkRateLimit(user.id, 'transcribe');
-    if (!rl.ok) {
-      return res.status(429).json({ error: 'Terlalu banyak permintaan. Cuba lagi sebentar.' });
-    }
+    if (!rl.ok) return res.status(429).json({ error: 'Terlalu banyak permintaan. Cuba lagi sebentar.' });
 
-    const { audioBuffer, audioMime } = await parseMultipart(req);
+    const { fields, audioBuffer, audioMime } = await parseMultipart(req);
     if (!audioBuffer || audioBuffer.length === 0) {
       return res.status(400).json({ error: 'No audio data received' });
     }
 
-    // Max audio: 25MB (Whisper limit)
+    // ── DIARIZE MODE (AssemblyAI batch) ──────────────────────────────────────
+    if (fields.mode === 'diarize') {
+      if (!process.env.ASSEMBLYAI_API_KEY) {
+        return res.status(503).json({ error: 'AssemblyAI not configured' });
+      }
+
+      // 1. Upload audio to AssemblyAI
+      const uploadRes = await fetch('https://api.assemblyai.com/v2/upload', {
+        method: 'POST',
+        headers: {
+          Authorization: process.env.ASSEMBLYAI_API_KEY,
+          'Content-Type': 'application/octet-stream',
+        },
+        body: audioBuffer,
+      });
+      if (!uploadRes.ok) throw new Error('AssemblyAI upload failed');
+      const { upload_url } = await uploadRes.json();
+
+      // 2. Start transcription job with speaker diarization
+      const transcriptRes = await fetch('https://api.assemblyai.com/v2/transcript', {
+        method: 'POST',
+        headers: {
+          Authorization: process.env.ASSEMBLYAI_API_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          audio_url: upload_url,
+          speaker_labels: true,
+          language_detection: true,  // auto-detect BM / English mix
+        }),
+      });
+      if (!transcriptRes.ok) throw new Error('AssemblyAI transcription job failed');
+      const { id } = await transcriptRes.json();
+
+      return res.status(200).json({ job_id: id, status: 'processing' });
+    }
+
+    // ── REAL-TIME CHUNK MODE (Whisper) ────────────────────────────────────────
     if (audioBuffer.length > 25 * 1024 * 1024) {
       return res.status(413).json({ error: 'Audio chunk too large' });
     }
 
     const form = new FormData();
-    const blob = new Blob([audioBuffer], { type: audioMime });
-    form.append('file', blob, 'audio.webm');
+    form.append('file', new Blob([audioBuffer], { type: audioMime }), 'audio.webm');
     form.append('model', 'whisper-1');
     form.append('language', 'ms');
 
