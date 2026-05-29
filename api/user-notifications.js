@@ -48,6 +48,38 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, sent: true });
     }
 
+    if (type === 'follow-up-reminder') {
+      const { data: sessions } = await supabaseAdmin
+        .from('sessions')
+        .select('id, title, report')
+        .eq('user_id', user.id)
+        .not('report', 'is', null);
+
+      const withItems = (sessions || []).filter(s =>
+        Array.isArray(s.report?.followUpItems) && s.report.followUpItems.length > 0
+      );
+      if (withItems.length === 0) return res.status(200).json({ ok: true, skipped: true });
+
+      const count = withItems.reduce((acc, s) => acc + s.report.followUpItems.length, 0);
+      const listHtml = withItems.slice(0, 3).map(s =>
+        `<li><a href="https://verirec.vercel.app/session/${s.id}" style="color:#2563eb">${s.title || 'Sesi'}</a> — ${s.report.followUpItems.length} item</li>`
+      ).join('');
+
+      await sendEmail({
+        to: user.email,
+        subject: `Peringatan: ${count} tindakan susulan belum selesai`,
+        html: `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;background:#f8fafc;padding:24px">
+          <div style="background:#fff;border-radius:12px;max-width:520px;margin:0 auto;padding:32px;border:1px solid #e2e8f0">
+            <h2 style="color:#0f172a;margin:0 0 8px">📋 Tindakan Susulan Belum Selesai</h2>
+            <p style="color:#475569">Anda mempunyai <strong>${count} tindakan susulan</strong> yang masih belum diselesaikan:</p>
+            <ul style="color:#475569;font-size:14px;line-height:2">${listHtml}</ul>
+            <a href="https://verirec.vercel.app/dashboard" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;margin:16px 0">Semak Dashboard →</a>
+            <p style="font-size:12px;color:#94a3b8;margin-top:16px">VeriRec · <a href="https://verirec.vercel.app" style="color:#2563eb">verirec.vercel.app</a></p>
+          </div></body></html>`,
+      });
+      return res.status(200).json({ ok: true, sent: true, count });
+    }
+
     return res.status(400).json({ error: 'Unknown notification type' });
   } catch (err) {
     console.error('user-notifications error:', err);

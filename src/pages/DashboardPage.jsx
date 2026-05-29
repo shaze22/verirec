@@ -131,6 +131,30 @@ export default function DashboardPage() {
         if (data.length === 0 && !localStorage.getItem(`onboarding_done_${user.id}`)) {
           setShowOnboarding(true);
         }
+        // Browser notification for overdue follow-ups
+        const overdueCount = getOverdueFollowUps(data);
+        if (overdueCount > 0 && 'Notification' in window) {
+          const notifKey = `followup_notif_${new Date().toDateString()}_${user.id}`;
+          if (!localStorage.getItem(notifKey)) {
+            if (Notification.permission === 'granted') {
+              new Notification('VeriRec — Tindakan Susulan', {
+                body: `${overdueCount} tindakan susulan belum selesai. Semak dashboard anda.`,
+                icon: '/favicon.svg',
+              });
+              localStorage.setItem(notifKey, '1');
+            } else if (Notification.permission === 'default') {
+              Notification.requestPermission().then(p => {
+                if (p === 'granted') {
+                  new Notification('VeriRec — Tindakan Susulan', {
+                    body: `${overdueCount} tindakan susulan belum selesai.`,
+                    icon: '/favicon.svg',
+                  });
+                  localStorage.setItem(notifKey, '1');
+                }
+              });
+            }
+          }
+        }
       })
       .catch(() => toast.error('Gagal memuatkan sesi'))
       .finally(() => setLoading(false));

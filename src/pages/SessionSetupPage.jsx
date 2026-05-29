@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore.js';
 import { getProfession } from '../data/professions.js';
+import { getMyTeam, getTeamMembers } from '../api/teams.js';
 import { TopBar } from '../components/layout/TopBar.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { Input, Textarea } from '../components/ui/Input.jsx';
@@ -50,6 +51,15 @@ export default function SessionSetupPage() {
   const navigate = useNavigate();
   const profession = getProfession(professionId);
   const caseFields = professionCaseFields[professionId] || {};
+  const [teamMembers, setTeamMembers] = useState([]);
+
+  useEffect(() => {
+    if (!user) return;
+    getMyTeam(user.id)
+      .then(team => team && getTeamMembers(team.id))
+      .then(members => setTeamMembers((members || []).filter(m => m.status === 'accepted' && m.user_id !== user.id)))
+      .catch(() => {});
+  }, [user]);
 
   const [form, setForm] = useState(() => {
     try {
@@ -64,6 +74,7 @@ export default function SessionSetupPage() {
           case_number: saved.case_number || '',
           witness_officer: saved.witness_officer || '',
           context_notes: saved.context_notes || '',
+          assignee_id: saved.assignee_id || '',
         };
       }
     } catch { /* ignore parse errors */ }
@@ -76,6 +87,7 @@ export default function SessionSetupPage() {
       case_number: '',
       witness_officer: '',
       context_notes: '',
+      assignee_id: '',
     };
   });
 
@@ -153,6 +165,22 @@ export default function SessionSetupPage() {
               <LabelWithTooltip label="Nota Konteks" tooltip="Maklumat latar belakang yang membantu AI menghasilkan cadangan soalan dan laporan yang lebih tepat. Tidak akan dikongsi dengan subjek." />
               <Textarea value={form.context_notes} onChange={set('context_notes')} rows={3} placeholder="Latar belakang kes, tujuan sesi, maklumat relevan lain..." />
             </div>
+
+            {teamMembers.length > 0 && (
+              <div>
+                <LabelWithTooltip label="Tugaskan Kepada" tooltip="Tugaskan sesi ini kepada ahli pasukan anda. Mereka akan dapat melihat sesi ini dalam dashboard mereka." />
+                <select
+                  value={form.assignee_id}
+                  onChange={e => setForm(prev => ({ ...prev, assignee_id: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Diri sendiri (tiada penugasan)</option>
+                  {teamMembers.map(m => (
+                    <option key={m.id} value={m.user_id}>{m.email} ({m.role})</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="flex gap-3 pt-2">
               <Button type="button" variant="secondary" onClick={handleBack}>Kembali</Button>

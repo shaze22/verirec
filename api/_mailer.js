@@ -130,6 +130,28 @@ export function reportReadyEmail(sessionTitle, sessionId) {
   };
 }
 
+export function monthlySummaryEmail(name, sessionsUsed, sessionsLimit, plan) {
+  const planLabel = { free: 'Percuma', starter: 'Starter', pro: 'Pro', business: 'Perniagaan' }[plan] || plan;
+  return {
+    subject: `Ringkasan Bulanan VeriRec — ${sessionsUsed} sesi selesai`,
+    html: base(`
+      <div class="logo">
+        <div class="logo-box"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><polyline points="2,12 5,8 8,16 11,6 14,18 17,8 19,13 21,12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
+        <span class="logo-text">VeriRec</span>
+      </div>
+      <h1>Ringkasan Bulanan, ${name || 'Rakan Profesional'}!</h1>
+      <p>Berikut adalah ringkasan aktiviti VeriRec anda bulan lepas:</p>
+      <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:16px;margin:16px 0">
+        <p style="margin:4px 0;color:#0369a1"><strong>📊 Jumlah Sesi Selesai:</strong> ${sessionsUsed} sesi</p>
+        <p style="margin:4px 0;color:#0369a1"><strong>📋 Had Pelan ${planLabel}:</strong> ${sessionsLimit === -1 ? 'Tanpa Had' : `${sessionsLimit} sesi/bulan`}</p>
+      </div>
+      <p>Had sesi anda telah direset secara automatik. Anda kini bermula dengan had penuh untuk bulan ini.</p>
+      <a href="https://verirec.vercel.app/dashboard" class="btn">Lihat Dashboard →</a>
+      ${sessionsLimit !== -1 && sessionsUsed >= sessionsLimit * 0.8 ? `<p style="font-size:12px;color:#64748b">💡 Pertimbangkan untuk naik taraf pelan bagi kapasiti yang lebih besar.</p>` : ''}
+    `),
+  };
+}
+
 export function subscriptionCancelledEmail(planLabel) {
   return {
     subject: 'Langganan VeriRec Anda Telah Dibatalkan',
