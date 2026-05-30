@@ -484,12 +484,14 @@ export default function KaunslorAppointmentsPage() {
                         const win = window.open('', '_blank', 'width=480,height=600');
                         win.document.write(`<!DOCTYPE html><html><head><title>QR Tempahan - VeriRec</title>
                           <style>
-                            body{margin:0;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#fff}
-                            img{width:280px;height:280px}
-                            h2{font-size:18px;font-weight:700;margin-bottom:4px;color:#1e293b}
-                            p{font-size:11px;color:#64748b;margin:4px 0;text-align:center;max-width:300px;word-break:break-all}
-                            .url{font-family:monospace;background:#f1f5f9;padding:6px 12px;border-radius:6px;font-size:10px;margin:8px 0}
-                            @media print{body{justify-content:flex-start;padding-top:40px}}
+                            @page{size:A4;margin:1.5cm}
+                            *{box-sizing:border-box}
+                            html,body{margin:0;padding:0;height:100%;overflow:hidden}
+                            body{font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;page-break-after:avoid}
+                            img{width:260px;height:260px;display:block}
+                            h2{font-size:17px;font-weight:700;margin:0 0 4px;color:#1e293b}
+                            p{font-size:11px;color:#64748b;margin:3px 0;text-align:center;max-width:280px;word-break:break-all}
+                            .url{font-family:monospace;background:#f1f5f9;padding:5px 10px;border-radius:6px;font-size:10px;margin:6px 0}
                           </style>
                         </head><body>
                           <h2>VeriRec — QR Tempahan</h2>
