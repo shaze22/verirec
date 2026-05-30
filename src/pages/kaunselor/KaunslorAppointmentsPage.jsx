@@ -202,10 +202,19 @@ export default function KaunslorAppointmentsPage() {
   };
 
   const downloadQR = () => {
-    const a = document.createElement('a');
-    a.href = qrDataUrl;
-    a.download = `verirec-qr-${profile?.booking_code}.png`;
-    a.click();
+    // Convert data URL to blob — more reliable across browsers
+    fetch(qrDataUrl)
+      .then(r => r.blob())
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `verirec-qr-${profile?.booking_code}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
   };
 
   const bookingUrl = profile ? `${window.location.origin}/book/${profile.booking_code}` : '';
