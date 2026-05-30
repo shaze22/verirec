@@ -202,19 +202,22 @@ export default function KaunslorAppointmentsPage() {
   };
 
   const downloadQR = () => {
-    // Convert data URL to blob — more reliable across browsers
-    fetch(qrDataUrl)
-      .then(r => r.blob())
-      .then(blob => {
-        const url = URL.createObjectURL(blob);
+    if (!profile?.booking_code) return;
+    const bookingLink = `${window.location.origin}/book/${profile.booking_code}`;
+    const canvas = document.createElement('canvas');
+    QRCode.toCanvas(canvas, bookingLink, { width: 400, margin: 3, color: { dark: '#1e293b', light: '#ffffff' } }, (err) => {
+      if (err) { toast.error('Gagal jana QR.'); return; }
+      canvas.toBlob(blob => {
+        const blobUrl = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
-        a.download = `verirec-qr-${profile?.booking_code}.png`;
+        a.href = blobUrl;
+        a.download = `verirec-qr-${profile.booking_code}.png`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      });
+        URL.revokeObjectURL(blobUrl);
+      }, 'image/png');
+    });
   };
 
   const bookingUrl = profile ? `${window.location.origin}/book/${profile.booking_code}` : '';
