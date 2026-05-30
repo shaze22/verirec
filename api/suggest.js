@@ -16,7 +16,7 @@ async function callGeminiFallback(prompt) {
   return result.response.text().trim();
 }
 
-const planOrder = { free: 0, starter: 1, pro: 2, biz: 3 };
+const planOrder = { free: 0, counselor: 1, starter: 1, pro: 2, biz: 3 };
 
 function readBody(req) {
   return new Promise((resolve, reject) => {

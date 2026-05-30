@@ -504,127 +504,173 @@ export function ReportView({ session }) {
     try {
       const { default: jsPDF } = await import('jspdf');
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const W = 210, M = 18, lineH = 6.5, col = W - M * 2;
-      let y = M;
+      const W = 210, M = 15;
+      let y = 14;
 
-      const addText = (text, size = 10, bold = false, color = [30,30,30], indent = 0) => {
-        pdf.setFontSize(size);
-        pdf.setFont('helvetica', bold ? 'bold' : 'normal');
-        pdf.setTextColor(...color);
-        const lines = pdf.splitTextToSize(String(text || '—'), col - indent);
-        lines.forEach(line => {
-          if (y > 272) { pdf.addPage(); y = M; }
-          pdf.text(line, M + indent, y);
-          y += lineH;
-        });
+      const PROBLEM_MAP = {
+        'Emosional': 'EMOTIONAL', 'Perhubungan Sosial': 'SOCIAL RELATIONSHIP',
+        'Pembangunan Kerjaya': 'CAREER DEVELOPMENT', 'Keluarga/Rumah': 'FAMILY/HOME',
+        'Akademik': 'ACADEMIC', 'Kewangan': 'FINANCIAL',
+        'Agama': 'RELIGION', 'Seksual': 'SEXUAL',
+        'Undang-undang': 'LEGAL', 'Kesihatan': 'HEALTH',
+        'Tabiat/Sikap': 'HABIT/ATTITUDE', 'Krisis': 'CRISIS',
       };
+      const checked = new Set((report.problemTypes || []).map(p => PROBLEM_MAP[p] || p.toUpperCase()));
+      const csn = report.caseSessionNote || {};
 
-      const addField = (label, value, indent = 0) => {
-        addText(label, 8.5, true, [80,80,80], indent);
-        addText(value || '—', 10, false, [30,30,30], indent + 2);
-        y += 1;
-      };
-
-      const hr = (color = [220,220,220]) => {
-        pdf.setDrawColor(...color);
-        pdf.line(M, y, W - M, y);
-        y += 4;
-      };
-
-      // ── HEADER ──
-      pdf.setFillColor(37, 99, 235);
-      pdf.roundedRect(M, y, col, 14, 2, 2, 'F');
-      pdf.setFontSize(13); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(255,255,255);
-      pdf.text('CASE SESSION NOTE', M + 4, y + 6);
-      pdf.setFontSize(8); pdf.setFont('helvetica', 'normal');
-      pdf.text('VeriRec — Platform Rakaman Sesi Profesional', M + 4, y + 11);
-      y += 20;
-
-      // ── DOC INFO ──
-      pdf.setFontSize(8); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(120,120,120);
-      pdf.text(`Tarikh Jana: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, M, y);
-      pdf.text(`ID Sesi: ${id?.substring(0,8).toUpperCase() || '—'}`, W - M - 40, y);
-      y += 8; hr();
-
-      // ── CLIENT INFO ──
-      addText('MAKLUMAT KLIEN', 9, true, [37,99,235]);
-      y += 1;
-      const cols2 = [
-        ['Nama Klien', subject_name],
-        ['Kaunselor', interviewer],
-        ['Tarikh Sesi', created_at ? format(new Date(created_at), 'dd MMMM yyyy') : '—'],
-        ['Tempoh', duration ? `${Math.round(duration/60)} minit` : '—'],
-        ['No. Kes', case_number || '—'],
-        ['Jenis Sesi', 'Sukarela'],
-      ];
-      cols2.forEach(([l,v]) => addField(l, v, 0));
-      y += 2; hr();
-
-      // ── PROBLEM TYPES ──
-      if (report.problemTypes?.length) {
-        addText('JENIS MASALAH', 9, true, [37,99,235]);
-        y += 1;
-        addText(report.problemTypes.join('  •  '), 9.5, false, [50,50,50], 2);
-        y += 3; hr();
-      }
-
-      // ── CASE SESSION NOTE ──
-      if (report.caseSessionNote) {
-        addText('NOTA SESI (CASE SESSION NOTE)', 9, true, [37,99,235]);
-        y += 2;
-        const csn = report.caseSessionNote;
-        [
-          ['Isu yang Dibawa (Presented Issue)', csn.presentedIssue],
-          ['Isu Dikenal Pasti (Identified Issue)', csn.identifiedIssue],
-          ['Matlamat Bersama (Mutual Goal)', csn.mutualGoal],
-          ['Aktiviti / Intervensi', csn.activitiesInterventions],
-          ['Kemajuan / Pencapaian Matlamat', csn.progressGoalAchievement],
-          ['Rancangan Susulan', csn.followUpPlan],
-          ['Penamatan Sesi', csn.terminationNotes],
-          ['Penemuan Assessment', csn.assessmentFindings],
-        ].filter(([,v]) => v).forEach(([l,v]) => { addField(l, v, 2); y += 1; });
-        y += 2; hr();
-      }
-
-      // ── RISK ──
-      if (report.crisisIndicators || report.riskLevel) {
-        addText('TAHAP RISIKO', 9, true, [37,99,235]);
-        y += 1;
-        const riskMap = { none:'Tiada', mental_health:'Masalah Kesihatan Mental', self_harm:'Kecenderungan Mencederakan Diri', suicidal:'Kecenderungan Bunuh Diri' };
-        addText(riskMap[report.crisisIndicators?.riskType || report.riskLevel] || report.riskLevel || 'Tiada', 10, false, [30,30,30], 2);
-        if (report.crisisIndicators?.notes) addText(report.crisisIndicators.notes, 9, false, [120,40,40], 2);
-        y += 3; hr();
-      }
-
-      // ── SIGNATURE ──
-      if (y > 230) { pdf.addPage(); y = M; }
-      else y += 6;
-      addText('TANDATANGAN', 9, true, [80,80,80]);
-      y += 2;
-      pdf.setDrawColor(180,180,180);
-      pdf.line(M, y + 12, M + 70, y + 12);
-      pdf.line(W - M - 70, y + 12, W - M, y + 12);
-      pdf.setFontSize(8); pdf.setTextColor(120,120,120);
-      pdf.text('Tandatangan Klien', M, y + 17);
-      pdf.text('Tandatangan Kaunselor', W - M - 70, y + 17);
-      y += 22;
-      pdf.setFontSize(8);
-      pdf.text(`${subject_name || ''}`, M, y);
-      pdf.text(`${interviewer || ''}`, W - M - 70, y);
+      // ── Appendix 2 ──
+      pdf.setFontSize(7); pdf.setFont('helvetica', 'italic'); pdf.setTextColor(80,80,80);
+      pdf.text('Appendix 2', W - M, y, { align: 'right' });
       y += 4;
-      pdf.text(`Tarikh: ${format(new Date(), 'dd/MM/yyyy')}`, M, y);
-      pdf.text(`Tarikh: ${format(new Date(), 'dd/MM/yyyy')}`, W - M - 70, y);
 
-      // ── FOOTER ──
-      const pages = pdf.getNumberOfPages();
+      // ── STRICTLY CONFIDENTIAL (left) ──
+      pdf.setFillColor(20,20,20);
+      pdf.rect(M, y, 56, 20, 'F');
+      pdf.setFontSize(11); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(255,255,255);
+      pdf.text('STRICTLY', M + 28, y + 8, { align: 'center' });
+      pdf.text('CONFIDENTIAL', M + 28, y + 15, { align: 'center' });
+
+      // ── Work Station box (right) ──
+      const bx = M + 80;
+      pdf.setDrawColor(60,60,60); pdf.setLineWidth(0.3);
+      pdf.rect(bx, y, W - M - bx, 20);
+      pdf.setFontSize(7.5); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(30,30,30);
+      [['Work Station', ': Counselling unit'], ['Version', ': 01        Revision: 00'],
+       ['Effective Date', ': 1st July 2022'], ['Date of Revision', ':']].forEach(([lbl, val], i) => {
+        pdf.text(lbl, bx + 2, y + 5 + i * 4.2);
+        pdf.text(val, bx + 29, y + 5 + i * 4.2);
+      });
+      y += 27;
+
+      // ── CASE SESSION NOTE title ──
+      pdf.setDrawColor(40,40,40); pdf.setLineWidth(0.5);
+      pdf.rect(M + 20, y, W - M * 2 - 40, 14);
+      pdf.setFontSize(13); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(10,10,10);
+      pdf.text('CASE SESSION NOTE', W / 2, y + 9.5, { align: 'center' });
+      y += 19;
+
+      pdf.setFontSize(8); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(80,80,80);
+      pdf.text('Please fill up this form with related information.', W / 2, y, { align: 'center' });
+      y += 9;
+
+      // ── Dashed underline helper ──
+      const uline = (x1, y1, x2) => {
+        pdf.setDrawColor(130,130,130); pdf.setLineWidth(0.2);
+        pdf.setLineDashPattern([0.8, 0.5], 0);
+        pdf.line(x1, y1, x2, y1);
+        pdf.setLineDashPattern([], 0);
+      };
+
+      // ── Client info ──
+      pdf.setFontSize(9); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(30,30,30);
+      pdf.text('Name of Student', M, y);
+      pdf.text(':', M + 35, y);
+      uline(M + 38, y, W - M);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(subject_name || '', M + 40, y - 0.5);
+      pdf.setFont('helvetica', 'normal');
+      y += 8;
+
+      pdf.text('ID Number', M, y);
+      pdf.text(':', M + 35, y);
+      uline(M + 38, y, W / 2 - 5);
+      pdf.text('I/C Number', W / 2, y);
+      pdf.text(':', W / 2 + 23, y);
+      uline(W / 2 + 26, y, W - M);
+      y += 9;
+
+      const sDate = created_at ? format(new Date(created_at), 'dd/MM/yyyy') : '';
+      const sTime = created_at ? format(new Date(created_at), 'HH:mm') : '';
+      [['Type of Session', ''], ['Date of Session', sDate], ['Time of Session', sTime]].forEach(([lbl, val]) => {
+        pdf.text(lbl, M, y);
+        pdf.text(':', M + 35, y);
+        uline(M + 38, y, W / 2 + 25);
+        if (val) { pdf.setFont('helvetica', 'bold'); pdf.text(val, M + 40, y - 0.5); pdf.setFont('helvetica', 'normal'); }
+        y += 7;
+      });
+      y += 4;
+
+      // ── Type of Problem ──
+      pdf.setFontSize(9); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(20,20,20);
+      pdf.text('Type of Problem:', M, y);
+      y += 5;
+
+      const PL = ['EMOTIONAL','SOCIAL RELATIONSHIP','CAREER DEVELOPMENT','FAMILY/HOME','ACADEMIC','FINANCIAL'];
+      const PR = ['RELIGION','SEXUAL','LEGAL','HEALTH','HABIT/ATTITUDE','CRISIS'];
+      pdf.setFont('helvetica', 'normal'); pdf.setFontSize(8.5);
+      const rowH = 6;
+      [[PL, M], [PR, W / 2]].forEach(([probs, px]) => {
+        probs.forEach((p, i) => {
+          const py = y + i * rowH;
+          pdf.setDrawColor(40,40,40); pdf.setLineWidth(0.3);
+          pdf.rect(px, py - 3.5, 4.5, 4.5);
+          if (checked.has(p)) {
+            pdf.setDrawColor(10,10,10); pdf.setLineWidth(0.7);
+            pdf.line(px + 0.6, py - 1.3, px + 1.9, py + 0.4);
+            pdf.line(px + 1.9, py + 0.4, px + 4.1, py - 2.8);
+            pdf.setLineWidth(0.3);
+          }
+          pdf.setTextColor(20,20,20);
+          pdf.text(p, px + 6.5, py);
+        });
+      });
+      y += 6 * rowH + 7;
+
+      // ── Text box helper ──
+      const textBox = (label, content, boxH = 26) => {
+        if (y + boxH + 8 > 275) { pdf.addPage(); y = M; }
+        pdf.setFontSize(9); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(20,20,20);
+        pdf.text(label, M, y);
+        y += 2;
+        pdf.setDrawColor(80,80,80); pdf.setLineWidth(0.3);
+        pdf.rect(M, y, W - M * 2, boxH);
+        if (content) {
+          pdf.setFontSize(8.5); pdf.setTextColor(30,30,30);
+          const lines = pdf.splitTextToSize(content, W - M * 2 - 4);
+          lines.slice(0, Math.floor((boxH - 2) / 4.2)).forEach((line, i) => {
+            pdf.text(line, M + 2, y + 4 + i * 4.2);
+          });
+        }
+        y += boxH + 6;
+      };
+
+      textBox('Presented Issue:', csn.presentedIssue, 28);
+      textBox('Identified Issue:', csn.identifiedIssue, 28);
+
+      // ── Page 2 ──
+      pdf.addPage(); y = M;
+      textBox('Mutual Goal:', csn.mutualGoal, 28);
+      textBox('Activities/Interventions/Treatment:', csn.activitiesInterventions, 28);
+      textBox('Progress/Goal Achievement:', csn.progressGoalAchievement, 28);
+      textBox('Needs for follow-up session/Plan for Next Follow-up Session:', csn.followUpPlan, 28);
+      textBox('Termination of session:', csn.terminationNotes, 28);
+
+      // ── Signature ──
+      if (y + 40 > 275) { pdf.addPage(); y = M; }
+      y += 4;
+      pdf.setFontSize(9); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(20,20,20);
+      pdf.text('Signature of Counsellor:', M, y);
+      y += 18;
+      pdf.setDrawColor(80,80,80); pdf.setLineWidth(0.25);
+      pdf.setLineDashPattern([1, 1], 0);
+      pdf.line(M + 20, y, M + 90, y);
+      pdf.setLineDashPattern([], 0);
+      y += 6;
+      pdf.setFontSize(8.5);
+      pdf.text('Name  :', M + 20, y); pdf.text(interviewer || '', M + 38, y); y += 5;
+      pdf.text('Date   :', M + 20, y); pdf.text(format(new Date(), 'dd/MM/yyyy'), M + 38, y); y += 5;
+      pdf.text('Time   :', M + 20, y); pdf.text(format(new Date(), 'HH:mm'), M + 38, y);
+
+      // ── Footer ──
+      const pages = pdf.internal.getNumberOfPages();
       for (let i = 1; i <= pages; i++) {
         pdf.setPage(i);
-        pdf.setFontSize(7); pdf.setTextColor(160,160,160);
-        pdf.text('SULIT — VeriRec | verirec.vercel.app', M, 290);
-        pdf.text(`${i}/${pages}`, W - M, 290, { align: 'right' });
+        pdf.setFontSize(7); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(130,130,130);
+        pdf.text('STRICTLY CONFIDENTIAL', M, 290);
+        pdf.text(`${i} / ${pages}`, W - M, 290, { align: 'right' });
       }
 
-      pdf.save(`case-session-note-${subject_name?.replace(/\s+/g,'-') || id?.substring(0,8)}-${format(new Date(), 'yyyyMMdd')}.pdf`);
+      pdf.save(`case-session-note-${(subject_name || id?.substring(0,8) || 'session').replace(/\s+/g,'-')}-${format(new Date(),'yyyyMMdd')}.pdf`);
     } finally {
       setExporting(false);
     }

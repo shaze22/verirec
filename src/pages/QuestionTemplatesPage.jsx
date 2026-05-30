@@ -48,6 +48,7 @@ const BLANK_ASSESSMENT = { id: null, name: '', description: '', questions: [{ id
 
 export default function QuestionTemplatesPage() {
   const { user } = useAuthStore();
+  const isCounselor = localStorage.getItem('preferred_profession') === 'counselor';
   const [pageTab, setPageTab] = useState('soalan');
   const [templates, setTemplates] = useState([]);
   const [assessments, setAssessments] = useState([]);
@@ -189,7 +190,10 @@ export default function QuestionTemplatesPage() {
 
       {/* Page tabs */}
       <div className="flex border-b bg-white px-6 gap-1">
-        {[{ id:'soalan', label:'Templat Soalan' }, { id:'assessment', label:'Custom Assessment' }].map(t => (
+        {[
+          { id:'soalan', label:'Templat Soalan' },
+          ...(isCounselor ? [{ id:'assessment', label:'Custom Assessment' }] : []),
+        ].map(t => (
           <button key={t.id} onClick={() => setPageTab(t.id)}
             className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${pageTab === t.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
             {t.label}

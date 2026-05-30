@@ -142,7 +142,6 @@ export default async function handler(req, res) {
     const form = new FormData();
     form.append('file', new Blob([audioBuffer], { type: audioMime }), 'audio.webm');
     form.append('model', 'whisper-1');
-    form.append('language', 'ms');
 
     const whisperRes = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
