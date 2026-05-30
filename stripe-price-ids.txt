@@ -1,0 +1,9 @@
+## Stripe Test Price IDs — VeriRec
+## Stripe Account: acct_14w8D5CCttq0bxpO (Test mode)
+
+### ALL DONE:
+STRIPE_PRICE_COUNSELOR_MONTHLY=price_1TcSyOCCttq0bxpOuLLL7pdV   (RM100/bulan)
+STRIPE_PRICE_COUNSELOR_ANNUAL=price_1TcT1zCCttq0bxpOZloOSLTF    (RM996/tahun)
+STRIPE_PRICE_TOPUP_1=price_1TcT3KCCttq0bxpOIB7lQpVF             (RM13, one-time)
+STRIPE_PRICE_TOPUP_5=price_1TcTA6CCttq0bxpOnE3UWy2z             (RM60, one-time)
+STRIPE_PRICE_TOPUP_10=price_1TcTCPCCttq0bxpOWO2Y8IWE            (RM100, one-time)
