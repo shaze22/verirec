@@ -201,24 +201,6 @@ export default function KaunslorAppointmentsPage() {
     setScheduledSessions(prev => prev.map(s => s.id === id ? { ...s, status: 'completed' } : s));
   };
 
-  const downloadQR = () => {
-    if (!profile?.booking_code) return;
-    const bookingLink = `${window.location.origin}/book/${profile.booking_code}`;
-    const canvas = document.createElement('canvas');
-    QRCode.toCanvas(canvas, bookingLink, { width: 400, margin: 3, color: { dark: '#1e293b', light: '#ffffff' } }, (err) => {
-      if (err) { toast.error('Gagal jana QR.'); return; }
-      canvas.toBlob(blob => {
-        const blobUrl = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = `verirec-qr-${profile.booking_code}.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(blobUrl);
-      }, 'image/png');
-    });
-  };
 
   const bookingUrl = profile ? `${window.location.origin}/book/${profile.booking_code}` : '';
 
@@ -498,7 +480,13 @@ export default function KaunslorAppointmentsPage() {
                     <p className="text-sm text-gray-500 mb-1">Pautan Tempahan</p>
                     <p className="font-mono text-xs bg-gray-50 rounded-lg px-3 py-2 text-gray-700 break-all">{bookingUrl}</p>
                     <div className="flex gap-3 justify-center mt-4">
-                      <Button onClick={downloadQR} variant="secondary">⬇ Muat Turun QR</Button>
+                      <a
+                        href={qrDataUrl}
+                        download={`verirec-qr-${profile?.booking_code}.png`}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        ⬇ Muat Turun QR
+                      </a>
                       <Button onClick={() => { navigator.clipboard.writeText(bookingUrl); toast.success('Pautan disalin!'); }}>
                         Salin Pautan
                       </Button>
