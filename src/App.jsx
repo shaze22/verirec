@@ -1,4 +1,4 @@
-import { useEffect, Suspense, lazy, Component } from 'react';
+import { useEffect, useState, Suspense, lazy, Component } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore.js';
@@ -107,6 +107,25 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
+function CounselorHome() {
+  const { user } = useAuthStore();
+  const [dest, setDest] = useState(null);
+
+  useEffect(() => {
+    if (!user) return;
+    const skipped = localStorage.getItem(`counselor_setup_skipped_${user.id}`);
+    if (skipped) { setDest('/kaunselor/clients'); return; }
+    import('./api/counselor.js').then(({ getCounselorProfile }) =>
+      getCounselorProfile(user.id)
+    ).then(p => {
+      setDest(p?.display_name && p?.phone ? '/kaunselor/clients' : '/kaunselor/setup');
+    }).catch(() => setDest('/kaunselor/clients'));
+  }, [user?.id]);
+
+  if (!dest) return <LoadingSpinner />;
+  return <Navigate to={dest} replace />;
+}
+
 function HomeRoute() {
   const { user, loading } = useAuthStore();
   if (loading) return <LoadingSpinner />;
@@ -181,7 +200,7 @@ export default function App() {
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   {localStorage.getItem('preferred_profession') === 'counselor'
-                    ? <Navigate to="/kaunselor/clients" replace />
+                    ? <CounselorHome />
                     : <AppLayout><DashboardPage /></AppLayout>}
                 </ProtectedRoute>
               } />

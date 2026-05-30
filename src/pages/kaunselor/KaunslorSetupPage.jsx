@@ -23,6 +23,7 @@ export default function KaunslorSetupPage() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     display_name: '',
+    phone: '',
     registration_number: '',
     credentials: [],
     specializations: [],
@@ -60,12 +61,13 @@ export default function KaunslorSetupPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.display_name.trim()) return toast.error('Sila masukkan nama paparan.');
+    if (!form.phone.trim()) return toast.error('Sila masukkan nombor telefon.');
     if (form.credentials.length === 0) return toast.error('Pilih sekurang-kurangnya satu kelayakan.');
     setSaving(true);
     try {
       await upsertCounselorProfile({ ...form, user_id: user.id });
       toast.success('Profil kaunselor disimpan!');
-      navigate('/kaunselor/appointments');
+      navigate('/kaunselor/clients');
     } catch (err) {
       toast.error(err.message || 'Gagal menyimpan profil.');
     } finally {
@@ -89,9 +91,18 @@ export default function KaunslorSetupPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
 
+            {/* Personal info */}
+            <div className="bg-white rounded-xl border p-5 space-y-4">
+              <h3 className="font-semibold text-gray-900">Maklumat Peribadi</h3>
+              <Input label="Nama Paparan *" value={form.display_name} onChange={set('display_name')} placeholder="Nama yang akan dilihat oleh klien" required />
+              <Input label="Nombor Telefon / WhatsApp *" value={form.phone} onChange={set('phone')} type="tel" placeholder="cth. 012-3456789" required />
+              <Input label="Nombor Pendaftaran" value={form.registration_number} onChange={set('registration_number')} placeholder="cth. BKR/0123/2024" />
+              <Textarea label="Bio / Tentang Saya" value={form.bio} onChange={set('bio')} rows={3} placeholder="Perkenalan ringkas tentang pengalaman dan pendekatan kaunseling anda..." />
+            </div>
+
             {/* Practice type */}
             <div className="bg-white rounded-xl border p-5 space-y-4">
-              <h3 className="font-semibold text-gray-900">Jenis Amalan</h3>
+              <h3 className="font-semibold text-gray-900">Lokasi & Jenis Amalan</h3>
               <div className="grid grid-cols-2 gap-3">
                 {[{ val: 'solo', label: '👤 Solo Practitioner', desc: 'Amalan persendirian' }, { val: 'klinik', label: '🏥 Klinik / Pusat', desc: 'Ada admin / receptionist' }].map(opt => (
                   <button key={opt.val} type="button"
@@ -103,19 +114,10 @@ export default function KaunslorSetupPage() {
                 ))}
               </div>
               {form.practice_type === 'klinik' && (
-                <div className="space-y-3 pt-2">
-                  <Input label="Nama Klinik / Pusat" value={form.klinik_name} onChange={set('klinik_name')} placeholder="cth. Klinik Kaunseling Bestari" />
-                  <Textarea label="Alamat" value={form.klinik_address} onChange={set('klinik_address')} rows={2} placeholder="Alamat penuh klinik..." />
-                </div>
+                <Input label="Nama Klinik / Pusat" value={form.klinik_name} onChange={set('klinik_name')} placeholder="cth. Klinik Kaunseling Bestari" />
               )}
-            </div>
-
-            {/* Personal info */}
-            <div className="bg-white rounded-xl border p-5 space-y-4">
-              <h3 className="font-semibold text-gray-900">Maklumat Peribadi</h3>
-              <Input label="Nama Paparan *" value={form.display_name} onChange={set('display_name')} placeholder="Nama yang akan dilihat oleh klien" required />
-              <Input label="Nombor Pendaftaran" value={form.registration_number} onChange={set('registration_number')} placeholder="cth. BKR/0123/2024" />
-              <Textarea label="Bio / Tentang Saya" value={form.bio} onChange={set('bio')} rows={3} placeholder="Perkenalan ringkas tentang pengalaman dan pendekatan kaunseling anda..." />
+              <Textarea label="Alamat / Lokasi Sesi *" value={form.klinik_address} onChange={set('klinik_address')} rows={2} placeholder="Alamat tempat sesi kaunseling dijalankan (akan dipaparkan kepada klien dalam e-mel pengesahan)..." />
+              <p className="text-xs text-gray-400">Maklumat ini akan dipaparkan dalam e-mel pengesahan temujanji klien.</p>
             </div>
 
             {/* Credentials */}
@@ -157,7 +159,7 @@ export default function KaunslorSetupPage() {
               <div className="bg-gray-50 rounded-lg p-3">
                 <p className="text-xs text-gray-500 mb-1">Kod Tempahan Anda</p>
                 <p className="font-mono font-bold text-gray-900 text-lg">{form.booking_code}</p>
-                <p className="text-xs text-gray-400 mt-1">URL: verirec.vercel.app/book/{form.booking_code}</p>
+                <p className="text-xs text-gray-400 mt-1">URL: www.verirec.app/book/{form.booking_code}</p>
               </div>
             </div>
 
