@@ -26,7 +26,6 @@ export default function KaunslorAppointmentsPage() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [qrDataUrl, setQrDataUrl] = useState('');
-  const [qrBlobUrl, setQrBlobUrl] = useState('');
   const [tab, setTab] = useState('appointments');
   const [addSlotForm, setAddSlotForm] = useState({ day_of_week: 1, start_time: '09:00', end_time: '17:00' });
   const [scheduledSessions, setScheduledSessions] = useState([]);
@@ -56,20 +55,11 @@ export default function KaunslorAppointmentsPage() {
       setScheduledSessions(sched || []);
       if (p?.booking_code) {
         const url = `${window.location.origin}/book/${p.booking_code}`;
-        const tempCanvas = document.createElement('canvas');
-        QRCode.toCanvas(tempCanvas, url, { width: 400, margin: 3, color: { dark: '#1e293b', light: '#ffffff' } }, (err) => {
-          if (err) return;
-          setQrDataUrl(tempCanvas.toDataURL('image/png'));
-          tempCanvas.toBlob(blob => {
-            if (blob) setQrBlobUrl(URL.createObjectURL(blob));
-          }, 'image/png');
-        });
+        QRCode.toDataURL(url, { width: 400, margin: 3, color: { dark: '#1e293b', light: '#ffffff' } })
+          .then(setQrDataUrl).catch(() => {});
       }
     }).finally(() => setLoading(false));
   }, [user]);
-
-  // Cleanup blob URL on unmount
-  useEffect(() => () => { if (qrBlobUrl) URL.revokeObjectURL(qrBlobUrl); }, [qrBlobUrl]);
 
   const handleAddSlot = async (e) => {
     e.preventDefault();
@@ -490,13 +480,28 @@ export default function KaunslorAppointmentsPage() {
                     <p className="text-sm text-gray-500 mb-1">Pautan Tempahan</p>
                     <p className="font-mono text-xs bg-gray-50 rounded-lg px-3 py-2 text-gray-700 break-all">{bookingUrl}</p>
                     <div className="flex gap-3 justify-center mt-4">
-                      <a
-                        href={qrBlobUrl || qrDataUrl}
-                        download={`verirec-qr-${profile?.booking_code}.png`}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
-                      >
-                        ⬇ Muat Turun QR
-                      </a>
+                      <Button variant="secondary" onClick={() => {
+                        const win = window.open('', '_blank', 'width=480,height=600');
+                        win.document.write(`<!DOCTYPE html><html><head><title>QR Tempahan - VeriRec</title>
+                          <style>
+                            body{margin:0;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#fff}
+                            img{width:280px;height:280px}
+                            h2{font-size:18px;font-weight:700;margin-bottom:4px;color:#1e293b}
+                            p{font-size:11px;color:#64748b;margin:4px 0;text-align:center;max-width:300px;word-break:break-all}
+                            .url{font-family:monospace;background:#f1f5f9;padding:6px 12px;border-radius:6px;font-size:10px;margin:8px 0}
+                            @media print{body{justify-content:flex-start;padding-top:40px}}
+                          </style>
+                        </head><body>
+                          <h2>VeriRec — QR Tempahan</h2>
+                          <p>Imbas kod QR ini untuk buat temujanji</p>
+                          <img src="${qrDataUrl}" alt="QR"/>
+                          <p class="url">${bookingUrl}</p>
+                          <script>window.onload=()=>window.print();<\/script>
+                        </body></html>`);
+                        win.document.close();
+                      }}>
+                        🖨 Print / Simpan PDF
+                      </Button>
                       <Button onClick={() => { navigator.clipboard.writeText(bookingUrl); toast.success('Pautan disalin!'); }}>
                         Salin Pautan
                       </Button>
