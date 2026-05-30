@@ -27,7 +27,9 @@ export const useBillingStore = create((set, get) => ({
   canStartSession: () => {
     const sub = get().subscription;
     if (!sub) return false;
-    return sub.sessions_limit === -1 || sub.sessions_used < sub.sessions_limit;
+    if (sub.sessions_limit === -1) return true;
+    const extra = sub.extra_sessions || 0;
+    return sub.sessions_used < sub.sessions_limit + extra;
   },
 
   hasFeature: (plan) => {
@@ -49,7 +51,7 @@ export const useBillingStore = create((set, get) => ({
     if (error) return { error: error.message };
 
     if (data?.ok) {
-      set({ subscription: { ...sub, sessions_used: data.used } });
+      set({ subscription: { ...sub, sessions_used: data.used, extra_sessions: data.extra ?? sub.extra_sessions ?? 0 } });
 
       // Fire-and-forget usage warning email at 80% threshold
       const limit = sub.sessions_limit;

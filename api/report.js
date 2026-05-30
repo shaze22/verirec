@@ -79,15 +79,31 @@ Tambah medan "statementSummary" dalam JSON:
 
     case 'counselor':
       return `
-Tambah medan "crisisIndicators" dalam JSON:
-{
-  "crisisIndicators": {
-    "detected": true/false,
-    "level": "none|watch|critical",
-    "resources": ["Talian Kasih 15999", "MIASA 03-2780 6803", "Befrienders KL 03-7627 2929"]
-  }
+Ini adalah sesi kaunseling. Jana laporan mengikut format CASE SESSION NOTE profesional kaunselor Malaysia (SOP berdasarkan Akta Kaunselor 1998).
+
+Tambah medan berikut dalam JSON:
+
+"caseSessionNote": {
+  "presentedIssue": "Isu yang dibawa oleh klien — dalam kata-kata klien sendiri",
+  "identifiedIssue": "Isu sebenar yang dikenal pasti oleh kaunselor berdasarkan sesi",
+  "mutualGoal": "Matlamat bersama yang dipersetujui antara kaunselor dan klien",
+  "activitiesInterventions": "Teknik, pendekatan, dan intervensi yang digunakan dalam sesi (cth. CBT, person-centred, refleksi, soal selidik)",
+  "progressGoalAchievement": "Penilaian pencapaian matlamat — adakah klien menunjukkan perubahan atau kemajuan?",
+  "followUpPlan": "Rancangan sesi susulan jika matlamat belum tercapai — bila, apa yang perlu dilakukan",
+  "terminationNotes": "Nota penamatan sesi — adakah sesi ditamatkan secara formal atau perlu diteruskan",
+  "assessmentFindings": "Analisis keputusan assessment jika ada (MBTI/RIASEC) — hubungkan dengan isu yang dibincangkan"
+},
+"problemTypes": ["senarai jenis masalah yang dikenal pasti dari senarai berikut sahaja: Emosional, Perhubungan Sosial, Pembangunan Kerjaya, Keluarga/Rumah, Akademik, Kewangan, Agama, Seksual, Undang-undang, Kesihatan, Tabiat/Sikap, Krisis"],
+"crisisIndicators": {
+  "detected": true atau false,
+  "level": "none|watch|critical",
+  "riskType": "none|mental_health|self_harm|suicidal",
+  "notes": "penjelasan ringkas jika ada risiko",
+  "resources": ["Talian Kasih 15999", "MIASA 03-2780 6803", "Befrienders KL 03-7627 2929"]
 }
-Tetapkan "detected": true jika ada tanda-tanda risiko diri, keganasan, atau krisis psikologi.`;
+
+Tetapkan crisisIndicators.detected: true jika ada tanda-tanda risiko diri, keganasan, atau krisis psikologi.
+Untuk riskType: gunakan "suicidal" jika ada tanda bunuh diri, "self_harm" jika mencederakan diri, "mental_health" jika masalah mental serius, "none" jika tiada.`;
 
     default:
       return '';
@@ -117,7 +133,7 @@ export default async function handler(req, res) {
       return res.status(413).json({ error: err.message });
     }
 
-    const { session_id, transcript, flags, session_info } = body;
+    const { session_id, transcript, flags, session_info, subject_info } = body;
     if (!session_id || !transcript) return res.status(400).json({ error: 'Missing required fields' });
 
     const { data: session, error: sessionError } = await supabaseAdmin
@@ -127,11 +143,28 @@ export default async function handler(req, res) {
       .eq('user_id', user.id)
       .single();
 
+
     if (sessionError || !session) return res.status(403).json({ error: 'Forbidden' });
 
     if (session.report) {
       return res.status(200).json({ report: session.report, hash: session.hash });
     }
+
+    // Fetch assessment results for this session
+    const { data: assessments } = await supabaseAdmin
+      .from('session_assessments')
+      .select('result, assessment_id, assessment_sets(name, type)')
+      .eq('session_id', session_id);
+
+    const assessmentText = assessments?.length
+      ? assessments.map(a => {
+          const name = a.assessment_sets?.name || 'Assessment';
+          const type = a.assessment_sets?.type;
+          if (type === 'mbti') return `${name}: Jenis ${a.result?.type || '-'}`;
+          if (type === 'riasec') return `${name}: Kod Holland ${a.result?.code || '-'}`;
+          return `${name}: ${JSON.stringify(a.result)}`;
+        }).join('\n')
+      : null;
 
     const profession = session_info?.profession || 'umum';
     const transcriptText = transcript
@@ -157,12 +190,17 @@ Maklumat sesi:
 - Pegawai Saksi: ${session_info?.witness_officer || 'Tiada'}
 - Konteks: ${session_info?.context_notes || 'Tiada'}
 - Tempoh: ${Math.round((session_info?.duration || 0) / 60)} minit
+${subject_info ? `- Maklumat klien: ${subject_info.name}, ${subject_info.gender || ''}, ${subject_info.marital_status || ''}, ${subject_info.occupation || ''}
+- Isu yang dibawa: ${subject_info.presenting_issue || 'Tidak dinyatakan'}
+- Jenis sesi: ${subject_info.session_type === 'referred' ? 'Rujukan' : 'Sukarela'}
+- Sejarah psikiatri: ${subject_info.psychiatric_history ? 'Ya' : 'Tidak'}, Ubat psikiatri: ${subject_info.psychiatric_medication ? 'Ya' : 'Tidak'}` : ''}
 
 Transkrip:
 ${transcriptText}
 
 Bendera yang ditanda:
 ${flags?.map(f => `- ${f.text}`).join('\n') || '(tiada)'}
+${assessmentText ? `\nKeputusan Assessment:\n${assessmentText}` : ''}
 
 Balas dalam JSON sahaja dengan medan berikut:
 {

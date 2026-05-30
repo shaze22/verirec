@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { sendEmail, welcomeEmail, limitWarningEmail } from './_mailer.js';
+import { sendEmail, welcomeEmail, limitWarningEmail, newAppointmentEmail, appointmentConfirmedEmail } from './_mailer.js';
 
 const supabaseAdmin = createClient(
   process.env.VITE_SUPABASE_URL,
@@ -11,13 +11,67 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
   try {
+    const type = req.query.type || req.body?.type;
+
+    // ── Public (no auth) appointment notifications ──────────────────────
+    if (type === 'new-appointment') {
+      const appointment_id = req.query.appointment_id || req.body?.appointment_id;
+      if (!appointment_id) return res.status(400).json({ error: 'Missing appointment_id' });
+
+      const { data: appt } = await supabaseAdmin
+        .from('appointments')
+        .select('client_name, client_phone, client_email, presenting_issue, requested_date, requested_time, counselor_id')
+        .eq('id', appointment_id).single();
+      if (!appt) return res.status(404).json({ error: 'Appointment not found' });
+
+      const { data: { user: counselor } } = await supabaseAdmin.auth.admin.getUserById(appt.counselor_id);
+      const { data: profile } = await supabaseAdmin
+        .from('counselor_profiles').select('display_name').eq('user_id', appt.counselor_id).single();
+
+      if (counselor?.email) {
+        const { subject, html } = newAppointmentEmail(profile?.display_name || 'Kaunselor', {
+          name: appt.client_name,
+          phone: appt.client_phone,
+          email: appt.client_email,
+          date: appt.requested_date,
+          time: appt.requested_time?.slice(0, 5),
+          issue: appt.presenting_issue,
+        });
+        await sendEmail({ to: counselor.email, subject, html });
+      }
+      return res.status(200).json({ ok: true });
+    }
+
+    if (type === 'appointment-confirmed') {
+      const appointment_id = req.query.appointment_id || req.body?.appointment_id;
+      if (!appointment_id) return res.status(400).json({ error: 'Missing appointment_id' });
+
+      const { data: appt } = await supabaseAdmin
+        .from('appointments')
+        .select('client_email, confirmed_date, confirmed_time, requested_date, requested_time, counselor_id, status')
+        .eq('id', appointment_id).single();
+      if (!appt || !appt.client_email) return res.status(200).json({ ok: true, skipped: 'no email' });
+
+      const { data: profile } = await supabaseAdmin
+        .from('counselor_profiles').select('display_name, session_duration_minutes').eq('user_id', appt.counselor_id).single();
+
+      const date = appt.confirmed_date || appt.requested_date;
+      const time = (appt.confirmed_time || appt.requested_time)?.slice(0, 5);
+      const isReschedule = appt.status === 'rescheduled';
+      const { subject, html } = appointmentConfirmedEmail(
+        profile?.display_name || 'Kaunselor', date, time, profile?.session_duration_minutes, isReschedule
+      );
+      await sendEmail({ to: appt.client_email, subject, html });
+      return res.status(200).json({ ok: true });
+    }
+    // ── End public notifications ──────────────────────────────────────
+
     const token = req.headers.authorization?.replace('Bearer ', '');
     if (!token) return res.status(401).json({ error: 'Unauthorized' });
 
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     if (authError || !user) return res.status(401).json({ error: 'Unauthorized' });
 
-    const type = req.query.type || req.body?.type;
 
     if (type === 'welcome') {
       const name = user.user_metadata?.full_name || user.email?.split('@')[0];

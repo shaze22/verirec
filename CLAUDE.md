@@ -1,4 +1,23 @@
-# VeriRec — Project Context
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Commands
+```bash
+npm run dev        # Start Vite dev server (frontend only, localhost:5173)
+npm run build      # Production build
+npm run preview    # Preview production build locally
+
+# Deploy to production
+vercel deploy --prod --force --scope syedshazni-7682s-projects
+
+# Pull env vars from Vercel (values of secrets are redacted)
+vercel env pull .env.local --environment production --scope syedshazni-7682s-projects
+```
+
+> API routes (`api/`) run as Vercel serverless functions — they are not served by `vite`. To test them locally, use `vercel dev` (requires Vercel CLI).
+
+---
 
 ## Apa itu VeriRec?
 SaaS rakaman temuduga profesional untuk Malaysia. AI transcribe + analisa perbualan secara real-time.
@@ -9,10 +28,11 @@ SaaS rakaman temuduga profesional untuk Malaysia. AI transcribe + analisa perbua
 - React + Vite (JSX, bukan TypeScript)
 - Tailwind CSS v3
 - Supabase (auth + database)
-- OpenAI Whisper (transcription) via `/api/transcribe`
+- AssemblyAI `universal-3-pro` (speaker diarization, batch, on session end) via `/api/transcribe?mode=diarize`
+- OpenAI Whisper `whisper-1` (real-time chunk transcription during recording) via `/api/transcribe`
 - Anthropic Claude `claude-opus-4-7` (AI analysis) via `/api/suggest`
-- Google Gemini `gemini-2.5-flash` (ready, via `/api/gemini`)
-- Stripe + Billplz (payments)
+- Google Gemini `gemini-2.5-flash` (fallback untuk Claude 529/500) via `/api/suggest`
+- Stripe (payments)
 - Vercel (deployment)
 
 ## Peraturan Wajib
@@ -30,25 +50,61 @@ src/                    — React frontend (Vite)
   api/                  — Frontend API clients (call /api/ routes)
     claude.js           — suggestQuestions(), analyzeSession(), generateReport()
     gemini.js           — geminiGenerate()
+    whisper.js          — diarizeAudio(), pollDiarization(), createWhisperClient()
   lib/                  — Supabase, IndexedDB, crypto, sync
   store/                — Zustand state (auth, billing)
-  pages/                — Route pages
+  pages/                — Route pages (SessionPage.jsx — diarization on session end)
   components/           — UI components
-api/                    — Vercel serverless functions (Node.js ESM)
-  suggest.js            — Anthropic Claude AI analysis
-  transcribe.js         — OpenAI Whisper transcription
+api/                    — Vercel serverless functions (Node.js ESM) — MAX 12 (Hobby plan)
+  suggest.js            — Anthropic Claude + Gemini fallback AI analysis
+  transcribe.js         — AssemblyAI diarize (POST mode=diarize, GET ?job_id) + Whisper realtime
   report.js             — Generate report + SHA-256 hash
   gemini.js             — Gemini AI endpoint
-  stripe-*.js           — Payment routes
+  stripe-billing.js     — Merged: invoice list (GET) + portal session (POST)
+  stripe-checkout.js, stripe-webhook.js
+  admin.js, cron-reset-usage.js, share-session.js, team-invite.js, user-notifications.js
 supabase/               — SQL schema + seed
 ```
 
+## Counselor Module
+- Public booking: `/book/:booking_code` → `PublicBookingPage.jsx`
+- Kaunselor pages: `/kaunselor/setup`, `/kaunselor/appointments`, `/kaunselor/clients`, `/kaunselor/clients/:id`
+- API: `src/api/counselor.js` — all counselor CRUD
+- 3 Supabase RPCs: `get_counselor_by_booking_code`, `get_booked_times`, `submit_appointment`
+- Email notifications in `api/user-notifications.js`: `type=new-appointment` (public) + `type=appointment-confirmed`
+- `appointment_slots` dan `appointments` guna `counselor_id` (bukan `user_id`)
+- `counselor_profiles.booking_code` = QR token (unique, 8-char alphanumeric)
+- Risk level 3-tier: `none` / `mental_health` / `self_harm` / `suicidal` (stored in `subjects.risk_level`)
+- Action plans: `action_plans` table (goals jsonb array, interventions jsonb array)
+- Clinical referrals: `clinical_referrals` table (referral_type: psychiatry/hospital/social_welfare/ngo/other)
+
+**SOP Counselling Unit (2026-05-29):**
+- Intake Form: marital_status, race, religion, previous_counseling, psychiatric_history, psychiatric_medication, session_type, hostel_resident, problem_types (12 kategori)
+- 12 Problem Types: Emosional, Perhubungan Sosial, Pembangunan Kerjaya, Keluarga/Rumah, Akademik, Kewangan, Agama, Seksual, Undang-undang, Kesihatan, Tabiat/Sikap, Krisis
+- Case Session Note dalam AI report: presentedIssue, identifiedIssue, mutualGoal, activitiesInterventions, progressGoalAchievement, followUpPlan, terminationNotes
+- Informed Consent: teks legal SOP penuh (Akta Kaunselor 1998 + PDPA)
+- crisisIndicators: riskType field (none/mental_health/self_harm/suicidal)
+- subject_info dihantar ke report API dari SessionPage
+
+**Assessment Tools (2026-05-29):**
+- `AssessmentPanel.jsx` — tab dalam sesi, MBTI (16 soalan BM) + RIASEC (24 aktiviti Holland Code)
+- Auto-score: MBTI → 4-letter type, RIASEC → 3-letter Holland code
+- Hasil simpan ke `session_assessments` table
+- `assessment_sets` seeded dengan 2 default sets (user_id = NULL = system default)
+- Audio Library tab dibuang dari Sidebar — audio embed dalam client file Sessions tab
+- Audio signed URL dari Supabase Storage (1hr expiry) per session
+
+## Hobby Plan — 12 Serverless Functions (HARD LIMIT)
+Jangan tambah function baru tanpa remove/merge yang lain dulu.
+Semasa: admin, cron-reset-usage, gemini, report, share-session, stripe-billing, stripe-checkout, stripe-webhook, suggest, team-invite, transcribe, user-notifications
+
 ## AI Models
-| Provider  | Model             | Kegunaan               |
-|-----------|-------------------|------------------------|
-| Anthropic | claude-opus-4-7   | AI analysis (suggest)  |
-| OpenAI    | whisper-1         | Audio transcription    |
-| Gemini    | gemini-2.5-flash  | Ready, belum digunakan |
+| Provider    | Model                         | Kegunaan                              |
+|-------------|-------------------------------|---------------------------------------|
+| Anthropic   | claude-opus-4-7               | AI analysis (suggest)                 |
+| AssemblyAI  | universal-3-pro / universal-2 | Speaker diarization (batch, on end)   |
+| OpenAI      | whisper-1                     | Real-time chunk transcription         |
+| Gemini      | gemini-2.5-flash              | Ready, belum digunakan                |
 
 ## 9 Profesion
 | ID        | Label         | Route      | Warna   |
@@ -64,12 +120,21 @@ supabase/               — SQL schema + seed
 | jkm       | Pegawai JKM   | /jkm       | #0d9488 |
 
 ## Plan & Harga
-| Plan       | Sesi/bulan | Harga/bulan |
-|------------|------------|-------------|
-| Percuma    | 2          | RM0         |
-| Starter    | 20         | RM249       |
-| Pro        | 100        | RM999       |
-| Perniagaan | 200        | RM2,499     |
+| Plan       | Sesi/bulan | Harga/bulan | Topup tersedia |
+|------------|------------|-------------|----------------|
+| Percuma    | 2          | RM0         | Tidak          |
+| Kaunselor  | 10         | RM100       | Ya             |
+| Starter    | 20         | RM249       | Tidak          |
+| Pro        | 100        | RM999       | Tidak          |
+| Perniagaan | 200        | RM2,499     | Tidak          |
+
+**Kaunselor Top-up:**
+- 1 sesi: RM13 (one-time Stripe payment)
+- 5 sesi: RM60 (RM12/sesi)
+- 10 sesi: RM100 (RM10/sesi)
+- Top-up disimpan dalam `subscriptions.extra_sessions` — tidak luput, tidak reset bulanan
+- Webhook `checkout.session.completed` + metadata `topup_sessions` → RPC `add_extra_sessions(uid, n)`
+- `increment_sessions` RPC: semak extra_sessions bila sessions_used >= sessions_limit
 
 ## Environment Variables
 ```
@@ -82,12 +147,57 @@ SUPABASE_SERVICE_KEY
 OPENAI_API_KEY
 ANTHROPIC_API_KEY
 GEMINI_API_KEY
+ASSEMBLYAI_API_KEY
 STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
-STRIPE_PRICE_* (6 price IDs)
+STRIPE_PRICE_* (11 price IDs: starter/pro/biz monthly+annual, counselor monthly+annual, topup 1/5/10)
 ```
 
 ## Deployment
 ```bash
-# Vercel auto-deploy atau manual:
-vercel deploy --prod
+# Manual production deploy:
+vercel deploy --prod --force --scope syedshazni-7682s-projects
 ```
+- URL: https://www.verirec.app (+ https://verirec.vercel.app)
+- Counselor subdomain: https://counselor.verirec.app
+- Project ID: `prj_EwnDU0nKMOn56auUR1WZF1GeNI3f`
+- Last deployed: 2026-05-30
+- **PENTING:** appointments↔subjects ada 2 FK — query mesti guna `subjects!appointments_subject_id_fkey`
+- Anon key pernah regenerate — jika data kosong, check VITE_SUPABASE_ANON_KEY dalam Vercel
+
+## Counselor Subdomain (counselor.verirec.app)
+- `src/lib/subdomain.js` — `isCounselorSubdomain()` detect hostname `counselor.verirec.app`
+- `src/pages/CounselorLandingPage.jsx` — landing page dedicated, green/emerald theme, 6 features kaunselor, pricing RM100
+- `App.jsx HomeRoute` — jika subdomain counselor: tunjuk CounselorLandingPage; jika user dah login → redirect `/kaunselor/clients`
+- `AuthPage.jsx` — jika subdomain counselor: logo hijau, subtitle "Portal Kaunselor", force `preferred_profession=counselor` dalam localStorage, redirect post-login ke `/kaunselor/clients`
+- DNS: CNAME `counselor` → `b36844232da1d730.vercel-dns-017.com.` dalam Namecheap ✅
+- Vercel domain ditambah via `vercel domains add counselor.verirec.app` ✅
+
+## Counselor Module — Full Feature List (2026-05-29)
+- Navigation: Sidebar/BottomNav split by profession — kaunselor→Klien+Temujanji, others→Subjek+Fail Kes
+- Detection: `localStorage.getItem('preferred_profession') === 'counselor'`
+- Booking form: nama, IC, No. Matrik/Staff ID (student_id), telefon, email, DOB, gender, alamat, isu
+- RPC `submit_appointment`: populate subjects dengan semua fields dari booking termasuk student_id
+- Selepas confirm → auto-navigate ke /kaunselor/clients/:subject_id + butang "Buka Profil"
+- KaunslorAppointmentsPage: 4 tabs — Permintaan | Jadual | Slot Masa | QR & Pautan
+- Tab Jadual: scheduled_sessions CRUD, highlight hari ini, mark selesai
+- Client file tabs: Maklumat | Sesi | Kalendar | Kebenaran | Plan | Rujukan | Temujanji
+- Kalendar: monthly grid, biru=sesi, hijau=temujanji, click day→detail
+- Audio embedded dalam Sesi tab (signed URL 1hr, Supabase Storage)
+- PDF Case Session Note: jsPDF SOP format, counselor only (printCaseNote())
+- Custom Assessment: tab dalam /templat, create soalan+pilihan, auto-available AssessmentPanel
+- Email bug fix: type+appointment_id hantar sebagai URL query params (bukan body) — req.body tidak diparsed
+  - new-appointment: ?type=new-appointment&appointment_id=...
+  - appointment-confirmed: ?type=appointment-confirmed&appointment_id=...
+
+**Reschedule (2026-05-29):**
+- Confirmed appointments ada butang "Jadual Semula"
+- Modal: tarikh asal → tarikh+masa baru + sebab
+- Status jadi 'rescheduled', email ke klien auto (subject berbeza dari confirm)
+- `appointmentConfirmedEmail(counselorName, date, time, duration, isReschedule)` — isReschedule=true tukar subject+header
+
+## Email Domain (verirec.app)
+- Domain `verirec.app` dah tambah dalam Resend (ID: `0d836d3d-fddd-4462-b390-736bd1ebc8e4`, region Tokyo)
+- FROM: `noreply@verirec.app` dalam `api/_mailer.js`
+- `RESEND_API_KEY` dah set dalam Vercel production
+- DNS records dah tambah dalam Namecheap: DKIM, MX, SPF, DMARC
+- Status: **Pending verification** — akan auto-verify bila DNS Namecheap propagate

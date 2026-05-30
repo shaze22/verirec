@@ -1,5 +1,5 @@
 // Email helper using Resend API — set RESEND_API_KEY in Vercel env to activate
-const FROM = 'VeriRec <noreply@verirec.my>';
+const FROM = 'VeriRec <noreply@verirec.app>';
 
 export async function sendEmail({ to, subject, html }) {
   if (!process.env.RESEND_API_KEY) return null;
@@ -91,7 +91,7 @@ export function paymentFailedEmail() {
       <p>Pembayaran langganan VeriRec anda telah gagal diproses. Perkhidmatan anda masih aktif buat sementara waktu.</p>
       <div class="warn"><p>⚠️ Sila kemas kini kaedah pembayaran anda untuk mengelakkan gangguan perkhidmatan.</p></div>
       <a href="https://verirec.vercel.app/settings" class="btn">Kemas Kini Pembayaran →</a>
-      <p>Jika anda memerlukan bantuan, hubungi kami di <a href="mailto:hello@verirec.my" style="color:#2563eb">hello@verirec.my</a></p>
+      <p>Jika anda memerlukan bantuan, hubungi kami di <a href="mailto:hello@verirec.app" style="color:#2563eb">hello@verirec.app</a></p>
     `),
   };
 }
@@ -148,6 +148,52 @@ export function monthlySummaryEmail(name, sessionsUsed, sessionsLimit, plan) {
       <p>Had sesi anda telah direset secara automatik. Anda kini bermula dengan had penuh untuk bulan ini.</p>
       <a href="https://verirec.vercel.app/dashboard" class="btn">Lihat Dashboard →</a>
       ${sessionsLimit !== -1 && sessionsUsed >= sessionsLimit * 0.8 ? `<p style="font-size:12px;color:#64748b">💡 Pertimbangkan untuk naik taraf pelan bagi kapasiti yang lebih besar.</p>` : ''}
+    `),
+  };
+}
+
+export function newAppointmentEmail(counselorName, client) {
+  return {
+    subject: `Tempahan Baru: ${client.name} — ${client.date} pukul ${client.time}`,
+    html: base(`
+      <div class="logo">
+        <div class="logo-box"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><polyline points="2,12 5,8 8,16 11,6 14,18 17,8 19,13 21,12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
+        <span class="logo-text">VeriRec</span>
+      </div>
+      <h1>📅 Tempahan Baru Diterima</h1>
+      <p>Salam ${counselorName || 'Kaunselor'},</p>
+      <p>Anda menerima permintaan temujanji baru:</p>
+      <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:16px;margin:16px 0">
+        <p style="margin:4px 0;color:#0369a1"><strong>👤 Klien:</strong> ${client.name}</p>
+        <p style="margin:4px 0;color:#0369a1"><strong>📱 Telefon:</strong> ${client.phone || '-'}</p>
+        <p style="margin:4px 0;color:#0369a1"><strong>📧 E-mel:</strong> ${client.email || '-'}</p>
+        <p style="margin:4px 0;color:#0369a1"><strong>📅 Tarikh:</strong> ${client.date}</p>
+        <p style="margin:4px 0;color:#0369a1"><strong>🕐 Masa:</strong> ${client.time}</p>
+        ${client.issue ? `<p style="margin:8px 0 4px;color:#0369a1"><strong>Isu:</strong> <em>${client.issue}</em></p>` : ''}
+      </div>
+      <a href="https://verirec.vercel.app/kaunselor/appointments" class="btn">Sahkan Temujanji →</a>
+      <p style="font-size:12px;color:#94a3b8">Sila sahkan atau laraskan temujanji dalam sistem.</p>
+    `),
+  };
+}
+
+export function appointmentConfirmedEmail(counselorName, date, time, duration, isReschedule = false) {
+  return {
+    subject: isReschedule ? `Tarikh Temujanji Dikemaskini — ${date} pukul ${time}` : `Temujanji Disahkan — ${date} pukul ${time}`,
+    html: base(`
+      <div class="logo">
+        <div class="logo-box"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><polyline points="2,12 5,8 8,16 11,6 14,18 17,8 19,13 21,12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
+        <span class="logo-text">VeriRec</span>
+      </div>
+      <h1>${isReschedule ? '🔄 Tarikh Temujanji Dikemaskini' : '✅ Temujanji Anda Disahkan'}</h1>
+      <p>${isReschedule ? `Tarikh temujanji anda bersama <strong>${counselorName}</strong> telah dikemaskini:` : `Temujanji anda bersama <strong>${counselorName}</strong> telah disahkan:`}</p>
+      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:16px;margin:16px 0">
+        <p style="margin:4px 0;color:#166534"><strong>📅 Tarikh:</strong> ${date}</p>
+        <p style="margin:4px 0;color:#166534"><strong>🕐 Masa:</strong> ${time}</p>
+        <p style="margin:4px 0;color:#166534"><strong>⏱ Tempoh:</strong> ${duration || 60} minit</p>
+      </div>
+      <p>Sila hadir tepat pada masanya. Jika anda perlu membatalkan, sila hubungi kaunselor anda.</p>
+      <p style="font-size:12px;color:#94a3b8">E-mel ini dihantar melalui sistem VeriRec bagi pihak kaunselor anda.</p>
     `),
   };
 }

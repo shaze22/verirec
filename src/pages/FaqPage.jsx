@@ -42,7 +42,7 @@ const faqs = [
   },
   {
     q: 'Bagaimana untuk menghubungi sokongan teknikal?',
-    a: 'Hantar e-mel kepada hello@verirec.my atau gunakan borang hubungi di bawah. Masa tindak balas biasa adalah dalam 24 jam pada hari bekerja. Pelanggan Business mendapat sokongan keutamaan dengan masa tindak balas dalam 4 jam.',
+    a: 'Hantar e-mel kepada hello@verirec.app atau gunakan borang hubungi di bawah. Masa tindak balas biasa adalah dalam 24 jam pada hari bekerja. Pelanggan Business mendapat sokongan keutamaan dengan masa tindak balas dalam 4 jam.',
   },
 ];
 
@@ -73,7 +73,7 @@ export default function FaqPage() {
 
   const handleContact = (e) => {
     e.preventDefault();
-    window.location.href = `mailto:hello@verirec.my?subject=Pertanyaan daripada ${contactForm.name}&body=${encodeURIComponent(contactForm.message)}%0A%0ADaripada: ${contactForm.name} (${contactForm.email})`;
+    window.location.href = `mailto:hello@verirec.app?subject=Pertanyaan daripada ${contactForm.name}&body=${encodeURIComponent(contactForm.message)}%0A%0ADaripada: ${contactForm.name} (${contactForm.email})`;
     setSent(true);
   };
 

@@ -8,7 +8,7 @@ const supabaseAdmin = createClient(
 );
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-const PLAN_LIMITS = { free: 2, starter: 20, pro: 100, biz: -1 };
+const PLAN_LIMITS = { free: 2, counselor: 10, starter: 20, pro: 100, biz: -1 };
 
 export const config = { api: { bodyParser: false } };
 
@@ -48,10 +48,19 @@ export default async function handler(req, res) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object;
-        const { user_id, plan } = session.metadata || {};
+        const { user_id, plan, topup_sessions } = session.metadata || {};
         if (!user_id || !plan) break;
 
-        // Fetch subscription to check if trial is active
+        // One-time top-up purchase — credit extra sessions
+        if (topup_sessions) {
+          const n = parseInt(topup_sessions, 10);
+          if (n > 0) {
+            await supabaseAdmin.rpc('add_extra_sessions', { uid: user_id, n });
+          }
+          break;
+        }
+
+        // Subscription checkout
         let status = 'active';
         let trialEnd = null;
         if (session.subscription) {

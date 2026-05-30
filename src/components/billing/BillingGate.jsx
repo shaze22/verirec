@@ -4,7 +4,7 @@ import { Modal } from '../ui/Modal.jsx';
 import { Button } from '../ui/Button.jsx';
 import { useNavigate } from 'react-router-dom';
 
-const planOrder = { free: 0, starter: 1, pro: 2, biz: 3 };
+const planOrder = { free: 0, counselor: 1, starter: 1, pro: 2, biz: 3 };
 
 export function BillingGate({ plan, children, sessionCheck = false }) {
   const { subscription, loading } = useBillingStore();
@@ -16,10 +16,14 @@ export function BillingGate({ plan, children, sessionCheck = false }) {
   const currentLevel = planOrder[subscription?.plan || 'free'];
   const requiredLevel = planOrder[plan] || 0;
   const hasPlan = currentLevel >= requiredLevel;
+  const extra = subscription?.extra_sessions ?? 0;
   const hasSessionsLeft = !sessionCheck || subscription?.sessions_limit === -1 ||
-    (subscription?.sessions_used ?? 0) < (subscription?.sessions_limit ?? 2);
+    (subscription?.sessions_used ?? 0) < (subscription?.sessions_limit ?? 2) + extra;
 
   if (hasPlan && hasSessionsLeft) return <>{children}</>;
+
+  const isCounselor = subscription?.plan === 'counselor';
+  const pricingUrl = isCounselor ? '/pricing?tab=kaunselor' : '/pricing';
 
   return (
     <>
@@ -34,7 +38,9 @@ export function BillingGate({ plan, children, sessionCheck = false }) {
         footer={
           <div className="flex gap-3 justify-end">
             <Button variant="secondary" onClick={() => setShowUpgrade(false)}>Batal</Button>
-            <Button onClick={() => navigate('/pricing')}>Lihat Pelan</Button>
+            <Button onClick={() => navigate(pricingUrl)}>
+              {isCounselor && !hasSessionsLeft ? 'Topup Sesi' : 'Lihat Pelan'}
+            </Button>
           </div>
         }
       >
@@ -44,8 +50,10 @@ export function BillingGate({ plan, children, sessionCheck = false }) {
             <>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Had Sesi Dicapai</h3>
               <p className="text-gray-600">
-                Anda telah menggunakan {subscription?.sessions_used} daripada {subscription?.sessions_limit} sesi anda
-                untuk bulan ini. Naik taraf untuk teruskan.
+                {isCounselor
+                  ? `Sesi bulanan dan top-up anda telah habis. Beli top-up sesi untuk teruskan.`
+                  : `Anda telah menggunakan ${subscription?.sessions_used} daripada ${subscription?.sessions_limit} sesi anda untuk bulan ini. Naik taraf untuk teruskan.`
+                }
               </p>
             </>
           ) : (

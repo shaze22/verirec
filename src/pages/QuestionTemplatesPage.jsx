@@ -44,24 +44,70 @@ async function deleteTemplate(id) {
 }
 
 const BLANK_FORM = { id: null, profession: 'counselor', name: '', questionsText: '' };
+const BLANK_ASSESSMENT = { id: null, name: '', description: '', questions: [{ id: '', text: '', options: ['Ya', 'Tidak'] }] };
 
 export default function QuestionTemplatesPage() {
   const { user } = useAuthStore();
+  const [pageTab, setPageTab] = useState('soalan');
   const [templates, setTemplates] = useState([]);
+  const [assessments, setAssessments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterProfession, setFilterProfession] = useState('');
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState(BLANK_FORM);
   const [saving, setSaving] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
+  const [assessModal, setAssessModal] = useState(false);
+  const [assessForm, setAssessForm] = useState(BLANK_ASSESSMENT);
+  const [savingAssess, setSavingAssess] = useState(false);
 
   useEffect(() => {
     if (!user) return;
-    fetchTemplates(user.id)
-      .then(setTemplates)
-      .catch(() => toast.error('Gagal memuatkan templat'))
-      .finally(() => setLoading(false));
+    Promise.all([
+      fetchTemplates(user.id),
+      supabase.from('assessment_sets').select('*').or(`user_id.eq.${user.id},is_default.eq.true`).order('is_default', { ascending: false }).order('created_at'),
+    ]).then(([tmpl, { data: assess }]) => {
+      setTemplates(tmpl);
+      setAssessments(assess || []);
+    }).catch(() => toast.error('Gagal memuatkan templat')).finally(() => setLoading(false));
   }, [user]);
+
+  const handleSaveAssessment = async () => {
+    if (!assessForm.name.trim()) { toast.error('Nama assessment diperlukan.'); return; }
+    const qs = assessForm.questions.filter(q => q.text.trim()).map((q, i) => ({
+      id: `q${i+1}`, text: q.text.trim(),
+      options: q.options.filter(o => o.trim()).map((o, j) => ({ value: `opt${j}`, label: o.trim() })),
+    }));
+    if (!qs.length) { toast.error('Masukkan sekurang-kurangnya satu soalan.'); return; }
+    setSavingAssess(true);
+    try {
+      const payload = { user_id: user.id, name: assessForm.name, type: 'custom', description: assessForm.description, is_default: false, questions: qs };
+      let saved;
+      if (assessForm.id) {
+        const { data, error } = await supabase.from('assessment_sets').update(payload).eq('id', assessForm.id).select().single();
+        if (error) throw error; saved = data;
+        setAssessments(prev => prev.map(a => a.id === saved.id ? saved : a));
+      } else {
+        const { data, error } = await supabase.from('assessment_sets').insert(payload).select().single();
+        if (error) throw error; saved = data;
+        setAssessments(prev => [...prev, saved]);
+      }
+      setAssessModal(false);
+      toast.success('Assessment disimpan.');
+    } catch { toast.error('Gagal menyimpan assessment.'); }
+    finally { setSavingAssess(false); }
+  };
+
+  const handleDeleteAssessment = async (id) => {
+    if (!window.confirm('Padam assessment ini?')) return;
+    await supabase.from('assessment_sets').delete().eq('id', id).eq('user_id', user.id);
+    setAssessments(prev => prev.filter(a => a.id !== id));
+    toast.success('Assessment dipadam.');
+  };
+
+  const addQuestion = () => setAssessForm(f => ({ ...f, questions: [...f.questions, { id: '', text: '', options: ['Ya', 'Tidak'] }] }));
+  const removeQuestion = (i) => setAssessForm(f => ({ ...f, questions: f.questions.filter((_, idx) => idx !== i) }));
+  const updateQuestion = (i, field, val) => setAssessForm(f => { const qs = [...f.questions]; qs[i] = { ...qs[i], [field]: val }; return { ...f, questions: qs }; });
 
   const openNew = () => {
     setForm(BLANK_FORM);
@@ -135,18 +181,78 @@ export default function QuestionTemplatesPage() {
       <TopBar
         title="Templat Soalan"
         actions={
-          <Button onClick={openNew}>
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            <span className="hidden sm:inline">Templat Baru</span>
-          </Button>
+          pageTab === 'soalan'
+            ? <Button onClick={openNew}><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg><span className="hidden sm:inline">Templat Baru</span></Button>
+            : <Button onClick={() => { setAssessForm(BLANK_ASSESSMENT); setAssessModal(true); }}><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg><span className="hidden sm:inline">Assessment Baru</span></Button>
         }
       />
+
+      {/* Page tabs */}
+      <div className="flex border-b bg-white px-6 gap-1">
+        {[{ id:'soalan', label:'Templat Soalan' }, { id:'assessment', label:'Custom Assessment' }].map(t => (
+          <button key={t.id} onClick={() => setPageTab(t.id)}
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${pageTab === t.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
 
       <div className="flex-1 overflow-auto p-6 pb-20 md:pb-6">
         <div className="max-w-3xl mx-auto space-y-6">
 
+        {/* ── ASSESSMENT TAB ── */}
+        {pageTab === 'assessment' && (
+          <div className="space-y-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
+              <strong>Custom Assessment</strong> — Buat ujian saringan atau soal selidik sendiri. Assessment ini boleh digunakan semasa sesi dalam panel Assessment.
+            </div>
+
+            {assessments.map(a => (
+              <div key={a.id} className="bg-white rounded-xl border p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-gray-900">{a.name}</h3>
+                      {a.is_default && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Default</span>}
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full capitalize">{a.type}</span>
+                    </div>
+                    {a.description && <p className="text-sm text-gray-500">{a.description}</p>}
+                    <p className="text-xs text-gray-400 mt-1">{a.questions?.length || 0} soalan</p>
+                  </div>
+                  {!a.is_default && (
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="secondary" onClick={() => {
+                        setAssessForm({
+                          id: a.id, name: a.name, description: a.description || '',
+                          questions: (a.questions || []).map(q => ({ id: q.id, text: q.text, options: (q.options || []).map(o => o.label) })),
+                        });
+                        setAssessModal(true);
+                      }}>Edit</Button>
+                      <Button size="sm" variant="danger" onClick={() => handleDeleteAssessment(a.id)}>Padam</Button>
+                    </div>
+                  )}
+                </div>
+                {/* Preview questions */}
+                <div className="mt-3 space-y-1">
+                  {(a.questions || []).slice(0, 3).map((q, i) => (
+                    <p key={i} className="text-xs text-gray-500">• {q.text}</p>
+                  ))}
+                  {(a.questions || []).length > 3 && <p className="text-xs text-gray-400">+{a.questions.length - 3} soalan lagi...</p>}
+                </div>
+              </div>
+            ))}
+
+            {assessments.length === 0 && (
+              <div className="text-center py-16 text-gray-400">
+                <div className="text-4xl mb-3">📋</div>
+                <p>Belum ada custom assessment.</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── SOALAN TAB ── */}
+        {pageTab === 'soalan' && <>
           {/* Filter */}
           <div className="flex items-center gap-3 flex-wrap">
             <select
@@ -250,8 +356,63 @@ export default function QuestionTemplatesPage() {
               </div>
             ))
           )}
+        </>}
         </div>
       </div>
+
+      {/* Assessment Modal */}
+      {assessModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg my-4 p-6 space-y-4">
+            <h3 className="font-semibold text-lg">{assessForm.id ? 'Edit Assessment' : 'Assessment Baru'}</h3>
+            <div className="space-y-3">
+              <div><label className="text-xs text-gray-500 mb-1 block">Nama Assessment *</label>
+                <input type="text" value={assessForm.name} onChange={e => setAssessForm(f => ({ ...f, name: e.target.value }))} required
+                  placeholder="cth. Saringan Kemurungan (PHQ-9), Ujian Kebimbangan..."
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" /></div>
+              <div><label className="text-xs text-gray-500 mb-1 block">Penerangan</label>
+                <input type="text" value={assessForm.description} onChange={e => setAssessForm(f => ({ ...f, description: e.target.value }))}
+                  placeholder="Ringkasan ujian ini..."
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" /></div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs text-gray-500">Soalan-soalan</label>
+                  <button type="button" onClick={addQuestion} className="text-xs text-blue-600 font-medium">+ Tambah Soalan</button>
+                </div>
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {assessForm.questions.map((q, i) => (
+                    <div key={i} className="bg-gray-50 rounded-lg p-3 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-400 w-5">{i+1}.</span>
+                        <input type="text" value={q.text} onChange={e => updateQuestion(i, 'text', e.target.value)}
+                          placeholder="Teks soalan..."
+                          className="flex-1 px-2 py-1.5 rounded border border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                        <button type="button" onClick={() => removeQuestion(i)} className="text-gray-400 hover:text-red-500 text-xs">✕</button>
+                      </div>
+                      <div className="flex items-center gap-2 ml-5">
+                        <span className="text-xs text-gray-400">Pilihan:</span>
+                        {q.options.map((opt, j) => (
+                          <input key={j} type="text" value={opt}
+                            onChange={e => { const opts = [...q.options]; opts[j] = e.target.value; updateQuestion(i, 'options', opts); }}
+                            className="w-20 px-2 py-1 rounded border border-gray-200 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                        ))}
+                        {q.options.length < 5 && (
+                          <button type="button" onClick={() => updateQuestion(i, 'options', [...q.options, ''])} className="text-xs text-blue-500">+</button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <Button onClick={handleSaveAssessment} loading={savingAssess} className="flex-1">Simpan Assessment</Button>
+              <Button variant="secondary" onClick={() => setAssessModal(false)}>Batal</Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Modal
         open={modal}

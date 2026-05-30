@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore.js';
 import { professionLabel as getProfessionLabel } from '../data/professions.js';
 import { Button } from '../components/ui/Button.jsx';
 import { Input } from '../components/ui/Input.jsx';
+import { isCounselorSubdomain } from '../lib/subdomain.js';
 import toast from 'react-hot-toast';
 
 // Detect Supabase password recovery redirect (hash fragment)
@@ -15,13 +16,15 @@ function detectRecoverySession() {
   return params.get('type') === 'recovery';
 }
 
-const Logo = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-10 h-10 mx-auto mb-3">
-    <rect width="32" height="32" rx="8" fill="#2563eb"/>
-    <polyline points="4,16 7,11 10,21 13,9 16,23 19,11 22,18 25,14 28,16"
-      stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-  </svg>
-);
+function Logo({ counselor }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-10 h-10 mx-auto mb-3">
+      <rect width="32" height="32" rx="8" fill={counselor ? '#10b981' : '#2563eb'}/>
+      <polyline points="4,16 7,11 10,21 13,9 16,23 19,11 22,18 25,14 28,16"
+        stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+    </svg>
+  );
+}
 
 function PasswordField({ label, value, onChange, placeholder, minLength, show, onToggle, required }) {
   return (
@@ -81,12 +84,14 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
 
-  const professionFromUrl = searchParams.get('profession');
+  const counselorSubdomain = isCounselorSubdomain();
+  const professionFromUrl = counselorSubdomain ? 'counselor' : searchParams.get('profession');
   const professionLabel = getProfessionLabel(professionFromUrl);
+  const postAuthRoute = counselorSubdomain ? '/kaunselor/clients' : '/dashboard';
 
-  // Redirect to dashboard when user is set (covers OAuth callback timing)
+  // Redirect when user is set (covers OAuth callback timing)
   useEffect(() => {
-    if (user && mode !== 'reset') navigate('/dashboard');
+    if (user && mode !== 'reset') navigate(postAuthRoute);
   }, [user, mode, navigate]);
 
   useEffect(() => {
@@ -111,7 +116,7 @@ export default function AuthPage() {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
       toast.success('Kata laluan berjaya dikemas kini!');
-      navigate('/dashboard');
+      navigate(postAuthRoute);
     } catch (err) {
       toast.error(err.message || 'Gagal mengemas kini kata laluan. Cuba lagi.');
     } finally {
@@ -126,6 +131,7 @@ export default function AuthPage() {
       if (mode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        if (counselorSubdomain) localStorage.setItem('preferred_profession', 'counselor');
         // Check if MFA is required
         const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
         if (aal?.nextLevel === 'aal2' && aal?.currentLevel !== 'aal2') {
@@ -133,7 +139,7 @@ export default function AuthPage() {
           const totp = factors?.totp?.[0];
           if (totp) { setMfaState({ factorId: totp.id }); return; }
         }
-        navigate('/dashboard');
+        navigate(postAuthRoute);
       } else if (mode === 'register') {
         const { data: signUpData, error } = await supabase.auth.signUp({
           email,
@@ -151,7 +157,7 @@ export default function AuthPage() {
             headers: { Authorization: `Bearer ${signUpData.session.access_token}` },
           }).catch(() => {});
           toast.success('Selamat datang ke VeriRec!');
-          navigate('/dashboard');
+          navigate(postAuthRoute);
         } else {
           // Email confirmation enabled — ask user to check inbox
           toast.success('Akaun berjaya dibuat! Sila semak e-mel untuk pengesahan.');
@@ -185,7 +191,7 @@ export default function AuthPage() {
       if (ce) throw ce;
       const { error: ve } = await supabase.auth.mfa.verify({ factorId: mfaState.factorId, challengeId: challenge.id, code: mfaCode });
       if (ve) throw ve;
-      navigate('/dashboard');
+      navigate(postAuthRoute);
     } catch {
       toast.error('Kod tidak sah. Cuba lagi.');
       setMfaCode('');
@@ -196,6 +202,7 @@ export default function AuthPage() {
 
   const handleGoogleAuth = async () => {
     setLoading(true);
+    if (counselorSubdomain) localStorage.setItem('preferred_profession', 'counselor');
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -210,10 +217,10 @@ export default function AuthPage() {
 
   if (mode === 'reset') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 to-gray-900 flex items-center justify-center p-4">
+      <div className={`min-h-screen flex items-center justify-center p-4 ${counselorSubdomain ? 'bg-gradient-to-br from-emerald-900 to-teal-900' : 'bg-gradient-to-br from-blue-900 to-gray-900'}`}>
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
           <div className="text-center mb-8">
-            <Logo />
+            <Logo counselor={counselorSubdomain} />
             <h1 className="text-2xl font-bold text-gray-900">VeriRec</h1>
             <h2 className="text-lg font-semibold text-gray-900 mt-4">Tetapkan Kata Laluan Baru</h2>
             <p className="text-sm text-gray-500 mt-1">Masukkan kata laluan baru anda di bawah.</p>
@@ -249,9 +256,9 @@ export default function AuthPage() {
 
   if (mfaState) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 to-gray-900 flex items-center justify-center p-4">
+      <div className={`min-h-screen flex items-center justify-center p-4 ${counselorSubdomain ? 'bg-gradient-to-br from-emerald-900 to-teal-900' : 'bg-gradient-to-br from-blue-900 to-gray-900'}`}>
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
-          <Logo />
+          <Logo counselor={counselorSubdomain} />
           <h1 className="text-2xl font-bold text-gray-900 mb-1">VeriRec</h1>
           <h2 className="text-lg font-semibold text-gray-900 mt-4 mb-2">Pengesahan Dua Faktor</h2>
           <p className="text-sm text-gray-500 mb-6">Masukkan kod 6-digit dari aplikasi pengesah anda.</p>
@@ -279,12 +286,14 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 to-gray-900 flex items-center justify-center p-4">
+    <div className={`min-h-screen flex items-center justify-center p-4 ${counselorSubdomain ? 'bg-gradient-to-br from-emerald-900 to-teal-900' : 'bg-gradient-to-br from-blue-900 to-gray-900'}`}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
         <div className="text-center mb-8">
-          <Logo />
+          <Logo counselor={counselorSubdomain} />
           <h1 className="text-2xl font-bold text-gray-900">VeriRec</h1>
-          <p className="text-gray-500 mt-1 text-sm">Platform Rakaman Sesi Profesional</p>
+          <p className="text-gray-500 mt-1 text-sm">
+            {counselorSubdomain ? 'Portal Kaunselor' : 'Platform Rakaman Sesi Profesional'}
+          </p>
           {professionLabel && mode === 'register' && (
             <div className="mt-3 inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 text-xs font-medium px-3 py-1.5 rounded-full">
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

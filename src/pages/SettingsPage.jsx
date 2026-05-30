@@ -175,7 +175,7 @@ export default function SettingsPage() {
       toast.success('Semua data anda telah dipadam.');
       navigate('/');
     } catch {
-      toast.error('Gagal memadamkan data. Hubungi sokongan di hello@verirec.my.');
+      toast.error('Gagal memadamkan data. Hubungi sokongan di hello@verirec.app.');
       setDeleteModal(false);
     } finally {
       setDeleteLoading(false);
@@ -368,7 +368,7 @@ export default function SettingsPage() {
                 <p className="font-medium text-sm text-amber-900 mb-1">Penarikan Semula Kebenaran</p>
                 <p className="text-xs text-amber-700 mb-3">
                   Untuk menarik balik kebenaran pemprosesan data tertentu, hubungi kami di{' '}
-                  <a href="mailto:privacy@verirec.my" className="underline">privacy@verirec.my</a>.
+                  <a href="mailto:privacy@verirec.app" className="underline">privacy@verirec.app</a>.
                   Rekod persetujuan sesi tidak boleh dipadam kerana keperluan audit PDPA.
                 </p>
               </div>

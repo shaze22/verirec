@@ -329,7 +329,7 @@ export default function TeamPage() {
             </div>
           </div>
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">
-            Kongsi pautan <strong>verirec.my</strong> kepada ahli yang dijemput untuk mendaftar menggunakan e-mel yang sama.
+            Kongsi pautan <strong>verirec.app</strong> kepada ahli yang dijemput untuk mendaftar menggunakan e-mel yang sama.
           </div>
           <div className="flex gap-3">
             <Button type="button" variant="secondary" onClick={() => setInviteModal(false)}>Batal</Button>

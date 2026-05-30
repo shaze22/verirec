@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '../../store/authStore.js';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabase.js';
 import { getCounselorProfile, getSlots, addSlot, deleteSlot, getAppointments, updateAppointment, DAYS_MS } from '../../api/counselor.js';
 import { TopBar } from '../../components/layout/TopBar.jsx';
 import { Button } from '../../components/ui/Button.jsx';
@@ -18,6 +20,7 @@ const STATUS_CONFIG = {
 
 export default function KaunslorAppointmentsPage() {
   const { user } = useAuthStore();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [slots, setSlots] = useState([]);
   const [appointments, setAppointments] = useState([]);
@@ -25,9 +28,17 @@ export default function KaunslorAppointmentsPage() {
   const [qrDataUrl, setQrDataUrl] = useState('');
   const [tab, setTab] = useState('appointments');
   const [addSlotForm, setAddSlotForm] = useState({ day_of_week: 1, start_time: '09:00', end_time: '17:00' });
+  const [scheduledSessions, setScheduledSessions] = useState([]);
+  const [showAddSchedule, setShowAddSchedule] = useState(false);
+  const [scheduleForm, setScheduleForm] = useState({ title: '', subject_name: '', scheduled_at: '', notes: '' });
+  const [savingSchedule, setSavingSchedule] = useState(false);
   const [selectedAppt, setSelectedAppt] = useState(null);
   const [confirmModal, setConfirmModal] = useState(false);
   const [confirmForm, setConfirmForm] = useState({ confirmed_date: '', confirmed_time: '', counselor_notes: '' });
+  const [rescheduleModal, setRescheduleModal] = useState(false);
+  const [rescheduleAppt, setRescheduleAppt] = useState(null);
+  const [rescheduleForm, setRescheduleForm] = useState({ new_date: '', new_time: '', reason: '' });
+  const [rescheduling, setRescheduling] = useState(false);
   const qrRef = useRef(null);
 
   useEffect(() => {
@@ -36,10 +47,12 @@ export default function KaunslorAppointmentsPage() {
       getCounselorProfile(user.id),
       getSlots(user.id),
       getAppointments(user.id),
-    ]).then(([p, s, a]) => {
+      supabase.from('scheduled_sessions').select('*').eq('user_id', user.id).order('scheduled_at'),
+    ]).then(([p, s, a, { data: sched }]) => {
       setProfile(p);
       setSlots(s);
       setAppointments(a);
+      setScheduledSessions(sched || []);
       if (p?.booking_code) {
         const url = `${window.location.origin}/book/${p.booking_code}`;
         QRCode.toDataURL(url, { width: 300, margin: 2, color: { dark: '#1e293b' } })
@@ -75,6 +88,7 @@ export default function KaunslorAppointmentsPage() {
 
   const handleConfirm = async (status) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const updated = await updateAppointment(selectedAppt.id, {
         status,
         confirmed_date: confirmForm.confirmed_date,
@@ -83,7 +97,23 @@ export default function KaunslorAppointmentsPage() {
       });
       setAppointments(prev => prev.map(a => a.id === updated.id ? { ...a, ...updated } : a));
       setConfirmModal(false);
-      toast.success(status === 'confirmed' ? 'Temujanji disahkan!' : 'Temujanji dikemaskini.');
+      if (status === 'confirmed') {
+        toast.success('Temujanji disahkan!', { duration: 5000 });
+        // Navigate to subject profile
+        const subjectId = updated.subject_id || updated.subjects?.id;
+        if (subjectId) {
+          setTimeout(() => navigate(`/kaunselor/clients/${subjectId}`), 800);
+        }
+      } else {
+        toast.success('Temujanji dikemaskini.');
+      }
+      // Send confirmation email to client
+      if (status === 'confirmed' && session?.access_token) {
+        fetch(`/api/user-notifications?type=appointment-confirmed&appointment_id=${selectedAppt.id}`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        }).catch(() => {});
+      }
     } catch { toast.error('Gagal mengemaskini.'); }
   };
 
@@ -94,6 +124,81 @@ export default function KaunslorAppointmentsPage() {
       setAppointments(prev => prev.map(a => a.id === id ? { ...a, ...updated } : a));
       toast.success('Temujanji dibatalkan.');
     } catch { toast.error('Gagal.'); }
+  };
+
+  const openReschedule = (appt) => {
+    setRescheduleAppt(appt);
+    setRescheduleForm({
+      new_date: appt.confirmed_date || appt.requested_date || '',
+      new_time: (appt.confirmed_time || appt.requested_time)?.slice(0, 5) || '',
+      reason: '',
+    });
+    setRescheduleModal(true);
+  };
+
+  const handleReschedule = async () => {
+    if (!rescheduleForm.new_date || !rescheduleForm.new_time) {
+      toast.error('Sila pilih tarikh dan masa baru.');
+      return;
+    }
+    setRescheduling(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const updated = await updateAppointment(rescheduleAppt.id, {
+        status: 'rescheduled',
+        confirmed_date: rescheduleForm.new_date,
+        confirmed_time: rescheduleForm.new_time,
+        counselor_notes: rescheduleForm.reason
+          ? `[Jadual Semula] ${rescheduleForm.reason}`
+          : rescheduleAppt.counselor_notes,
+      });
+      setAppointments(prev => prev.map(a => a.id === updated.id ? { ...a, ...updated } : a));
+      setRescheduleModal(false);
+      toast.success('Temujanji dijadual semula.');
+      // Email client
+      if (session?.access_token) {
+        fetch(`/api/user-notifications?type=appointment-confirmed&appointment_id=${rescheduleAppt.id}`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        }).catch(() => {});
+      }
+    } catch { toast.error('Gagal menjadual semula.'); }
+    finally { setRescheduling(false); }
+  };
+
+  const handleAddSchedule = async (e) => {
+    e.preventDefault();
+    if (!scheduleForm.title || !scheduleForm.scheduled_at) return;
+    setSavingSchedule(true);
+    try {
+      const { data, error } = await supabase.from('scheduled_sessions').insert({
+        user_id: user.id,
+        title: scheduleForm.title,
+        profession: 'counselor',
+        subject_name: scheduleForm.subject_name || null,
+        scheduled_at: scheduleForm.scheduled_at,
+        notes: scheduleForm.notes || null,
+        status: 'upcoming',
+      }).select().single();
+      if (error) throw error;
+      setScheduledSessions(prev => [...prev, data].sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at)));
+      setShowAddSchedule(false);
+      setScheduleForm({ title: '', subject_name: '', scheduled_at: '', notes: '' });
+      toast.success('Jadual ditambah.');
+    } catch { toast.error('Gagal menyimpan jadual.'); }
+    finally { setSavingSchedule(false); }
+  };
+
+  const handleDeleteSchedule = async (id) => {
+    if (!window.confirm('Padam jadual ini?')) return;
+    await supabase.from('scheduled_sessions').delete().eq('id', id).catch(() => {});
+    setScheduledSessions(prev => prev.filter(s => s.id !== id));
+    toast.success('Jadual dipadam.');
+  };
+
+  const handleMarkDone = async (id) => {
+    await supabase.from('scheduled_sessions').update({ status: 'completed' }).eq('id', id).catch(() => {});
+    setScheduledSessions(prev => prev.map(s => s.id === id ? { ...s, status: 'completed' } : s));
   };
 
   const downloadQR = () => {
@@ -117,9 +222,10 @@ export default function KaunslorAppointmentsPage() {
       <div className="flex-1 overflow-auto">
 
         {/* Tabs */}
-        <div className="flex bg-white border-b px-4 gap-1 pt-2">
+        <div className="flex bg-white border-b px-4 gap-1 pt-2 overflow-x-auto">
           {[
-            { id: 'appointments', label: `Temujanji${pending.length ? ` (${pending.length} baru)` : ''}` },
+            { id: 'appointments', label: `Permintaan${pending.length ? ` (${pending.length})` : ''}` },
+            { id: 'jadual', label: `Jadual (${scheduledSessions.filter(s => s.status === 'upcoming').length})` },
             { id: 'slots', label: 'Slot Masa' },
             { id: 'qr', label: 'QR & Pautan' },
           ].map(t => (
@@ -173,8 +279,14 @@ export default function KaunslorAppointmentsPage() {
                             {format(parseISO(a.confirmed_date || a.requested_date), 'dd MMM yyyy')} · {(a.confirmed_time || a.requested_time)?.slice(0, 5)}
                           </p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
                           <Badge color="green">Disahkan</Badge>
+                          {a.subject_id && (
+                            <Button size="sm" onClick={() => navigate(`/kaunselor/clients/${a.subject_id}`)}>
+                              Buka Profil
+                            </Button>
+                          )}
+                          <button onClick={() => openReschedule(a)} className="text-xs text-blue-500 hover:text-blue-700 font-medium">Jadual Semula</button>
                           <button onClick={() => handleCancel(a.id)} className="text-xs text-gray-400 hover:text-red-500">Batal</button>
                         </div>
                       </div>
@@ -201,6 +313,103 @@ export default function KaunslorAppointmentsPage() {
                         <Badge color={STATUS_CONFIG[a.status]?.color || 'gray'}>{STATUS_CONFIG[a.status]?.label}</Badge>
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── JADUAL TAB ── */}
+          {tab === 'jadual' && (
+            <div className="space-y-4">
+              <Button onClick={() => setShowAddSchedule(true)} className="w-full">+ Tambah Jadual Sesi</Button>
+
+              {/* Upcoming */}
+              {scheduledSessions.filter(s => s.status === 'upcoming').length === 0 ? (
+                <div className="text-center py-12 text-gray-400">
+                  <div className="text-4xl mb-3">📅</div>
+                  <p className="font-medium">Tiada sesi dijadualkan</p>
+                  <p className="text-sm mt-1">Tambah jadual sesi untuk klien anda.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-gray-500 uppercase">Akan Datang</p>
+                  {scheduledSessions.filter(s => s.status === 'upcoming').map(s => {
+                    const dt = new Date(s.scheduled_at);
+                    const isToday = dt.toDateString() === new Date().toDateString();
+                    return (
+                      <div key={s.id} className={`rounded-xl border p-4 ${isToday ? 'bg-blue-50 border-blue-200' : 'bg-white'}`}>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1">
+                            {isToday && <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full font-medium mb-1 inline-block">Hari Ini</span>}
+                            <p className="font-medium text-gray-900">{s.title}</p>
+                            {s.subject_name && <p className="text-sm text-gray-500">Klien: {s.subject_name}</p>}
+                            <p className="text-sm text-blue-700 mt-0.5">
+                              {format(dt, 'dd MMM yyyy')} · {format(dt, 'HH:mm')}
+                            </p>
+                            {s.notes && <p className="text-xs text-gray-400 mt-1 italic">{s.notes}</p>}
+                          </div>
+                          <div className="flex gap-2 flex-shrink-0">
+                            <button onClick={() => handleMarkDone(s.id)} className="text-xs text-green-600 hover:text-green-800 font-medium">✓ Selesai</button>
+                            <button onClick={() => handleDeleteSchedule(s.id)} className="text-xs text-gray-400 hover:text-red-500">Padam</button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Past */}
+              {scheduledSessions.filter(s => s.status !== 'upcoming').length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-gray-400 uppercase">Lepas</p>
+                  {scheduledSessions.filter(s => s.status !== 'upcoming').slice(0, 5).map(s => (
+                    <div key={s.id} className="bg-gray-50 border border-gray-100 rounded-xl p-3 flex items-center justify-between text-sm">
+                      <div>
+                        <p className="text-gray-600">{s.title}{s.subject_name ? ` — ${s.subject_name}` : ''}</p>
+                        <p className="text-xs text-gray-400">{format(new Date(s.scheduled_at), 'dd MMM yyyy · HH:mm')}</p>
+                      </div>
+                      <span className="text-xs text-gray-400">{s.status === 'completed' ? 'Selesai' : 'Dibatalkan'}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add schedule modal */}
+              {showAddSchedule && (
+                <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 p-4">
+                  <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+                    <h3 className="font-semibold text-lg">Tambah Jadual Sesi</h3>
+                    <form onSubmit={handleAddSchedule} className="space-y-3">
+                      <div>
+                        <label className="text-xs text-gray-500 mb-1 block">Tajuk Sesi *</label>
+                        <input type="text" value={scheduleForm.title} onChange={e => setScheduleForm(f => ({ ...f, title: e.target.value }))} required
+                          placeholder="cth. Sesi Kaunseling Ahmad"
+                          className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500 mb-1 block">Nama Klien</label>
+                        <input type="text" value={scheduleForm.subject_name} onChange={e => setScheduleForm(f => ({ ...f, subject_name: e.target.value }))}
+                          placeholder="Nama klien (pilihan)"
+                          className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500 mb-1 block">Tarikh & Masa *</label>
+                        <input type="datetime-local" value={scheduleForm.scheduled_at} onChange={e => setScheduleForm(f => ({ ...f, scheduled_at: e.target.value }))} required
+                          className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500 mb-1 block">Nota</label>
+                        <textarea value={scheduleForm.notes} onChange={e => setScheduleForm(f => ({ ...f, notes: e.target.value }))} rows={2}
+                          placeholder="Nota untuk sesi ini..."
+                          className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                      </div>
+                      <div className="flex gap-3 pt-2">
+                        <Button type="submit" loading={savingSchedule} className="flex-1">Simpan</Button>
+                        <Button type="button" variant="secondary" onClick={() => setShowAddSchedule(false)}>Batal</Button>
+                      </div>
+                    </form>
                   </div>
                 </div>
               )}
@@ -300,6 +509,50 @@ export default function KaunslorAppointmentsPage() {
           )}
         </div>
       </div>
+
+      {/* Reschedule modal */}
+      {rescheduleModal && rescheduleAppt && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+            <h3 className="font-semibold text-lg">Jadual Semula Temujanji</h3>
+            <div className="bg-gray-50 rounded-lg p-3 text-sm">
+              <p className="font-medium">{rescheduleAppt.client_name}</p>
+              <p className="text-gray-500">{rescheduleAppt.client_phone} · {rescheduleAppt.client_email}</p>
+              <p className="text-gray-500 mt-1">
+                Asal: {format(parseISO(rescheduleAppt.confirmed_date || rescheduleAppt.requested_date), 'dd MMM yyyy')} · {(rescheduleAppt.confirmed_time || rescheduleAppt.requested_time)?.slice(0,5)}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">Tarikh Baru</label>
+                <input type="date" value={rescheduleForm.new_date}
+                  onChange={e => setRescheduleForm(f => ({ ...f, new_date: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">Masa Baru</label>
+                <input type="time" value={rescheduleForm.new_time}
+                  onChange={e => setRescheduleForm(f => ({ ...f, new_time: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">Sebab / Nota (pilihan)</label>
+              <textarea value={rescheduleForm.reason}
+                onChange={e => setRescheduleForm(f => ({ ...f, reason: e.target.value }))}
+                rows={2} placeholder="cth. Kaunselor ada urusan mendesak..."
+                className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+            </div>
+            <div className="bg-blue-50 rounded-lg p-3 text-xs text-blue-700">
+              Email notifikasi tarikh baru akan dihantar kepada klien secara automatik.
+            </div>
+            <div className="flex gap-3">
+              <Button onClick={handleReschedule} loading={rescheduling} className="flex-1">✓ Sahkan Jadual Baru</Button>
+              <Button variant="secondary" onClick={() => setRescheduleModal(false)}>Batal</Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Confirm modal */}
       {confirmModal && selectedAppt && (

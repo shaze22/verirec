@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 
 const EFFECTIVE_DATE = '1 Jun 2026';
 const COMPANY = 'VeriRec';
-const EMAIL = 'hello@verirec.my';
+const EMAIL = 'hello@verirec.app';
 
 const sections = [
   {
@@ -136,7 +136,7 @@ Penggunaan berterusan Perkhidmatan selepas perubahan berkuat kuasa dianggap seba
     body: `Jika anda mempunyai sebarang soalan tentang Terma Perkhidmatan ini, sila hubungi kami:
 
 E-mel: ${EMAIL}
-Laman web: https://verirec.my`,
+Laman web: https://verirec.app`,
   },
 ];
 

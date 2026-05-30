@@ -350,7 +350,7 @@ export default function ProfessionLandingPage({ professionSlug }) {
 
   const handleCta = () => {
     if (data.enterpriseCta) {
-      window.location.href = 'mailto:hello@verirec.my?subject=Demo%20VeriRec%20' + encodeURIComponent(data.label);
+      window.location.href = 'mailto:hello@verirec.app?subject=Demo%20VeriRec%20' + encodeURIComponent(data.label);
       return;
     }
     localStorage.setItem('preferred_profession', professionSlug);
@@ -586,7 +586,7 @@ export default function ProfessionLandingPage({ professionSlug }) {
               <h3 className="text-xl font-semibold text-gray-900 mb-3">Harga Khas untuk Institusi</h3>
               <p className="text-gray-500 mb-6">Kami menyediakan pakej khas untuk agensi kerajaan termasuk onboarding, latihan, dan sokongan SLA.</p>
               <button
-                onClick={() => { window.location.href = 'mailto:hello@verirec.my?subject=Pertanyaan%20Harga%20Institusi'; }}
+                onClick={() => { window.location.href = 'mailto:hello@verirec.app?subject=Pertanyaan%20Harga%20Institusi'; }}
                 className="px-8 py-3 font-semibold text-white rounded-xl hover:opacity-90 transition-opacity"
                 style={{ backgroundColor: data.hex }}
               >
@@ -652,7 +652,7 @@ export default function ProfessionLandingPage({ professionSlug }) {
 
                     <button
                       onClick={() => plan.key === 'biz'
-                        ? (window.location.href = 'mailto:hello@verirec.my?subject=Pertanyaan%20Pelan%20Perniagaan%20VeriRec')
+                        ? (window.location.href = 'mailto:hello@verirec.app?subject=Pertanyaan%20Pelan%20Perniagaan%20VeriRec')
                         : handleCta()
                       }
                       disabled={plan.key === 'free' && false}
@@ -707,7 +707,7 @@ export default function ProfessionLandingPage({ professionSlug }) {
             <button onClick={() => navigate('/pricing')} className="hover:text-white transition-colors">Harga</button>
             <button onClick={() => navigate('/terms')} className="hover:text-white transition-colors">Terma</button>
             <button onClick={() => navigate('/privacy')} className="hover:text-white transition-colors">Privasi</button>
-            <a href="mailto:hello@verirec.my" className="hover:text-white transition-colors">Hubungi Kami</a>
+            <a href="mailto:hello@verirec.app" className="hover:text-white transition-colors">Hubungi Kami</a>
           </div>
         </div>
         <div className="max-w-6xl mx-auto mt-8 pt-6 border-t border-gray-800 text-center text-xs text-gray-600">

@@ -8,13 +8,21 @@ const supabaseAdmin = createClient(
 
 // Map plan+annual to Stripe price IDs (set these in Stripe dashboard)
 const PRICE_IDS = {
-  starter_monthly: process.env.STRIPE_PRICE_STARTER_MONTHLY,
-  starter_annual:  process.env.STRIPE_PRICE_STARTER_ANNUAL,
-  pro_monthly:     process.env.STRIPE_PRICE_PRO_MONTHLY,
-  pro_annual:      process.env.STRIPE_PRICE_PRO_ANNUAL,
-  biz_monthly:     process.env.STRIPE_PRICE_BIZ_MONTHLY,
-  biz_annual:      process.env.STRIPE_PRICE_BIZ_ANNUAL,
+  starter_monthly:   process.env.STRIPE_PRICE_STARTER_MONTHLY,
+  starter_annual:    process.env.STRIPE_PRICE_STARTER_ANNUAL,
+  pro_monthly:       process.env.STRIPE_PRICE_PRO_MONTHLY,
+  pro_annual:        process.env.STRIPE_PRICE_PRO_ANNUAL,
+  biz_monthly:       process.env.STRIPE_PRICE_BIZ_MONTHLY,
+  biz_annual:        process.env.STRIPE_PRICE_BIZ_ANNUAL,
+  counselor_monthly: process.env.STRIPE_PRICE_COUNSELOR_MONTHLY,
+  counselor_annual:  process.env.STRIPE_PRICE_COUNSELOR_ANNUAL,
+  // One-time top-up packs (no _annual variant)
+  topup_1:           process.env.STRIPE_PRICE_TOPUP_1,
+  topup_5:           process.env.STRIPE_PRICE_TOPUP_5,
+  topup_10:          process.env.STRIPE_PRICE_TOPUP_10,
 };
+
+const TOPUP_SESSIONS = { topup_1: 1, topup_5: 5, topup_10: 10 };
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -36,11 +44,14 @@ export default async function handler(req, res) {
     const body = await readBody(req);
     const { plan, annual = false } = body;
 
-    if (!['starter', 'pro', 'biz'].includes(plan)) {
+    const isTopup = plan in TOPUP_SESSIONS;
+    const isSubscription = ['starter', 'pro', 'biz', 'counselor'].includes(plan);
+
+    if (!isTopup && !isSubscription) {
       return res.status(400).json({ error: 'Invalid plan' });
     }
 
-    const priceKey = `${plan}_${annual ? 'annual' : 'monthly'}`;
+    const priceKey = isTopup ? plan : `${plan}_${annual ? 'annual' : 'monthly'}`;
     const priceId = PRICE_IDS[priceKey];
     if (!priceId) return res.status(400).json({ error: 'Price not configured' });
 
@@ -60,19 +71,27 @@ export default async function handler(req, res) {
         .eq('user_id', user.id);
     }
 
-    const session = await stripe.checkout.sessions.create({
+    let sessionParams = {
       customer: customerId,
-      mode: 'subscription',
       automatic_payment_methods: { enabled: true },
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${process.env.VITE_APP_URL}/settings?payment=success`,
       cancel_url:  `${process.env.VITE_APP_URL}/pricing?payment=cancelled`,
       metadata: { user_id: user.id, plan },
-      subscription_data: {
-        trial_period_days: 14,
+    };
+
+    if (isTopup) {
+      sessionParams.mode = 'payment';
+      sessionParams.metadata.topup_sessions = String(TOPUP_SESSIONS[plan]);
+    } else {
+      sessionParams.mode = 'subscription';
+      sessionParams.subscription_data = {
+        trial_period_days: plan === 'counselor' ? 0 : 14,
         metadata: { user_id: user.id, plan },
-      },
-    });
+      };
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
     return res.status(200).json({ url: session.url });
   } catch (err) {

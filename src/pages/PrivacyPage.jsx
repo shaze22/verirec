@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 
 const EFFECTIVE_DATE = '1 Jun 2026';
-const EMAIL = 'hello@verirec.my';
+const EMAIL = 'hello@verirec.app';
 
 const sections = [
   {

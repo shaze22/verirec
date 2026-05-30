@@ -42,7 +42,7 @@ export async function deleteSlot(slotId) {
 
 export async function getAppointments(counselorId) {
   const { data, error } = await supabase
-    .from('appointments').select('*, subjects(name, ic_number, phone, email)')
+    .from('appointments').select('*, subjects!appointments_subject_id_fkey(name, ic_number, phone, email)')
     .eq('counselor_id', counselorId).order('requested_date').order('requested_time');
   if (error) throw error;
   return data || [];
@@ -51,7 +51,7 @@ export async function getAppointments(counselorId) {
 export async function updateAppointment(id, updates) {
   const { data, error } = await supabase
     .from('appointments').update({ ...updates, updated_at: new Date().toISOString() })
-    .eq('id', id).select().single();
+    .eq('id', id).select('*, subjects!appointments_subject_id_fkey(id, name)').single();
   if (error) throw error;
   return data;
 }
@@ -85,6 +85,8 @@ export async function submitAppointment(bookingCode, form) {
     p_time: form.time,
     p_issue: form.issue || null,
     p_consent: form.consent,
+    p_gender: form.gender || null,
+    p_student_id: form.student_id || null,
   });
   if (error) throw error;
   return data;

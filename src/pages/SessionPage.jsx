@@ -19,6 +19,7 @@ import { QuestionPanel } from '../components/session/QuestionPanel.jsx';
 import { AISuggestions } from '../components/session/AISuggestions.jsx';
 import { NoteBar } from '../components/session/NoteBar.jsx';
 import { FlagsPanel } from '../components/session/FlagsPanel.jsx';
+import { AssessmentPanel } from '../components/session/AssessmentPanel.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { Modal } from '../components/ui/Modal.jsx';
 import toast from 'react-hot-toast';
@@ -283,14 +284,30 @@ export default function SessionPage() {
       });
 
       setGenerateStep('Menganalisis transkrip dengan AI...');
+      // Fetch subject info for counselor sessions
+      let subject_info = null;
+      if (setup.subject_id) {
+        const { supabase } = await import('../lib/supabase.js');
+        const { data } = await supabase.from('subjects').select(
+          'name, gender, marital_status, occupation, presenting_issue, session_type, psychiatric_history, psychiatric_medication, problem_types'
+        ).eq('id', setup.subject_id).single().catch(() => ({ data: null }));
+        subject_info = data;
+      }
       await generateReport({
         session_id: sessionId,
         transcript: diarizedEntries,
         flags,
         session_info: { ...setup, duration: timer.elapsed },
+        subject_info,
       });
 
       setGenerateStep('Laporan siap!');
+      // Mark linked appointment as completed
+      if (setup.subject_id) {
+        const { supabase: _sb } = await import('../lib/supabase.js');
+        _sb.from('appointments').update({ status: 'completed' })
+          .eq('subject_id', setup.subject_id).eq('status', 'confirmed').then(() => {}).catch(() => {});
+      }
       sessionStorage.removeItem('session_setup');
       sessionStorage.removeItem('active_session_id');
       toast.success('Laporan berjaya dijana!');
@@ -329,8 +346,8 @@ export default function SessionPage() {
   };
 
   const recentTranscript = entries.filter(e => e.type === 'TRANSCRIPT').slice(-5).map(e => e.text);
-  const tabs = ['transcript', 'questions', 'ai', 'flags'];
-  const tabLabels = { transcript: 'Transkrip', questions: 'Soalan', ai: 'Cadangan AI', flags: `Bendera${flags.length ? ` (${flags.length})` : ''}` };
+  const tabs = ['transcript', 'questions', 'assessment', 'ai', 'flags'];
+  const tabLabels = { transcript: 'Transkrip', questions: 'Soalan', assessment: 'Assessment', ai: 'Cadangan AI', flags: `Bendera${flags.length ? ` (${flags.length})` : ''}` };
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -466,6 +483,13 @@ export default function SessionPage() {
                 currentPhase={currentPhase} onPhaseChange={setCurrentPhase} onAsk={handleAsk}
               />
             )}
+            {activeTab === 'assessment' && (
+              <AssessmentPanel
+                sessionId={sessionId}
+                subjectId={setup.subject_id}
+                userId={user?.id}
+              />
+            )}
             {activeTab === 'ai' && (
               <AISuggestions
                 profession={setup.profession} phase={currentPhase}
@@ -491,13 +515,22 @@ export default function SessionPage() {
             />
           </div>
           <div className="w-72 flex flex-col overflow-hidden">
+            {/* Toggle between Assessment and AI tabs */}
+            <div className="flex border-b bg-white text-xs">
+              <button onClick={() => setActiveTab('ai')} className={`flex-1 py-2 font-medium ${activeTab !== 'assessment' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>Cadangan AI</button>
+              <button onClick={() => setActiveTab('assessment')} className={`flex-1 py-2 font-medium ${activeTab === 'assessment' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>Assessment</button>
+            </div>
             <div className="flex-1 overflow-auto">
-              <AISuggestions
-                profession={setup.profession} phase={currentPhase}
-                lastQuestion={lastAsked} recentTranscript={recentTranscript}
-                entries={entries} isActive={started && !isPaused}
-                onSuggest={handleAsk}
-              />
+              {activeTab === 'assessment' ? (
+                <AssessmentPanel sessionId={sessionId} subjectId={setup.subject_id} userId={user?.id} />
+              ) : (
+                <AISuggestions
+                  profession={setup.profession} phase={currentPhase}
+                  lastQuestion={lastAsked} recentTranscript={recentTranscript}
+                  entries={entries} isActive={started && !isPaused}
+                  onSuggest={handleAsk}
+                />
+              )}
             </div>
             <div className="border-t"><FlagsPanel flags={flags} onRemove={removeFlag} /></div>
           </div>

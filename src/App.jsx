@@ -8,6 +8,7 @@ import { BottomNav } from './components/layout/BottomNav.jsx';
 import { OfflineBanner } from './components/ui/OfflineBanner.jsx';
 import { CookieConsentBanner } from './components/CookieConsentBanner.jsx';
 import { useWindowSize } from './hooks/useWindowSize.js';
+import { isCounselorSubdomain } from './lib/subdomain.js';
 
 const AuthPage              = lazy(() => import('./pages/AuthPage.jsx'));
 const LandingPage           = lazy(() => import('./pages/LandingPage.jsx'));
@@ -41,6 +42,7 @@ const KaunslorSetupPage       = lazy(() => import('./pages/kaunselor/KaunslorSet
 const KaunslorAppointmentsPage = lazy(() => import('./pages/kaunselor/KaunslorAppointmentsPage.jsx'));
 const KaunslorClientsPage     = lazy(() => import('./pages/kaunselor/KaunslorClientsPage.jsx'));
 const KaunslorClientFilePage  = lazy(() => import('./pages/kaunselor/KaunslorClientFilePage.jsx'));
+const CounselorLandingPage    = lazy(() => import('./pages/CounselorLandingPage.jsx'));
 
 function PageTracker() {
   const location = useLocation();
@@ -108,7 +110,11 @@ function ProtectedRoute({ children }) {
 function HomeRoute() {
   const { user, loading } = useAuthStore();
   if (loading) return <LoadingSpinner />;
-  if (user) return <Navigate to="/dashboard" replace />;
+  if (user) {
+    const dest = isCounselorSubdomain() ? '/kaunselor/clients' : '/dashboard';
+    return <Navigate to={dest} replace />;
+  }
+  if (isCounselorSubdomain()) return <CounselorLandingPage />;
   return <LandingPage />;
 }
 

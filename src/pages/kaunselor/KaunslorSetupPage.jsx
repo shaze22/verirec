@@ -81,8 +81,10 @@ export default function KaunslorSetupPage() {
       <div className="flex-1 overflow-auto p-6 pb-20 md:pb-6">
         <div className="max-w-2xl mx-auto space-y-6">
 
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
-            <strong>Selamat datang ke VeriRec Counselor Module.</strong> Lengkapkan profil anda untuk mula menerima temujanji daripada klien.
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800 flex items-start justify-between gap-3">
+            <span><strong>Selamat datang ke VeriRec Counselor Module.</strong> Lengkapkan profil anda untuk mula menerima temujanji daripada klien.</span>
+            <button type="button" onClick={() => { localStorage.setItem(`counselor_setup_skipped_${user?.id}`, '1'); navigate('/dashboard'); }}
+              className="text-xs text-blue-500 hover:text-blue-700 flex-shrink-0 underline">Skip</button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">

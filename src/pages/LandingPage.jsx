@@ -167,7 +167,7 @@ export default function LandingPage() {
         name: 'VeriRec',
         url: 'https://verirec.vercel.app',
         logo: 'https://verirec.vercel.app/pwa-512.svg',
-        contactPoint: { '@type': 'ContactPoint', email: 'hello@verirec.my', contactType: 'customer support' },
+        contactPoint: { '@type': 'ContactPoint', email: 'hello@verirec.app', contactType: 'customer support' },
       },
       {
         '@type': 'WebSite',
@@ -400,7 +400,7 @@ export default function LandingPage() {
                     className="w-full"
                     onClick={() => {
                       if (p.ctaAction === 'biz') {
-                        window.location.href = 'mailto:hello@verirec.my?subject=Pertanyaan Pelan Perniagaan VeriRec';
+                        window.location.href = 'mailto:hello@verirec.app?subject=Pertanyaan Pelan Perniagaan VeriRec';
                       } else {
                         navigate('/auth?mode=register');
                       }
@@ -481,7 +481,7 @@ export default function LandingPage() {
               <button onClick={() => navigate('/pricing')} className="hover:text-white transition-colors">Harga</button>
               <button onClick={() => navigate('/terms')} className="hover:text-white transition-colors">Terma</button>
               <button onClick={() => navigate('/privacy')} className="hover:text-white transition-colors">Privasi</button>
-              <a href="mailto:hello@verirec.my" className="hover:text-white transition-colors">Hubungi Kami</a>
+              <a href="mailto:hello@verirec.app" className="hover:text-white transition-colors">Hubungi Kami</a>
             </div>
           </div>
           <div className="mt-8 pt-6 border-t border-gray-800 text-center text-xs text-gray-600">

@@ -120,8 +120,27 @@ export default function DashboardPage() {
     () => localStorage.getItem('preferred_profession') || 'counselor'
   );
   const [quickRecording, setQuickRecording] = useState(false);
+  const [counselorProfile, setCounselorProfile] = useState(null);
+  const [pendingAppointments, setPendingAppointments] = useState([]);
   const navigate = useNavigate();
   const preferredProfession = localStorage.getItem('preferred_profession');
+
+  // Counselor onboarding: only for counselor profession users
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('counselor_profiles').select('id, display_name, booking_code').eq('user_id', user.id).maybeSingle()
+      .then(({ data }) => {
+        setCounselorProfile(data);
+        if (!data && preferredProfession === 'counselor' && !localStorage.getItem(`counselor_setup_skipped_${user.id}`)) {
+          navigate('/kaunselor/setup');
+        }
+        if (data) {
+          supabase.from('appointments').select('id, client_name, requested_date, requested_time, presenting_issue')
+            .eq('counselor_id', user.id).eq('status', 'pending').order('requested_date').limit(5)
+            .then(({ data: appts }) => setPendingAppointments(appts || []));
+        }
+      });
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -405,6 +424,25 @@ export default function DashboardPage() {
               Anda hampir mencapai had sesi bulan ini ({subscription.sessions_used}/{subscription.sessions_limit}).
             </p>
             <Button size="sm" variant="outline" onClick={() => navigate('/pricing')}>Naik Taraf</Button>
+          </div>
+        )}
+
+        {/* Counselor pending appointments banner */}
+        {pendingAppointments.length > 0 && (
+          <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-semibold text-yellow-800">📅 {pendingAppointments.length} Tempahan Baru Menunggu Pengesahan</p>
+              <button onClick={() => navigate('/kaunselor/appointments')} className="text-xs text-yellow-700 font-medium hover:underline">Urus →</button>
+            </div>
+            <div className="space-y-1">
+              {pendingAppointments.slice(0, 2).map(a => (
+                <div key={a.id} className="text-xs text-yellow-700">
+                  • <strong>{a.client_name}</strong> — {a.requested_date} pukul {a.requested_time?.slice(0,5)}
+                  {a.presenting_issue && <span className="text-yellow-600 italic"> ("{a.presenting_issue.slice(0,40)}...")</span>}
+                </div>
+              ))}
+              {pendingAppointments.length > 2 && <p className="text-xs text-yellow-600">+{pendingAppointments.length - 2} lagi...</p>}
+            </div>
           </div>
         )}
 

@@ -499,6 +499,137 @@ export function ReportView({ session }) {
     }
   };
 
+  const printCaseNote = async () => {
+    setExporting(true);
+    try {
+      const { default: jsPDF } = await import('jspdf');
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const W = 210, M = 18, lineH = 6.5, col = W - M * 2;
+      let y = M;
+
+      const addText = (text, size = 10, bold = false, color = [30,30,30], indent = 0) => {
+        pdf.setFontSize(size);
+        pdf.setFont('helvetica', bold ? 'bold' : 'normal');
+        pdf.setTextColor(...color);
+        const lines = pdf.splitTextToSize(String(text || '—'), col - indent);
+        lines.forEach(line => {
+          if (y > 272) { pdf.addPage(); y = M; }
+          pdf.text(line, M + indent, y);
+          y += lineH;
+        });
+      };
+
+      const addField = (label, value, indent = 0) => {
+        addText(label, 8.5, true, [80,80,80], indent);
+        addText(value || '—', 10, false, [30,30,30], indent + 2);
+        y += 1;
+      };
+
+      const hr = (color = [220,220,220]) => {
+        pdf.setDrawColor(...color);
+        pdf.line(M, y, W - M, y);
+        y += 4;
+      };
+
+      // ── HEADER ──
+      pdf.setFillColor(37, 99, 235);
+      pdf.roundedRect(M, y, col, 14, 2, 2, 'F');
+      pdf.setFontSize(13); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(255,255,255);
+      pdf.text('CASE SESSION NOTE', M + 4, y + 6);
+      pdf.setFontSize(8); pdf.setFont('helvetica', 'normal');
+      pdf.text('VeriRec — Platform Rakaman Sesi Profesional', M + 4, y + 11);
+      y += 20;
+
+      // ── DOC INFO ──
+      pdf.setFontSize(8); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(120,120,120);
+      pdf.text(`Tarikh Jana: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, M, y);
+      pdf.text(`ID Sesi: ${id?.substring(0,8).toUpperCase() || '—'}`, W - M - 40, y);
+      y += 8; hr();
+
+      // ── CLIENT INFO ──
+      addText('MAKLUMAT KLIEN', 9, true, [37,99,235]);
+      y += 1;
+      const cols2 = [
+        ['Nama Klien', subject_name],
+        ['Kaunselor', interviewer],
+        ['Tarikh Sesi', created_at ? format(new Date(created_at), 'dd MMMM yyyy') : '—'],
+        ['Tempoh', duration ? `${Math.round(duration/60)} minit` : '—'],
+        ['No. Kes', case_number || '—'],
+        ['Jenis Sesi', 'Sukarela'],
+      ];
+      cols2.forEach(([l,v]) => addField(l, v, 0));
+      y += 2; hr();
+
+      // ── PROBLEM TYPES ──
+      if (report.problemTypes?.length) {
+        addText('JENIS MASALAH', 9, true, [37,99,235]);
+        y += 1;
+        addText(report.problemTypes.join('  •  '), 9.5, false, [50,50,50], 2);
+        y += 3; hr();
+      }
+
+      // ── CASE SESSION NOTE ──
+      if (report.caseSessionNote) {
+        addText('NOTA SESI (CASE SESSION NOTE)', 9, true, [37,99,235]);
+        y += 2;
+        const csn = report.caseSessionNote;
+        [
+          ['Isu yang Dibawa (Presented Issue)', csn.presentedIssue],
+          ['Isu Dikenal Pasti (Identified Issue)', csn.identifiedIssue],
+          ['Matlamat Bersama (Mutual Goal)', csn.mutualGoal],
+          ['Aktiviti / Intervensi', csn.activitiesInterventions],
+          ['Kemajuan / Pencapaian Matlamat', csn.progressGoalAchievement],
+          ['Rancangan Susulan', csn.followUpPlan],
+          ['Penamatan Sesi', csn.terminationNotes],
+          ['Penemuan Assessment', csn.assessmentFindings],
+        ].filter(([,v]) => v).forEach(([l,v]) => { addField(l, v, 2); y += 1; });
+        y += 2; hr();
+      }
+
+      // ── RISK ──
+      if (report.crisisIndicators || report.riskLevel) {
+        addText('TAHAP RISIKO', 9, true, [37,99,235]);
+        y += 1;
+        const riskMap = { none:'Tiada', mental_health:'Masalah Kesihatan Mental', self_harm:'Kecenderungan Mencederakan Diri', suicidal:'Kecenderungan Bunuh Diri' };
+        addText(riskMap[report.crisisIndicators?.riskType || report.riskLevel] || report.riskLevel || 'Tiada', 10, false, [30,30,30], 2);
+        if (report.crisisIndicators?.notes) addText(report.crisisIndicators.notes, 9, false, [120,40,40], 2);
+        y += 3; hr();
+      }
+
+      // ── SIGNATURE ──
+      if (y > 230) { pdf.addPage(); y = M; }
+      else y += 6;
+      addText('TANDATANGAN', 9, true, [80,80,80]);
+      y += 2;
+      pdf.setDrawColor(180,180,180);
+      pdf.line(M, y + 12, M + 70, y + 12);
+      pdf.line(W - M - 70, y + 12, W - M, y + 12);
+      pdf.setFontSize(8); pdf.setTextColor(120,120,120);
+      pdf.text('Tandatangan Klien', M, y + 17);
+      pdf.text('Tandatangan Kaunselor', W - M - 70, y + 17);
+      y += 22;
+      pdf.setFontSize(8);
+      pdf.text(`${subject_name || ''}`, M, y);
+      pdf.text(`${interviewer || ''}`, W - M - 70, y);
+      y += 4;
+      pdf.text(`Tarikh: ${format(new Date(), 'dd/MM/yyyy')}`, M, y);
+      pdf.text(`Tarikh: ${format(new Date(), 'dd/MM/yyyy')}`, W - M - 70, y);
+
+      // ── FOOTER ──
+      const pages = pdf.getNumberOfPages();
+      for (let i = 1; i <= pages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(7); pdf.setTextColor(160,160,160);
+        pdf.text('SULIT — VeriRec | verirec.vercel.app', M, 290);
+        pdf.text(`${i}/${pages}`, W - M, 290, { align: 'right' });
+      }
+
+      pdf.save(`case-session-note-${subject_name?.replace(/\s+/g,'-') || id?.substring(0,8)}-${format(new Date(), 'yyyyMMdd')}.pdf`);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const verifyHash = async () => {
     if (!hash) return;
     setVerifying(true);
@@ -527,6 +658,9 @@ export function ReportView({ session }) {
         <h2 className="text-xl font-bold text-gray-900">Laporan Sesi</h2>
         <div className="flex gap-3">
           <Button variant="outline" onClick={() => window.print()}>Cetak</Button>
+          {profession === 'counselor' && (
+            <Button variant="secondary" onClick={printCaseNote} loading={exporting}>📄 Case Session Note</Button>
+          )}
           <Button onClick={exportPDF} loading={exporting}>Eksport PDF</Button>
         </div>
       </div>
@@ -625,6 +759,37 @@ export function ReportView({ session }) {
         )}
         {(profession === 'police' || profession === 'sprm') && <StatementSection statement={report.statementSummary} />}
 
+        {/* Counselor — Case Session Note */}
+        {profession === 'counselor' && report.caseSessionNote && (
+          <div className="bg-white border-2 border-blue-200 rounded-xl p-5 space-y-4">
+            <h3 className="text-sm font-bold text-blue-800 uppercase tracking-wide">Case Session Note</h3>
+            {[
+              ['Isu yang Dibawa (Presented Issue)', report.caseSessionNote.presentedIssue],
+              ['Isu yang Dikenal Pasti (Identified Issue)', report.caseSessionNote.identifiedIssue],
+              ['Matlamat Bersama (Mutual Goal)', report.caseSessionNote.mutualGoal],
+              ['Aktiviti / Intervensi', report.caseSessionNote.activitiesInterventions],
+              ['Kemajuan / Pencapaian Matlamat', report.caseSessionNote.progressGoalAchievement],
+              ['Rancangan Susulan', report.caseSessionNote.followUpPlan],
+              ['Penamatan Sesi', report.caseSessionNote.terminationNotes],
+            ].filter(([, v]) => v).map(([label, value]) => (
+              <div key={label}>
+                <p className="text-xs font-semibold text-gray-500 uppercase mb-1">{label}</p>
+                <p className="text-sm text-gray-800 leading-relaxed">{value}</p>
+              </div>
+            ))}
+            {report.problemTypes?.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Jenis Masalah</p>
+                <div className="flex flex-wrap gap-2">
+                  {report.problemTypes.map(t => (
+                    <span key={t} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full border border-blue-200">{t}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Counselor crisis indicators */}
         {profession === 'counselor' && report.crisisIndicators?.detected && (
           <div className="bg-red-50 border border-red-300 rounded-xl p-5">
@@ -634,6 +799,7 @@ export function ReportView({ session }) {
                 {report.crisisIndicators.level === 'critical' ? 'Kritikal' : report.crisisIndicators.level === 'watch' ? 'Perlu Pemantauan' : 'Tiada'}
               </Badge>
             </p>
+            {report.crisisIndicators.notes && <p className="text-sm text-red-700 mb-2">{report.crisisIndicators.notes}</p>}
             {report.crisisIndicators.resources?.length > 0 && (
               <div>
                 <p className="text-xs text-red-600 font-semibold mb-1">Sumber Rujukan:</p>

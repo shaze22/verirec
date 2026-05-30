@@ -7,10 +7,11 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 const PLAN_CONFIG = {
-  free:    { label: 'Percuma',    bg: 'bg-gray-100',   text: 'text-gray-700',   ring: 'ring-gray-200' },
-  starter: { label: 'Starter',   bg: 'bg-blue-600',   text: 'text-white',      ring: 'ring-blue-300' },
-  pro:     { label: 'Pro',       bg: 'bg-violet-600', text: 'text-white',      ring: 'ring-violet-300' },
-  biz:     { label: 'Perniagaan', bg: 'bg-emerald-600', text: 'text-white',   ring: 'ring-emerald-300' },
+  free:      { label: 'Percuma',    bg: 'bg-gray-100',    text: 'text-gray-700', ring: 'ring-gray-200' },
+  counselor: { label: 'Kaunselor',  bg: 'bg-emerald-600', text: 'text-white',    ring: 'ring-emerald-300' },
+  starter:   { label: 'Starter',    bg: 'bg-blue-600',    text: 'text-white',    ring: 'ring-blue-300' },
+  pro:       { label: 'Pro',        bg: 'bg-violet-600',  text: 'text-white',    ring: 'ring-violet-300' },
+  biz:       { label: 'Perniagaan', bg: 'bg-emerald-600', text: 'text-white',    ring: 'ring-emerald-300' },
 };
 
 const STATUS_CONFIG = {
@@ -122,30 +123,41 @@ export function BillingSettings() {
       )}
 
       {/* Usage bar */}
-      <div className="bg-gray-50 rounded-xl p-4">
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-sm font-medium text-gray-700">Penggunaan Sesi Bulan Ini</p>
-          <p className={`text-sm font-bold ${nearLimit ? 'text-red-600' : 'text-gray-900'}`}>
-            {unlimited ? '∞' : `${subscription.sessions_used} / ${subscription.sessions_limit}`}
-          </p>
-        </div>
-        {!unlimited && (
-          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all ${nearLimit ? 'bg-red-500' : 'bg-blue-500'}`}
-              style={{ width: `${pct}%` }}
-            />
+      <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-medium text-gray-700">Sesi Bulanan</p>
+            <p className={`text-sm font-bold ${nearLimit ? 'text-red-600' : 'text-gray-900'}`}>
+              {unlimited ? '∞' : `${subscription.sessions_used} / ${subscription.sessions_limit}`}
+            </p>
           </div>
-        )}
-        {nearLimit && (
-          <p className="text-xs text-red-600 mt-1.5">Had hampir dicapai — pertimbangkan untuk naik taraf.</p>
+          {!unlimited && (
+            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${nearLimit ? 'bg-red-500' : 'bg-blue-500'}`}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          )}
+          {nearLimit && subscription.plan !== 'counselor' && (
+            <p className="text-xs text-red-600 mt-1.5">Had hampir dicapai — pertimbangkan untuk naik taraf.</p>
+          )}
+          {nearLimit && subscription.plan === 'counselor' && (
+            <p className="text-xs text-orange-600 mt-1.5">Sesi bulanan hampir habis — topup bila perlu.</p>
+          )}
+        </div>
+        {(subscription.extra_sessions > 0) && (
+          <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+            <p className="text-sm text-gray-600">Sesi Top-up Baki</p>
+            <span className="text-sm font-bold text-emerald-600">{subscription.extra_sessions} sesi</span>
+          </div>
         )}
       </div>
 
       {/* Action buttons */}
       <div className="flex flex-wrap gap-2">
-        <Button variant="outline" onClick={() => navigate('/pricing')}>
-          {isPaid ? 'Tukar Pelan' : 'Naik Taraf'}
+        <Button variant="outline" onClick={() => navigate(subscription.plan === 'counselor' ? '/pricing?tab=kaunselor' : '/pricing')}>
+          {subscription.plan === 'counselor' ? 'Topup Sesi' : isPaid ? 'Tukar Pelan' : 'Naik Taraf'}
         </Button>
         {isPaid && (
           <Button variant="outline" loading={portalLoading} onClick={openPortal}>

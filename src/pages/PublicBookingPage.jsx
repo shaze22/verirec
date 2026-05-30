@@ -38,7 +38,7 @@ export default function PublicBookingPage() {
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [bookedTimes, setBookedTimes] = useState([]);
-  const [form, setForm] = useState({ name: '', email: '', phone: '', ic: '', dob: '', address: '', issue: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', ic: '', student_id: '', dob: '', gender: '', address: '', issue: '' });
   const [consent, setConsent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
@@ -82,6 +82,12 @@ export default function PublicBookingPage() {
     try {
       const res = await submitAppointment(code, { ...form, date: selectedDate, time: selectedTime, consent });
       setResult(res);
+      // Fire-and-forget email to counselor
+      if (res?.appointment_id) {
+        fetch(`/api/user-notifications?type=new-appointment&appointment_id=${res.appointment_id}`, {
+          method: 'POST',
+        }).catch(() => {});
+      }
       setStep(4);
     } catch (err) {
       alert('Gagal menghantar tempahan. Sila cuba lagi.');
@@ -223,6 +229,7 @@ export default function PublicBookingPage() {
               { k: 'phone', label: 'No. Telefon *', type: 'tel', placeholder: '01X-XXXXXXX', required: true },
               { k: 'email', label: 'E-mel', type: 'email', placeholder: 'email@contoh.com' },
               { k: 'ic', label: 'No. Kad Pengenalan', type: 'text', placeholder: '000101-10-0000' },
+              { k: 'student_id', label: 'No. Matrik / ID Pelajar / ID Kakitangan', type: 'text', placeholder: 'cth. A12345 / EMP0012' },
               { k: 'dob', label: 'Tarikh Lahir', type: 'date' },
               { k: 'address', label: 'Alamat', type: 'text', placeholder: 'Alamat anda' },
             ].map(f => (
@@ -252,16 +259,28 @@ export default function PublicBookingPage() {
               <h3 className="font-semibold text-gray-900">Persetujuan Klien</h3>
               <button type="button" onClick={() => setStep(2)} className="text-sm text-blue-600">← Kembali</button>
             </div>
-            <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 space-y-2 max-h-48 overflow-auto leading-relaxed">
-              <p className="font-semibold">Borang Persetujuan Makluman (Informed Consent)</p>
-              <p>Saya memahami bahawa sesi kaunseling ini adalah sulit dan maklumat yang dikongsi tidak akan didedahkan kepada pihak lain tanpa kebenaran saya, kecuali dalam situasi berikut:</p>
-              <ul className="list-disc list-inside space-y-1 text-gray-600">
-                <li>Jika saya atau orang lain berada dalam bahaya</li>
-                <li>Jika diperintahkan oleh mahkamah</li>
-                <li>Jika diperlukan untuk perlindungan kanak-kanak</li>
+            <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 space-y-3 max-h-64 overflow-auto leading-relaxed">
+              <p className="font-bold text-gray-900">BORANG PERSETUJUAN MAKLUMAN (Informed Consent Form)</p>
+              <p className="text-xs text-gray-500 italic">Ini adalah dokumen undang-undang. Sila baca dengan teliti sebelum menandatangani.</p>
+
+              <p><strong>Kaunseling</strong> adalah hubungan profesional antara anda dan kaunselor. Matlamat utama adalah untuk memudahkan perubahan tingkah laku, meningkatkan keupayaan membina hubungan, meningkatkan keberkesanan daya tindak, menggalakkan proses membuat keputusan, dan memudahkan potensi serta perkembangan peribadi.</p>
+
+              <p><strong>Tempoh Sesi:</strong> Tempoh sesi kaunseling individu adalah 45–60 minit. Walau bagaimanapun, sesi boleh dijalankan lebih atau kurang bergantung kepada perbincangan anda dengan kaunselor.</p>
+
+              <p><strong>Kerahsiaan:</strong> Kaunselor bertanggungjawab menjaga maklumat yang diperoleh semasa sesi kaunseling. Semua maklumat pengenalan penilaian dan rawatan anda dirahsiakan, kecuali dalam situasi berikut:</p>
+              <ul className="list-disc list-inside space-y-1 text-gray-600 text-xs">
+                <li>Jika kaunselor mempunyai sebab yang kukuh untuk mempercayai anda akan menyakiti orang lain</li>
+                <li>Jika kaunselor mempunyai sebab yang kukuh untuk mempercayai anda menganiaya atau mengabaikan kanak-kanak atau orang dewasa yang lemah</li>
+                <li>Jika kaunselor percaya anda berada dalam bahaya segera untuk menyakiti diri sendiri</li>
+                <li>Jika dikehendaki oleh mahkamah untuk prosiding undang-undang</li>
+                <li>Untuk kes rujukan, laporan ringkas akan dikemukakan kepada perujuk jika diperlukan</li>
               </ul>
-              <p>Sesi mungkin dirakam untuk tujuan dokumentasi dan laporan profesional. Rakaman disimpan dengan selamat dan dilindungi daripada akses tanpa kebenaran.</p>
-              <p>Saya berhak untuk menarik diri daripada sesi pada bila-bila masa.</p>
+
+              <p><strong>Ujian Psikologi:</strong> Jika ujian psikologi digunakan, sebarang keputusan penilaian ujian psikologi bukan untuk diagnosis dan tidak boleh digunakan untuk tujuan selain sesi kaunseling ini.</p>
+
+              <p><strong>Hak Klien:</strong> Anda berhak bertanya tentang apa sahaja yang berlaku dalam sesi kaunseling. Anda boleh meminta kaunselor merujuk anda kepada kaunselor atau profesional lain. Anda juga bebas meninggalkan sesi kaunseling pada bila-bila masa.</p>
+
+              <p className="text-xs text-gray-500">Sesi mungkin dirakam untuk tujuan dokumentasi dan laporan profesional dengan teknologi AI. Rakaman disimpan dengan selamat dan dilindungi berdasarkan Akta Perlindungan Data Peribadi 2010 (PDPA).</p>
             </div>
             <div className="flex items-start gap-3">
               <input type="checkbox" id="consent" checked={consent} onChange={e => setConsent(e.target.checked)}
