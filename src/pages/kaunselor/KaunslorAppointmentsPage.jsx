@@ -26,6 +26,7 @@ export default function KaunslorAppointmentsPage() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [qrDataUrl, setQrDataUrl] = useState('');
+  const [qrBlobUrl, setQrBlobUrl] = useState('');
   const [tab, setTab] = useState('appointments');
   const [addSlotForm, setAddSlotForm] = useState({ day_of_week: 1, start_time: '09:00', end_time: '17:00' });
   const [scheduledSessions, setScheduledSessions] = useState([]);
@@ -55,11 +56,20 @@ export default function KaunslorAppointmentsPage() {
       setScheduledSessions(sched || []);
       if (p?.booking_code) {
         const url = `${window.location.origin}/book/${p.booking_code}`;
-        QRCode.toDataURL(url, { width: 300, margin: 2, color: { dark: '#1e293b' } })
-          .then(setQrDataUrl).catch(() => {});
+        const tempCanvas = document.createElement('canvas');
+        QRCode.toCanvas(tempCanvas, url, { width: 400, margin: 3, color: { dark: '#1e293b', light: '#ffffff' } }, (err) => {
+          if (err) return;
+          setQrDataUrl(tempCanvas.toDataURL('image/png'));
+          tempCanvas.toBlob(blob => {
+            if (blob) setQrBlobUrl(URL.createObjectURL(blob));
+          }, 'image/png');
+        });
       }
     }).finally(() => setLoading(false));
   }, [user]);
+
+  // Cleanup blob URL on unmount
+  useEffect(() => () => { if (qrBlobUrl) URL.revokeObjectURL(qrBlobUrl); }, [qrBlobUrl]);
 
   const handleAddSlot = async (e) => {
     e.preventDefault();
@@ -481,7 +491,7 @@ export default function KaunslorAppointmentsPage() {
                     <p className="font-mono text-xs bg-gray-50 rounded-lg px-3 py-2 text-gray-700 break-all">{bookingUrl}</p>
                     <div className="flex gap-3 justify-center mt-4">
                       <a
-                        href={qrDataUrl}
+                        href={qrBlobUrl || qrDataUrl}
                         download={`verirec-qr-${profile?.booking_code}.png`}
                         className="inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
                       >
