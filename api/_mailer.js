@@ -1,6 +1,21 @@
 // Email helper using Resend API — set RESEND_API_KEY in Vercel env to activate
 const FROM = 'VeriRec <noreply@verirec.app>';
 
+export function buildCalendarUrl(date, time, duration, counselorName, location) {
+  if (!date || !time) return '';
+  const [y, mo, d] = date.split('-');
+  const [h, m] = time.split(':').map(Number);
+  const startStr = `${y}${mo}${d}T${String(h).padStart(2,'0')}${String(m).padStart(2,'0')}00`;
+  const endMins = h * 60 + m + (duration || 60);
+  const eh = String(Math.floor(endMins / 60)).padStart(2, '0');
+  const em = String(endMins % 60).padStart(2, '0');
+  const endStr = `${y}${mo}${d}T${eh}${em}00`;
+  const text = encodeURIComponent(`Temujanji Kaunseling - ${counselorName}`);
+  const details = encodeURIComponent(`Temujanji kaunseling bersama ${counselorName}`);
+  const loc = location ? `&location=${encodeURIComponent(location)}` : '';
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${startStr}/${endStr}&details=${details}${loc}`;
+}
+
 export async function sendEmail({ to, subject, html }) {
   if (!process.env.RESEND_API_KEY) return null;
   try {
@@ -177,7 +192,7 @@ export function newAppointmentEmail(counselorName, client) {
   };
 }
 
-export function appointmentConfirmedEmail(counselorName, date, time, duration, isReschedule = false) {
+export function appointmentConfirmedEmail(counselorName, date, time, duration, isReschedule = false, counselor = {}) {
   return {
     subject: isReschedule ? `Tarikh Temujanji Dikemaskini — ${date} pukul ${time}` : `Temujanji Disahkan — ${date} pukul ${time}`,
     html: base(`
@@ -191,8 +206,18 @@ export function appointmentConfirmedEmail(counselorName, date, time, duration, i
         <p style="margin:4px 0;color:#166534"><strong>📅 Tarikh:</strong> ${date}</p>
         <p style="margin:4px 0;color:#166534"><strong>🕐 Masa:</strong> ${time}</p>
         <p style="margin:4px 0;color:#166534"><strong>⏱ Tempoh:</strong> ${duration || 60} minit</p>
+        ${counselor.location ? `<p style="margin:4px 0;color:#166534"><strong>📍 Lokasi:</strong> ${counselor.location}</p>` : ''}
       </div>
-      <p>Sila hadir tepat pada masanya. Jika anda perlu membatalkan, sila hubungi kaunselor anda.</p>
+      ${(counselor.phone || counselor.email) ? `
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 16px;margin:12px 0">
+        <p style="margin:0 0 6px;color:#1e293b;font-weight:600;font-size:13px">Hubungi Kaunselor Anda:</p>
+        ${counselor.phone ? `<p style="margin:2px 0;color:#475569;font-size:13px">📱 ${counselor.phone}</p>` : ''}
+        ${counselor.email ? `<p style="margin:2px 0;color:#475569;font-size:13px">📧 <a href="mailto:${counselor.email}" style="color:#2563eb">${counselor.email}</a></p>` : ''}
+      </div>` : ''}
+      ${counselor.calendarUrl ? `<a href="${counselor.calendarUrl}" style="display:inline-block;background:#10b981;color:#fff!important;text-decoration:none;padding:10px 20px;border-radius:8px;font-weight:600;font-size:13px;margin:8px 0">📅 Tambah ke Google Calendar →</a>` : ''}
+      <div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:12px 16px;margin:12px 0">
+        <p style="margin:0;color:#92400e;font-size:13px">⚠️ <strong>Pembatalan / Tukar Tarikh:</strong> Untuk membatalkan atau menukar tarikh, sila hubungi kaunselor anda terus sekurang-kurangnya 24 jam lebih awal.</p>
+      </div>
       <p style="font-size:12px;color:#94a3b8">E-mel ini dihantar melalui sistem VeriRec bagi pihak kaunselor anda.</p>
     `),
   };

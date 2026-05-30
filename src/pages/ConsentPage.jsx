@@ -27,11 +27,50 @@ export default function ConsentPage() {
   // Stable timestamp — same value displayed and stored in consent record
   const [consentTimestamp] = useState(() => new Date().toISOString());
 
+  // If subject already has signed consent, skip the form and proceed directly
+  const [autoChecking, setAutoChecking] = useState(!!setup.subject_id);
+
   useEffect(() => {
     if (!setup.subject_name || !setup.profession) {
       navigate('/session/new', { replace: true });
     }
   }, [setup, navigate]);
+
+  useEffect(() => {
+    if (!setup.subject_id || !user?.id) { setAutoChecking(false); return; }
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('subjects').select('consent_signed').eq('id', setup.subject_id).single();
+        if (data?.consent_signed) {
+          const ts = new Date().toISOString();
+          const consentData = {
+            id: generateConsentId(), version: CONSENT_VERSION, timestamp: ts,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            items: CONSENT_ITEMS, subject_name: setup.subject_name,
+            interviewer: setup.interviewer, profession: setup.profession,
+            user_id: user.id, auto_skipped: true,
+          };
+          const { data: session, error } = await supabase.from('sessions')
+            .insert({
+              user_id: user.id, title: setup.title, profession: setup.profession,
+              interviewer: setup.interviewer, subject_name: setup.subject_name,
+              subject_role: setup.subject_role, case_number: setup.case_number || null,
+              witness_officer: setup.witness_officer || null, context_notes: setup.context_notes,
+              consent_signed: true, consent_data: consentData,
+            })
+            .select().single();
+          if (error) throw error;
+          sessionStorage.setItem('active_session_id', session.id);
+          navigate('/session/active', { replace: true });
+        } else {
+          setAutoChecking(false);
+        }
+      } catch {
+        setAutoChecking(false);
+      }
+    })();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const allChecked = checked.every(Boolean);
   const toggle = (i) => setChecked(prev => prev.map((v, idx) => idx === i ? !v : v));
@@ -81,6 +120,15 @@ export default function ConsentPage() {
       setLoading(false);
     }
   };
+
+  if (autoChecking) return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <p className="text-sm text-gray-500">Menyemak maklumat klien...</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">

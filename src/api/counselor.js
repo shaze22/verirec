@@ -73,13 +73,24 @@ export async function getBookedTimes(counselorId, date) {
 }
 
 export async function submitAppointment(bookingCode, form) {
+  const dob = (form.dobDay && form.dobMonth && form.dobYear)
+    ? `${form.dobYear}-${form.dobMonth}-${form.dobDay}`
+    : form.dob || null;
+
+  const prevCounseling = form.previous_counseling === 'ya' ? true
+    : form.previous_counseling === 'tidak' ? false : null;
+  const psyHistory = (form.psychiatric_history && form.psychiatric_history !== 'Tiada') ? true
+    : form.psychiatric_history === 'Tiada' ? false : null;
+  const psyMed = (form.psychiatric_medication && form.psychiatric_medication !== 'Tiada') ? true
+    : form.psychiatric_medication === 'Tiada' ? false : null;
+
   const { data, error } = await supabase.rpc('submit_appointment', {
     p_code: bookingCode,
     p_name: form.name,
     p_email: form.email,
     p_phone: form.phone,
     p_ic: form.ic || null,
-    p_dob: form.dob || null,
+    p_dob: dob,
     p_address: form.address || null,
     p_date: form.date,
     p_time: form.time,
@@ -87,6 +98,10 @@ export async function submitAppointment(bookingCode, form) {
     p_consent: form.consent,
     p_gender: form.gender || null,
     p_student_id: form.student_id || null,
+    p_session_type: form.session_type || null,
+    p_previous_counseling: prevCounseling,
+    p_psychiatric_history: psyHistory,
+    p_psychiatric_medication: psyMed,
   });
   if (error) throw error;
   return data;

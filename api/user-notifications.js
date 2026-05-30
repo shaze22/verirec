@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { sendEmail, welcomeEmail, limitWarningEmail, newAppointmentEmail, appointmentConfirmedEmail } from './_mailer.js';
+import { sendEmail, welcomeEmail, limitWarningEmail, newAppointmentEmail, appointmentConfirmedEmail, buildCalendarUrl } from './_mailer.js';
 
 const supabaseAdmin = createClient(
   process.env.VITE_SUPABASE_URL,
@@ -52,15 +52,28 @@ export default async function handler(req, res) {
         .eq('id', appointment_id).single();
       if (!appt || !appt.client_email) return res.status(200).json({ ok: true, skipped: 'no email' });
 
-      const { data: profile } = await supabaseAdmin
-        .from('counselor_profiles').select('display_name, session_duration_minutes').eq('user_id', appt.counselor_id).single();
+      const [{ data: profile }, { data: { user: counselorUser } }] = await Promise.all([
+        supabaseAdmin.from('counselor_profiles')
+          .select('display_name, session_duration_minutes, phone, klinik_address')
+          .eq('user_id', appt.counselor_id).single(),
+        supabaseAdmin.auth.admin.getUserById(appt.counselor_id),
+      ]);
 
       const date = appt.confirmed_date || appt.requested_date;
       const time = (appt.confirmed_time || appt.requested_time)?.slice(0, 5);
+      const duration = profile?.session_duration_minutes || 60;
       const isReschedule = appt.status === 'rescheduled';
-      const { subject, html } = appointmentConfirmedEmail(
-        profile?.display_name || 'Kaunselor', date, time, profile?.session_duration_minutes, isReschedule
-      );
+      const counselorName = profile?.display_name || 'Kaunselor';
+
+      const calendarUrl = buildCalendarUrl(date, time, duration, counselorName, profile?.klinik_address);
+      const counselorInfo = {
+        phone: profile?.phone || null,
+        email: counselorUser?.email || null,
+        location: profile?.klinik_address || null,
+        calendarUrl,
+      };
+
+      const { subject, html } = appointmentConfirmedEmail(counselorName, date, time, duration, isReschedule, counselorInfo);
       await sendEmail({ to: appt.client_email, subject, html });
       return res.status(200).json({ ok: true });
     }

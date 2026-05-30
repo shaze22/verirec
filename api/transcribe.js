@@ -122,9 +122,10 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           audio_url: upload_url,
-          speech_models: ['universal-3-pro', 'universal-2'], // required; ordered fallback
+          speech_models: ['universal-3-pro', 'universal-2'],
           speaker_labels: true,
-          language_detection: true, // auto-detect BM / English mix
+          speakers_expected: 2,
+          language_detection: true,
         }),
       });
       if (!transcriptRes.ok) throw new Error('AssemblyAI transcription job failed');

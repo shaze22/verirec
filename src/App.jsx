@@ -179,7 +179,11 @@ export default function App() {
 
               {/* Protected — with sidebar + bottom nav */}
               <Route path="/dashboard" element={
-                <ProtectedRoute><AppLayout><DashboardPage /></AppLayout></ProtectedRoute>
+                <ProtectedRoute>
+                  {localStorage.getItem('preferred_profession') === 'counselor'
+                    ? <Navigate to="/kaunselor/clients" replace />
+                    : <AppLayout><DashboardPage /></AppLayout>}
+                </ProtectedRoute>
               } />
               <Route path="/session/new" element={
                 <ProtectedRoute><AppLayout><ProfessionSelectPage /></AppLayout></ProtectedRoute>

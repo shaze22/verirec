@@ -38,7 +38,7 @@ export default function PublicBookingPage() {
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [bookedTimes, setBookedTimes] = useState([]);
-  const [form, setForm] = useState({ name: '', email: '', phone: '', ic: '', student_id: '', dob: '', gender: '', address: '', issue: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', ic: '', student_id: '', dobDay: '', dobMonth: '', dobYear: '', gender: '', address: '', issue: '', session_type: 'voluntary', previous_counseling: '', psychiatric_history: '', psychiatric_medication: '' });
   const [consent, setConsent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
@@ -224,14 +224,14 @@ export default function PublicBookingPage() {
             <div className="bg-blue-50 rounded-xl p-3 text-sm text-blue-800">
               📅 {format(parseISO(selectedDate), 'dd MMM yyyy')} · 🕐 {selectedTime}
             </div>
+            {/* Basic info */}
             {[
-              { k: 'name', label: 'Nama Penuh *', type: 'text', placeholder: 'Nama seperti dalam IC', required: true },
-              { k: 'phone', label: 'No. Telefon *', type: 'tel', placeholder: '01X-XXXXXXX', required: true },
-              { k: 'email', label: 'E-mel', type: 'email', placeholder: 'email@contoh.com' },
-              { k: 'ic', label: 'No. Kad Pengenalan', type: 'text', placeholder: '000101-10-0000' },
-              { k: 'student_id', label: 'No. Matrik / ID Pelajar / ID Kakitangan', type: 'text', placeholder: 'cth. A12345 / EMP0012' },
-              { k: 'dob', label: 'Tarikh Lahir', type: 'date' },
-              { k: 'address', label: 'Alamat', type: 'text', placeholder: 'Alamat anda' },
+              { k: 'name',       label: 'Nama Penuh *',                              type: 'text',  placeholder: 'Nama seperti dalam IC', required: true },
+              { k: 'phone',      label: 'No. Telefon *',                             type: 'tel',   placeholder: '01X-XXXXXXX', required: true },
+              { k: 'email',      label: 'E-mel',                                     type: 'email', placeholder: 'email@contoh.com' },
+              { k: 'ic',         label: 'No. Kad Pengenalan',                        type: 'text',  placeholder: '000101-10-0000' },
+              { k: 'student_id', label: 'No. Matrik / ID Pelajar / ID Kakitangan',   type: 'text',  placeholder: 'cth. A12345 / EMP0012' },
+              { k: 'address',    label: 'Alamat',                                    type: 'text',  placeholder: 'Alamat anda' },
             ].map(f => (
               <div key={f.k}>
                 <label className="text-sm font-medium text-gray-700 mb-1 block">{f.label}</label>
@@ -239,6 +239,91 @@ export default function PublicBookingPage() {
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
             ))}
+
+            {/* DOB — 3 dropdowns */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Tarikh Lahir</label>
+              <div className="grid grid-cols-3 gap-2">
+                <select value={form.dobDay} onChange={set('dobDay')} className="px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                  <option value="">Hari</option>
+                  {Array.from({ length: 31 }, (_, i) => i + 1).map(d => <option key={d} value={String(d).padStart(2,'0')}>{d}</option>)}
+                </select>
+                <select value={form.dobMonth} onChange={set('dobMonth')} className="px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                  <option value="">Bulan</option>
+                  {['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogs','Sep','Okt','Nov','Dis'].map((m,i) => (
+                    <option key={i} value={String(i+1).padStart(2,'0')}>{m}</option>
+                  ))}
+                </select>
+                <select value={form.dobYear} onChange={set('dobYear')} className="px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                  <option value="">Tahun</option>
+                  {Array.from({ length: 60 }, (_, i) => new Date().getFullYear() - 10 - i).map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+              </div>
+            </div>
+
+            {/* Jenis sesi */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Jenis Sesi</label>
+              <div className="grid grid-cols-2 gap-2">
+                {[['voluntary','Sukarela'],['referred','Dirujuk']].map(([v,l]) => (
+                  <button key={v} type="button" onClick={() => setForm(f => ({ ...f, session_type: v }))}
+                    className={`py-2 rounded-lg border text-sm font-medium transition-all ${form.session_type === v ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-600'}`}>
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Kaunseling sebelum */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Pernahkah anda mendapat kaunseling sebelum ini?</label>
+              <div className="grid grid-cols-2 gap-2">
+                {[['ya','Ya'],['tidak','Tidak']].map(([v,l]) => (
+                  <button key={v} type="button" onClick={() => setForm(f => ({ ...f, previous_counseling: v }))}
+                    className={`py-2 rounded-lg border text-sm font-medium transition-all ${form.previous_counseling === v ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-600'}`}>
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Sejarah psikiatri */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Adakah anda mempunyai sejarah psikiatri?</label>
+              <div className="grid grid-cols-2 gap-2 mb-2">
+                {[['ya','Ya'],['tidak','Tidak']].map(([v,l]) => (
+                  <button key={v} type="button" onClick={() => setForm(f => ({ ...f, psychiatric_history: v === 'tidak' ? 'Tiada' : '' }))}
+                    className={`py-2 rounded-lg border text-sm font-medium transition-all ${(form.psychiatric_history === 'Tiada' ? 'tidak' : form.psychiatric_history ? 'ya' : '') === v ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-600'}`}>
+                    {l}
+                  </button>
+                ))}
+              </div>
+              {form.psychiatric_history !== 'Tiada' && form.psychiatric_history !== '' && (
+                <textarea value={form.psychiatric_history} onChange={set('psychiatric_history')} rows={2}
+                  placeholder="Nyatakan diagnosis / rawatan yang pernah diterima..."
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+              )}
+            </div>
+
+            {/* Ubat psikiatri */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Adakah anda sedang mengambil ubat psikiatri?</label>
+              <div className="grid grid-cols-2 gap-2 mb-2">
+                {[['ya','Ya'],['tidak','Tidak']].map(([v,l]) => (
+                  <button key={v} type="button" onClick={() => setForm(f => ({ ...f, psychiatric_medication: v === 'tidak' ? 'Tiada' : '' }))}
+                    className={`py-2 rounded-lg border text-sm font-medium transition-all ${(form.psychiatric_medication === 'Tiada' ? 'tidak' : form.psychiatric_medication ? 'ya' : '') === v ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-600'}`}>
+                    {l}
+                  </button>
+                ))}
+              </div>
+              {form.psychiatric_medication !== 'Tiada' && form.psychiatric_medication !== '' && (
+                <textarea value={form.psychiatric_medication} onChange={set('psychiatric_medication')} rows={2}
+                  placeholder="Nyatakan nama ubat dan dos..."
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+              )}
+            </div>
+
+            {/* Isu utama */}
             <div>
               <label className="text-sm font-medium text-gray-700 mb-1 block">Sebab / Isu Utama</label>
               <textarea value={form.issue} onChange={set('issue')} rows={3}

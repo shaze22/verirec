@@ -11,11 +11,10 @@ const I = {
 };
 
 const COUNSELOR_NAV = [
-  { to: '/dashboard',             label: 'Utama',      icon: I.home },
-  { to: '/session/new',           label: 'Sesi',       icon: I.mic },
-  { to: '/kaunselor/clients',     label: 'Klien',      icon: I.users },
-  { to: '/kaunselor/appointments',label: 'Temujanji',  icon: I.calendar },
-  { to: '/settings',              label: 'Tetapan',    icon: I.settings },
+  { to: '/kaunselor/clients',      label: 'Klien',      icon: I.users },
+  { to: '/kaunselor/appointments', label: 'Temujanji',  icon: I.calendar },
+  { to: '/dashboard',              label: 'Utama',      icon: I.home },
+  { to: '/settings',               label: 'Tetapan',    icon: I.settings },
 ];
 
 const OTHER_NAV = [
