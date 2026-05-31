@@ -7,6 +7,7 @@ import { supabase } from '../../lib/supabase.js';
 import { TopBar } from '../../components/layout/TopBar.jsx';
 import { Button } from '../../components/ui/Button.jsx';
 import toast from 'react-hot-toast';
+import jsPDF from 'jspdf';
 
 const RISK_CONFIG = {
   none:          { label: 'Rendah',    color: 'bg-green-500',  text: 'text-green-700',  bg: 'bg-green-50' },
@@ -33,6 +34,8 @@ export default function CounselorDashboard() {
   const [clients, setClients] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [appointments, setAppointments] = useState([]);
+  const [exporting, setExporting] = useState(false);
+  const [reportMonth, setReportMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
 
   // Request notification permission + real-time appointment alerts
   useEffect(() => {
@@ -117,6 +120,170 @@ export default function CounselorDashboard() {
   const maxMonthly = Math.max(...stats.monthlyData.map(d => d.count), 1);
   const maxRisk = Math.max(...Object.values(stats.riskCounts), 1);
 
+  const exportMonthlyReport = async () => {
+    setExporting(true);
+    try {
+      const [yr, mo] = reportMonth.split('-').map(Number);
+      const monthStart = new Date(yr, mo - 1, 1);
+      const monthEnd   = new Date(yr, mo, 0);
+      const monthLabel = format(monthStart, 'MMMM yyyy');
+
+      // Fetch counselor profile for header
+      const { data: profile } = await supabase.from('counselor_profiles').select('display_name, klinik_name, registration_number').eq('user_id', user.id).maybeSingle();
+
+      // Filter data for selected month
+      const monthSessions = sessions.filter(s => {
+        const d = new Date(s.created_at);
+        return d >= monthStart && d <= monthEnd;
+      });
+      const monthClients = clients.filter(c => {
+        const d = new Date(c.created_at);
+        return d >= monthStart && d <= monthEnd;
+      });
+
+      // Fetch appointments for selected month
+      const { data: monthAppts } = await supabase.from('appointments')
+        .select('id, client_name, confirmed_date, status')
+        .eq('counselor_id', user.id)
+        .gte('confirmed_date', monthStart.toISOString().slice(0, 10))
+        .lte('confirmed_date', monthEnd.toISOString().slice(0, 10));
+
+      // Risk distribution for month's sessions
+      const riskCounts = { none: 0, mental_health: 0, self_harm: 0, suicidal: 0 };
+      monthSessions.forEach(s => { if (riskCounts[s.risk_level ?? 'none'] !== undefined) riskCounts[s.risk_level ?? 'none']++; });
+
+      // Problem types
+      const problemCounts = {};
+      monthSessions.forEach(s => {
+        (s.problem_types || []).forEach(pt => { problemCounts[pt] = (problemCounts[pt] || 0) + 1; });
+      });
+      const topProblems = Object.entries(problemCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+      const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+      const W = 210, MARGIN = 18;
+      let y = MARGIN;
+
+      const line = (text, fontSize = 10, bold = false, color = [30, 30, 30]) => {
+        doc.setFontSize(fontSize);
+        doc.setFont('helvetica', bold ? 'bold' : 'normal');
+        doc.setTextColor(...color);
+        doc.text(text, MARGIN, y);
+        y += fontSize * 0.5;
+      };
+
+      const rule = (thick = false) => {
+        doc.setDrawColor(200, 200, 200);
+        doc.setLineWidth(thick ? 0.5 : 0.2);
+        doc.line(MARGIN, y, W - MARGIN, y);
+        y += 4;
+      };
+
+      const section = (title) => {
+        y += 3;
+        doc.setFillColor(16, 185, 129);
+        doc.rect(MARGIN, y, W - MARGIN * 2, 7, 'F');
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(255, 255, 255);
+        doc.text(title.toUpperCase(), MARGIN + 3, y + 5);
+        y += 11;
+        doc.setTextColor(30, 30, 30);
+      };
+
+      const row = (label, value, indent = false) => {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(80, 80, 80);
+        doc.text(label, indent ? MARGIN + 5 : MARGIN, y);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(30, 30, 30);
+        doc.text(String(value), W - MARGIN, y, { align: 'right' });
+        y += 5.5;
+      };
+
+      // Header
+      doc.setFillColor(16, 185, 129);
+      doc.rect(0, 0, W, 28, 'F');
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text('LAPORAN BULANAN KAUNSELING', MARGIN, 13);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(monthLabel.toUpperCase(), MARGIN, 21);
+      doc.setFontSize(9);
+      doc.text(`Dijana: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, W - MARGIN, 21, { align: 'right' });
+      y = 36;
+
+      // Unit info
+      if (profile) {
+        line(profile.klinik_name || 'Unit Kaunseling', 11, true);
+        y += 1;
+        if (profile.display_name) { doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(80, 80, 80); doc.text(`Kaunselor: ${profile.display_name}${profile.registration_number ? ` (${profile.registration_number})` : ''}`, MARGIN, y); y += 5; }
+      }
+      rule(true);
+
+      // Summary stats
+      section('Ringkasan Bulan Ini');
+      row('Jumlah Sesi Dijalankan', monthSessions.length);
+      row('Klien Baharu Didaftarkan', monthClients.length);
+      row('Temujanji Selesai', (monthAppts || []).filter(a => a.status === 'completed').length);
+      row('Temujanji Dikonfirmasi', (monthAppts || []).filter(a => a.status === 'confirmed').length);
+      row('Jumlah Klien Aktif (Keseluruhan)', clients.length);
+
+      // Risk distribution
+      section('Taburan Risiko (Sesi Bulan Ini)');
+      if (monthSessions.length === 0) {
+        doc.setFontSize(9); doc.setTextColor(150, 150, 150); doc.text('Tiada sesi dalam bulan ini.', MARGIN, y); y += 6;
+      } else {
+        const riskLabels = { none: 'Rendah / Tiada Risiko', mental_health: 'Sederhana (Kesihatan Mental)', self_harm: 'Tinggi (Kecederaan Diri)', suicidal: 'Kritikal (Bunuh Diri)' };
+        Object.entries(riskCounts).forEach(([k, v]) => row(riskLabels[k], v));
+      }
+
+      // Problem types
+      if (topProblems.length > 0) {
+        section('Isu Utama Klien');
+        topProblems.forEach(([issue, count]) => row(issue, count, true));
+      }
+
+      // Session trend (last 6 months table)
+      section('Trend Sesi (6 Bulan Lepas)');
+      stats.monthlyData.forEach(d => row(d.label, d.count));
+
+      // Appointments
+      if ((monthAppts || []).length > 0) {
+        section('Senarai Temujanji');
+        const apptStatusLabel = { confirmed: 'Disahkan', completed: 'Selesai', pending: 'Menunggu', cancelled: 'Dibatal', rescheduled: 'Dijadual Semula' };
+        monthAppts.slice(0, 20).forEach(a => {
+          doc.setFontSize(8.5);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(50, 50, 50);
+          doc.text(`${a.confirmed_date || '-'}  ${a.client_name}`, MARGIN, y);
+          doc.text(apptStatusLabel[a.status] || a.status, W - MARGIN, y, { align: 'right' });
+          y += 5;
+          if (y > 270) { doc.addPage(); y = MARGIN; }
+        });
+      }
+
+      // Footer
+      y = Math.max(y + 10, 265);
+      rule();
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(150, 150, 150);
+      doc.text('Dokumen ini dijana secara automatik oleh VeriRec — Platform Kaunseling Digital', MARGIN, y);
+      doc.text('Sulit & Terhad — Untuk Kegunaan Dalaman Sahaja', W - MARGIN, y, { align: 'right' });
+
+      doc.save(`Laporan-Kaunseling-${reportMonth}.pdf`);
+      toast.success(`Laporan ${monthLabel} berjaya dijana.`);
+    } catch (err) {
+      console.error(err);
+      toast.error('Gagal menjana laporan.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col h-screen">
@@ -131,9 +298,20 @@ export default function CounselorDashboard() {
   return (
     <div className="flex flex-col h-screen">
       <TopBar title="Dashboard" action={
-        <Button size="sm" onClick={() => navigate('/session/setup/counselor')}>
-          + Sesi Baru
-        </Button>
+        <div className="flex items-center gap-2">
+          <input
+            type="month"
+            value={reportMonth}
+            onChange={e => setReportMonth(e.target.value)}
+            className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 hidden sm:block"
+          />
+          <Button size="sm" variant="secondary" loading={exporting} onClick={exportMonthlyReport}>
+            📊 Laporan
+          </Button>
+          <Button size="sm" onClick={() => navigate('/session/setup/counselor')}>
+            + Sesi Baru
+          </Button>
+        </div>
       } />
       <div className="flex-1 overflow-auto p-4 pb-20 md:pb-6">
         <div className="max-w-5xl mx-auto space-y-5">

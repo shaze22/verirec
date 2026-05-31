@@ -29,6 +29,7 @@ export default function KaunslorAppointmentsPage() {
   const [tab, setTab] = useState('appointments');
   const [addSlotForm, setAddSlotForm] = useState({ day_of_week: 1, start_time: '09:00', end_time: '17:00' });
   const [scheduledSessions, setScheduledSessions] = useState([]);
+  const [incomingReferrals, setIncomingReferrals] = useState([]);
   const [showAddSchedule, setShowAddSchedule] = useState(false);
   const [scheduleForm, setScheduleForm] = useState({ title: '', subject_name: '', scheduled_at: '', notes: '' });
   const [savingSchedule, setSavingSchedule] = useState(false);
@@ -48,11 +49,13 @@ export default function KaunslorAppointmentsPage() {
       getSlots(user.id),
       getAppointments(user.id),
       supabase.from('scheduled_sessions').select('*').eq('user_id', user.id).order('scheduled_at'),
-    ]).then(([p, s, a, { data: sched }]) => {
+      supabase.from('team_referrals').select('*, subjects(name, presenting_issue, risk_level)').eq('to_email', user.email).order('created_at', { ascending: false }),
+    ]).then(([p, s, a, { data: sched }, { data: refs }]) => {
       setProfile(p);
       setSlots(s);
       setAppointments(a);
       setScheduledSessions(sched || []);
+      setIncomingReferrals(refs || []);
       if (p?.booking_code) {
         const url = `${window.location.origin}/book/${p.booking_code}`;
         QRCode.toDataURL(url, { width: 400, margin: 3, color: { dark: '#1e293b', light: '#ffffff' } })
@@ -229,6 +232,7 @@ export default function KaunslorAppointmentsPage() {
             { id: 'jadual', label: `Jadual (${scheduledSessions.filter(s => s.status === 'upcoming').length})` },
             { id: 'slots', label: 'Slot Masa' },
             { id: 'qr', label: 'QR & Pautan' },
+            { id: 'rujukan', label: `Rujukan Pasukan${incomingReferrals.filter(r => r.status === 'pending').length ? ` (${incomingReferrals.filter(r => r.status === 'pending').length})` : ''}` },
           ].map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
               className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${tab === t.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
@@ -560,6 +564,72 @@ export default function KaunslorAppointmentsPage() {
               </div>
             </div>
           )}
+          {/* ── RUJUKAN PASUKAN TAB ── */}
+          {tab === 'rujukan' && (
+            <div className="space-y-3 p-4">
+              {incomingReferrals.length === 0 ? (
+                <div className="text-center py-16 text-gray-400">
+                  <div className="text-4xl mb-3">👥</div>
+                  <p className="text-sm">Tiada rujukan pasukan masuk.</p>
+                </div>
+              ) : incomingReferrals.map(ref => (
+                <div key={ref.id} className={`bg-white rounded-xl border p-4 ${ref.status === 'pending' ? 'border-amber-200' : ''}`}>
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-900">{ref.subjects?.name || 'Klien'}</p>
+                      {ref.subjects?.presenting_issue && (
+                        <p className="text-xs text-gray-500 italic mt-0.5">"{ref.subjects.presenting_issue}"</p>
+                      )}
+                      <p className="text-sm text-gray-700 mt-1">{ref.reason}</p>
+                      {ref.notes && <p className="text-xs text-gray-500 mt-0.5">{ref.notes}</p>}
+                      <p className="text-xs text-gray-400 mt-1">{format(parseISO(ref.created_at), 'dd MMM yyyy')}</p>
+                    </div>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${
+                      ref.status === 'accepted' ? 'bg-green-100 text-green-700' :
+                      ref.status === 'declined' ? 'bg-red-100 text-red-700' :
+                      'bg-amber-100 text-amber-700'}`}>
+                      {ref.status === 'accepted' ? 'Diterima' : ref.status === 'declined' ? 'Ditolak' : 'Baharu'}
+                    </span>
+                  </div>
+                  {ref.status === 'pending' && (
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        onClick={async () => {
+                          try {
+                            await supabase.from('team_referrals').update({ status: 'accepted' }).eq('id', ref.id);
+                            setIncomingReferrals(prev => prev.map(r => r.id === ref.id ? { ...r, status: 'accepted' } : r));
+                            toast.success('Rujukan diterima.');
+                          } catch { toast.error('Gagal mengemas kini.'); }
+                        }}
+                        className="flex-1 text-sm font-medium bg-emerald-600 text-white rounded-lg py-1.5 hover:bg-emerald-700 transition-colors"
+                      >✓ Terima</button>
+                      <button
+                        onClick={async () => {
+                          try {
+                            await supabase.from('team_referrals').update({ status: 'declined' }).eq('id', ref.id);
+                            setIncomingReferrals(prev => prev.map(r => r.id === ref.id ? { ...r, status: 'declined' } : r));
+                            toast('Rujukan ditolak.');
+                          } catch { toast.error('Gagal mengemas kini.'); }
+                        }}
+                        className="flex-1 text-sm font-medium bg-gray-100 text-gray-700 rounded-lg py-1.5 hover:bg-gray-200 transition-colors"
+                      >✗ Tolak</button>
+                      <button
+                        onClick={() => navigate(`/kaunselor/clients/${ref.subject_id}`)}
+                        className="flex-1 text-sm font-medium bg-blue-50 text-blue-700 rounded-lg py-1.5 hover:bg-blue-100 transition-colors"
+                      >Lihat Profil</button>
+                    </div>
+                  )}
+                  {ref.status !== 'pending' && (
+                    <button
+                      onClick={() => navigate(`/kaunselor/clients/${ref.subject_id}`)}
+                      className="mt-2 text-xs text-blue-600 hover:underline"
+                    >Lihat Profil Klien →</button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
         </div>
       </div>
 

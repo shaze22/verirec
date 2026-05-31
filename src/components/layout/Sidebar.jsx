@@ -31,6 +31,26 @@ const COUNSELOR_ITEMS = [
   { to: '/settings',                 label: 'Tetapan',    icon: ICONS.settings },
 ];
 
+const DOCTOR_ITEMS = [
+  { to: '/doktor/dashboard',     label: 'Dashboard',  icon: ICONS.chart },
+  { to: '/doktor/clients',       label: 'Pesakit',    icon: ICONS.users },
+  { to: '/doktor/appointments',  label: 'Temujanji',  icon: ICONS.calendar },
+  { to: '/doktor/calendar',      label: 'Kalendar',   icon: ICONS.calendar },
+  { to: '/team',                 label: 'Pasukan',    icon: ICONS.team },
+  { to: '/audit',                label: 'Log Audit',  icon: ICONS.folder },
+  { to: '/settings',             label: 'Tetapan',    icon: ICONS.settings },
+];
+
+const JKM_ITEMS = [
+  { to: '/jkm/dashboard',     label: 'Dashboard',   icon: ICONS.chart },
+  { to: '/jkm/clients',       label: 'Kes',         icon: ICONS.users },
+  { to: '/jkm/appointments',  label: 'Kunjungan',   icon: ICONS.calendar },
+  { to: '/jkm/calendar',      label: 'Kalendar',    icon: ICONS.calendar },
+  { to: '/team',              label: 'Pasukan',     icon: ICONS.team },
+  { to: '/audit',             label: 'Log Audit',   icon: ICONS.folder },
+  { to: '/settings',          label: 'Tetapan',     icon: ICONS.settings },
+];
+
 // Other professions tabs
 const OTHER_ITEMS = [
   { to: '/session/new', label: 'Sesi Baru',       icon: ICONS.mic },
@@ -56,12 +76,15 @@ export function Sidebar() {
   const { subscription } = useBillingStore();
   const navigate = useNavigate();
   const { canInstall, install } = usePwaInstall();
-  const isCounselor = localStorage.getItem('preferred_profession') === 'counselor';
-  const navItems = isCounselor ? COUNSELOR_ITEMS : [
-    { to: '/dashboard', label: 'Papan Pemuka', icon: ICONS.dashboard },
-    { to: '/analytics',  label: 'Analitik',    icon: ICONS.chart },
-    ...OTHER_ITEMS,
-  ];
+  const profession = localStorage.getItem('preferred_profession');
+  const navItems = profession === 'counselor' ? COUNSELOR_ITEMS
+    : profession === 'doctor' ? DOCTOR_ITEMS
+    : profession === 'jkm'    ? JKM_ITEMS
+    : [
+      { to: '/dashboard', label: 'Papan Pemuka', icon: ICONS.dashboard },
+      { to: '/analytics',  label: 'Analitik',    icon: ICONS.chart },
+      ...OTHER_ITEMS,
+    ];
 
   const handleSignOut = async () => {
     await signOut();

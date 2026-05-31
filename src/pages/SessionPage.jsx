@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore.js';
+import { useBillingStore } from '../store/billingStore.js';
 import { useAudioRecorder } from '../hooks/useAudioRecorder.js';
 import { useWhisper } from '../hooks/useWhisper.js';
 import { useRealtimeTranscript, isSpeechRecognitionSupported } from '../hooks/useRealtimeTranscript.js';
@@ -20,6 +21,7 @@ import { AISuggestions } from '../components/session/AISuggestions.jsx';
 import { NoteBar } from '../components/session/NoteBar.jsx';
 import { FlagsPanel } from '../components/session/FlagsPanel.jsx';
 import { AssessmentPanel } from '../components/session/AssessmentPanel.jsx';
+import { PeaceModelPanel } from '../components/session/PeaceModelPanel.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { Modal } from '../components/ui/Modal.jsx';
 import toast from 'react-hot-toast';
@@ -32,6 +34,7 @@ const CRISIS_RESOURCES = [
 
 export default function SessionPage() {
   const { user } = useAuthStore();
+  const { subscription } = useBillingStore();
   const navigate = useNavigate();
   const { isMobile } = useWindowSize();
 
@@ -39,6 +42,7 @@ export default function SessionPage() {
   const setup = setupRef.current;
   const sessionId = sessionStorage.getItem('active_session_id');
   const profession = getProfession(setup.profession);
+  const isInvestigationProf = ['police', 'sprm', 'sispa', 'skmm', 'hr', 'jtk', 'peguam'].includes(setup.profession);
 
   const [currentPhase, setCurrentPhase] = useState(profession?.phases?.[0] || '');
   const [entries, setEntries] = useState([]);
@@ -153,7 +157,10 @@ export default function SessionPage() {
       sessionId,
       title: setup.title,
       duration: durationAtStopRef.current,
-    }).catch(() => {}); // non-critical — silent fail
+      plan: subscription?.plan || 'free',
+    }).catch((err) => {
+      if (err?.message?.includes('Had storan')) toast.error(err.message);
+    });
   }, [audioBlob]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleStart = async () => {
@@ -550,7 +557,7 @@ export default function SessionPage() {
                     onClick={() => setMobileAiTab('assessment')}
                     className={`flex-1 py-2.5 font-semibold transition-colors ${mobileAiTab === 'assessment' ? 'text-blue-600 border-b-2 border-blue-600 bg-white' : 'text-gray-500'}`}
                   >
-                    📊 Assessment
+                    {isInvestigationProf ? '🔍 PEACE' : '📊 Assessment'}
                   </button>
                 </div>
                 <div className="flex-1 overflow-hidden">
@@ -561,6 +568,8 @@ export default function SessionPage() {
                       entries={entries} isActive={started && !isPaused}
                       onSuggest={handleAsk}
                     />
+                  ) : isInvestigationProf ? (
+                    <PeaceModelPanel currentPhase={currentPhase} onPhaseChange={setCurrentPhase} />
                   ) : (
                     <AssessmentPanel sessionId={sessionId} subjectId={setup.subject_id} userId={user?.id} />
                   )}
@@ -584,25 +593,49 @@ export default function SessionPage() {
               currentPhase={currentPhase} onPhaseChange={setCurrentPhase} onAsk={handleAsk}
             />
           </div>
+          {/* AI Suggestions — always visible on desktop, toggle on md */}
           <div className="w-72 flex flex-col overflow-hidden">
-            {/* Toggle between Assessment and AI tabs */}
-            <div className="flex border-b bg-white text-xs">
+            <div className="flex border-b bg-white text-xs xl:hidden">
               <button onClick={() => setActiveTab('ai')} className={`flex-1 py-2 font-medium ${activeTab !== 'assessment' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>Cadangan AI</button>
-              <button onClick={() => setActiveTab('assessment')} className={`flex-1 py-2 font-medium ${activeTab === 'assessment' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>Assessment</button>
+              <button onClick={() => setActiveTab('assessment')} className={`flex-1 py-2 font-medium ${activeTab === 'assessment' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>
+                {isInvestigationProf ? 'PEACE Model' : 'Assessment'}
+              </button>
+            </div>
+            <div className="hidden xl:flex items-center px-3 py-2 border-b bg-white">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Cadangan AI</span>
             </div>
             <div className="flex-1 overflow-auto">
               {activeTab === 'assessment' ? (
-                <AssessmentPanel sessionId={sessionId} subjectId={setup.subject_id} userId={user?.id} />
-              ) : (
+                <div className="xl:hidden h-full">
+                  {isInvestigationProf
+                    ? <PeaceModelPanel currentPhase={currentPhase} onPhaseChange={setCurrentPhase} />
+                    : <AssessmentPanel sessionId={sessionId} subjectId={setup.subject_id} userId={user?.id} />}
+                </div>
+              ) : null}
+              <div className={activeTab !== 'assessment' ? 'h-full' : 'hidden xl:block h-full'}>
                 <AISuggestions
                   profession={setup.profession} phase={currentPhase}
                   lastQuestion={lastAsked} recentTranscript={recentTranscript}
                   entries={entries} isActive={started && !isPaused}
                   onSuggest={handleAsk}
                 />
-              )}
+              </div>
             </div>
             <div className="border-t"><FlagsPanel flags={flags} onRemove={removeFlag} /></div>
+          </div>
+
+          {/* 4th column on xl+ — PEACE Model for investigation, Assessment for others */}
+          <div className="hidden xl:flex w-64 flex-col border-l overflow-hidden">
+            <div className="flex items-center px-3 py-2 border-b bg-white">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                {isInvestigationProf ? 'PEACE Model' : 'Assessment'}
+              </span>
+            </div>
+            <div className="flex-1 overflow-auto">
+              {isInvestigationProf
+                ? <PeaceModelPanel currentPhase={currentPhase} onPhaseChange={setCurrentPhase} />
+                : <AssessmentPanel sessionId={sessionId} subjectId={setup.subject_id} userId={user?.id} />}
+            </div>
           </div>
         </div>
       )}

@@ -4,6 +4,17 @@ import { getAll, remove } from './idb.js';
 const listeners = {};
 let syncLock = false; // mutex — prevents concurrent sync runs
 
+// Auto-sync on reconnect and startup
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => {
+    setTimeout(() => syncQueue(), 1500); // slight delay after reconnect
+  });
+  // Startup sync — defer to avoid blocking first render
+  if (navigator.onLine) {
+    setTimeout(() => syncQueue(), 3000);
+  }
+}
+
 function emit(event, data) {
   (listeners[event] || []).forEach(fn => fn(data));
 }
@@ -43,7 +54,7 @@ export async function syncQueue() {
 
           if (sessionData.audioBlob) {
             const { data: audioData } = await supabase.storage
-              .from('audio')
+              .from('recordings')
               .upload(`${item.user_id}/${item.id}.webm`, sessionData.audioBlob, { upsert: true });
             sessionData.audio_url = audioData?.path;
             delete sessionData.audioBlob;

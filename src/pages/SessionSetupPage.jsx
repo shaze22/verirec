@@ -88,10 +88,17 @@ export default function SessionSetupPage() {
       witness_officer: '',
       context_notes: '',
       assignee_id: '',
+      custom_fields: {},
     };
   });
 
   const set = (field) => (e) => setForm(prev => ({ ...prev, [field]: e.target.value }));
+
+  // Custom org fields from Settings
+  const customFieldLabels = [1, 2, 3].map(i => localStorage.getItem(`custom_field_${i}_label`)).filter(Boolean);
+  const setCustomField = (label, value) => setForm(prev => ({
+    ...prev, custom_fields: { ...(prev.custom_fields || {}), [label]: value },
+  }));
 
   const handleBack = () => {
     if (hasData(form)) {
@@ -195,6 +202,27 @@ export default function SessionSetupPage() {
               <LabelWithTooltip label="Nota Konteks" tooltip="Maklumat latar belakang yang membantu AI menghasilkan cadangan soalan dan laporan yang lebih tepat. Tidak akan dikongsi dengan subjek." />
               <Textarea value={form.context_notes} onChange={set('context_notes')} rows={3} placeholder="Latar belakang kes, tujuan sesi, maklumat relevan lain..." />
             </div>
+
+            {/* Custom org fields (defined in Settings) */}
+            {customFieldLabels.length > 0 && (
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-2">Maklumat Tambahan Organisasi</p>
+                <div className="space-y-2">
+                  {customFieldLabels.map(label => (
+                    <div key={label}>
+                      <label className="block text-xs text-gray-500 mb-1">{label}</label>
+                      <input
+                        type="text"
+                        value={(form.custom_fields || {})[label] || ''}
+                        onChange={e => setCustomField(label, e.target.value)}
+                        placeholder={`Masukkan ${label}...`}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {teamMembers.length > 0 && (
               <div>

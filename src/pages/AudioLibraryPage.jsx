@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
+import { format, subMonths } from 'date-fns';
 import { useAuthStore } from '../store/authStore.js';
+import { useBillingStore } from '../store/billingStore.js';
 import { supabase } from '../lib/supabase.js';
-import { getAudioLibrary, getSignedUrl, assignAudio, updateAudioTitle, deleteAudio } from '../api/audioLibrary.js';
+import { getAudioLibrary, getSignedUrl, assignAudio, updateAudioTitle, deleteAudio, getStorageUsage, formatBytes, STORAGE_LIMITS } from '../api/audioLibrary.js';
 import { professionLabel } from '../data/professions.js';
 import { TopBar } from '../components/layout/TopBar.jsx';
 import { Button } from '../components/ui/Button.jsx';
@@ -21,6 +22,7 @@ function fmtSize(b) {
 
 export default function AudioLibraryPage() {
   const { user } = useAuthStore();
+  const { subscription } = useBillingStore();
   const navigate = useNavigate();
   const [recordings, setRecordings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,14 +36,21 @@ export default function AudioLibraryPage() {
   const [assignSessionId, setAssignSessionId] = useState('');
   const [assignSubjectId, setAssignSubjectId] = useState('');
   const [assigning, setAssigning] = useState(false);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [filterAge, setFilterAge] = useState('all'); // 'all' | '3' | '6' | '12'
+  const [sortBy, setSortBy] = useState('newest'); // 'newest' | 'oldest' | 'largest'
+  const [storageUsed, setStorageUsed] = useState(null);
   const editRef = useRef(null);
 
   useEffect(() => {
     if (!user) return;
     getAudioLibrary(user.id)
-      .then(setRecordings)
+      .then(data => { setRecordings(data); })
       .catch(() => toast.error('Gagal memuatkan rakaman'))
       .finally(() => setLoading(false));
+    getStorageUsage(user.id).then(setStorageUsed).catch(() => {});
   }, [user]);
 
   useEffect(() => {
@@ -123,6 +132,48 @@ export default function AudioLibraryPage() {
     }
   };
 
+  const handleBulkDelete = async () => {
+    if (!selected.size) return;
+    const toDelete = recordings.filter(r => selected.has(r.id));
+    const totalSz = toDelete.reduce((a, r) => a + (r.file_size || 0), 0);
+    if (!window.confirm(`Padam ${toDelete.length} rakaman (${formatBytes(totalSz)})? Tindakan ini tidak boleh dibatalkan.`)) return;
+    setBulkDeleting(true);
+    let done = 0;
+    for (const rec of toDelete) {
+      try {
+        await deleteAudio(rec.id, rec.storage_path);
+        done++;
+      } catch { /* skip failed */ }
+    }
+    setRecordings(prev => prev.filter(r => !selected.has(r.id)));
+    setSelected(new Set());
+    setSelectMode(false);
+    getStorageUsage(user.id).then(setStorageUsed).catch(() => {});
+    toast.success(`${done} rakaman dipadam.`);
+    setBulkDeleting(false);
+  };
+
+  const toggleSelect = (id) => setSelected(prev => {
+    const n = new Set(prev);
+    n.has(id) ? n.delete(id) : n.add(id);
+    return n;
+  });
+
+  // Filter & sort
+  const filtered = recordings
+    .filter(r => {
+      if (filterAge === 'all') return true;
+      const cutoff = subMonths(new Date(), Number(filterAge));
+      return new Date(r.created_at) < cutoff;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'oldest') return new Date(a.created_at) - new Date(b.created_at);
+      if (sortBy === 'largest') return (b.file_size || 0) - (a.file_size || 0);
+      return new Date(b.created_at) - new Date(a.created_at); // newest
+    });
+
+  const selectedSize = recordings.filter(r => selected.has(r.id)).reduce((a, r) => a + (r.file_size || 0), 0);
+
   const totalDur = recordings.reduce((a, r) => a + (r.duration || 0), 0);
   const totalSize = recordings.reduce((a, r) => a + (r.file_size || 0), 0);
 
@@ -130,20 +181,101 @@ export default function AudioLibraryPage() {
     <div className="flex flex-col h-screen">
       <TopBar title="Perpustakaan Audio" />
 
-      <div className="flex-1 overflow-auto p-6 pb-20 md:pb-6">
+      <div className="flex-1 overflow-auto p-4 pb-20 md:pb-6">
         {!loading && recordings.length > 0 && (
-          <div className="grid grid-cols-3 gap-3 mb-6">
-            {[
-              { label: 'Jumlah Rakaman', value: recordings.length },
-              { label: 'Jumlah Tempoh', value: fmtDur(totalDur) },
-              { label: 'Jumlah Saiz', value: fmtSize(totalSize) },
-            ].map(s => (
-              <div key={s.label} className="bg-white rounded-xl border p-4">
-                <p className="text-2xl font-bold text-gray-900">{s.value}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+          <>
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              {[
+                { label: 'Jumlah Rakaman', value: recordings.length },
+                { label: 'Jumlah Tempoh', value: fmtDur(totalDur) },
+                { label: 'Jumlah Saiz', value: fmtSize(totalSize) },
+              ].map(s => (
+                <div key={s.label} className="bg-white rounded-xl border p-4">
+                  <p className="text-2xl font-bold text-gray-900">{s.value}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Storage usage bar */}
+            {storageUsed !== null && (() => {
+              const plan = subscription?.plan || 'free';
+              const limit = STORAGE_LIMITS[plan] ?? STORAGE_LIMITS.free;
+              const pct = Math.min(100, (storageUsed / limit) * 100);
+              const barColor = pct > 90 ? 'bg-red-500' : pct > 70 ? 'bg-amber-500' : 'bg-emerald-500';
+              return (
+                <div className="bg-white rounded-xl border p-4 mb-4">
+                  <div className="flex items-center justify-between text-sm mb-2">
+                    <span className="font-medium text-gray-700">Storan Digunakan</span>
+                    <span className="text-gray-500">{formatBytes(storageUsed)} / {formatBytes(limit)}</span>
+                  </div>
+                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className={`h-full ${barColor} rounded-full transition-all`} style={{ width: `${pct}%` }} />
+                  </div>
+                  {pct > 80 && (
+                    <p className="text-xs text-amber-600 mt-1.5">⚠️ {pct.toFixed(0)}% penuh — padam rakaman lama untuk jimat ruang.</p>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Toolbar: filter + sort + select mode */}
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <select
+                value={filterAge}
+                onChange={e => { setFilterAge(e.target.value); setSelected(new Set()); }}
+                className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              >
+                <option value="all">Semua Tarikh</option>
+                <option value="3">Lebih 3 Bulan</option>
+                <option value="6">Lebih 6 Bulan</option>
+                <option value="12">Lebih 1 Tahun</option>
+              </select>
+              <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value)}
+                className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              >
+                <option value="newest">Terbaru Dulu</option>
+                <option value="oldest">Terlama Dulu</option>
+                <option value="largest">Terbesar Dulu</option>
+              </select>
+              <span className="text-xs text-gray-400">{filtered.length} rakaman</span>
+              <div className="ml-auto flex items-center gap-2">
+                {selectMode ? (
+                  <>
+                    <button
+                      onClick={() => {
+                        if (selected.size === filtered.length) setSelected(new Set());
+                        else setSelected(new Set(filtered.map(r => r.id)));
+                      }}
+                      className="text-xs text-blue-600 hover:underline"
+                    >
+                      {selected.size === filtered.length ? 'Nyahpilih Semua' : 'Pilih Semua'}
+                    </button>
+                    {selected.size > 0 && (
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        loading={bulkDeleting}
+                        onClick={handleBulkDelete}
+                      >
+                        🗑 Padam {selected.size} ({formatBytes(selectedSize)})
+                      </Button>
+                    )}
+                    <Button size="sm" variant="secondary" onClick={() => { setSelectMode(false); setSelected(new Set()); }}>
+                      Batal
+                    </Button>
+                  </>
+                ) : (
+                  <Button size="sm" variant="secondary" onClick={() => setSelectMode(true)}>
+                    Pilih & Padam
+                  </Button>
+                )}
               </div>
-            ))}
-          </div>
+            </div>
+          </>
         )}
 
         {loading ? (
@@ -163,16 +295,35 @@ export default function AudioLibraryPage() {
             <p className="text-gray-500 text-sm mb-6 max-w-xs mx-auto">Audio sesi akan disimpan di sini secara automatik selepas setiap sesi direkod.</p>
             <Button onClick={() => navigate('/dashboard')}>Mulakan Sesi</Button>
           </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-12 text-gray-400">
+            <p className="text-sm">Tiada rakaman dalam julat tarikh ini.</p>
+          </div>
         ) : (
           <div className="space-y-3">
-            {recordings.map(rec => (
-              <div key={rec.id} className="bg-white rounded-xl border p-4">
+            {filtered.map(rec => (
+              <div
+                key={rec.id}
+                className={`bg-white rounded-xl border p-4 transition-colors ${selectMode && selected.has(rec.id) ? 'border-blue-400 bg-blue-50' : ''}`}
+                onClick={selectMode ? () => toggleSelect(rec.id) : undefined}
+                style={selectMode ? { cursor: 'pointer' } : undefined}
+              >
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                    </svg>
-                  </div>
+                  {selectMode ? (
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 border-2 transition-colors ${selected.has(rec.id) ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-300'}`}>
+                      {selected.has(rec.id) && (
+                        <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                      </svg>
+                    </div>
+                  )}
 
                   <div className="flex-1 min-w-0">
                     {editingId === rec.id ? (
@@ -249,7 +400,7 @@ export default function AudioLibraryPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-1 flex-shrink-0">
+                  {!selectMode && <div className="flex items-center gap-1 flex-shrink-0">
                     <button
                       onClick={() => openAssign(rec)}
                       title="Tetapkan kepada sesi / subjek"
@@ -277,7 +428,7 @@ export default function AudioLibraryPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
                     </button>
-                  </div>
+                  </div>}
                 </div>
               </div>
             ))}

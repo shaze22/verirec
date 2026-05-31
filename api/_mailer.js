@@ -35,6 +35,24 @@ export async function sendEmail({ to, subject, html }) {
   }
 }
 
+// Telegram Bot helper — send a text message to a chat_id
+export async function sendTelegram(chatId, text) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  if (!token || !chatId) return false;
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
+    });
+    if (!res.ok) console.error('Telegram error:', await res.text());
+    return res.ok;
+  } catch (err) {
+    console.error('sendTelegram error:', err);
+    return false;
+  }
+}
+
 const base = (content) => `
 <!DOCTYPE html>
 <html lang="ms">

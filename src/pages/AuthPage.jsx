@@ -5,7 +5,7 @@ import { useAuthStore } from '../store/authStore.js';
 import { professionLabel as getProfessionLabel } from '../data/professions.js';
 import { Button } from '../components/ui/Button.jsx';
 import { Input } from '../components/ui/Input.jsx';
-import { isCounselorSubdomain } from '../lib/subdomain.js';
+import { isCounselorSubdomain, isDoctorSubdomain, isJKMSubdomain } from '../lib/subdomain.js';
 import toast from 'react-hot-toast';
 
 // Detect Supabase password recovery redirect (hash fragment)
@@ -16,10 +16,11 @@ function detectRecoverySession() {
   return params.get('type') === 'recovery';
 }
 
-function Logo({ counselor }) {
+function Logo({ counselor, doctor }) {
+  const color = counselor ? '#10b981' : '#2563eb';
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-10 h-10 mx-auto mb-3">
-      <rect width="32" height="32" rx="8" fill={counselor ? '#10b981' : '#2563eb'}/>
+      <rect width="32" height="32" rx="8" fill={color}/>
       <polyline points="4,16 7,11 10,21 13,9 16,23 19,11 22,18 25,14 28,16"
         stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
     </svg>
@@ -85,9 +86,12 @@ export default function AuthPage() {
   const { user } = useAuthStore();
 
   const counselorSubdomain = isCounselorSubdomain();
-  const professionFromUrl = counselorSubdomain ? 'counselor' : searchParams.get('profession');
+  const doctorSubdomain    = isDoctorSubdomain();
+  const jkmSubdomain       = isJKMSubdomain();
+  const subdomainProfession = counselorSubdomain ? 'counselor' : doctorSubdomain ? 'doctor' : jkmSubdomain ? 'jkm' : null;
+  const professionFromUrl = subdomainProfession ?? searchParams.get('profession');
   const professionLabel = getProfessionLabel(professionFromUrl);
-  const postAuthRoute = counselorSubdomain ? '/kaunselor/clients' : '/dashboard';
+  const postAuthRoute = counselorSubdomain ? '/kaunselor/clients' : doctorSubdomain ? '/doktor/clients' : jkmSubdomain ? '/jkm/clients' : '/dashboard';
 
   // Redirect when user is set (covers OAuth callback timing)
   useEffect(() => {
@@ -131,7 +135,7 @@ export default function AuthPage() {
       if (mode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        if (counselorSubdomain) localStorage.setItem('preferred_profession', 'counselor');
+        if (subdomainProfession) localStorage.setItem('preferred_profession', subdomainProfession);
         // Check if MFA is required
         const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
         if (aal?.nextLevel === 'aal2' && aal?.currentLevel !== 'aal2') {
@@ -202,7 +206,7 @@ export default function AuthPage() {
 
   const handleGoogleAuth = async () => {
     setLoading(true);
-    if (counselorSubdomain) localStorage.setItem('preferred_profession', 'counselor');
+    if (subdomainProfession) localStorage.setItem('preferred_profession', subdomainProfession);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',

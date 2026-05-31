@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { sendEmail, monthlySummaryEmail, appointmentReminderEmail } from './_mailer.js';
+import { sendEmail, sendTelegram, monthlySummaryEmail, appointmentReminderEmail } from './_mailer.js';
 
 const supabaseAdmin = createClient(
   process.env.VITE_SUPABASE_URL,
@@ -45,17 +45,29 @@ export default async function handler(req, res) {
 
       const reminderResults = await Promise.allSettled(
         appts.map(async (appt) => {
-          if (!appt.client_email) return;
           const counselor = profileMap[appt.counselor_id];
           const counselorName = counselor?.display_name || 'Kaunselor';
-          const { subject, html } = appointmentReminderEmail(
-            appt.client_name,
-            counselorName,
-            appt.confirmed_date,
-            appt.confirmed_time || '',
-            counselor?.klinik_address || ''
-          );
-          await sendEmail({ to: appt.client_email, subject, html });
+
+          // Email to client
+          if (appt.client_email) {
+            const { subject, html } = appointmentReminderEmail(
+              appt.client_name,
+              counselorName,
+              appt.confirmed_date,
+              appt.confirmed_time || '',
+              counselor?.klinik_address || ''
+            );
+            await sendEmail({ to: appt.client_email, subject, html });
+          }
+
+          // Telegram to counselor (if enabled)
+          if (counselor?.telegram_enabled && counselor?.telegram_chat_id) {
+            const time = appt.confirmed_time ? appt.confirmed_time.slice(0, 5) : '';
+            await sendTelegram(
+              counselor.telegram_chat_id,
+              `📅 <b>Peringatan Temujanji Esok</b>\n\nKlien: <b>${appt.client_name}</b>\nTarikh: ${appt.confirmed_date}\nMasa: ${time}\n\nBuka VeriRec untuk lihat butiran.`
+            );
+          }
         })
       );
       results.reminders = reminderResults.filter(r => r.status === 'fulfilled').length;

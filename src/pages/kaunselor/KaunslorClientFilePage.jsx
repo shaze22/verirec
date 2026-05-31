@@ -44,6 +44,17 @@ export default function KaunslorClientFilePage() {
   const [savingReferral, setSavingReferral] = useState(false);
   const [calMonth, setCalMonth] = useState(new Date());
   const [calSelected, setCalSelected] = useState(null);
+  const [progressNotes, setProgressNotes] = useState([]);
+  const [noteContent, setNoteContent] = useState('');
+  const [noteDate, setNoteDate] = useState(new Date().toISOString().slice(0, 10));
+  const [savingNote, setSavingNote] = useState(false);
+  const [editingNote, setEditingNote] = useState(null);
+  const [editNoteContent, setEditNoteContent] = useState('');
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [teamReferrals, setTeamReferrals] = useState([]);
+  const [showTeamReferral, setShowTeamReferral] = useState(false);
+  const [teamReferralForm, setTeamReferralForm] = useState({ to_email: '', reason: '', notes: '' });
+  const [savingTeamReferral, setSavingTeamReferral] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -56,7 +67,9 @@ export default function KaunslorClientFilePage() {
       supabase.from('action_plans').select('*').eq('subject_id', id).order('created_at', { ascending: false }),
       supabase.from('clinical_referrals').select('*').eq('subject_id', id).order('created_at', { ascending: false }),
       supabase.from('audio_library').select('id, session_id, storage_path, file_name, duration').eq('subject_id', id),
-    ]).then(([{ data: c }, { data: s }, { data: a }, { data: plans }, { data: refs }, { data: audios }]) => {
+      supabase.from('progress_notes').select('*').eq('subject_id', id).order('note_date', { ascending: false }).order('created_at', { ascending: false }),
+      supabase.from('team_referrals').select('*').eq('subject_id', id).eq('from_user_id', user.id).order('created_at', { ascending: false }),
+    ]).then(([{ data: c }, { data: s }, { data: a }, { data: plans }, { data: refs }, { data: audios }, { data: notes }, { data: trefs }]) => {
       if (!c) { navigate('/kaunselor/clients'); return; }
       setClient(c);
       setEditForm(c);
@@ -64,6 +77,8 @@ export default function KaunslorClientFilePage() {
       setAppointments(a || []);
       setActionPlans(plans || []);
       setReferrals(refs || []);
+      setProgressNotes(notes || []);
+      setTeamReferrals(trefs || []);
       // Map audio by session_id and generate signed URLs
       if (audios?.length) {
         const map = {};
@@ -75,6 +90,11 @@ export default function KaunslorClientFilePage() {
         })).then(() => setAudioMap({ ...map })).catch(() => {});
       }
     }).finally(() => setLoading(false));
+
+    // Fetch team members (active only) for referral dropdown
+    supabase.from('team_members').select('email, role')
+      .eq('status', 'active')
+      .then(({ data }) => setTeamMembers(data || []));
   }, [id, user]);
 
   const handleSave = async () => {
@@ -200,6 +220,7 @@ export default function KaunslorClientFilePage() {
               { id: 'plans',        label: `Plan (${actionPlans.length})` },
               { id: 'referrals',    label: `Rujukan (${referrals.length})` },
               { id: 'appointments', label: `Temujanji (${appointments.length})` },
+              { id: 'notes',        label: `Nota (${progressNotes.length})` },
             ].map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
                 className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${tab === t.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
@@ -873,7 +894,37 @@ export default function KaunslorClientFilePage() {
           {/* ── REFERRALS TAB ── */}
           {tab === 'referrals' && (
             <div className="space-y-3">
-              <Button onClick={() => setShowAddReferral(true)} className="w-full">+ Rujukan Baru</Button>
+              <div className="flex gap-2">
+                <Button onClick={() => setShowAddReferral(true)} className="flex-1">+ Rujukan Profesional</Button>
+                {teamMembers.length > 0 && (
+                  <Button variant="secondary" onClick={() => setShowTeamReferral(true)} className="flex-1">👥 Rujuk ke Kaunselor Lain</Button>
+                )}
+              </div>
+
+              {/* Outgoing team referrals */}
+              {teamReferrals.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Rujukan Pasukan</p>
+                  {teamReferrals.map(tr => (
+                    <div key={tr.id} className="bg-blue-50 border border-blue-100 rounded-xl p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-medium text-blue-900">→ {tr.to_email}</p>
+                          <p className="text-xs text-blue-700 mt-0.5">{tr.reason}</p>
+                          {tr.notes && <p className="text-xs text-blue-600 italic mt-0.5">{tr.notes}</p>}
+                          <p className="text-xs text-blue-400 mt-1">{format(parseISO(tr.created_at), 'dd MMM yyyy')}</p>
+                        </div>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${
+                          tr.status === 'accepted' ? 'bg-green-100 text-green-700' :
+                          tr.status === 'declined' ? 'bg-red-100 text-red-700' :
+                          'bg-amber-100 text-amber-700'}`}>
+                          {tr.status === 'accepted' ? 'Diterima' : tr.status === 'declined' ? 'Ditolak' : 'Menunggu'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
               {referrals.length === 0 ? (
                 <div className="text-center py-12 text-gray-400">
                   <div className="text-4xl mb-3">🏥</div>
@@ -993,6 +1044,122 @@ export default function KaunslorClientFilePage() {
             </div>
           )}
 
+          {/* ── PROGRESS NOTES TAB ── */}
+          {tab === 'notes' && (
+            <div className="space-y-4">
+              {/* Add note form */}
+              <div className="bg-white rounded-xl border p-4 space-y-3">
+                <p className="text-sm font-semibold text-gray-700">Nota Baru</p>
+                <div className="flex gap-2 items-center">
+                  <label className="text-xs text-gray-500 whitespace-nowrap">Tarikh</label>
+                  <input
+                    type="date"
+                    value={noteDate}
+                    onChange={e => setNoteDate(e.target.value)}
+                    className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+                <textarea
+                  value={noteContent}
+                  onChange={e => setNoteContent(e.target.value)}
+                  rows={3}
+                  placeholder="Tulis perkembangan klien, pemerhatian, atau tindakan susulan..."
+                  className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+                />
+                <div className="flex justify-end">
+                  <Button
+                    size="sm"
+                    loading={savingNote}
+                    disabled={!noteContent.trim()}
+                    onClick={async () => {
+                      if (!noteContent.trim()) return;
+                      setSavingNote(true);
+                      try {
+                        const { data, error } = await supabase.from('progress_notes').insert({
+                          subject_id: id, user_id: user.id,
+                          content: noteContent.trim(), note_date: noteDate,
+                        }).select().single();
+                        if (error) throw error;
+                        setProgressNotes(prev => [data, ...prev]);
+                        setNoteContent('');
+                        setNoteDate(new Date().toISOString().slice(0, 10));
+                        toast.success('Nota disimpan.');
+                      } catch { toast.error('Gagal menyimpan nota.'); }
+                      finally { setSavingNote(false); }
+                    }}
+                  >Simpan Nota</Button>
+                </div>
+              </div>
+
+              {/* Notes list */}
+              {progressNotes.length === 0 ? (
+                <div className="text-center py-12 text-gray-400">
+                  <div className="text-4xl mb-3">📝</div>
+                  <p>Belum ada nota perkembangan.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {progressNotes.map(note => (
+                    <div key={note.id} className="bg-white rounded-xl border p-4">
+                      {editingNote === note.id ? (
+                        <div className="space-y-2">
+                          <textarea
+                            value={editNoteContent}
+                            onChange={e => setEditNoteContent(e.target.value)}
+                            rows={3}
+                            className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+                          />
+                          <div className="flex gap-2 justify-end">
+                            <Button size="sm" variant="secondary" onClick={() => setEditingNote(null)}>Batal</Button>
+                            <Button size="sm" onClick={async () => {
+                              if (!editNoteContent.trim()) return;
+                              try {
+                                const { data, error } = await supabase.from('progress_notes')
+                                  .update({ content: editNoteContent.trim(), updated_at: new Date().toISOString() })
+                                  .eq('id', note.id).select().single();
+                                if (error) throw error;
+                                setProgressNotes(prev => prev.map(n => n.id === note.id ? data : n));
+                                setEditingNote(null);
+                                toast.success('Nota dikemas kini.');
+                              } catch { toast.error('Gagal mengemas kini nota.'); }
+                            }}>Simpan</Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1">
+                              <p className="text-xs text-gray-400 mb-1">{format(parseISO(note.note_date), 'dd MMM yyyy')}</p>
+                              <p className="text-sm text-gray-800 whitespace-pre-wrap">{note.content}</p>
+                            </div>
+                            <div className="flex gap-1 flex-shrink-0">
+                              <button
+                                onClick={() => { setEditingNote(note.id); setEditNoteContent(note.content); }}
+                                className="text-xs text-gray-400 hover:text-blue-600 px-2 py-1 rounded hover:bg-blue-50 transition-colors"
+                              >Edit</button>
+                              <button
+                                onClick={async () => {
+                                  if (!window.confirm('Padam nota ini?')) return;
+                                  try {
+                                    const { error } = await supabase.from('progress_notes').delete().eq('id', note.id);
+                                    if (error) throw error;
+                                    setProgressNotes(prev => prev.filter(n => n.id !== note.id));
+                                    toast.success('Nota dipadam.');
+                                  } catch { toast.error('Gagal memadam nota.'); }
+                                }}
+                                className="text-xs text-gray-400 hover:text-red-600 px-2 py-1 rounded hover:bg-red-50 transition-colors"
+                              >Padam</button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* ── APPOINTMENTS TAB ── */}
           {tab === 'appointments' && (
             <div className="space-y-2">
@@ -1023,6 +1190,75 @@ export default function KaunslorClientFilePage() {
           )}
         </div>
       </div>
+
+      {/* Team Referral Modal */}
+      {showTeamReferral && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Rujuk ke Kaunselor Lain</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Kaunselor Penerima</label>
+                <select
+                  value={teamReferralForm.to_email}
+                  onChange={e => setTeamReferralForm(f => ({ ...f, to_email: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="">-- Pilih ahli pasukan --</option>
+                  {teamMembers.map(m => (
+                    <option key={m.email} value={m.email}>{m.email}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Sebab Rujukan</label>
+                <input
+                  type="text"
+                  value={teamReferralForm.reason}
+                  onChange={e => setTeamReferralForm(f => ({ ...f, reason: e.target.value }))}
+                  placeholder="cth: kepakaran khusus dalam kecemasan keluarga"
+                  className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nota Tambahan (pilihan)</label>
+                <textarea
+                  value={teamReferralForm.notes}
+                  onChange={e => setTeamReferralForm(f => ({ ...f, notes: e.target.value }))}
+                  rows={2}
+                  className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+                />
+              </div>
+              <div className="flex gap-3">
+                <Button variant="secondary" className="flex-1" onClick={() => { setShowTeamReferral(false); setTeamReferralForm({ to_email: '', reason: '', notes: '' }); }}>Batal</Button>
+                <Button
+                  className="flex-1"
+                  loading={savingTeamReferral}
+                  disabled={!teamReferralForm.to_email || !teamReferralForm.reason.trim()}
+                  onClick={async () => {
+                    setSavingTeamReferral(true);
+                    try {
+                      const { data, error } = await supabase.from('team_referrals').insert({
+                        from_user_id: user.id,
+                        subject_id: id,
+                        to_email: teamReferralForm.to_email,
+                        reason: teamReferralForm.reason.trim(),
+                        notes: teamReferralForm.notes.trim() || null,
+                      }).select().single();
+                      if (error) throw error;
+                      setTeamReferrals(prev => [data, ...prev]);
+                      setShowTeamReferral(false);
+                      setTeamReferralForm({ to_email: '', reason: '', notes: '' });
+                      toast.success('Rujukan dihantar kepada ' + teamReferralForm.to_email);
+                    } catch { toast.error('Gagal menghantar rujukan.'); }
+                    finally { setSavingTeamReferral(false); }
+                  }}
+                >Hantar Rujukan</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

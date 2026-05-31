@@ -160,9 +160,26 @@ vercel deploy --prod --force --scope syedshazni-7682s-projects
 - URL: https://www.verirec.app (+ https://verirec.vercel.app)
 - Counselor subdomain: https://counselor.verirec.app
 - Project ID: `prj_EwnDU0nKMOn56auUR1WZF1GeNI3f`
-- Last deployed: 2026-05-30
+- Last deployed: 2026-05-31
 - **PENTING:** appointments↔subjects ada 2 FK — query mesti guna `subjects!appointments_subject_id_fkey`
 - Anon key pernah regenerate — jika data kosong, check VITE_SUPABASE_ANON_KEY dalam Vercel
+
+## Doctor Portal (doctor.verirec.app) — 2026-05-31
+- `src/pages/DoctorLandingPage.jsx` — landing page biru medical, 6 features, 4 steps, CTA 14 hari percuma
+- `src/lib/subdomain.js` — `isDoctorSubdomain()` ditambah
+- `App.jsx` — HomeRoute render DoctorLandingPage bila doctor subdomain
+- `AuthPage.jsx` — `subdomainProfession` generalised (counselor/doctor/null), set localStorage, redirect `/dashboard`
+- Vercel domain `doctor.verirec.app` ditambah ✅
+- DNS: CNAME `doctor` → `b36844232da1d730.vercel-dns-017.com.` dalam Namecheap ✅ live
+- Pattern subdomain: tambah `isXxxSubdomain()` dalam subdomain.js + render page dalam HomeRoute
+
+## LandingPage (www.verirec.app) — 2026-05-31
+- Kaunselor card → buka `https://counselor.verirec.app/` dalam tab baru (bukan `/kaunselor`)
+- Nav & footer: link "Harga" DIBUANG
+- Section Pricing, Testimonials, CTA Banner — SEMUA DIBUANG
+- Features dikemaskini: Speaker Diarization, Laporan SOP, Tempahan QR, Fail Klien, Storan Terurus
+- Strategi: setiap profesi akan ada subdomain/portal tersendiri — counselor.verirec.app dah live, lain-lain akan ikut
+- `plans` array + `annual` state — dibuang dari LandingPage.jsx
 
 ## Counselor Subdomain (counselor.verirec.app)
 - `src/lib/subdomain.js` — `isCounselorSubdomain()` detect hostname `counselor.verirec.app`

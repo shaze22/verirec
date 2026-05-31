@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '../components/ui/Button.jsx';
@@ -11,27 +10,152 @@ const Logo = () => (
   </svg>
 );
 
-const professions = [
-  { icon: '⚖️', label: 'SPRM / MACC', path: '/sprm',      desc: 'Siasat dan dokumen kes rasuah dengan chain of custody yang sah di sisi undang-undang.' },
-  { icon: '👮', label: 'Polis',        path: '/polis',     desc: 'Rakam soal siasat saksi dan suspek mengikut prosedur PEACE Model dan Cognitive Interview.' },
-  { icon: '💬', label: 'Kaunselor',    path: '/kaunselor', desc: 'Transkripsi automatik sesi kaunseling, pengesanan red flag bunuh diri, dan cadangan teknik CBT/DBT realtime.' },
-  { icon: '🏥', label: 'Doktor',       path: '/doktor',    desc: 'Sejarah penyakit pesakit direkod dan diformat mengikut Calgary-Cambridge Guide.' },
-  { icon: '📋', label: 'Juruaudit ISO',path: '/iso',       desc: 'Rakaman sesi audit ISO 9001 dengan laporan NC dan tindakan pembetulan automatik.' },
-  { icon: '👔', label: 'Penyiasat HR',  path: '/hr',       desc: 'Siasat aduan pekerja mengikut Akta Kerja 1955 dengan rekod yang tidak boleh diubah.' },
-  { icon: '🏛️', label: 'Mahkamah',    path: '/mahkamah',  desc: 'Analisa keterangan saksi, kesan percanggahan, dan cadangan soalan pemeriksaan balas secara realtime.' },
-  { icon: '📜', label: 'Peguam',      path: '/peguam',    desc: 'Dokumentasi perundingan klien, analisa jurang kes, dan cadangan strategi guaman dengan AI secara realtime.' },
-  { icon: '🤝', label: 'Pegawai JKM', path: '/jkm',       desc: 'Penilaian risiko kanak-kanak dan keluarga, pengesanan petanda bahaya, dan dokumentasi kes kebajikan yang kukuh.' },
+const CheckIcon = () => (
+  <svg className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+  </svg>
+);
+
+// Profession groups — elaborated for each segment
+const PROFESSION_GROUPS = [
+  {
+    id: 'penguatkuasa',
+    icon: '👮',
+    color: 'blue',
+    bg: 'bg-blue-50',
+    border: 'border-blue-200',
+    iconBg: 'bg-blue-100',
+    titleColor: 'text-blue-700',
+    badgeBg: 'bg-blue-100 text-blue-700',
+    title: 'Penguatkuasa & Penyiasat',
+    subtitle: 'Polis · SPRM/MACC · SISPA · SKMM · JTK · Peguam',
+    desc: 'Soal siasat yang lemah boleh merosakkan kes di mahkamah. VeriRec memastikan setiap sesi dijalankan mengikut SOP, rakaman selamat, dan laporan sedia untuk pendakwaan.',
+    painPoints: [
+      'Keterangan subjek tidak dirakam dengan betul — risiko kes gugur di mahkamah',
+      'Tiada panduan struktur soal siasat — penyoal bergantung pada ingatan sahaja',
+      'Laporan siasatan ditulis tangan — lambat, tidak konsisten, mudah dicabar',
+      'Chain of custody bukti digital lemah — peguam bela boleh persoalkan kesahihan',
+    ],
+    features: [
+      'Panduan PEACE Model — 5 fasa dengan senarai semak per peringkat',
+      'SHA-256 chain of custody — laporan tidak boleh diubah selepas jana',
+      'Diarisasi speaker automatik — kenalpasti pegawai vs subjek dalam transkrip',
+      'Laporan siasatan rasmi PDF — sedia untuk fail mahkamah dan pendakwaan',
+      'Bendera merah realtime — kesan percanggahan keterangan semasa sesi',
+    ],
+    professions: [
+      { icon: '👮', label: 'Polis', sub: 'PEACE Model, Cognitive Interview' },
+      { icon: '⚖️', label: 'SPRM / MACC', sub: 'SKIM/FIAU Guidelines, UNCAC' },
+      { icon: '🔒', label: 'SISPA', sub: 'Siasatan perisikan & keselamatan' },
+      { icon: '📡', label: 'SKMM', sub: 'Siasatan komunikasi & media' },
+      { icon: '⚖️', label: 'Peguam', sub: 'Nota kes, perundingan undang-undang' },
+      { icon: '🏭', label: 'Pegawai JTK', sub: 'Siasatan perburuhan & keselamatan' },
+    ],
+  },
+  {
+    id: 'hr',
+    icon: '🏢',
+    color: 'indigo',
+    bg: 'bg-indigo-50',
+    border: 'border-indigo-200',
+    iconBg: 'bg-indigo-100',
+    titleColor: 'text-indigo-700',
+    badgeBg: 'bg-indigo-100 text-indigo-700',
+    title: 'HR & Siasatan Disiplin Korporat',
+    subtitle: 'Penyiasat HR · Panel Tatatertib · Pengurus Compliance',
+    desc: 'Siasatan disiplin pekerja memerlukan rekod yang telus dan tidak berat sebelah. VeriRec membantu HR mendokumentasikan setiap sesi dengan adil, konsisten, dan boleh diaudit.',
+    painPoints: [
+      'Minit mesyuarat tatatertib tidak lengkap — pekerja boleh pertikaikan keputusan',
+      'Tiada rekod audio — pihak pekerja dakwa kata-kata dipesongkan',
+      'Laporan panel disiplin tidak seragam antara pengurus berbeza',
+      'Fail kes berselerak — sukar semak semula sejarah kes pekerja',
+    ],
+    features: [
+      'Rakaman audio + transkrip automatik setiap sesi tatatertib',
+      'Laporan panel disiplin SOP — format seragam untuk semua pengurus',
+      'SHA-256 hash — buktikan transkrip tidak diubah selepas sesi',
+      'Fail kes pekerja terpusat — semak semula rekod terdahulu dalam satu tempat',
+      'Persetujuan maklum digital — PDPA-compliant audit trail',
+    ],
+    professions: [
+      { icon: '👔', label: 'Penyiasat HR', sub: 'Siasatan tatatertib pekerja' },
+      { icon: '🏛️', label: 'Panel Tatatertib', sub: 'Pendengaran formal OA/DI' },
+      { icon: '📋', label: 'Pegawai Compliance', sub: 'Audit dalaman, laporan risiko' },
+    ],
+  },
+  {
+    id: 'audit',
+    icon: '📋',
+    color: 'amber',
+    bg: 'bg-amber-50',
+    border: 'border-amber-200',
+    iconBg: 'bg-amber-100',
+    titleColor: 'text-amber-700',
+    badgeBg: 'bg-amber-100 text-amber-700',
+    title: 'Audit & Pematuhan',
+    subtitle: 'Juruaudit ISO · Pegawai Halal JAKIM · Pegawai Kualiti',
+    desc: 'Audit yang berkesan bermula dengan temu bual auditee yang berstruktur. VeriRec membantu juruaudit mendokumentasikan penemuan dengan tepat, jana NCR/CAR automatik, dan simpan rekod pematuhan yang tidak boleh dicabar.',
+    painPoints: [
+      'Nota temu bual auditee ditulis tangan — kehilangan butiran penting',
+      'NCR tidak didokumentasikan dengan cukup bukti — auditee pertikaikan penemuan',
+      'Laporan audit tidak konsisten antara juruaudit berbeza dalam satu pasukan',
+      'Tiada rekod audio — syarikat boleh nafikan apa yang dipersetujui semasa audit',
+    ],
+    features: [
+      'Soalan panduan mengikut standard — ISO 9001, ISO 19011, JAKIM halal guidelines',
+      'Jana NCR/CAR automatik dari transkrip audit dengan AI',
+      'Laporan audit PDF dengan SHA-256 — bukti kukuh untuk badan pensijilan',
+      'Trend pematuhan — pantau kadar NCR dari masa ke masa',
+      'Mod luar talian — rakam audit di kawasan kilang tanpa internet',
+    ],
+    professions: [
+      { icon: '🔍', label: 'Juruaudit ISO', sub: 'ISO 9001, ISO 19011, PDCA' },
+      { icon: '🌙', label: 'Pegawai Halal JAKIM', sub: 'Audit premis & rantaian bekalan' },
+      { icon: '✅', label: 'Pegawai Kualiti', sub: 'QA audit, siasatan NCR' },
+    ],
+  },
+  {
+    id: 'klinikal',
+    icon: '🏥',
+    color: 'rose',
+    bg: 'bg-rose-50',
+    border: 'border-rose-200',
+    iconBg: 'bg-rose-100',
+    titleColor: 'text-rose-700',
+    badgeBg: 'bg-rose-100 text-rose-700',
+    title: 'Klinikal & Kebajikan Sosial',
+    subtitle: 'Doktor · Pegawai JKM · Pekerja Sosial',
+    desc: 'Temubual klinikal dan kes kebajikan melibatkan maklumat sensitif yang memerlukan dokumentasi tepat dan perlindungan data. VeriRec membantu profesion klinikal merekod, menganalisa, dan melaporkan dengan mematuhi PDPA.',
+    painPoints: [
+      'Nota SOAP ditulis selepas pesakit keluar — bergantung pada ingatan',
+      'Kes kebajikan kanak-kanak memerlukan rekod yang tidak boleh dicabar di mahkamah',
+      'Tiada sistem konsisten untuk dokumen temubual klinikal',
+      'Fail kes JKM berselerak — susah semak semula sejarah kes keluarga',
+    ],
+    features: [
+      'Laporan SOAP automatik (Subjective, Objective, Assessment, Plan)',
+      'Fail kes klien terpusat — sesi, nota, rujukan dalam satu platform',
+      'Persetujuan maklum PDPA digital — borang ditandatangani sebelum sesi',
+      'Transkripsi realtime — doktor fokus pada pesakit, bukan tulis nota',
+      'Rujukan kes — hantar nota ke doktor pakar atau agensi lain',
+    ],
+    professions: [
+      { icon: '👨‍⚕️', label: 'Doktor', sub: 'SOAP notes, Calgary-Cambridge' },
+      { icon: '🤝', label: 'Pegawai JKM', sub: 'Kes kebajikan, home visit log' },
+      { icon: '💙', label: 'Pekerja Sosial', sub: 'Penilaian risiko keluarga' },
+    ],
+  },
 ];
 
-const features = [
+const CORE_FEATURES = [
   {
     icon: (
       <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
       </svg>
     ),
-    title: 'Analisa AI Masa Nyata',
-    desc: 'Claude AI menganalisa perbualan setiap beberapa ayat — mengesan simptom, kelemahan keterangan, atau ketidakpatuhan, dan mencadangkan soalan susulan tanpa perlu klik.',
+    title: 'Panduan PEACE Model',
+    desc: 'Panel senarai semak PEACE (Perancangan, Hubung & Terang, Keterangan, Penutup, Penilaian) dalam sesi — pastikan setiap peringkat soal siasat diikuti dengan betul.',
   },
   {
     icon: (
@@ -39,8 +163,8 @@ const features = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
       </svg>
     ),
-    title: 'Chain of Custody SHA-256',
-    desc: 'Setiap laporan disapu dengan hash SHA-256 yang boleh disahkan semula. Buktikan laporan tidak diubah suai — penting untuk mahkamah dan siasatan rasmi.',
+    title: 'SHA-256 Chain of Custody',
+    desc: 'Setiap laporan dihaskan dengan SHA-256. Buktikan rekod tidak diubah suai — sah untuk mahkamah, siasatan rasmi, dan audit pematuhan.',
   },
   {
     icon: (
@@ -48,8 +172,17 @@ const features = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
       </svg>
     ),
-    title: 'Transkripsi Whisper OpenAI',
-    desc: 'Tukar audio kepada teks secara automatik menggunakan Whisper AI. Sokong Bahasa Malaysia dan pelbagai loghat. Tiada lagi tulis nota secara manual.',
+    title: 'Transkripsi & Diarisasi Speaker',
+    desc: 'Whisper AI transkripsi secara realtime. AssemblyAI kenalpasti suara berbeza — tahu mana penemuduga dan mana subjek. Sokong Bahasa Malaysia dan Inggeris.',
+  },
+  {
+    icon: (
+      <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+      </svg>
+    ),
+    title: 'AI Analisis & Bendera Merah',
+    desc: 'Claude AI cadangkan soalan susulan dan kesan percanggahan dalam keterangan secara realtime. Bendera merah automatik untuk kenyataan berisiko tinggi.',
   },
   {
     icon: (
@@ -57,44 +190,8 @@ const features = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
       </svg>
     ),
-    title: 'Laporan AI Automatik',
-    desc: 'Sebaik sesi tamat, laporan eksekutif dijana dalam masa seminit — termasuk ringkasan, penemuan utama, tahap risiko, sentimen, dan cadangan tindakan.',
-  },
-  {
-    icon: (
-      <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-      </svg>
-    ),
-    title: 'Rekod Cepat',
-    desc: 'Tekan satu butang — terus rakam. Tiada borang, tiada langkah tambahan. Sesuai untuk keadaan mendesak. Butiran sesi boleh dilengkapkan selepas sesi tamat.',
-  },
-  {
-    icon: (
-      <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-      </svg>
-    ),
-    title: 'Perpustakaan Audio',
-    desc: 'Setiap sesi disimpan sebagai fail audio dalam perpustakaan peribadi anda. Main balik, namakan semula, atau kaitkan rakaman dengan sesi atau subjek tertentu.',
-  },
-  {
-    icon: (
-      <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-      </svg>
-    ),
-    title: 'Pematuhan PDPA 2010',
-    desc: 'Borang persetujuan maklum digital untuk setiap sesi. Rekod persetujuan disimpan kekal sebagai audit trail PDPA yang tidak boleh dipadam.',
-  },
-  {
-    icon: (
-      <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-      </svg>
-    ),
-    title: 'Sambung Sesi Bila-bila Masa',
-    desc: 'Sesi yang terganggu boleh disambung semula dari mana-mana peranti. Transkripsi dan bendera dikekalkan — tanpa kehilangan data.',
+    title: 'Laporan SOP Automatik',
+    desc: 'Laporan dijana mengikut SOP profesion — laporan siasatan rasmi, NCR/CAR audit ISO, laporan SOAP perubatan, kes HR. Eksport PDF sedia untuk fail mahkamah.',
   },
   {
     icon: (
@@ -103,115 +200,47 @@ const features = [
       </svg>
     ),
     title: 'Mod Luar Talian',
-    desc: 'Rekod dan transkripsi walaupun tiada internet. Data disimpan secara tempatan dan disegerakkan automatik apabila sambungan dipulihkan.',
+    desc: 'Rakam walaupun tiada internet — penting untuk lokasi kawasan terpencil, kilang, atau mahkamah. Data disegerakkan automatik apabila sambungan dipulihkan.',
   },
 ];
 
-const plans = [
-  {
-    key: 'free',
-    label: 'Percuma',
-    price: 0,
-    sessions: 2,
-    popular: false,
-    features: ['2 sesi/bulan', '1 pengguna', 'Transkripsi automatik', 'Laporan asas'],
-    notIncluded: ['Analisa AI Realtime', 'Laporan PDF', 'Sokongan keutamaan'],
-    cta: 'Cuba Percuma',
-    ctaAction: 'register',
-  },
-  {
-    key: 'starter',
-    label: 'Starter',
-    price: 249,
-    sessions: 20,
-    popular: false,
-    features: ['20 sesi/bulan', '2 pengguna', 'Analisa AI Realtime', 'Laporan PDF', 'Eksport laporan'],
-    notIncluded: ['Pengguna tidak terhad', 'SLA 99.9%'],
-    cta: 'Langgan Sekarang',
-    ctaAction: 'register',
-  },
-  {
-    key: 'pro',
-    label: 'Pro',
-    price: 999,
-    sessions: 100,
-    popular: true,
-    features: ['100 sesi/bulan', '10 pengguna', 'Semua ciri Starter', 'Analisa AI 7 Profesion', 'Keutamaan sokongan', 'Akses API'],
-    notIncluded: ['200+ sesi/bulan'],
-    cta: 'Langgan Sekarang',
-    ctaAction: 'register',
-  },
-  {
-    key: 'biz',
-    label: 'Perniagaan',
-    price: 2499,
-    sessions: 200,
-    popular: false,
-    features: ['200 sesi/bulan', 'Pengguna tidak terhad', 'Semua ciri Pro', 'Akaun terurus', 'SLA 99.9%', 'Onboarding khusus'],
-    notIncluded: [],
-    cta: 'Hubungi Kami',
-    ctaAction: 'biz',
-  },
-];
+const colorMap = {
+  blue:   { section: 'bg-blue-600',   hover: 'hover:bg-blue-700' },
+  indigo: { section: 'bg-indigo-600', hover: 'hover:bg-indigo-700' },
+  amber:  { section: 'bg-amber-500',  hover: 'hover:bg-amber-600' },
+  rose:   { section: 'bg-rose-600',   hover: 'hover:bg-rose-700' },
+};
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const [annual, setAnnual] = useState(false);
 
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@graph': [
-      {
-        '@type': 'Organization',
-        '@id': 'https://verirec.vercel.app/#organization',
-        name: 'VeriRec',
-        url: 'https://verirec.vercel.app',
-        logo: 'https://verirec.vercel.app/pwa-512.svg',
-        contactPoint: { '@type': 'ContactPoint', email: 'hello@verirec.app', contactType: 'customer support' },
-      },
-      {
-        '@type': 'WebSite',
-        '@id': 'https://verirec.vercel.app/#website',
-        url: 'https://verirec.vercel.app',
-        name: 'VeriRec',
-        publisher: { '@id': 'https://verirec.vercel.app/#organization' },
-      },
-      {
-        '@type': 'SoftwareApplication',
-        name: 'VeriRec',
-        applicationCategory: 'BusinessApplication',
-        operatingSystem: 'Web',
-        offers: {
-          '@type': 'Offer',
-          price: '0',
-          priceCurrency: 'MYR',
-          description: 'Pelan percuma — 2 sesi sebulan',
-        },
-        description: 'Platform rakaman dan analisa temu bual profesional untuk Kaunselor, Polis, SPRM, Doktor, Juruaudit ISO, HR, Mahkamah, Peguam, dan JKM di Malaysia.',
-        url: 'https://verirec.vercel.app',
-      },
-    ],
+    '@type': 'SoftwareApplication',
+    name: 'VeriRec',
+    applicationCategory: 'BusinessApplication',
+    operatingSystem: 'Web',
+    description: 'Platform soal siasat dan audit profesional Malaysia — panduan PEACE Model, SHA-256 chain of custody, AI realtime, laporan SOP untuk polis, MACC, HR, ISO, Halal JAKIM dan lebih lagi.',
+    url: 'https://www.verirec.app',
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'MYR' },
   };
 
   return (
     <>
     <Helmet>
-      <title>VeriRec — Platform Rakaman Temu Bual Profesional Malaysia</title>
-      <meta name="description" content="Rakam, transkripsi, dan jana laporan temu bual profesional secara automatik. Pematuhan PDPA, hash SHA-256, dan AI realtime untuk Kaunselor, Polis, SPRM, Doktor, HR, Peguam dan lebih lagi." />
-      <link rel="canonical" href="https://verirec.vercel.app/" />
+      <title>VeriRec — Platform Soal Siasat & Audit Profesional Malaysia</title>
+      <meta name="description" content="Platform rakaman soal siasat dan audit profesional Malaysia. Panduan PEACE Model, SHA-256 chain of custody, AI realtime untuk Polis, MACC, HR, ISO, Halal JAKIM, Peguam dan lebih lagi." />
+      <link rel="canonical" href="https://www.verirec.app/" />
       <meta property="og:type" content="website" />
-      <meta property="og:url" content="https://verirec.vercel.app/" />
-      <meta property="og:title" content="VeriRec — Platform Rakaman Temu Bual Profesional Malaysia" />
-      <meta property="og:description" content="Rakam, transkripsi, dan jana laporan temu bual profesional secara automatik. Pematuhan PDPA, hash SHA-256, dan AI realtime." />
-      <meta property="og:image" content="https://verirec.vercel.app/pwa-512.svg" />
+      <meta property="og:url" content="https://www.verirec.app/" />
+      <meta property="og:title" content="VeriRec — Platform Soal Siasat & Audit Profesional Malaysia" />
+      <meta property="og:description" content="Soal siasat dengan tepat. Dok. Buktikan. Tak boleh dicabar. SHA-256 chain of custody, panduan PEACE Model, AI realtime." />
       <meta property="og:locale" content="ms_MY" />
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content="VeriRec — Platform Rakaman Temu Bual Profesional Malaysia" />
-      <meta name="twitter:description" content="Rakam, transkripsi, dan jana laporan temu bual profesional secara automatik." />
-      <meta name="twitter:image" content="https://verirec.vercel.app/pwa-512.svg" />
       <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
     </Helmet>
     <div className="min-h-screen bg-white">
+
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur border-b px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
@@ -220,8 +249,8 @@ export default function LandingPage() {
             <span className="font-bold text-gray-900 text-lg">VeriRec</span>
           </div>
           <div className="hidden sm:flex items-center gap-6 text-sm text-gray-600">
+            <a href="#profesion" className="hover:text-blue-600 transition-colors">Untuk Siapa</a>
             <a href="#ciri" className="hover:text-blue-600 transition-colors">Ciri-ciri</a>
-            <a href="#profesion" className="hover:text-blue-600 transition-colors">Profesion</a>
             <a href="#harga" className="hover:text-blue-600 transition-colors">Harga</a>
             <a href="/faq" className="hover:text-blue-600 transition-colors">FAQ</a>
           </div>
@@ -233,42 +262,40 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="pt-32 pb-24 px-6 bg-gradient-to-b from-blue-50 to-white">
+      <section className="pt-32 pb-20 px-6 bg-gradient-to-b from-blue-50 to-white">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
             <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse" />
-            PDPA-Compliant · SHA-256 Chain of Custody · Perpustakaan Audio · Made in Malaysia
+            PEACE Model · SHA-256 Chain of Custody · AI Realtime · PDPA-Compliant
           </div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 leading-tight mb-6">
-            Rakaman Sesi<br />
-            <span className="text-blue-600">Profesional dengan AI</span>
+            Soal Siasat dengan Tepat.<br />
+            <span className="text-blue-600">Dok. Buktikan. Tak Boleh Dicabar.</span>
           </h1>
           <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Platform pertama Malaysia untuk rakaman, transkripsi, dan analisis sesi profesional.
-            AI menganalisa perbualan <strong>secara realtime</strong> — mengesan simptom, kelemahan keterangan, atau risiko.
-            Laporan dijana automatik. Audio disimpan selamat. Setiap dokumen disahkan SHA-256.
+            Platform rakaman soal siasat dan audit profesional Malaysia — direka untuk penyiasat, juruaudit, doktor, dan pegawai yang rekodnya perlu sah di sisi undang-undang.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" onClick={() => navigate('/auth?mode=register')} className="text-base px-8">
               Cuba Percuma — 2 Sesi
             </Button>
             <button
-              onClick={() => navigate('/faq')}
-              className="inline-flex items-center justify-center gap-2 px-8 py-3 text-base font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              onClick={() => navigate('/auth')}
+              className="inline-flex items-center justify-center gap-2 px-8 py-3 text-base font-medium text-gray-700 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              Ketahui Lebih Lanjut
+              Log Masuk →
             </button>
           </div>
           <p className="text-xs text-gray-400 mt-4">Tanpa kad kredit · Batalkan bila-bila masa</p>
         </div>
 
         {/* Trust badges */}
-        <div className="max-w-3xl mx-auto mt-16 grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="max-w-3xl mx-auto mt-14 grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
-            { label: 'PDPA 2010', sub: 'Consent audit trail' },
-            { label: 'SHA-256', sub: 'Chain of custody' },
-            { label: 'Rekod Cepat', sub: 'Satu klik, terus rakam' },
-            { label: 'Audio Library', sub: 'Simpan & urus rakaman' },
+            { label: 'PEACE Model', sub: 'Panduan soal siasat berstruktur' },
+            { label: 'SHA-256', sub: 'Chain of custody kekal' },
+            { label: 'AI Realtime', sub: 'Cadangan soalan + bendera merah' },
+            { label: '11 Profesion', sub: 'Laporan SOP khusus setiap satu' },
           ].map(b => (
             <div key={b.label} className="bg-white rounded-xl border p-4 text-center shadow-sm">
               <p className="font-bold text-gray-900 text-sm">{b.label}</p>
@@ -278,39 +305,99 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Professions */}
+      {/* Untuk Siapa */}
       <section id="profesion" className="py-20 px-6 bg-gray-50">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">Direka untuk Profesional Bertauliah Malaysia</h2>
-            <p className="text-gray-500 mt-3 max-w-xl mx-auto">9 profesion. Setiap satu dengan rangka kerja soalan, fasa sesi, analisa AI khusus, dan pengesanan red flag tersendiri.</p>
+          <div className="text-center mb-14">
+            <h2 className="text-3xl font-bold text-gray-900">Untuk Profesion Anda</h2>
+            <p className="text-gray-500 mt-3 max-w-xl mx-auto">
+              VeriRec dibina khusus untuk profesional yang rekodnya perlu tepat, kukuh, dan sah — bukan sekadar alat rakaman biasa.
+            </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {professions.map(p => (
-              <button
-                key={p.label}
-                onClick={() => navigate(p.path)}
-                className="bg-white rounded-2xl border p-6 hover:shadow-md hover:border-blue-300 transition-all text-left group"
-              >
-                <div className="text-3xl mb-3">{p.icon}</div>
-                <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-700 transition-colors">{p.label}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed mb-3">{p.desc}</p>
-                <span className="text-xs font-medium text-blue-600 group-hover:underline">Lihat halaman khusus →</span>
-              </button>
-            ))}
+
+          <div className="space-y-8">
+            {PROFESSION_GROUPS.map((g) => {
+              const cm = colorMap[g.color];
+              return (
+                <div key={g.id} className={`bg-white rounded-2xl border-2 ${g.border} overflow-hidden shadow-sm hover:shadow-md transition-shadow`}>
+                  <div className="grid lg:grid-cols-2 gap-0">
+
+                    {/* Left — identity + pain points */}
+                    <div className={`p-8 ${g.bg}`}>
+                      <div className="flex items-center gap-4 mb-5">
+                        <div className={`w-14 h-14 ${g.iconBg} rounded-2xl flex items-center justify-center text-3xl flex-shrink-0`}>
+                          {g.icon}
+                        </div>
+                        <div>
+                          <h3 className={`text-xl font-bold ${g.titleColor}`}>{g.title}</h3>
+                          <p className="text-sm text-gray-500 mt-0.5">{g.subtitle}</p>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-700 leading-relaxed mb-5">{g.desc}</p>
+
+                      {/* Pain points */}
+                      <div className="space-y-2.5">
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Masalah yang diselesaikan</p>
+                        {g.painPoints.map((pt, i) => (
+                          <div key={i} className="flex items-start gap-2.5">
+                            <span className="text-red-400 text-sm flex-shrink-0 mt-0.5">✗</span>
+                            <span className="text-sm text-gray-600">{pt}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Right — features + professions */}
+                    <div className="p-8 flex flex-col justify-between">
+                      {/* Features */}
+                      <div className="mb-6">
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Apa yang anda dapat</p>
+                        <ul className="space-y-2">
+                          {g.features.map((f, i) => (
+                            <li key={i} className="flex items-start gap-2.5">
+                              <CheckIcon />
+                              <span className="text-sm text-gray-700">{f}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Profession chips + CTA */}
+                      <div>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Profesion dalam kumpulan ini</p>
+                        <div className="flex flex-wrap gap-2 mb-5">
+                          {g.professions.map(p => (
+                            <div key={p.label} className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full ${g.badgeBg}`}>
+                              <span>{p.icon}</span>
+                              <span>{p.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <button
+                          onClick={() => navigate('/auth?mode=register')}
+                          className={`w-full py-3 rounded-xl text-white font-semibold text-sm transition-colors ${cm.section} ${cm.hover}`}
+                        >
+                          Cuba Percuma — 2 Sesi Tanpa Kad Kredit
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* Features */}
+      {/* Core Features */}
       <section id="ciri" className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">Semua yang anda perlukan dalam satu platform</h2>
-            <p className="text-gray-500 mt-3 max-w-xl mx-auto">Dari rakaman hingga laporan — semuanya automatik, selamat, dan boleh diaudit.</p>
+            <h2 className="text-3xl font-bold text-gray-900">Direka untuk Penyiasat & Auditor</h2>
+            <p className="text-gray-500 mt-3 max-w-xl mx-auto">Setiap ciri dibina untuk keperluan soal siasat dan audit — bukan sekadar alat rakaman biasa.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map(f => (
+            {CORE_FEATURES.map(f => (
               <div key={f.title} className="p-6 rounded-2xl border bg-white hover:shadow-md transition-shadow">
                 <div className="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center mb-4">
                   {f.icon}
@@ -325,145 +412,114 @@ export default function LandingPage() {
 
       {/* Pricing */}
       <section id="harga" className="py-20 px-6 bg-gray-50">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900">Harga yang Jelas & Adil</h2>
-            <p className="text-gray-500 mt-3">Mulakan percuma. Naik taraf apabila anda bersedia.</p>
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900">Harga yang Jelas, Tanpa Kejutan</h2>
+            <p className="text-gray-500 mt-3 max-w-lg mx-auto">Satu plan profesional. Top-up bila perlu. Tanpa kontrak jangka panjang.</p>
+          </div>
 
-            {/* Annual toggle */}
-            <div className="flex items-center justify-center gap-4 mt-6">
-              <span className={`text-sm font-medium ${!annual ? 'text-blue-600' : 'text-gray-500'}`}>Bulanan</span>
-              <button
-                onClick={() => setAnnual(!annual)}
-                className={`relative w-12 h-6 rounded-full transition-colors ${annual ? 'bg-blue-600' : 'bg-gray-300'}`}
-              >
-                <span className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${annual ? 'translate-x-6' : ''}`} />
+          <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+            {/* Free plan */}
+            <div className="bg-white rounded-2xl border-2 border-gray-200 p-7 flex flex-col">
+              <div className="mb-5">
+                <p className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-1">Percuma</p>
+                <div className="flex items-end gap-1">
+                  <span className="text-4xl font-bold text-gray-900">RM0</span>
+                </div>
+                <p className="text-sm text-gray-500 mt-1">Untuk dicuba, selama-lamanya</p>
+              </div>
+              <ul className="space-y-2.5 flex-1 mb-6">
+                {['2 sesi sebulan', 'Transkripsi AI realtime', 'Laporan asas PDF', 'SHA-256 chain of custody', '1 pengguna'].map(f => (
+                  <li key={f} className="flex items-center gap-2 text-sm text-gray-600">
+                    <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <button onClick={() => navigate('/auth?mode=register')} className="w-full py-3 rounded-xl border-2 border-gray-300 text-gray-700 font-semibold text-sm hover:bg-gray-50 transition-colors">
+                Mulakan Percuma
               </button>
-              <span className={`text-sm font-medium ${annual ? 'text-blue-600' : 'text-gray-500'}`}>
-                Tahunan <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full ml-1">Jimat 17%</span>
-              </span>
+            </div>
+
+            {/* Professional plan */}
+            <div className="bg-white rounded-2xl border-2 border-blue-500 p-7 flex flex-col relative shadow-lg">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">PALING POPULAR</span>
+              </div>
+              <div className="mb-5">
+                <p className="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-1">Profesional</p>
+                <div className="flex items-end gap-1">
+                  <span className="text-4xl font-bold text-gray-900">RM100</span>
+                  <span className="text-gray-400 mb-1">/bulan</span>
+                </div>
+                <p className="text-sm text-gray-500 mt-1">20 sesi termasuk setiap bulan</p>
+              </div>
+              <ul className="space-y-2.5 flex-1 mb-6">
+                {[
+                  '20 sesi rakaman / bulan',
+                  'AI analisis + bendera merah realtime',
+                  'Panduan PEACE Model dalam sesi',
+                  'Laporan SOP PDF (mengikut profesion)',
+                  'SHA-256 chain of custody',
+                  'Diarisasi speaker automatik',
+                  'Fail subjek & kes terpusat',
+                  'Top-up sesi bila perlu',
+                  'Sokongan e-mel keutamaan',
+                ].map(f => (
+                  <li key={f} className="flex items-center gap-2 text-sm text-gray-700">
+                    <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <button onClick={() => navigate('/auth?mode=register')} className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition-colors">
+                Cuba 14 Hari Percuma →
+              </button>
+              <p className="text-xs text-center text-gray-400 mt-2">Tiada kad kredit diperlukan semasa trial</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {plans.map(p => {
-              const monthlyPrice = p.price === 0 ? null : annual ? Math.round(p.price * 0.83) : p.price;
-              return (
-                <div key={p.key} className={`relative rounded-2xl border-2 p-6 flex flex-col bg-white ${
-                  p.popular ? 'border-blue-600 shadow-xl' : 'border-gray-200'
-                }`}>
-                  {p.popular && (
-                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-4 py-1.5 rounded-full whitespace-nowrap shadow">
-                      Paling Popular
-                    </div>
-                  )}
-                  <h3 className="text-lg font-bold text-gray-900">{p.label}</h3>
-                  <p className="text-xs text-gray-500 mt-0.5 mb-4">{p.sessions} sesi/bulan</p>
-
-                  <div className="mb-5">
-                    {p.price === 0 ? (
-                      <p className="text-3xl font-bold text-gray-900">Percuma</p>
-                    ) : (
-                      <>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-3xl font-bold text-gray-900">RM{monthlyPrice}</span>
-                          <span className="text-gray-500 text-sm">/bulan</span>
-                        </div>
-                        {annual && (
-                          <p className="text-xs text-gray-400 mt-0.5">Dibil RM{Math.round(p.price * 10 * 0.83)}/tahun</p>
-                        )}
-                      </>
-                    )}
+          {/* Top-up table */}
+          <div className="mt-10 max-w-md mx-auto bg-white rounded-2xl border p-6">
+            <p className="text-sm font-bold text-gray-700 mb-4 text-center">Top-up Sesi Tambahan</p>
+            <div className="space-y-3">
+              {[
+                { qty: '1 sesi', price: 'RM13', per: 'RM13/sesi' },
+                { qty: '5 sesi', price: 'RM60', per: 'RM12/sesi' },
+                { qty: '10 sesi', price: 'RM100', per: 'RM10/sesi — jimat 23%' },
+              ].map(t => (
+                <div key={t.qty} className="flex items-center justify-between text-sm">
+                  <span className="font-medium text-gray-700">{t.qty}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-gray-400 text-xs">{t.per}</span>
+                    <span className="font-bold text-gray-900">{t.price}</span>
                   </div>
-
-                  <ul className="space-y-2 mb-6 flex-1">
-                    {p.features.map((f, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                        <svg className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                        {f}
-                      </li>
-                    ))}
-                    {p.notIncluded.map((f, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-gray-400">
-                        <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Button
-                    variant={p.popular ? 'primary' : 'outline'}
-                    className="w-full"
-                    onClick={() => {
-                      if (p.ctaAction === 'biz') {
-                        window.location.href = 'mailto:hello@verirec.app?subject=Pertanyaan Pelan Perniagaan VeriRec';
-                      } else {
-                        navigate('/auth?mode=register');
-                      }
-                    }}
-                  >
-                    {p.cta}
-                  </Button>
                 </div>
-              );
-            })}
+              ))}
+            </div>
+            <p className="text-xs text-gray-400 text-center mt-4">Top-up tidak luput · Tidak reset bulanan</p>
           </div>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
-            Bayar dengan kad kredit atau debit — auto-renewal setiap bulan/tahun.
+          {/* Enterprise note */}
+          <p className="text-center text-sm text-gray-500 mt-8">
+            Perlukan lebih 20 sesi sebulan atau akaun untuk pasukan besar?{' '}
+            <a href="mailto:hello@verirec.app" className="text-blue-600 hover:underline font-medium">Hubungi kami</a>
           </p>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-20 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">Dipercayai Profesional Malaysia</h2>
-            <p className="text-gray-500 mt-3">Dari kaunselor hingga pegawai polis — VeriRec mengubah cara mereka bekerja.</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {[
-              { quote: 'Dulu ambil 45 minit tulis nota selepas setiap sesi. Sekarang laporan SOAP siap dalam masa seminit. Saya boleh fokus sepenuhnya pada klien.', name: 'Pn. Suraya Ahmad', role: 'Kaunselor Berdaftar LKM', org: 'Pusat Kaunseling Cahaya, KL' },
-              { quote: 'Laporan soal siasat kami kini ada hash SHA-256. Peguam pembela tidak dapat persoalkan integriti rakaman — ini ubah cara kami dokumentasi kes.', name: 'Insp. Hairul Nizam', role: 'Pegawai Penyiasat D9', org: 'Balai Polis Damansara' },
-              { quote: 'NCR dan CAR yang dijana VeriRec menepati standard ISO 19011. Kadar penutupan NCR kami naik dari 60% ke 94% dalam masa 3 bulan.', name: 'En. Farouk Ibrahim', role: 'Juruaudit Utama MS ISO 9001', org: 'Firma Perundingan Kualiti' },
-              { quote: 'Kes pemecatan yang kami kendalikan berjaya dipertahankan di Mahkamah Perusahaan. Dokumentasi VeriRec tidak boleh dicabar oleh mana-mana pihak.', name: 'Pn. Melissa Tan', role: 'HR Business Partner', org: 'Syarikat Tersenarai Bursa Malaysia' },
-            ].map((t, i) => (
-              <div key={i} className="bg-white rounded-2xl border p-6 flex flex-col">
-                <div className="flex gap-0.5 mb-4">
-                  {[...Array(5)].map((_, s) => (
-                    <svg key={s} className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-sm text-gray-600 leading-relaxed flex-1 mb-5">"{t.quote}"</p>
-                <div>
-                  <p className="font-semibold text-gray-900 text-sm">{t.name}</p>
-                  <p className="text-xs text-gray-500">{t.role}</p>
-                  <p className="text-xs text-gray-400">{t.org}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Banner */}
-      <section className="py-20 px-6 bg-blue-600">
+      {/* Final CTA */}
+      <section className="py-16 px-6 bg-blue-600">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">Mulakan Hari Ini — Percuma</h2>
-          <p className="text-blue-100 mb-8">2 sesi percuma. Rakam, jana laporan AI, simpan audio. Tiada kad kredit diperlukan.</p>
+          <h2 className="text-3xl font-bold text-white mb-4">Mula Rakam Sesi Pertama Anda</h2>
+          <p className="text-blue-100 mb-8 text-lg">2 sesi percuma. Tanpa kad kredit. Tanpa komitmen.</p>
           <button
             onClick={() => navigate('/auth?mode=register')}
-            className="inline-flex items-center justify-center gap-2 bg-white text-blue-600 hover:bg-blue-50 font-semibold rounded-lg px-10 py-3.5 text-base transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600"
+            className="px-10 py-4 bg-white text-blue-600 font-bold text-base rounded-xl hover:bg-blue-50 transition-colors shadow-lg"
           >
-            Buat Akaun Percuma
+            Cuba VeriRec Percuma →
           </button>
+          <p className="text-blue-200 text-xs mt-4">Lebih 11 profesion · SHA-256 · PDPA-Compliant · Made in Malaysia</p>
         </div>
       </section>
 
@@ -474,11 +530,10 @@ export default function LandingPage() {
             <div className="flex items-center gap-2">
               <Logo />
               <span className="font-bold text-white">VeriRec</span>
-              <span className="text-xs text-gray-500 ml-2">Platform Rakaman Sesi Profesional</span>
+              <span className="text-xs text-gray-500 ml-2">Platform Soal Siasat & Audit Profesional Malaysia</span>
             </div>
             <div className="flex items-center gap-6 text-sm">
               <button onClick={() => navigate('/faq')} className="hover:text-white transition-colors">FAQ</button>
-              <button onClick={() => navigate('/pricing')} className="hover:text-white transition-colors">Harga</button>
               <button onClick={() => navigate('/terms')} className="hover:text-white transition-colors">Terma</button>
               <button onClick={() => navigate('/privacy')} className="hover:text-white transition-colors">Privasi</button>
               <a href="mailto:hello@verirec.app" className="hover:text-white transition-colors">Hubungi Kami</a>

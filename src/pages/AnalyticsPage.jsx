@@ -69,8 +69,21 @@ function exportCSV(sessions) {
   URL.revokeObjectURL(url);
 }
 
+const INVESTIGATE_PROFS = new Set(['police', 'sprm', 'hr', 'court', 'peguam', 'sispa', 'skmm', 'jtk']);
+const AUDIT_PROFS       = new Set(['iso', 'halal', 'quality']);
+
+function getUseCase(prof) {
+  if (prof === 'counselor' || prof === 'doctor' || prof === 'jkm') return 'kaunseling';
+  if (INVESTIGATE_PROFS.has(prof)) return 'soal-siasat';
+  if (AUDIT_PROFS.has(prof)) return 'audit';
+  return 'generic';
+}
+
 export default function AnalyticsPage() {
-  if (localStorage.getItem('preferred_profession') === 'counselor') {
+  const profession = localStorage.getItem('preferred_profession') || '';
+  const useCase    = getUseCase(profession);
+
+  if (useCase === 'kaunseling') {
     return (
       <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" /></div>}>
         <CounselorDashboard />
@@ -121,20 +134,47 @@ export default function AnalyticsPage() {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const recentSessions = sessions.filter(s => new Date(s.created_at) >= thirtyDaysAgo).length;
 
-    return { total, withReport, avgMinutes, byProfession, riskData, statusCounts, recentSessions };
+    // ── Investigate-specific ──
+    const subjectRoles = {};
+    for (const s of sessions) {
+      const role = s.subject_role || 'Tidak dinyatakan';
+      subjectRoles[role] = (subjectRoles[role] || 0) + 1;
+    }
+    const bySubjectRole = Object.entries(subjectRoles).map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count);
+
+    const highRiskCases = sessions.filter(s => s.report?.riskLevel === 'high').length;
+    const closedCases   = sessions.filter(s => s.status === 'closed').length;
+    const closureRate   = total > 0 ? Math.round((closedCases / total) * 100) : 0;
+
+    // ── Audit-specific ──
+    const totalFlags   = sessions.reduce((sum, s) => sum + ((s.flags || []).length), 0);
+    const withFlags    = sessions.filter(s => (s.flags || []).length > 0).length;
+    const flagRate     = total > 0 ? Math.round((withFlags / total) * 100) : 0;
+
+    // ── Trend 6 bulan ──
+    const now = new Date();
+    const monthlyTrend = Array.from({ length: 6 }, (_, i) => {
+      const m = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+      const mEnd = new Date(now.getFullYear(), now.getMonth() - (5 - i) + 1, 0);
+      return {
+        label: format(m, 'MMM'),
+        count: sessions.filter(s => { const d = new Date(s.created_at); return d >= m && d <= mEnd; }).length,
+      };
+    });
+
+    return { total, withReport, avgMinutes, byProfession, riskData, statusCounts, recentSessions, bySubjectRole, highRiskCases, closureRate, totalFlags, flagRate, monthlyTrend };
   }, [sessions]);
 
-  const maxProfessionCount = stats.byProfession.length > 0
-    ? Math.max(...stats.byProfession.map(d => d.count))
-    : 1;
-
+  const maxProfessionCount = Math.max(...stats.byProfession.map(d => d.count), 1);
   const maxRiskCount = Math.max(...stats.riskData.map(d => d.count), 1);
+  const maxRoleCount = Math.max(...stats.bySubjectRole.map(d => d.count), 1);
+  const maxMonthly   = Math.max(...stats.monthlyTrend.map(d => d.count), 1);
 
   return (
     <div className="flex flex-col h-screen">
       <TopBar
-        title={localStorage.getItem('preferred_profession') === 'counselor' ? 'Dashboard' : 'Analitik'}
-        actions={sessions.length > 0 && !loading && (
+        title={useCase === 'soal-siasat' ? 'Analitik Siasatan' : useCase === 'audit' ? 'Analitik Audit' : 'Analitik'}
+        action={sessions.length > 0 && !loading && (
           <Button variant="secondary" size="sm" onClick={() => { exportCSV(sessions); toast.success('CSV berjaya dieksport.'); }}>
             Eksport CSV
           </Button>
@@ -147,6 +187,132 @@ export default function AnalyticsPage() {
           </div>
         ) : (
           <div className="max-w-4xl mx-auto space-y-6">
+
+            {/* ── INVESTIGATE ANALYTICS ── */}
+            {useCase === 'soal-siasat' && (<>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <StatCard label="Jumlah Kes" value={stats.total} sub="sepanjang masa" />
+                <StatCard label="Bulan Ini" value={stats.recentSessions} sub="30 hari lepas" />
+                <StatCard label="Kes Risiko Tinggi" value={stats.highRiskCases} sub="perlu perhatian" />
+                <StatCard label="Kadar Penutupan" value={`${stats.closureRate}%`} sub={`${stats.statusCounts.closed} kes ditutup`} />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-5">
+                <div className="bg-white rounded-xl border p-5">
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Trend Kes (6 Bulan)</h3>
+                  <div className="flex items-end gap-2 h-28">
+                    {stats.monthlyTrend.map(d => (
+                      <div key={d.label} className="flex-1 flex flex-col items-center gap-1">
+                        <span className="text-xs text-gray-500">{d.count}</span>
+                        <div className="w-full bg-blue-500 rounded-t" style={{ height: `${(d.count / maxMonthly) * 80}px`, minHeight: d.count > 0 ? '4px' : '0' }} />
+                        <span className="text-xs text-gray-400">{d.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl border p-5">
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Jenis Subjek</h3>
+                  {stats.bySubjectRole.length === 0
+                    ? <p className="text-sm text-gray-400 text-center py-6">Tiada data — isi peranan subjek semasa setup sesi</p>
+                    : <BarChart data={stats.bySubjectRole} maxVal={maxRoleCount} colorClass="bg-indigo-500" />}
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl border p-5">
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Status Kes</h3>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  {[
+                    { key: 'active',  label: 'Aktif',        bg: 'bg-green-50', text: 'text-green-700' },
+                    { key: 'pending', label: 'Ditangguhkan', bg: 'bg-amber-50', text: 'text-amber-700' },
+                    { key: 'closed',  label: 'Ditutup',      bg: 'bg-gray-50',  text: 'text-gray-600' },
+                  ].map(({ key, label, bg, text }) => (
+                    <div key={key} className={`${bg} rounded-xl p-4`}>
+                      <p className={`text-2xl font-bold ${text}`}>{stats.statusCounts[key]}</p>
+                      <p className="text-xs text-gray-500 mt-1">{label}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl border p-5">
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Taburan Tahap Risiko</h3>
+                {stats.withReport === 0
+                  ? <p className="text-sm text-gray-400 text-center py-6">Jana laporan AI untuk melihat taburan risiko</p>
+                  : <div className="space-y-3">{stats.riskData.map(({ key, label, count }) => (
+                      <div key={key} className="flex items-center gap-3">
+                        <span className="text-sm text-gray-600 w-28 flex-shrink-0">{label}</span>
+                        <div className="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full ${riskColors[key]}`} style={{ width: `${Math.round((count / maxRiskCount) * 100)}%` }} />
+                        </div>
+                        <span className="text-sm font-medium text-gray-700 w-6 text-right">{count}</span>
+                      </div>
+                    ))}</div>}
+              </div>
+              <div className="bg-white rounded-xl border p-5">
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Durasi & Laporan</h3>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div className="bg-blue-50 rounded-xl p-4"><p className="text-2xl font-bold text-blue-700">{stats.avgMinutes} min</p><p className="text-xs text-gray-500 mt-1">Purata Tempoh</p></div>
+                  <div className="bg-green-50 rounded-xl p-4"><p className="text-2xl font-bold text-green-700">{stats.withReport}</p><p className="text-xs text-gray-500 mt-1">Laporan Dijana</p></div>
+                  <div className="bg-purple-50 rounded-xl p-4"><p className="text-2xl font-bold text-purple-700">{stats.total > 0 ? Math.round((stats.withReport / stats.total) * 100) : 0}%</p><p className="text-xs text-gray-500 mt-1">Kadar Penyiapan</p></div>
+                </div>
+              </div>
+            </>)}
+
+            {/* ── AUDIT ANALYTICS ── */}
+            {useCase === 'audit' && (<>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <StatCard label="Jumlah Audit" value={stats.total} sub="sepanjang masa" />
+                <StatCard label="Bulan Ini" value={stats.recentSessions} sub="30 hari lepas" />
+                <StatCard label="Jumlah Flag/NCR" value={stats.totalFlags} sub="semua sesi" />
+                <StatCard label="Kadar Audit + NCR" value={`${stats.flagRate}%`} sub="ada penemuan" />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-5">
+                <div className="bg-white rounded-xl border p-5">
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Trend Audit (6 Bulan)</h3>
+                  <div className="flex items-end gap-2 h-28">
+                    {stats.monthlyTrend.map(d => (
+                      <div key={d.label} className="flex-1 flex flex-col items-center gap-1">
+                        <span className="text-xs text-gray-500">{d.count}</span>
+                        <div className="w-full bg-amber-500 rounded-t" style={{ height: `${(d.count / maxMonthly) * 80}px`, minHeight: d.count > 0 ? '4px' : '0' }} />
+                        <span className="text-xs text-gray-400">{d.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl border p-5">
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Pematuhan</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between text-sm mb-1"><span className="text-gray-600">Audit dengan penemuan (flag/NCR)</span><span className="font-semibold">{stats.flagRate}%</span></div>
+                      <div className="w-full h-3 bg-gray-100 rounded-full"><div className="h-full bg-amber-500 rounded-full" style={{ width: `${stats.flagRate}%` }} /></div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-sm mb-1"><span className="text-gray-600">Laporan dijana</span><span className="font-semibold">{stats.total > 0 ? Math.round((stats.withReport / stats.total) * 100) : 0}%</span></div>
+                      <div className="w-full h-3 bg-gray-100 rounded-full"><div className="h-full bg-green-500 rounded-full" style={{ width: `${stats.total > 0 ? Math.round((stats.withReport / stats.total) * 100) : 0}%` }} /></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl border p-5">
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Taburan Risiko Audit</h3>
+                {stats.withReport === 0
+                  ? <p className="text-sm text-gray-400 text-center py-6">Jana laporan AI untuk melihat taburan</p>
+                  : <div className="space-y-3">{stats.riskData.map(({ key, label, count }) => (
+                      <div key={key} className="flex items-center gap-3">
+                        <span className="text-sm text-gray-600 w-28 flex-shrink-0">{label}</span>
+                        <div className="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden"><div className={`h-full rounded-full ${riskColors[key]}`} style={{ width: `${Math.round((count / maxRiskCount) * 100)}%` }} /></div>
+                        <span className="text-sm font-medium text-gray-700 w-6 text-right">{count}</span>
+                      </div>
+                    ))}</div>}
+              </div>
+            </>)}
+
+            {/* ── GENERIC ANALYTICS (fallback) ── */}
+            {useCase === 'generic' && (<>
             {/* Summary cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <StatCard label="Jumlah Sesi" value={stats.total} sub="sepanjang masa" />
@@ -211,18 +377,14 @@ export default function AnalyticsPage() {
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Kadar Laporan Dijana</h3>
                 <div className="flex items-center gap-4">
                   <div className="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-blue-500 rounded-full transition-all"
-                      style={{ width: `${Math.round((stats.withReport / stats.total) * 100)}%` }}
-                    />
+                    <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${Math.round((stats.withReport / stats.total) * 100)}%` }} />
                   </div>
-                  <span className="text-sm font-semibold text-gray-700 flex-shrink-0">
-                    {Math.round((stats.withReport / stats.total) * 100)}%
-                  </span>
+                  <span className="text-sm font-semibold text-gray-700 flex-shrink-0">{Math.round((stats.withReport / stats.total) * 100)}%</span>
                 </div>
                 <p className="text-xs text-gray-400 mt-2">{stats.withReport} daripada {stats.total} sesi mempunyai laporan AI</p>
               </div>
             )}
+            </>)}
           </div>
         )}
       </div>

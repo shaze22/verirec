@@ -484,11 +484,42 @@ function TranscriptScript({ transcript = [], forceExpand = false }) {
 }
 
 export function ReportView({ session }) {
-  const { report, hash, audio_url, created_at, subject_name, interviewer, profession, duration, transcript, id, case_number, witness_officer } = session;
+  const { report, hash, audio_url, created_at, subject_name, interviewer, profession, duration, transcript, id } = session;
   const reportRef  = useRef(null);
   const [exporting, setExporting]   = useState(false);
   const [verifying, setVerifying]   = useState(false);
   const [verifyResult, setVerifyResult] = useState(null);
+
+  // PDF section selector — persisted in localStorage per profession
+  const SECTION_KEY = `pdf_sections_${profession || 'default'}`;
+  const defaultSections = { summary: true, riskSentiment: true, findings: true, recommendations: true, followUp: true, flags: true, transcript: false };
+  const [pdfSections, setPdfSections] = useState(() => {
+    try { return { ...defaultSections, ...JSON.parse(localStorage.getItem(SECTION_KEY) || '{}') }; }
+    catch { return defaultSections; }
+  });
+  const [showSectionPicker, setShowSectionPicker] = useState(false);
+  const toggleSection = (key) => setPdfSections(prev => {
+    const next = { ...prev, [key]: !prev[key] };
+    localStorage.setItem(SECTION_KEY, JSON.stringify(next));
+    return next;
+  });
+
+  // Editable header fields
+  const [headerEdit, setHeaderEdit] = useState(false);
+  const [orgName, setOrgName]             = useState(session.org_name || '');
+  const [caseNumber, setCaseNumber]       = useState(session.case_number || '');
+  const [witnessOfficer, setWitnessOfficer] = useState(session.witness_officer || '');
+  const [savingHeader, setSavingHeader]   = useState(false);
+
+  const saveHeader = async () => {
+    setSavingHeader(true);
+    try {
+      await supabase.from('sessions').update({ org_name: orgName, case_number: caseNumber, witness_officer: witnessOfficer }).eq('id', id);
+      setHeaderEdit(false);
+      toast.success('Maklumat laporan dikemas kini.');
+    } catch { toast.error('Gagal menyimpan.'); }
+    finally { setSavingHeader(false); }
+  };
 
   if (!report) return <p className="text-gray-500 text-center py-12">Laporan belum dijana</p>;
 
@@ -546,22 +577,26 @@ export function ReportView({ session }) {
       };
 
       // ── Header ──
+      const headerHeight = (orgName || caseNumber || witnessOfficer) ? 38 : 32;
       pdf.setFillColor(245, 247, 250);
-      pdf.rect(0, 0, W, 32, 'F');
+      pdf.rect(0, 0, W, headerHeight, 'F');
       pdf.setFontSize(13); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(10, 10, 10);
-      pdf.text('Laporan Sesi VeriRec', M, 13);
+      pdf.text(orgName || 'Laporan Sesi VeriRec', M, 13);
       pdf.setFontSize(9); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(80, 80, 80);
       const profLabel = profession ? profession.charAt(0).toUpperCase() + profession.slice(1) : '';
       pdf.text(`${profLabel} — ${subject_name || ''}`, M, 21);
-      if (case_number) { pdf.setFontSize(8); pdf.text(`No. Kes: ${case_number}`, M, 28); }
+      if (caseNumber) { pdf.setFontSize(8); pdf.text(`No. Kes: ${caseNumber}`, M, 28); }
+      if (orgName) { pdf.setFontSize(7.5); pdf.setTextColor(120, 120, 120); pdf.text('VeriRec', M, headerHeight - 3); }
       const dateStr = created_at ? format(new Date(created_at), 'dd MMM yyyy, HH:mm') : '';
-      pdf.setFontSize(9);
+      pdf.setFontSize(9); pdf.setTextColor(80, 80, 80);
       pdf.text(dateStr, W - M, 13, { align: 'right' });
       pdf.text(interviewer || '', W - M, 21, { align: 'right' });
-      if (witness_officer) { pdf.setFontSize(8); pdf.text(witness_officer, W - M, 28, { align: 'right' }); }
-      y = 40;
+      if (witnessOfficer) { pdf.setFontSize(8); pdf.text(witnessOfficer, W - M, 28, { align: 'right' }); }
+      y = headerHeight + 6;
 
       // ── Risk / Sentiment / Duration ──
+      const sec = pdfSections;
+      if (sec.riskSentiment) {
       const boxW = (W - M * 2 - 6) / 3;
       const riskLbl = { low: 'Rendah', medium: 'Sederhana', high: 'Tinggi' }[report.riskLevel] || (report.riskLevel || '-');
       const sentLbl = { positive: 'Positif', neutral: 'Neutral', negative: 'Negatif' }[report.sentiment] || (report.sentiment || '-');
@@ -581,19 +616,26 @@ export function ReportView({ session }) {
         }
       });
       y += 24;
+      } // end riskSentiment
 
       // ── Summary ──
-      sectionTitle('Ringkasan Eksekutif');
-      bodyText(report.summary);
+      // ── Custom org fields ──
+      const customFields = session.custom_fields || {};
+      if (Object.keys(customFields).length > 0) {
+        sectionTitle('Maklumat Tambahan Organisasi');
+        Object.entries(customFields).filter(([, v]) => v).forEach(([k, v]) => field(k, v));
+      }
+
+      if (sec.summary) { sectionTitle('Ringkasan Eksekutif'); bodyText(report.summary); }
 
       // ── Key Findings ──
-      if (report.keyFindings?.length > 0) {
+      if (sec.findings && report.keyFindings?.length > 0) {
         sectionTitle('Penemuan Utama');
         bulletList(report.keyFindings);
       }
 
       // ── Red Flags ──
-      if (report.redFlags?.length > 0) {
+      if (sec.flags && report.redFlags?.length > 0) {
         sectionTitle('Bendera Merah', [180, 30, 30]);
         bulletList(report.redFlags, '★', [160, 20, 20]);
       }
@@ -651,13 +693,19 @@ export function ReportView({ session }) {
       }
 
       // ── Recommendations ──
-      if (report.recommendations?.length > 0) {
+      if (sec.recommendations && report.recommendations?.length > 0) {
         sectionTitle('Cadangan', [20, 110, 50]);
         bulletList(report.recommendations, '→', [20, 90, 30]);
       }
 
+      // ── Follow-up items ──
+      if (sec.followUp && report.followUpItems?.length > 0) {
+        sectionTitle('Tindakan Susulan');
+        bulletList(report.followUpItems.map(i => `${i.text}${i.dueDate ? ` (${i.dueDate})` : ''}`), '□');
+      }
+
       // ── Transcript ──
-      if (transcript?.length > 0) {
+      if (sec.transcript && transcript?.length > 0) {
         sectionTitle('Transkrip Penuh');
         transcript.forEach(entry => {
           checkPage(8);
@@ -908,14 +956,81 @@ export function ReportView({ session }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6 no-print">
+      <div className="flex items-center justify-between mb-4 no-print">
         <h2 className="text-xl font-bold text-gray-900">Laporan Sesi</h2>
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap justify-end">
           {profession === 'counselor' && (
             <Button variant="secondary" onClick={printCaseNote} loading={exporting}>📄 Case Session Note</Button>
           )}
+          <button onClick={() => setShowSectionPicker(p => !p)} className="text-sm text-gray-500 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors">⚙️ Bahagian PDF</button>
           <Button onClick={exportPDF} loading={exporting}>Eksport PDF</Button>
         </div>
+      </div>
+
+      {/* Section picker */}
+      {showSectionPicker && (
+        <div className="no-print mb-4 bg-white border border-gray-200 rounded-xl p-4">
+          <p className="text-sm font-semibold text-gray-700 mb-3">Pilih bahagian dalam PDF</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {[
+              { key: 'summary',         label: 'Ringkasan Eksekutif' },
+              { key: 'riskSentiment',   label: 'Risiko & Sentimen' },
+              { key: 'findings',        label: 'Penemuan Utama' },
+              { key: 'recommendations', label: 'Cadangan Tindakan' },
+              { key: 'followUp',        label: 'Item Susulan' },
+              { key: 'flags',           label: 'Bendera Penting' },
+              { key: 'transcript',      label: 'Transkrip Penuh' },
+            ].map(({ key, label }) => (
+              <label key={key} className="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" checked={pdfSections[key]} onChange={() => toggleSection(key)} className="w-4 h-4 text-blue-600 rounded" />
+                <span className="text-sm text-gray-700">{label}</span>
+              </label>
+            ))}
+          </div>
+          <p className="text-xs text-gray-400 mt-2">Tetapan disimpan automatik ikut profesion.</p>
+        </div>
+      )}
+
+      {/* Editable report header fields */}
+      <div className="no-print mb-4 bg-gray-50 border border-gray-200 rounded-xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-semibold text-gray-700">Maklumat Pengepala Laporan</p>
+          {!headerEdit ? (
+            <button onClick={() => setHeaderEdit(true)} className="text-xs text-blue-600 hover:underline">Edit</button>
+          ) : (
+            <div className="flex gap-2">
+              <button onClick={() => setHeaderEdit(false)} className="text-xs text-gray-400 hover:text-gray-600">Batal</button>
+              <button onClick={saveHeader} disabled={savingHeader} className="text-xs font-semibold text-blue-600 hover:underline disabled:opacity-50">
+                {savingHeader ? 'Menyimpan...' : 'Simpan'}
+              </button>
+            </div>
+          )}
+        </div>
+        {headerEdit ? (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">Nama Organisasi</label>
+              <input value={orgName} onChange={e => setOrgName(e.target.value)} placeholder="cth. Klinik Kesihatan Bestari"
+                className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">No. Kes / Rujukan</label>
+              <input value={caseNumber} onChange={e => setCaseNumber(e.target.value)} placeholder="cth. KES/2026/001"
+                className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">Saksi / Pegawai</label>
+              <input value={witnessOfficer} onChange={e => setWitnessOfficer(e.target.value)} placeholder="Nama saksi atau pegawai"
+                className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+            <span><span className="text-gray-400">Organisasi:</span> {orgName || <em className="text-gray-300">—</em>}</span>
+            <span><span className="text-gray-400">No. Kes:</span> {caseNumber || <em className="text-gray-300">—</em>}</span>
+            <span><span className="text-gray-400">Saksi:</span> {witnessOfficer || <em className="text-gray-300">—</em>}</span>
+          </div>
+        )}
       </div>
 
       {/* Follow-up Tracker — above the printable report */}
@@ -928,19 +1043,20 @@ export function ReportView({ session }) {
         {/* Header */}
         <div className="flex items-start justify-between border-b pb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Laporan Sesi VeriRec</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{orgName || 'Laporan Sesi VeriRec'}</h1>
+            {orgName && <p className="text-xs text-gray-400 mt-0.5">VeriRec</p>}
             <p className="text-gray-500 mt-1 capitalize">{profession} — {subject_name}</p>
-            {case_number && <p className="text-sm text-gray-400 mt-0.5">No. Kes: {case_number}</p>}
+            {caseNumber && <p className="text-sm text-gray-400 mt-0.5">No. Kes: {caseNumber}</p>}
           </div>
           <div className="text-right">
             <p className="text-sm text-gray-500">Tarikh</p>
             <p className="font-medium">{format(new Date(created_at), 'dd MMM yyyy, HH:mm')}</p>
             <p className="text-sm text-gray-500 mt-1">Pengendali Sesi</p>
             <p className="font-medium">{interviewer}</p>
-            {witness_officer && (
+            {witnessOfficer && (
               <>
                 <p className="text-sm text-gray-500 mt-1">Saksi / Pegawai</p>
-                <p className="font-medium">{witness_officer}</p>
+                <p className="font-medium">{witnessOfficer}</p>
               </>
             )}
           </div>

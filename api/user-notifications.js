@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { sendEmail, welcomeEmail, limitWarningEmail, newAppointmentEmail, appointmentConfirmedEmail, buildCalendarUrl } from './_mailer.js';
+import { sendEmail, sendTelegram, welcomeEmail, limitWarningEmail, newAppointmentEmail, appointmentConfirmedEmail, buildCalendarUrl } from './_mailer.js';
 
 const supabaseAdmin = createClient(
   process.env.VITE_SUPABASE_URL,
@@ -26,7 +26,7 @@ export default async function handler(req, res) {
 
       const { data: { user: counselor } } = await supabaseAdmin.auth.admin.getUserById(appt.counselor_id);
       const { data: profile } = await supabaseAdmin
-        .from('counselor_profiles').select('display_name').eq('user_id', appt.counselor_id).single();
+        .from('counselor_profiles').select('display_name, telegram_chat_id, telegram_enabled').eq('user_id', appt.counselor_id).single();
 
       if (counselor?.email) {
         const { subject, html } = newAppointmentEmail(profile?.display_name || 'Kaunselor', {
@@ -39,6 +39,16 @@ export default async function handler(req, res) {
         });
         await sendEmail({ to: counselor.email, subject, html });
       }
+
+      // Telegram notification to counselor
+      if (profile?.telegram_enabled && profile?.telegram_chat_id) {
+        const time = appt.requested_time ? appt.requested_time.slice(0, 5) : '';
+        await sendTelegram(
+          profile.telegram_chat_id,
+          `🆕 <b>Temujanji Baru Diterima</b>\n\nKlien: <b>${appt.client_name}</b>\nTarikh: ${appt.requested_date}${time ? ` jam ${time}` : ''}\nIsu: ${appt.presenting_issue || '—'}\n\nBuka VeriRec untuk sahkan.`
+        );
+      }
+
       return res.status(200).json({ ok: true });
     }
 

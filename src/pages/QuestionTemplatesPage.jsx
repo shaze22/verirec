@@ -8,32 +8,32 @@ import { Modal } from '../components/ui/Modal.jsx';
 import toast from 'react-hot-toast';
 
 async function fetchTemplates(userId) {
-  const { data, error } = await supabase
-    .from('question_templates')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at');
-  if (error) throw error;
-  return data || [];
+  // Fetch own templates + team templates shared with user
+  const { data: own, error: e1 } = await supabase.from('question_templates').select('*').eq('user_id', userId).order('created_at');
+  if (e1) throw e1;
+
+  // Get team_id where user is member or owner
+  const { data: memberships } = await supabase.from('team_members').select('team_id').eq('user_id', userId).eq('status', 'active');
+  const { data: ownedTeams }  = await supabase.from('teams').select('id').eq('owner_id', userId);
+  const teamIds = [...new Set([...(memberships || []).map(m => m.team_id), ...(ownedTeams || []).map(t => t.id)])];
+
+  let teamTemplates = [];
+  if (teamIds.length) {
+    const { data: team } = await supabase.from('question_templates').select('*').in('team_id', teamIds).eq('is_team_template', true).order('created_at');
+    teamTemplates = (team || []).filter(t => t.user_id !== userId); // avoid duplicates
+  }
+
+  return [...(own || []), ...teamTemplates];
 }
 
-async function saveTemplate(userId, { id, profession, name, questions }) {
+async function saveTemplate(userId, { id, profession, name, questions, use_case, is_team_template, team_id }) {
+  const payload = { profession, name, questions, use_case: use_case || 'kaunseling', is_team_template: !!is_team_template, team_id: is_team_template ? team_id : null };
   if (id) {
-    const { data, error } = await supabase
-      .from('question_templates')
-      .update({ profession, name, questions })
-      .eq('id', id)
-      .eq('user_id', userId)
-      .select()
-      .single();
+    const { data, error } = await supabase.from('question_templates').update(payload).eq('id', id).eq('user_id', userId).select().single();
     if (error) throw error;
     return data;
   }
-  const { data, error } = await supabase
-    .from('question_templates')
-    .insert({ user_id: userId, profession, name, questions })
-    .select()
-    .single();
+  const { data, error } = await supabase.from('question_templates').insert({ user_id: userId, ...payload }).select().single();
   if (error) throw error;
   return data;
 }
@@ -43,7 +43,13 @@ async function deleteTemplate(id) {
   if (error) throw error;
 }
 
-const BLANK_FORM = { id: null, profession: 'counselor', name: '', questionsText: '' };
+const USE_CASE_OPTIONS = [
+  { value: 'kaunseling',   label: '💬 Kaunseling',        color: 'bg-emerald-100 text-emerald-700' },
+  { value: 'soal-siasat', label: '🔍 Soal-siasat',        color: 'bg-blue-100 text-blue-700' },
+  { value: 'audit',        label: '📋 Audit & Pematuhan',  color: 'bg-amber-100 text-amber-700' },
+];
+
+const BLANK_FORM = { id: null, profession: 'counselor', name: '', questionsText: '', use_case: 'kaunseling', is_team_template: false, team_id: null };
 const BLANK_ASSESSMENT = { id: null, name: '', description: '', questions: [{ id: '', text: '', options: ['Ya', 'Tidak'] }] };
 
 export default function QuestionTemplatesPage() {
@@ -58,6 +64,8 @@ export default function QuestionTemplatesPage() {
   const [form, setForm] = useState(BLANK_FORM);
   const [saving, setSaving] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
+  const [filterUseCase, setFilterUseCase] = useState('');
+  const [myTeam, setMyTeam] = useState(null);
   const [assessModal, setAssessModal] = useState(false);
   const [assessForm, setAssessForm] = useState(BLANK_ASSESSMENT);
   const [savingAssess, setSavingAssess] = useState(false);
@@ -67,9 +75,11 @@ export default function QuestionTemplatesPage() {
     Promise.all([
       fetchTemplates(user.id),
       supabase.from('assessment_sets').select('*').or(`user_id.eq.${user.id},is_default.eq.true`).order('is_default', { ascending: false }).order('created_at'),
-    ]).then(([tmpl, { data: assess }]) => {
+      supabase.from('teams').select('id, name').eq('owner_id', user.id).maybeSingle(),
+    ]).then(([tmpl, { data: assess }, { data: team }]) => {
       setTemplates(tmpl);
       setAssessments(assess || []);
+      setMyTeam(team);
     }).catch(() => toast.error('Gagal memuatkan templat')).finally(() => setLoading(false));
   }, [user]);
 
@@ -116,13 +126,43 @@ export default function QuestionTemplatesPage() {
   };
 
   const openEdit = (t) => {
-    setForm({
-      id: t.id,
-      profession: t.profession,
-      name: t.name,
-      questionsText: (t.questions || []).join('\n'),
-    });
+    setForm({ id: t.id, profession: t.profession, name: t.name, questionsText: (t.questions || []).join('\n'), use_case: t.use_case || 'kaunseling' });
     setModal(true);
+  };
+
+  const handleImport = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const text = evt.target.result;
+        let name = file.name.replace(/\.(csv|json)$/i, '');
+        let questions = [];
+        let use_case = 'kaunseling';
+
+        if (file.name.endsWith('.json')) {
+          const parsed = JSON.parse(text);
+          if (Array.isArray(parsed)) {
+            questions = parsed.filter(q => typeof q === 'string' && q.trim());
+          } else if (parsed.questions) {
+            questions = parsed.questions.filter(q => typeof q === 'string' && q.trim());
+            if (parsed.name) name = parsed.name;
+            if (parsed.use_case) use_case = parsed.use_case;
+          }
+        } else {
+          // CSV — one question per line, skip empty lines and possible header
+          questions = text.split('\n').map(l => l.replace(/^"(.+)"$/, '$1').trim()).filter(Boolean);
+        }
+
+        if (!questions.length) return toast.error('Tiada soalan dijumpai dalam fail.');
+        setForm({ id: null, profession: isCounselor ? 'counselor' : 'police', name, questionsText: questions.join('\n'), use_case });
+        setModal(true);
+        toast.success(`${questions.length} soalan diimport dari fail.`);
+      } catch { toast.error('Format fail tidak sah. Guna CSV atau JSON.'); }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
   };
 
   const handleSave = async () => {
@@ -135,7 +175,7 @@ export default function QuestionTemplatesPage() {
 
     setSaving(true);
     try {
-      const saved = await saveTemplate(user.id, { ...form, questions });
+      const saved = await saveTemplate(user.id, { ...form, questions, use_case: form.use_case, is_team_template: form.is_team_template, team_id: form.team_id });
       setTemplates(prev =>
         form.id
           ? prev.map(t => t.id === form.id ? saved : t)
@@ -167,9 +207,10 @@ export default function QuestionTemplatesPage() {
       .catch(() => toast.error('Gagal menyalin.'));
   };
 
-  const filtered = filterProfession
-    ? templates.filter(t => t.profession === filterProfession)
-    : templates;
+  const filtered = templates.filter(t =>
+    (!filterProfession || t.profession === filterProfession) &&
+    (!filterUseCase || t.use_case === filterUseCase)
+  );
 
   const grouped = PROFESSIONS.reduce((acc, p) => {
     const items = filtered.filter(t => t.profession === p.id);
@@ -181,10 +222,20 @@ export default function QuestionTemplatesPage() {
     <div className="flex flex-col h-screen">
       <TopBar
         title="Templat Soalan"
-        actions={
-          pageTab === 'soalan'
-            ? <Button onClick={openNew}><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg><span className="hidden sm:inline">Templat Baru</span></Button>
-            : <Button onClick={() => { setAssessForm(BLANK_ASSESSMENT); setAssessModal(true); }}><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg><span className="hidden sm:inline">Assessment Baru</span></Button>
+        action={
+          pageTab === 'soalan' ? (
+            <div className="flex items-center gap-2">
+              <label className="cursor-pointer">
+                <input type="file" accept=".csv,.json" className="hidden" onChange={handleImport} />
+                <span className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors">
+                  📥 <span className="hidden sm:inline">Import</span>
+                </span>
+              </label>
+              <Button onClick={openNew} size="sm">+ Templat Baru</Button>
+            </div>
+          ) : (
+            <Button onClick={() => { setAssessForm(BLANK_ASSESSMENT); setAssessModal(true); }} size="sm">+ Assessment Baru</Button>
+          )
         }
       />
 
@@ -257,25 +308,28 @@ export default function QuestionTemplatesPage() {
 
         {/* ── SOALAN TAB ── */}
         {pageTab === 'soalan' && <>
-          {/* Filter — hidden for counselors, they only see their own profession */}
-          {!isCounselor && (
-            <div className="flex items-center gap-3 flex-wrap">
-              <select
-                value={filterProfession}
-                onChange={e => setFilterProfession(e.target.value)}
-                className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
+          {/* Use case tabs */}
+          <div className="flex gap-2 flex-wrap">
+            {[{ value: '', label: 'Semua' }, ...USE_CASE_OPTIONS].map(uc => (
+              <button key={uc.value} onClick={() => setFilterUseCase(uc.value)}
+                className={`text-sm px-3 py-1.5 rounded-full font-medium transition-colors border ${filterUseCase === uc.value ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'}`}>
+                {uc.label}
+              </button>
+            ))}
+            {!isCounselor && (
+              <select value={filterProfession} onChange={e => setFilterProfession(e.target.value)}
+                className="ml-2 px-3 py-1.5 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">Semua Profesion</option>
                 {PROFESSIONS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
               </select>
-              {filtered.length > 0 && (
-                <span className="text-sm text-gray-500">{filtered.length} templat</span>
-              )}
-            </div>
-          )}
-          {isCounselor && filtered.length > 0 && (
-            <span className="text-sm text-gray-500">{filtered.length} templat</span>
-          )}
+            )}
+            <span className="text-sm text-gray-400 flex items-center">{filtered.length} templat</span>
+          </div>
+
+          {/* Import info */}
+          <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs text-blue-700">
+            <strong>Import Template:</strong> Guna butang "📥 Import" untuk muat naik fail <code>.csv</code> (satu soalan per baris) atau <code>.json</code> ({`{"name":"...", "questions":["..."], "use_case":"kaunseling"}`}).
+          </div>
 
           {loading ? (
             <div className="space-y-3">
@@ -308,8 +362,16 @@ export default function QuestionTemplatesPage() {
                         onClick={() => setExpandedId(expandedId === t.id ? null : t.id)}
                       >
                         <div>
-                          <p className="font-medium text-gray-900">{t.name}</p>
-                          <p className="text-xs text-gray-500 mt-0.5">{(t.questions || []).length} soalan</p>
+                          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                            <p className="font-medium text-gray-900">{t.name}</p>
+                            {t.use_case && (() => {
+                              const uc = USE_CASE_OPTIONS.find(u => u.value === t.use_case);
+                              return uc ? <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${uc.color}`}>{uc.label}</span> : null;
+                            })()}
+                            {t.is_team_template && <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-purple-100 text-purple-700">👥 Pasukan</span>}
+                            {t.user_id !== user?.id && <span className="text-xs text-gray-400 italic">Dikongsi</span>}
+                          </div>
+                          <p className="text-xs text-gray-500">{(t.questions || []).length} soalan</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <button
@@ -435,6 +497,17 @@ export default function QuestionTemplatesPage() {
         }
       >
         <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Kategori Penggunaan</label>
+            <div className="flex gap-2">
+              {USE_CASE_OPTIONS.map(uc => (
+                <button key={uc.value} type="button" onClick={() => setForm(p => ({ ...p, use_case: uc.value }))}
+                  className={`flex-1 py-2 px-2 rounded-lg text-xs font-medium border-2 transition-all ${form.use_case === uc.value ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}>
+                  {uc.label}
+                </button>
+              ))}
+            </div>
+          </div>
           {!isCounselor && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Profesion</label>
@@ -445,6 +518,20 @@ export default function QuestionTemplatesPage() {
               >
                 {PROFESSIONS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
               </select>
+            </div>
+          )}
+
+          {myTeam && (
+            <div className="flex items-center justify-between py-2 border border-gray-100 rounded-xl px-3">
+              <div>
+                <p className="text-sm font-medium text-gray-800">Kongsi dengan Pasukan</p>
+                <p className="text-xs text-gray-400">Semua ahli pasukan "{myTeam.name}" boleh guna templat ini</p>
+              </div>
+              <button type="button"
+                onClick={() => setForm(p => ({ ...p, is_team_template: !p.is_team_template, team_id: myTeam.id }))}
+                className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${form.is_team_template ? 'bg-blue-600' : 'bg-gray-200'}`}>
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.is_team_template ? 'translate-x-5' : ''}`} />
+              </button>
             </div>
           )}
           <div>

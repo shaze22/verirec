@@ -7,6 +7,7 @@ import { getSessions } from '../api/sessions.js';
 import { logEvent } from '../api/auditLog.js';
 import { getCounselorProfile, upsertCounselorProfile } from '../api/counselor.js';
 import { getSessionReceipt, getStripeInvoices } from '../api/billing.js';
+import { getStorageUsage, formatBytes, STORAGE_LIMITS } from '../api/audioLibrary.js';
 import { Input, Textarea } from '../components/ui/Input.jsx';
 import { TopBar } from '../components/layout/TopBar.jsx';
 import { Button } from '../components/ui/Button.jsx';
@@ -48,6 +49,7 @@ export default function SettingsPage() {
   const [savingName, setSavingName] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState('');
   const [copied, setCopied] = useState(false);
+  const [storageUsed, setStorageUsed] = useState(null);
   const [notifPrefs, setNotifPrefs] = useState(() => ({
     new_appointment: localStorage.getItem('notif_new_appointment') !== 'false',
     session_reminder: localStorage.getItem('notif_session_reminder') !== 'false',
@@ -110,6 +112,7 @@ export default function SettingsPage() {
             .then(url => setQrDataUrl(url)).catch(() => {});
         }
       }).catch(() => {});
+      getStorageUsage(user.id).then(setStorageUsed).catch(() => {});
     }
   }, [user]);
 
@@ -535,6 +538,63 @@ export default function SettingsPage() {
             </section>
           )}
 
+          {/* Storan Audio */}
+          {isCounselor && storageUsed !== null && (
+            <section className="bg-white rounded-xl border p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Storan Rakaman Audio</h2>
+              {(() => {
+                const plan = localStorage.getItem('vr_plan') || 'counselor';
+                const limit = STORAGE_LIMITS[plan] ?? STORAGE_LIMITS.counselor;
+                const pct = Math.min(100, (storageUsed / limit) * 100);
+                const color = pct > 90 ? 'bg-red-500' : pct > 70 ? 'bg-amber-500' : 'bg-emerald-500';
+                return (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Digunakan: <strong>{formatBytes(storageUsed)}</strong></span>
+                      <span className="text-gray-400">Had: {formatBytes(limit)}</span>
+                    </div>
+                    <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div className={`h-full ${color} rounded-full transition-all`} style={{ width: `${pct}%` }} />
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      {pct > 90
+                        ? '⚠️ Storan hampir penuh. Sila padamkan rakaman lama dalam Perpustakaan Audio.'
+                        : `${(100 - pct).toFixed(0)}% ruang masih tersedia.`}
+                    </p>
+                  </div>
+                );
+              })()}
+            </section>
+          )}
+
+          {/* Custom Report Fields */}
+          <section className="bg-white rounded-xl border p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">Field Laporan Tambahan</h2>
+            <p className="text-sm text-gray-500 mb-4">Tambah medan khas organisasi anda yang akan muncul semasa setup sesi dan dalam laporan PDF (cth: No. Kes PDRM, Klausula ISO, No. Sijil Halal).</p>
+            <div className="space-y-3">
+              {[1, 2, 3].map(i => {
+                const key = `custom_field_${i}_label`;
+                const val = localStorage.getItem(key) || '';
+                return (
+                  <div key={i} className="flex items-center gap-3">
+                    <span className="text-sm text-gray-400 w-6 flex-shrink-0">#{i}</span>
+                    <input
+                      defaultValue={val}
+                      placeholder={i === 1 ? 'cth. No. Kes PDRM' : i === 2 ? 'cth. Klausula ISO' : 'cth. No. Sijil Halal'}
+                      onBlur={e => {
+                        const v = e.target.value.trim();
+                        if (v) localStorage.setItem(key, v);
+                        else localStorage.removeItem(key);
+                      }}
+                      className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            <p className="text-xs text-gray-400 mt-3">Field ini akan muncul dalam "Maklumat Tambahan" semasa setup sesi. Nilai disimpan dalam rekod sesi.</p>
+          </section>
+
           {/* Tukar Kata Laluan */}
           <section className="bg-white rounded-xl border p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Tukar Kata Laluan</h2>
@@ -637,6 +697,64 @@ export default function SettingsPage() {
               </Button>
             )}
           </section>
+
+          {/* Notifikasi Telegram */}
+          {isCounselor && (
+            <section className="bg-white rounded-xl border p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-1">Notifikasi Telegram</h2>
+              <p className="text-sm text-gray-500 mb-4">Terima notifikasi temujanji baru dan peringatan esok terus ke Telegram anda.</p>
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-4 text-sm text-blue-800 space-y-1">
+                <p className="font-semibold">Cara setup:</p>
+                <ol className="list-decimal list-inside space-y-0.5 text-blue-700 text-xs">
+                  <li>Buka Telegram → cari <strong>@userinfobot</strong></li>
+                  <li>Hantar sebarang mesej → bot balas dengan <strong>Id:</strong> (nombor)</li>
+                  <li>Salin nombor tersebut dan tampal di bawah</li>
+                </ol>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Telegram Chat ID</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="cth: 123456789"
+                      defaultValue={counselorProfile?.telegram_chat_id || ''}
+                      id="tg-chat-id"
+                      className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                    <Button size="sm" onClick={async () => {
+                      const chatId = document.getElementById('tg-chat-id').value.trim();
+                      if (!chatId) return;
+                      try {
+                        await supabase.from('counselor_profiles').update({ telegram_chat_id: chatId }).eq('user_id', user.id);
+                        setCounselorProfile(p => ({ ...p, telegram_chat_id: chatId }));
+                        toast.success('Chat ID disimpan.');
+                      } catch { toast.error('Gagal menyimpan.'); }
+                    }}>Simpan</Button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">Aktifkan notifikasi Telegram</p>
+                    <p className="text-xs text-gray-400">Temujanji baru & peringatan esok</p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      const newVal = !counselorProfile?.telegram_enabled;
+                      try {
+                        await supabase.from('counselor_profiles').update({ telegram_enabled: newVal }).eq('user_id', user.id);
+                        setCounselorProfile(p => ({ ...p, telegram_enabled: newVal }));
+                        toast.success(newVal ? 'Telegram diaktifkan.' : 'Telegram dimatikan.');
+                      } catch { toast.error('Gagal mengemas kini.'); }
+                    }}
+                    className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${counselorProfile?.telegram_enabled ? 'bg-emerald-500' : 'bg-gray-200'}`}
+                  >
+                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${counselorProfile?.telegram_enabled ? 'translate-x-5' : ''}`} />
+                  </button>
+                </div>
+              </div>
+            </section>
+          )}
 
           {/* Notifikasi */}
           <section className="bg-white rounded-xl border p-6">

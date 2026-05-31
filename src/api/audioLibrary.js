@@ -2,7 +2,40 @@ import { supabase } from '../lib/supabase.js';
 
 const BUCKET = 'recordings';
 
-export async function uploadAudio({ blob, userId, sessionId, title, duration }) {
+// Storage quota per plan (bytes)
+export const STORAGE_LIMITS = {
+  free:       500  * 1024 * 1024,       // 500 MB
+  counselor:  5    * 1024 * 1024 * 1024, // 5 GB
+  starter:    10   * 1024 * 1024 * 1024, // 10 GB
+  pro:        50   * 1024 * 1024 * 1024, // 50 GB
+  enterprise: 200  * 1024 * 1024 * 1024, // 200 GB
+};
+
+export function formatBytes(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
+export async function getStorageUsage(userId) {
+  const { data, error } = await supabase
+    .from('audio_library')
+    .select('file_size')
+    .eq('user_id', userId);
+  if (error) throw error;
+  return (data || []).reduce((sum, r) => sum + (r.file_size || 0), 0);
+}
+
+export async function uploadAudio({ blob, userId, sessionId, title, duration, plan = 'free' }) {
+  // Quota check
+  const limit = STORAGE_LIMITS[plan] ?? STORAGE_LIMITS.free;
+  const used = await getStorageUsage(userId);
+  if (used + blob.size > limit) {
+    const limitLabel = formatBytes(limit);
+    throw new Error(`Had storan ${limitLabel} telah dicapai. Sila padamkan rakaman lama atau naik taraf pelan.`);
+  }
+
   const ext = blob.type?.includes('mp4') ? 'm4a' : 'webm';
   const fileName = `${Date.now()}.${ext}`;
   const path = `${userId}/${fileName}`;

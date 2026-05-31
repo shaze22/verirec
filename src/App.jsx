@@ -44,6 +44,12 @@ const KaunslorClientsPage     = lazy(() => import('./pages/kaunselor/KaunslorCli
 const KaunslorClientFilePage  = lazy(() => import('./pages/kaunselor/KaunslorClientFilePage.jsx'));
 const KaunslorCalendarPage    = lazy(() => import('./pages/kaunselor/KaunslorCalendarPage.jsx'));
 const CounselorLandingPage    = lazy(() => import('./pages/CounselorLandingPage.jsx'));
+const ProfDashboard           = lazy(() => import('./pages/professional/ProfDashboard.jsx'));
+const ProfClientsPage         = lazy(() => import('./pages/professional/ProfClientsPage.jsx'));
+const ProfClientFilePage      = lazy(() => import('./pages/professional/ProfClientFilePage.jsx'));
+const ProfAppointmentsPage    = lazy(() => import('./pages/professional/ProfAppointmentsPage.jsx'));
+const ProfCalendarPage        = lazy(() => import('./pages/professional/ProfCalendarPage.jsx'));
+const ProfSetupPage           = lazy(() => import('./pages/professional/ProfSetupPage.jsx'));
 
 function PageTracker() {
   const location = useLocation();
@@ -260,6 +266,22 @@ export default function App() {
               <Route path="/kaunselor/calendar" element={<ProtectedRoute><AppLayout><KaunslorCalendarPage /></AppLayout></ProtectedRoute>} />
               <Route path="/kaunselor/clients" element={<ProtectedRoute><AppLayout><KaunslorClientsPage /></AppLayout></ProtectedRoute>} />
               <Route path="/kaunselor/clients/:id" element={<ProtectedRoute><AppLayout><KaunslorClientFilePage /></AppLayout></ProtectedRoute>} />
+
+              {/* Doctor module — shared professional pages */}
+              <Route path="/doktor/setup" element={<ProtectedRoute><ProfSetupPage /></ProtectedRoute>} />
+              <Route path="/doktor/dashboard" element={<ProtectedRoute><AppLayout><ProfDashboard /></AppLayout></ProtectedRoute>} />
+              <Route path="/doktor/clients" element={<ProtectedRoute><AppLayout><ProfClientsPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/doktor/clients/:id" element={<ProtectedRoute><AppLayout><ProfClientFilePage /></AppLayout></ProtectedRoute>} />
+              <Route path="/doktor/appointments" element={<ProtectedRoute><AppLayout><ProfAppointmentsPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/doktor/calendar" element={<ProtectedRoute><AppLayout><ProfCalendarPage /></AppLayout></ProtectedRoute>} />
+
+              {/* JKM module — shared professional pages */}
+              <Route path="/jkm/setup" element={<ProtectedRoute><ProfSetupPage /></ProtectedRoute>} />
+              <Route path="/jkm/dashboard" element={<ProtectedRoute><AppLayout><ProfDashboard /></AppLayout></ProtectedRoute>} />
+              <Route path="/jkm/clients" element={<ProtectedRoute><AppLayout><ProfClientsPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/jkm/clients/:id" element={<ProtectedRoute><AppLayout><ProfClientFilePage /></AppLayout></ProtectedRoute>} />
+              <Route path="/jkm/appointments" element={<ProtectedRoute><AppLayout><ProfAppointmentsPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/jkm/calendar" element={<ProtectedRoute><AppLayout><ProfCalendarPage /></AppLayout></ProtectedRoute>} />
 
               {/* Session flow — full screen, no sidebar/nav */}
               <Route path="/session/consent" element={
