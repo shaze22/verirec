@@ -61,6 +61,8 @@ export default function KaunslorClientsPage() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [filterRisk, setFilterRisk] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
   const [showAdd, setShowAdd] = useState(false);
   const [addForm, setAddForm] = useState({ name: '', phone: '', email: '', ic_number: '', address: '', notes: '' });
   const [adding, setAdding] = useState(false);
@@ -76,9 +78,19 @@ export default function KaunslorClientsPage() {
       .finally(() => setLoading(false));
   }, [user]);
 
-  const filtered = search.trim()
-    ? clients.filter(c => c.name?.toLowerCase().includes(search.toLowerCase()) || c.phone?.includes(search) || c.ic_number?.includes(search))
-    : clients;
+  const RISK_ORDER = { suicidal: 0, self_harm: 1, mental_health: 2, none: 3, null: 4 };
+  const filtered = clients
+    .filter(c => {
+      const matchSearch = !search.trim() || c.name?.toLowerCase().includes(search.toLowerCase()) || c.phone?.includes(search) || c.ic_number?.includes(search);
+      const matchRisk = !filterRisk || (c.risk_level || 'none') === filterRisk;
+      return matchSearch && matchRisk;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'risk') return (RISK_ORDER[a.risk_level] ?? 4) - (RISK_ORDER[b.risk_level] ?? 4);
+      if (sortBy === 'name') return (a.name || '').localeCompare(b.name || '');
+      if (sortBy === 'sessions') return (b.sessions?.[0]?.count || 0) - (a.sessions?.[0]?.count || 0);
+      return new Date(b.created_at) - new Date(a.created_at); // newest
+    });
 
   const handleAdd = async (e) => {
     e.preventDefault();
@@ -116,6 +128,23 @@ export default function KaunslorClientsPage() {
           <input type="text" placeholder="Cari nama, telefon, atau IC..." value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <div className="flex gap-2">
+            <select value={filterRisk} onChange={e => setFilterRisk(e.target.value)}
+              className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+              <option value="">Semua Risiko</option>
+              <option value="suicidal">🔴 Kritikal</option>
+              <option value="self_harm">🟠 Tinggi</option>
+              <option value="mental_health">🟡 Sederhana</option>
+              <option value="none">🟢 Rendah</option>
+            </select>
+            <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+              className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+              <option value="newest">Terbaru</option>
+              <option value="risk">Risiko Tertinggi</option>
+              <option value="name">Nama A–Z</option>
+              <option value="sessions">Sesi Terbanyak</option>
+            </select>
+          </div>
 
           {loading ? (
             <div className="space-y-3">{[...Array(4)].map((_, i) => (

@@ -42,6 +42,7 @@ const KaunslorSetupPage       = lazy(() => import('./pages/kaunselor/KaunslorSet
 const KaunslorAppointmentsPage = lazy(() => import('./pages/kaunselor/KaunslorAppointmentsPage.jsx'));
 const KaunslorClientsPage     = lazy(() => import('./pages/kaunselor/KaunslorClientsPage.jsx'));
 const KaunslorClientFilePage  = lazy(() => import('./pages/kaunselor/KaunslorClientFilePage.jsx'));
+const KaunslorCalendarPage    = lazy(() => import('./pages/kaunselor/KaunslorCalendarPage.jsx'));
 const CounselorLandingPage    = lazy(() => import('./pages/CounselorLandingPage.jsx'));
 
 function PageTracker() {
@@ -256,6 +257,7 @@ export default function App() {
               {/* Counselor module — protected */}
               <Route path="/kaunselor/setup" element={<ProtectedRoute><KaunslorSetupPage /></ProtectedRoute>} />
               <Route path="/kaunselor/appointments" element={<ProtectedRoute><AppLayout><KaunslorAppointmentsPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/kaunselor/calendar" element={<ProtectedRoute><AppLayout><KaunslorCalendarPage /></AppLayout></ProtectedRoute>} />
               <Route path="/kaunselor/clients" element={<ProtectedRoute><AppLayout><KaunslorClientsPage /></AppLayout></ProtectedRoute>} />
               <Route path="/kaunselor/clients/:id" element={<ProtectedRoute><AppLayout><KaunslorClientFilePage /></AppLayout></ProtectedRoute>} />
 

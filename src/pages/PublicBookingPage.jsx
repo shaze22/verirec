@@ -154,17 +154,35 @@ export default function PublicBookingPage() {
 
         {/* Counselor card */}
         <div className="bg-white rounded-2xl border p-5 mb-4">
-          <h2 className="font-bold text-gray-900 text-lg">{counselor?.display_name}</h2>
-          {counselor?.klinik_name && <p className="text-sm text-blue-600">{counselor.klinik_name}</p>}
+          <div className="flex items-start gap-3 mb-3">
+            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xl flex-shrink-0">
+              {counselor?.display_name?.charAt(0) || 'K'}
+            </div>
+            <div className="flex-1">
+              <h2 className="font-bold text-gray-900 text-lg leading-tight">{counselor?.display_name}</h2>
+              {counselor?.klinik_name && <p className="text-sm text-blue-600">{counselor.klinik_name}</p>}
+              {counselor?.registration_number && <p className="text-xs text-gray-400">No. Pendaftaran: {counselor.registration_number}</p>}
+            </div>
+          </div>
           {counselor?.credentials?.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
+            <div className="flex flex-wrap gap-1 mb-2">
               {counselor.credentials.map(c => (
                 <span key={c} className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">{c}</span>
               ))}
             </div>
           )}
-          {counselor?.bio && <p className="text-sm text-gray-500 mt-2">{counselor.bio}</p>}
-          <p className="text-xs text-gray-400 mt-2">⏱ Tempoh sesi: {counselor?.duration} minit</p>
+          {counselor?.specializations?.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-2">
+              {counselor.specializations.map(s => (
+                <span key={s} className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full">{s}</span>
+              ))}
+            </div>
+          )}
+          {counselor?.bio && <p className="text-sm text-gray-600 mb-2">{counselor.bio}</p>}
+          <div className="flex flex-wrap gap-3 text-xs text-gray-400 mt-1">
+            <span>⏱ {counselor?.duration || 60} minit/sesi</span>
+            {counselor?.klinik_address && <span>📍 {counselor.klinik_address}</span>}
+          </div>
         </div>
 
         {/* Progress */}

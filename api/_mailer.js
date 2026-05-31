@@ -228,6 +228,35 @@ export function appointmentConfirmedEmail(counselorName, date, time, duration, i
   };
 }
 
+export function appointmentReminderEmail(clientName, counselorName, date, time, location) {
+  return {
+    subject: `⏰ Peringatan Temujanji Esok — ${date} jam ${time}`,
+    html: base(`
+      <div class="logo">
+        <div class="logo-box" style="background:#10b981"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><polyline points="2,12 5,8 8,16 11,6 14,18 17,8 19,13 21,12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
+        <span class="logo-text">VeriRec</span>
+      </div>
+      <div style="text-align:center;padding:8px 0 16px">
+        <div style="font-size:36px;margin-bottom:8px">⏰</div>
+        <h1 style="margin:0;font-size:20px;color:#0f172a">Peringatan Temujanji</h1>
+        <p style="margin:6px 0 0;color:#64748b;font-size:14px">Hai <strong>${clientName}</strong>, temujanji anda adalah <strong>esok</strong>.</p>
+      </div>
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px;margin:16px 0">
+        <table style="width:100%;border-collapse:collapse">
+          <tr><td style="padding:6px 0;font-size:16px;width:30px">👤</td><td style="padding:6px 0;color:#374151;font-size:14px"><strong>Kaunselor</strong></td><td style="padding:6px 0;color:#065f46;font-size:14px;font-weight:600;text-align:right">${counselorName}</td></tr>
+          <tr><td style="padding:6px 0;font-size:16px">📅</td><td style="padding:6px 0;color:#374151;font-size:14px"><strong>Tarikh</strong></td><td style="padding:6px 0;color:#065f46;font-size:14px;font-weight:600;text-align:right">${date}</td></tr>
+          <tr><td style="padding:6px 0;font-size:16px">🕐</td><td style="padding:6px 0;color:#374151;font-size:14px"><strong>Masa</strong></td><td style="padding:6px 0;color:#065f46;font-size:14px;font-weight:600;text-align:right">${time}</td></tr>
+          ${location ? `<tr><td style="padding:6px 0;font-size:16px">📍</td><td style="padding:6px 0;color:#374151;font-size:14px"><strong>Lokasi</strong></td><td style="padding:6px 0;color:#374151;font-size:13px;text-align:right">${location}</td></tr>` : ''}
+        </table>
+      </div>
+      <div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:10px;padding:12px 16px;margin:12px 0">
+        <p style="margin:0;color:#92400e;font-size:12px">⚠️ Jika anda tidak dapat hadir, sila hubungi kaunselor anda secepat mungkin untuk membatalkan atau menjadual semula.</p>
+      </div>
+      <p style="font-size:11px;color:#94a3b8;text-align:center;margin-top:16px">Peringatan automatik daripada VeriRec — sistem pengurusan kaunseling digital.</p>
+    `),
+  };
+}
+
 export function subscriptionCancelledEmail(planLabel) {
   return {
     subject: 'Langganan VeriRec Anda Telah Dibatalkan',

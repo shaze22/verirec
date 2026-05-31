@@ -480,6 +480,32 @@ export default function KaunslorClientFilePage() {
           {tab === 'sessions' && (
             <div className="space-y-3">
               <Button onClick={startNewSession} className="w-full">+ Mulakan Sesi Baru</Button>
+
+              {/* Risk trend */}
+              {sessions.length > 1 && sessions.some(s => s.risk_level && s.risk_level !== 'none') && (
+                <div className="bg-white rounded-xl border p-4">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Trend Risiko Merentasi Sesi</p>
+                  <div className="flex items-end gap-1.5 h-16">
+                    {[...sessions].reverse().map((s, i) => {
+                      const riskHeight = { none: 10, mental_health: 40, self_harm: 65, suicidal: 90 };
+                      const riskColor = { none: 'bg-green-400', mental_health: 'bg-amber-400', self_harm: 'bg-orange-500', suicidal: 'bg-red-500' };
+                      const level = s.risk_level || 'none';
+                      return (
+                        <div key={s.id} className="flex-1 flex flex-col items-center gap-1">
+                          <div className={`w-full rounded-t-md transition-all ${riskColor[level]}`} style={{ height: `${riskHeight[level]}%` }} title={RISK_CONFIG[level]?.label} />
+                          <span className="text-[9px] text-gray-400">{i + 1}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="flex gap-3 mt-2 flex-wrap">
+                    {[['none','bg-green-400','Rendah'],['mental_health','bg-amber-400','Sederhana'],['self_harm','bg-orange-500','Tinggi'],['suicidal','bg-red-500','Kritikal']].map(([k,c,l]) => (
+                      <div key={k} className="flex items-center gap-1"><div className={`w-2 h-2 rounded-full ${c}`}/><span className="text-[10px] text-gray-400">{l}</span></div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {sessions.length === 0 ? (
                 <div className="text-center py-12 text-gray-400">
                   <div className="text-4xl mb-3">🎙️</div>

@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, lazy, Suspense } from 'react';
 import { format } from 'date-fns';
 import { useAuthStore } from '../store/authStore.js';
 import { getSessions } from '../api/sessions.js';
@@ -6,6 +6,8 @@ import { professionLabel } from '../data/professions.js';
 import { TopBar } from '../components/layout/TopBar.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import toast from 'react-hot-toast';
+
+const CounselorDashboard = lazy(() => import('./kaunselor/CounselorDashboard.jsx'));
 
 const riskColors = { high: 'bg-red-500', medium: 'bg-amber-400', low: 'bg-green-500' };
 const riskLabels = { high: 'Tinggi', medium: 'Sederhana', low: 'Rendah' };
@@ -68,6 +70,14 @@ function exportCSV(sessions) {
 }
 
 export default function AnalyticsPage() {
+  if (localStorage.getItem('preferred_profession') === 'counselor') {
+    return (
+      <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" /></div>}>
+        <CounselorDashboard />
+      </Suspense>
+    );
+  }
+
   const { user } = useAuthStore();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
