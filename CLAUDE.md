@@ -89,15 +89,6 @@ const isInvestigationProf = ['police','sprm','sispa','skmm','hr','jtk','peguam']
 
 Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 
-## Shared Professional Module (`src/pages/professional/`)
-Digunakan oleh doctor.verirec.app dan jkm.verirec.app:
-- `ProfDashboard.jsx` — dashboard stats + laporan bulanan PDF
-- `ProfClientsPage.jsx` — senarai klien/pesakit/kes
-- `ProfClientFilePage.jsx` — 8 tabs: Maklumat|Sesi|Kalendar|Kebenaran|Plan|Rujukan|Temujanji|Nota
-- `ProfAppointmentsPage.jsx` — 4 tabs: Permintaan|Slot Masa|QR&Pautan|Rujukan Pasukan
-- `ProfCalendarPage.jsx`, `ProfSetupPage.jsx`
-
-Config per profesion: `src/lib/profConfig.js` → `PROF_CONFIG` objek (counselor/doctor/jkm).
 
 ## Hobby Plan — 12 Serverless Functions (HARD LIMIT)
 Jangan tambah function baru tanpa remove/merge yang lain dulu.
@@ -196,7 +187,7 @@ vercel deploy --prod --force --scope syedshazni-7682s-projects
 ```
 - www.verirec.app + counselor.verirec.app (doctor/jkm redirect ke www)
 - Project ID: `prj_EwnDU0nKMOn56auUR1WZF1GeNI3f`
-- Last deployed: 2026-05-31 (commit `35bc152`)
+- Last deployed: 2026-05-31 (commit `85591a0`)
 - Supabase project ID: `sbakkkxuhkxfofpfhdtn`
 
 ## ⚠️ GOTCHA KRITIKAL — Stripe + Vercel
