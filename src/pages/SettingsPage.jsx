@@ -5,7 +5,8 @@ import { useBillingStore } from '../store/billingStore.js';
 import { supabase } from '../lib/supabase.js';
 import { getSessions } from '../api/sessions.js';
 import { logEvent } from '../api/auditLog.js';
-import { getCounselorProfile } from '../api/counselor.js';
+import { getCounselorProfile, upsertCounselorProfile } from '../api/counselor.js';
+import { Input, Textarea } from '../components/ui/Input.jsx';
 import { TopBar } from '../components/layout/TopBar.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { Modal } from '../components/ui/Modal.jsx';
@@ -38,6 +39,9 @@ export default function SettingsPage() {
   const referralCode = user?.id?.replace(/-/g, '').slice(0, 10);
   const isCounselor = localStorage.getItem('preferred_profession') === 'counselor';
   const [counselorProfile, setCounselorProfile] = useState(null);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({});
+  const [savingProfile, setSavingProfile] = useState(false);
 
   useEffect(() => {
     const payment = searchParams.get('payment');
@@ -233,39 +237,121 @@ export default function SettingsPage() {
             <section className="bg-white rounded-xl border p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-gray-900">Profil Kaunselor</h2>
-                <Button variant="secondary" size="sm" onClick={() => navigate('/kaunselor/setup')}>
-                  Edit Profil
-                </Button>
+                {!editingProfile && (
+                  <Button variant="secondary" size="sm" onClick={() => {
+                    setProfileForm({
+                      display_name: counselorProfile?.display_name || '',
+                      phone: counselorProfile?.phone || '',
+                      registration_number: counselorProfile?.registration_number || '',
+                      klinik_name: counselorProfile?.klinik_name || '',
+                      klinik_address: counselorProfile?.klinik_address || '',
+                      bio: counselorProfile?.bio || '',
+                      session_duration_minutes: counselorProfile?.session_duration_minutes || 60,
+                      is_accepting_appointments: counselorProfile?.is_accepting_appointments ?? true,
+                    });
+                    setEditingProfile(true);
+                  }}>
+                    Edit Profil
+                  </Button>
+                )}
               </div>
-              {counselorProfile ? (
+
+              {editingProfile ? (
+                <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!profileForm.display_name?.trim()) return toast.error('Nama paparan diperlukan.');
+                  if (!profileForm.phone?.trim()) return toast.error('Nombor telefon diperlukan.');
+                  setSavingProfile(true);
+                  try {
+                    const updated = { ...counselorProfile, ...profileForm, user_id: user.id };
+                    await upsertCounselorProfile(updated);
+                    setCounselorProfile(prev => ({ ...prev, ...profileForm }));
+                    setEditingProfile(false);
+                    toast.success('Profil dikemaskini.');
+                  } catch (err) {
+                    toast.error(err.message || 'Gagal menyimpan.');
+                  } finally {
+                    setSavingProfile(false);
+                  }
+                }} className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Nama Paparan *</label>
+                      <Input value={profileForm.display_name} onChange={e => setProfileForm(f => ({ ...f, display_name: e.target.value }))} placeholder="Nama anda" required />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">No. Telefon *</label>
+                      <Input value={profileForm.phone} onChange={e => setProfileForm(f => ({ ...f, phone: e.target.value }))} placeholder="01X-XXXXXXX" required />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">No. Pendaftaran</label>
+                      <Input value={profileForm.registration_number} onChange={e => setProfileForm(f => ({ ...f, registration_number: e.target.value }))} placeholder="KB/00000/2020" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Nama Unit / Klinik</label>
+                      <Input value={profileForm.klinik_name} onChange={e => setProfileForm(f => ({ ...f, klinik_name: e.target.value }))} placeholder="Unit Kaunseling UTM" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Tempoh Sesi (minit)</label>
+                      <Input type="number" min="15" max="180" step="15" value={profileForm.session_duration_minutes} onChange={e => setProfileForm(f => ({ ...f, session_duration_minutes: parseInt(e.target.value) }))} />
+                    </div>
+                    <div className="flex items-center gap-3 pt-5">
+                      <input type="checkbox" id="accepting" checked={profileForm.is_accepting_appointments} onChange={e => setProfileForm(f => ({ ...f, is_accepting_appointments: e.target.checked }))} className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" />
+                      <label htmlFor="accepting" className="text-sm text-gray-700">Terima tempahan baharu</label>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 mb-1 block">Lokasi / Alamat</label>
+                    <Input value={profileForm.klinik_address} onChange={e => setProfileForm(f => ({ ...f, klinik_address: e.target.value }))} placeholder="Blok A, Bangunan Pentadbiran..." />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 mb-1 block">Bio Ringkas</label>
+                    <Textarea value={profileForm.bio} onChange={e => setProfileForm(f => ({ ...f, bio: e.target.value }))} rows={2} placeholder="Pengkhususan dan pengalaman anda..." />
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <Button type="submit" loading={savingProfile} size="sm">Simpan</Button>
+                    <Button type="button" variant="secondary" size="sm" onClick={() => setEditingProfile(false)}>Batal</Button>
+                  </div>
+                </form>
+              ) : counselorProfile ? (
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Nama Paparan</span>
-                    <span className="font-medium">{counselorProfile.display_name || '—'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Telefon</span>
-                    <span className="font-medium">{counselorProfile.phone || '—'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">No. Pendaftaran</span>
-                    <span className="font-medium">{counselorProfile.registration_number || '—'}</span>
-                  </div>
-                  <div className="flex justify-between">
+                  {[
+                    ['Nama Paparan', counselorProfile.display_name],
+                    ['Telefon', counselorProfile.phone],
+                    ['No. Pendaftaran', counselorProfile.registration_number],
+                    ['Unit / Klinik', counselorProfile.klinik_name],
+                    ['Lokasi', counselorProfile.klinik_address],
+                    ['Tempoh Sesi', counselorProfile.session_duration_minutes ? `${counselorProfile.session_duration_minutes} minit` : null],
+                  ].filter(([, v]) => v).map(([label, value]) => (
+                    <div key={label} className="flex justify-between gap-4">
+                      <span className="text-gray-500 flex-shrink-0">{label}</span>
+                      <span className="font-medium text-right">{value}</span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between pt-1 border-t border-gray-50">
                     <span className="text-gray-500">Kod Tempahan</span>
                     <span className="font-mono font-bold text-gray-900">{counselorProfile.booking_code || '—'}</span>
                   </div>
-                  {counselorProfile.klinik_address && (
-                    <div className="flex justify-between gap-4">
-                      <span className="text-gray-500 flex-shrink-0">Lokasi</span>
-                      <span className="font-medium text-right">{counselorProfile.klinik_address}</span>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Status Tempahan</span>
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${counselorProfile.is_accepting_appointments ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+                      {counselorProfile.is_accepting_appointments ? 'Menerima Tempahan' : 'Tidak Menerima'}
+                    </span>
+                  </div>
+                  {counselorProfile.bio && (
+                    <div className="pt-1 border-t border-gray-50">
+                      <p className="text-gray-500 text-xs mb-1">Bio</p>
+                      <p className="text-gray-700">{counselorProfile.bio}</p>
                     </div>
                   )}
                 </div>
               ) : (
                 <div className="text-center py-4">
                   <p className="text-sm text-gray-500 mb-3">Profil kaunselor belum disediakan.</p>
-                  <Button size="sm" onClick={() => navigate('/kaunselor/setup')}>Sediakan Profil</Button>
+                  <Button size="sm" onClick={() => {
+                    setProfileForm({ display_name: '', phone: '', registration_number: '', klinik_name: '', klinik_address: '', bio: '', session_duration_minutes: 60, is_accepting_appointments: true });
+                    setEditingProfile(true);
+                  }}>Sediakan Profil</Button>
                 </div>
               )}
             </section>
