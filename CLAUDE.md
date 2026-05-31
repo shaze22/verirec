@@ -31,6 +31,12 @@ vercel env pull .env.local --environment production --scope syedshazni-7682s-pro
 Pengesan subdomain via `src/lib/subdomain.js` — hanya `isCounselorSubdomain()`.
 `doctor.verirec.app` dan `jkm.verirec.app` dah **ditarik balik** — redirect ke `www.verirec.app`.
 
+**PENTING — Platform separation rules:**
+- `isCounselorSubdomain()` adalah **satu-satunya** penentu counselor UI — **BUKAN** `localStorage preferred_profession`
+- `Sidebar`, `BottomNav`, `App.jsx`, `DashboardPage`, `ProfessionSelectPage`, `QuestionTemplatesPage` semua guna `isCounselorSubdomain()`
+- `www.verirec.app`: sesi counselor ditapis keluar, profesi counselor tidak muncul, tab kaunseling tersembunyi
+- `/dashboard` redirect ke `/analytics` pada www — Sidebar "Papan Pemuka" link ke `/analytics`
+
 ## Tech Stack
 - React + Vite (JSX, bukan TypeScript)
 - Tailwind CSS v3
@@ -61,12 +67,11 @@ src/
   pages/
     LandingPage.jsx     — www.verirec.app (soal siasat focus, 4 kumpulan profesion)
     CounselorLandingPage.jsx  — counselor.verirec.app
-    DoctorLandingPage.jsx     — doctor.verirec.app
-    JKMLandingPage.jsx        — jkm.verirec.app
     kaunselor/          — Counselor-specific pages
-    professional/       — Shared module (ProfDashboard, ProfClientsPage, ProfClientFilePage,
-                          ProfAppointmentsPage, ProfCalendarPage, ProfSetupPage)
   components/
+    layout/
+      Sidebar.jsx       — isCounselorSubdomain() tentukan nav items
+      BottomNav.jsx     — sama, "Utama" → /analytics untuk professional
     session/
       PeaceModelPanel.jsx  — PEACE Model guide untuk investigation professions
       AssessmentPanel.jsx  — MBTI + RIASEC untuk kaunselor
@@ -187,8 +192,13 @@ vercel deploy --prod --force --scope syedshazni-7682s-projects
 ```
 - www.verirec.app + counselor.verirec.app (doctor/jkm redirect ke www)
 - Project ID: `prj_EwnDU0nKMOn56auUR1WZF1GeNI3f`
-- Last deployed: 2026-05-31 (commit `85591a0`)
+- GitHub: `https://github.com/shaze22/verirec` (branch: main)
+- Last deployed: 2026-05-31 (commit `81a04dd`)
 - Supabase project ID: `sbakkkxuhkxfofpfhdtn`
+
+**Supabase Auth URL Configuration (dashboard):**
+- Site URL: `https://www.verirec.app`
+- Redirect URLs: `https://www.verirec.app/**`, `https://counselor.verirec.app/**`
 
 ## ⚠️ GOTCHA KRITIKAL — Stripe + Vercel
 
@@ -215,8 +225,12 @@ Replace `%7B/%7D` balik ke `{}` supaya Stripe template vars berfungsi.
 - FROM: `noreply@verirec.app` dalam `api/_mailer.js`
 - `RESEND_API_KEY` set dalam Vercel · DNS Verified ✅
 
-## Test Account
-- URL: `counselor.verirec.app`
+## Test Accounts
+
+**Kaunselor (counselor.verirec.app):**
 - Email: `test.kaunselor@verirec.app` | Password: `Test1234!`
-- Plan: Counselor (10 sesi, sessions_limit=10 ✅) | Booking code: `fmw7y2qc`
-- DB: semua subscriptions plan counselor/starter dah dikemaskini ke sessions_limit=10
+- Plan: Counselor (10 sesi) | Booking code: `fmw7y2qc`
+
+**Admin / Professional (www.verirec.app):**
+- Email: `syedshazni@gmail.com` | Plan: Pro (100 sesi)
+- Dummy data: 4 kes, 5 subjek, 5 sesi (SPRM/Polis/HR/ISO), 3 ahli pasukan, 4 templat
