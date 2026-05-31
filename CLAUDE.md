@@ -28,7 +28,8 @@ vercel env pull .env.local --environment production --scope syedshazni-7682s-pro
 | VeriRec Profesional | www.verirec.app | Soal siasat + audit — Polis, MACC, HR, ISO, Halal JAKIM, Peguam, Doktor, JKM dll |
 | VeriRec Kaunselor | counselor.verirec.app | Pengurusan sesi kaunseling — fail klien, temujanji, assessment |
 
-Pengesan subdomain via `src/lib/subdomain.js` (`isCounselorSubdomain()`, `isDoctorSubdomain()`, `isJKMSubdomain()`).
+Pengesan subdomain via `src/lib/subdomain.js` — hanya `isCounselorSubdomain()`.
+`doctor.verirec.app` dan `jkm.verirec.app` dah **ditarik balik** — redirect ke `www.verirec.app`.
 
 ## Tech Stack
 - React + Vite (JSX, bukan TypeScript)
@@ -193,9 +194,9 @@ TELEGRAM_BOT_TOKEN  ← belum set, perlu dapatkan dari @BotFather
 ```bash
 vercel deploy --prod --force --scope syedshazni-7682s-projects
 ```
-- www.verirec.app + counselor.verirec.app + doctor.verirec.app + jkm.verirec.app
+- www.verirec.app + counselor.verirec.app (doctor/jkm redirect ke www)
 - Project ID: `prj_EwnDU0nKMOn56auUR1WZF1GeNI3f`
-- Last deployed: 2026-05-31 (commit `31687ca`)
+- Last deployed: 2026-05-31 (commit `35bc152`)
 - Supabase project ID: `sbakkkxuhkxfofpfhdtn`
 
 ## ⚠️ GOTCHA KRITIKAL — Stripe + Vercel
