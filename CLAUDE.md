@@ -195,7 +195,7 @@ vercel deploy --prod --force --scope syedshazni-7682s-projects
 ```
 - www.verirec.app + counselor.verirec.app + doctor.verirec.app + jkm.verirec.app
 - Project ID: `prj_EwnDU0nKMOn56auUR1WZF1GeNI3f`
-- Last deployed: 2026-05-31 (commit `04b9e6d`)
+- Last deployed: 2026-05-31 (commit `c63951d`)
 - Supabase project ID: `sbakkkxuhkxfofpfhdtn`
 
 ## ⚠️ GOTCHA KRITIKAL — Stripe + Vercel
@@ -226,4 +226,5 @@ Replace `%7B/%7D` balik ke `{}` supaya Stripe template vars berfungsi.
 ## Test Account
 - URL: `counselor.verirec.app`
 - Email: `test.kaunselor@verirec.app` | Password: `Test1234!`
-- Plan: Counselor (10 sesi) | Booking code: `fmw7y2qc`
+- Plan: Counselor (10 sesi, sessions_limit=10 ✅) | Booking code: `fmw7y2qc`
+- DB: semua subscriptions plan counselor/starter dah dikemaskini ke sessions_limit=10
