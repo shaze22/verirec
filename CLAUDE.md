@@ -99,7 +99,13 @@ const isInvestigationProf = ['police','sprm','sispa','skmm','hr','jtk','peguam']
 Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 
 
-## Features Baru (2026-05-31 — sesi terkini)
+## Features Baru (2026-05-31 — sesi terbaru)
+- `ConsentPage` + `DashboardPage`: `incrementUsage()` dipanggil selepas session insert — fix bug sessions_used tidak increment
+- `SettingsPage`: section "Pengurusan Organisasi" untuk Pro/Biz plan — org name, team members, link ke /team
+- `TeamPage`: org capacity banner — "X/5 tempat ahli · 100 sesi/ahli/bulan", warning bila had dicapai
+- Mobile SessionPage (#10): SUDAH SIAP — 4 tabs + icons + min-h-52px + AI sub-toggle
+
+## Features Baru (2026-05-31 — sesi sebelumnya)
 - `AnalyticsPage`: welcome state untuk professional user baru (0 sesi), 3 langkah onboarding
 - `Sidebar`: "Sesi Terkini" → `/sessions` (DashboardPage, sebelum "Sesi Baru")
 - `professions.js`: SISPA (OSA 1972), SKMM (CMA 1998), JTK (Akta Kerja 1955) — lengkap dengan soalan BM
@@ -207,7 +213,7 @@ vercel deploy --prod --force --scope syedshazni-7682s-projects
 - www.verirec.app + counselor.verirec.app (doctor/jkm redirect ke www)
 - Project ID: `prj_EwnDU0nKMOn56auUR1WZF1GeNI3f`
 - GitHub: `https://github.com/shaze22/verirec` (branch: main)
-- Last deployed: 2026-05-31 (commit `f66cffa` — professional UX improvements)
+- Last deployed: 2026-05-31 (commit `6005ece` — org UI, sessions_used fix, mobile confirm)
 - Supabase project ID: `sbakkkxuhkxfofpfhdtn`
 
 **Supabase Auth URL Configuration (dashboard):**
