@@ -58,6 +58,7 @@ export default function ConsentPage() {
               subject_role: setup.subject_role, case_number: setup.case_number || null,
               witness_officer: setup.witness_officer || null, context_notes: setup.context_notes,
               consent_signed: true, consent_data: consentData,
+              ...(setup.case_id ? { case_id: setup.case_id } : {}),
             })
             .select().single();
           if (error) throw error;
@@ -105,6 +106,7 @@ export default function ConsentPage() {
           context_notes: setup.context_notes,
           consent_signed: true,
           consent_data: consentData,
+          ...(setup.case_id ? { case_id: setup.case_id } : {}),
         })
         .select()
         .single();

@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore.js';
 import { getProfession } from '../data/professions.js';
 import { getMyTeam, getTeamMembers } from '../api/teams.js';
+import { supabase } from '../lib/supabase.js';
+import { isCounselorSubdomain } from '../lib/subdomain.js';
 import { TopBar } from '../components/layout/TopBar.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { Input, Textarea } from '../components/ui/Input.jsx';
@@ -52,6 +54,9 @@ export default function SessionSetupPage() {
   const profession = getProfession(professionId);
   const caseFields = professionCaseFields[professionId] || {};
   const [teamMembers, setTeamMembers] = useState([]);
+  const [activeCases, setActiveCases] = useState([]);
+  const [selectedCaseId, setSelectedCaseId] = useState('');
+  const showCasePicker = !isCounselorSubdomain();
 
   useEffect(() => {
     if (!user) return;
@@ -60,6 +65,18 @@ export default function SessionSetupPage() {
       .then(members => setTeamMembers((members || []).filter(m => m.status === 'accepted' && m.user_id !== user.id)))
       .catch(() => {});
   }, [user]);
+
+  useEffect(() => {
+    if (!user || !showCasePicker) return;
+    supabase
+      .from('cases')
+      .select('id, title, case_number, profession')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => setActiveCases(data || []))
+      .catch(() => {});
+  }, [user, showCasePicker]);
 
   const [form, setForm] = useState(() => {
     try {
@@ -89,6 +106,7 @@ export default function SessionSetupPage() {
       context_notes: '',
       assignee_id: '',
       custom_fields: {},
+      case_id: null,
     };
   });
 
@@ -105,6 +123,20 @@ export default function SessionSetupPage() {
       if (!window.confirm('Data yang anda masukkan akan hilang. Teruskan?')) return;
     }
     navigate(-1);
+  };
+
+  const handleCaseChange = (caseId) => {
+    setSelectedCaseId(caseId);
+    if (caseId) {
+      const chosen = activeCases.find(c => c.id === caseId);
+      if (chosen?.case_number) {
+        setForm(prev => ({ ...prev, case_number: prev.case_number || chosen.case_number, case_id: caseId }));
+      } else {
+        setForm(prev => ({ ...prev, case_id: caseId }));
+      }
+    } else {
+      setForm(prev => ({ ...prev, case_id: null }));
+    }
   };
 
   const handleSubmit = (e) => {
@@ -221,6 +253,36 @@ export default function SessionSetupPage() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Kaitkan dengan Fail Kes — hanya pada www.verirec.app */}
+            {showCasePicker && activeCases.length > 0 && (
+              <div>
+                <LabelWithTooltip label="Kaitkan dengan Fail Kes (pilihan)" tooltip="Pilih fail kes yang berkaitan untuk mengatur sesi ini secara automatik. Boleh ditukar kemudian." />
+                <select
+                  value={selectedCaseId}
+                  onChange={e => handleCaseChange(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Tanpa kes (kes bebas)</option>
+                  {activeCases
+                    .filter(c => !c.profession || c.profession === professionId)
+                    .map(c => (
+                      <option key={c.id} value={c.id}>
+                        {c.title}{c.case_number ? ` — ${c.case_number}` : ''}
+                      </option>
+                    ))}
+                  {activeCases.filter(c => c.profession && c.profession !== professionId).length > 0 && (
+                    activeCases
+                      .filter(c => c.profession && c.profession !== professionId)
+                      .map(c => (
+                        <option key={c.id} value={c.id}>
+                          {c.title}{c.case_number ? ` — ${c.case_number}` : ''} (profesion lain)
+                        </option>
+                      ))
+                  )}
+                </select>
               </div>
             )}
 
