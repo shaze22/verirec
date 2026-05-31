@@ -100,6 +100,27 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 
 
 ## Features Baru (2026-06-01 — sesi terbaru)
+**#13 Multi-language transcription:**
+- `api/transcribe.js`: language-aware Whisper — 'auto'=no lang (BM+EN mix detect), 'ms'/'en' → explicit
+- Prompt context Malaysia untuk setiap mod bahasa
+- `src/api/whisper.js`: `createWhisperClient({ lang })` — send language field per chunk
+- `src/hooks/useWhisper.js`: accept `lang` prop via langRef
+- `SessionPage`: default 'auto', selector "Auto BM+EN (Campuran)" | BM | EN (MY) | EN (US)
+
+**#15 Follow-up deadline notifications:**
+- `ReportView FollowUpTracker`: deadline picker per item (hover reveal), badge overdue/mendesak
+- `DashboardPage`: `getDeadlineAlerts()` — banner merah items tertunggak atau due ≤2 hari
+
+**Case management 2.0:**
+- `CaseDetailPage`: "Nota Bukti & Ulasan Kes" — textarea, simpan ke cases.description + localStorage
+- `CaseDetailPage`: "Timeline Aktiviti Kes" — collapsible chronological timeline (kes cipta → sesi → tutup)
+
+**PEACE Model auto-phase:**
+- `SessionPage`: PEACE_THRESHOLDS_SEC [0, 3min, 8min, 25min, 45min]
+- Auto-advance `currentPhase` bila timer.elapsed lepasi threshold (isInvestigationProf sahaja)
+- Toast notifikasi "📍 Fasa: [nama]", tidak berulang per phase (autoPhaseRef tracking)
+
+## Features Baru (2026-06-01 — sesi sebelumnya)
 **Chain of Custody — Lebih Kuat:**
 - `auditLog.js`: tambah `getSessionAuditLogs(sessionId)` — fetch audit events per sesi
 - `ReportView.jsx`: Chain of Custody section dinaik taraf:
@@ -227,7 +248,7 @@ vercel deploy --prod --force --scope syedshazni-7682s-projects
 - www.verirec.app + counselor.verirec.app (doctor/jkm redirect ke www)
 - Project ID: `prj_EwnDU0nKMOn56auUR1WZF1GeNI3f`
 - GitHub: `https://github.com/shaze22/verirec` (branch: main)
-- Last deployed: 2026-06-01 (commit `76800e1` — chain of custody kuat)
+- Last deployed: 2026-06-01 (commit `1bd73ba` — multilang, deadline notif, case mgmt 2.0, PEACE auto-phase)
 - Supabase project ID: `sbakkkxuhkxfofpfhdtn`
 
 **Supabase Auth URL Configuration (dashboard):**
