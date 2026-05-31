@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#064e3b"/>
+      <stop offset="100%" stop-color="#022c22"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1200" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Soft glow circles -->
+  <circle cx="1080" cy="160" r="320" fill="#10b981" opacity="0.07"/>
+  <circle cx="120" cy="510" r="220" fill="#059669" opacity="0.06"/>
+
+  <!-- Top accent bar -->
+  <rect x="0" y="0" width="1200" height="6" fill="url(#accent)"/>
+
+  <!-- Logo icon -->
+  <rect x="60" y="72" width="88" height="88" rx="20" fill="#10b981"/>
+  <polyline points="72,116 85,97 98,135 111,88 124,148 137,97 150,120 163,108 174,116"
+    stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- VeriRec wordmark -->
+  <text x="168" y="124" font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="56" font-weight="700" fill="white" letter-spacing="-1">VeriRec</text>
+  <text x="170" y="152" font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="22" font-weight="500" fill="#6ee7b7">untuk Kaunselor</text>
+
+  <!-- Horizontal divider -->
+  <rect x="60" y="192" width="540" height="2" fill="#10b981" opacity="0.4"/>
+
+  <!-- Main headline -->
+  <text x="60" y="268" font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="44" font-weight="700" fill="white">Platform Digital Sesi Kaunseling</text>
+
+  <!-- Sub headline -->
+  <text x="60" y="322" font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="24" font-weight="400" fill="#a7f3d0">Patuh SOP • Laporan AI • Tempahan QR • PDPA</text>
+
+  <!-- Feature pills -->
+  <rect x="60" y="370" width="218" height="48" rx="24" fill="#065f46" opacity="0.95"/>
+  <text x="169" y="400" text-anchor="middle"
+    font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="18" font-weight="600" fill="#6ee7b7">Case Session Note</text>
+
+  <rect x="294" y="370" width="198" height="48" rx="24" fill="#065f46" opacity="0.95"/>
+  <text x="393" y="400" text-anchor="middle"
+    font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="18" font-weight="600" fill="#6ee7b7">Red Flag AI</text>
+
+  <rect x="508" y="370" width="222" height="48" rx="24" fill="#065f46" opacity="0.95"/>
+  <text x="619" y="400" text-anchor="middle"
+    font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="18" font-weight="600" fill="#6ee7b7">MBTI + RIASEC</text>
+
+  <!-- Pricing callout -->
+  <rect x="60" y="444" width="360" height="60" rx="12" fill="#10b981" opacity="0.15"/>
+  <text x="80" y="468" font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="16" font-weight="500" fill="#6ee7b7">Plan Kaunselor</text>
+  <text x="80" y="493" font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="26" font-weight="700" fill="white">RM100/bulan • 20 sesi</text>
+
+  <!-- Trial badge -->
+  <rect x="440" y="452" width="220" height="44" rx="22" fill="#10b981"/>
+  <text x="550" y="479" text-anchor="middle"
+    font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="17" font-weight="700" fill="white">🎉 14 Hari Percuma</text>
+
+  <!-- Domain -->
+  <rect x="60" y="538" width="330" height="44" rx="10" fill="#022c22" opacity="0.85"/>
+  <text x="225" y="566" text-anchor="middle"
+    font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="20" font-weight="500" fill="#34d399">counselor.verirec.app</text>
+
+  <!-- Waveform decoration -->
+  <polyline points="840,240 865,280 890,195 915,320 940,158 965,348 990,142 1015,368 1040,172 1065,305 1090,225 1115,270 1140,245"
+    stroke="#10b981" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.28"/>
+  <polyline points="855,360 880,400 905,328 930,435 955,305 980,455 1005,290 1030,468 1055,316 1080,418 1105,352 1130,395 1155,368"
+    stroke="#059669" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.16"/>
+</svg>

@@ -8,5 +8,9 @@ Disallow: /subjects
 Disallow: /cases
 Disallow: /audit
 Disallow: /team
+Disallow: /kaunselor/clients
+Disallow: /kaunselor/appointments
+Disallow: /kaunselor/setup
 
-Sitemap: https://verirec.vercel.app/sitemap.xml
+Sitemap: https://www.verirec.app/sitemap.xml
+Sitemap: https://counselor.verirec.app/sitemap.xml

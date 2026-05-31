@@ -80,8 +80,67 @@ export default function CounselorLandingPage() {
   return (
     <>
       <Helmet>
-        <title>VeriRec Kaunselor — Platform Digital Sesi Kaunseling</title>
-        <meta name="description" content="Platform pengurusan sesi kaunseling digital — tempahan QR, fail klien, nota SOP, pengesan red flag, dan laporan AI automatik." />
+        <title>VeriRec Kaunselor — Platform Digital Sesi Kaunseling Malaysia</title>
+        <meta name="description" content="Platform pengurusan sesi kaunseling digital untuk kaunselor Malaysia — tempahan QR, fail klien, nota SOP automatik, pengesan red flag AI, MBTI & RIASEC. Cuba 14 hari percuma." />
+        <meta name="keywords" content="platform kaunseling, software kaunselor, pengurusan sesi kaunseling, nota sesi SOP, kaunselor Malaysia, rekod klien digital, tempahan kaunseling QR, laporan AI kaunseling" />
+        <meta name="robots" content="index, follow" />
+        <meta name="author" content="VeriRec" />
+        <link rel="canonical" href="https://counselor.verirec.app" />
+
+        {/* Open Graph */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://counselor.verirec.app" />
+        <meta property="og:site_name" content="VeriRec untuk Kaunselor" />
+        <meta property="og:locale" content="ms_MY" />
+        <meta property="og:title" content="VeriRec Kaunselor — Platform Digital Sesi Kaunseling Malaysia" />
+        <meta property="og:description" content="Uruskan sesi kaunseling lebih bijak — tempahan QR, fail klien digital, nota SOP AI, pengesan red flag, MBTI & RIASEC. Patuh Akta Kaunselor 1998 & PDPA. Cuba 14 hari percuma." />
+        <meta property="og:image" content="https://counselor.verirec.app/og-counselor.svg" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="VeriRec Kaunselor — Platform Digital Sesi Kaunseling" />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="VeriRec Kaunselor — Platform Digital Sesi Kaunseling Malaysia" />
+        <meta name="twitter:description" content="Uruskan sesi kaunseling lebih bijak — tempahan QR, fail klien digital, nota SOP AI, pengesan red flag. Cuba 14 hari percuma." />
+        <meta name="twitter:image" content="https://counselor.verirec.app/og-counselor.svg" />
+
+        {/* JSON-LD Structured Data */}
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          "name": "VeriRec Kaunselor",
+          "url": "https://counselor.verirec.app",
+          "description": "Platform pengurusan sesi kaunseling digital untuk kaunselor Malaysia — tempahan QR, fail klien, nota SOP automatik, pengesan red flag AI, MBTI & RIASEC.",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web",
+          "inLanguage": "ms-MY",
+          "offers": {
+            "@type": "Offer",
+            "price": "100",
+            "priceCurrency": "MYR",
+            "priceSpecification": {
+              "@type": "UnitPriceSpecification",
+              "price": "100",
+              "priceCurrency": "MYR",
+              "unitText": "bulan"
+            }
+          },
+          "publisher": {
+            "@type": "Organization",
+            "name": "VeriRec",
+            "url": "https://www.verirec.app"
+          },
+          "featureList": [
+            "Tempahan QR automatik",
+            "Fail klien digital",
+            "Nota sesi format SOP",
+            "Pengesan red flag AI",
+            "Penilaian MBTI dan RIASEC",
+            "Laporan AI selepas sesi",
+            "Patuh Akta Kaunselor 1998 dan PDPA"
+          ]
+        })}</script>
       </Helmet>
 
       <div className="min-h-screen bg-white">
