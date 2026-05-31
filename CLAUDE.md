@@ -250,7 +250,8 @@ vercel deploy --prod --force --scope syedshazni-7682s-projects
 | Free trial 14 hari — `stripe-checkout.js` `trial_period_days: 14` semua plans | ✅ 2026-05-31 |
 | Onboarding redirect ke `/kaunselor/setup` selepas signup | ✅ verified |
 | Pricing: 10 → 20 sesi/bulan (config, webhook, PricingPage, CounselorLanding, DB) | ✅ 2026-05-31 |
-| Demo / video walkthrough di landing page | ⏳ |
+| Demo interaktif 4-tab di landing page (`DemoWalkthrough.jsx`) | ✅ 2026-05-31 |
+| SEO meta tags — og:*, twitter:card, JSON-LD, og-counselor.svg, sitemap, robots | ✅ 2026-05-31 |
 
 ### 🟡 Sederhana
 | Item | Status |
