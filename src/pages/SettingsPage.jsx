@@ -567,8 +567,8 @@ export default function SettingsPage() {
             </section>
           )}
 
-          {/* Custom Report Fields */}
-          <section className="bg-white rounded-xl border p-6">
+          {/* Custom Report Fields — soal siasat/audit sahaja, bukan kaunselor */}
+          {!isCounselor && <section className="bg-white rounded-xl border p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-1">Field Laporan Tambahan</h2>
             <p className="text-sm text-gray-500 mb-4">Tambah medan khas organisasi anda yang akan muncul semasa setup sesi dan dalam laporan PDF (cth: No. Kes PDRM, Klausula ISO, No. Sijil Halal).</p>
             <div className="space-y-3">
@@ -593,7 +593,7 @@ export default function SettingsPage() {
               })}
             </div>
             <p className="text-xs text-gray-400 mt-3">Field ini akan muncul dalam "Maklumat Tambahan" semasa setup sesi. Nilai disimpan dalam rekod sesi.</p>
-          </section>
+          </section>}
 
           {/* Tukar Kata Laluan */}
           <section className="bg-white rounded-xl border p-6">

@@ -308,31 +308,31 @@ export default function QuestionTemplatesPage() {
 
         {/* ── SOALAN TAB ── */}
         {pageTab === 'soalan' && <>
-          {/* Filter bar */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {[{ value: '', label: 'Semua' }, ...USE_CASE_OPTIONS].map(uc => {
-              const count = uc.value === '' ? templates.length : templates.filter(t => t.use_case === uc.value).length;
-              const active = filterUseCase === uc.value;
-              return (
-                <button key={uc.value} onClick={() => setFilterUseCase(uc.value)}
-                  className={`inline-flex items-center gap-1.5 text-sm px-3.5 py-1.5 rounded-full font-medium transition-all border ${
-                    active ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                  }`}>
-                  {uc.label}
-                  <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${active ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
-            {!isCounselor && (
+          {/* Filter bar — use-case tabs untuk non-kaunselor sahaja */}
+          {!isCounselor && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {[{ value: '', label: 'Semua' }, ...USE_CASE_OPTIONS].map(uc => {
+                const count = uc.value === '' ? templates.length : templates.filter(t => t.use_case === uc.value).length;
+                const active = filterUseCase === uc.value;
+                return (
+                  <button key={uc.value} onClick={() => setFilterUseCase(uc.value)}
+                    className={`inline-flex items-center gap-1.5 text-sm px-3.5 py-1.5 rounded-full font-medium transition-all border ${
+                      active ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    }`}>
+                    {uc.label}
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${active ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
               <select value={filterProfession} onChange={e => setFilterProfession(e.target.value)}
                 className="px-3 py-1.5 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-600">
                 <option value="">Semua Profesion</option>
                 {PROFESSIONS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
               </select>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Import hint — subtle, compact */}
           <div className="flex items-center gap-2 text-xs text-gray-400 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
