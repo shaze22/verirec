@@ -122,6 +122,20 @@ export default function SessionSetupPage() {
             </div>
           </div>
 
+          {/* Banner: pre-filled from client file */}
+          {form.subject_id && professionId === 'counselor' && (
+            <div className="mb-4 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center gap-3">
+              <span className="text-emerald-600 text-lg">👤</span>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-emerald-800">Diteruskan dari Fail Klien</p>
+                <p className="text-xs text-emerald-600">Maklumat klien telah dipra-isi. Semak dan tambah maklumat jika perlu.</p>
+              </div>
+              <button type="button" onClick={() => navigate(-1)} className="text-xs text-emerald-600 hover:text-emerald-800 font-medium underline">
+                Kembali
+              </button>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <LabelWithTooltip label="Tajuk Sesi" required tooltip="Nama yang akan muncul dalam senarai sesi. Gunakan nama yang mudah dikenal pasti, cth: 'Sesi Penilaian Ahmad #3'." />
@@ -140,14 +154,30 @@ export default function SessionSetupPage() {
               </div>
             )}
 
-            <SubjectPicker
-              label={profession.subjectLabel || 'Nama Subjek'}
-              required
-              value={form.subject_name}
-              userId={user?.id}
-              onChangeName={(name) => setForm(prev => ({ ...prev, subject_name: name }))}
-              onChangeId={(id) => setForm(prev => ({ ...prev, subject_id: id }))}
-            />
+            {/* For counselors coming from client file, show read-only client name */}
+            {form.subject_id && professionId === 'counselor' ? (
+              <div>
+                <span className="flex items-center text-sm font-medium text-gray-700 mb-1">
+                  {profession.subjectLabel || 'Nama Klien'}
+                </span>
+                <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-gray-200 bg-gray-50">
+                  <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-sm flex-shrink-0">
+                    {form.subject_name?.charAt(0)?.toUpperCase()}
+                  </div>
+                  <span className="text-sm font-medium text-gray-800">{form.subject_name}</span>
+                  <span className="ml-auto text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">Fail Klien</span>
+                </div>
+              </div>
+            ) : (
+              <SubjectPicker
+                label={profession.subjectLabel || 'Nama Subjek'}
+                required
+                value={form.subject_name}
+                userId={user?.id}
+                onChangeName={(name) => setForm(prev => ({ ...prev, subject_name: name }))}
+                onChangeId={(id) => setForm(prev => ({ ...prev, subject_id: id }))}
+              />
+            )}
 
             <div>
               <LabelWithTooltip label="Peranan/Jawatan Subjek" tooltip="Peranan subjek dalam konteks sesi ini. Membantu AI menganalisis transkrip dengan lebih tepat." />

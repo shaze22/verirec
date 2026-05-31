@@ -91,15 +91,20 @@ export default function KaunslorClientFilePage() {
   };
 
   const startNewSession = () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const todayAppt = appointments.find(a =>
+      a.status === 'confirmed' && a.confirmed_date === today
+    );
     sessionStorage.setItem('session_setup', JSON.stringify({
       profession: 'counselor',
       subject_name: client.name,
       subject_id: client.id,
       interviewer: user?.user_metadata?.full_name || '',
       title: `Sesi ${sessions.length + 1} — ${client.name}`,
-      session_number: sessions.length + 1,
+      context_notes: client.presenting_issue || todayAppt?.presenting_issue || '',
+      appointment_id: todayAppt?.id || null,
     }));
-    navigate('/session/consent');
+    navigate('/session/setup/counselor');
   };
 
   const updateRiskLevel = async (risk_level) => {
