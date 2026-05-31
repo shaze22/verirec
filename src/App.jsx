@@ -114,12 +114,12 @@ function CounselorHome() {
   useEffect(() => {
     if (!user) return;
     const skipped = localStorage.getItem(`counselor_setup_skipped_${user.id}`);
-    if (skipped) { setDest('/kaunselor/clients'); return; }
+    if (skipped) { setDest('/analytics'); return; }
     import('./api/counselor.js').then(({ getCounselorProfile }) =>
       getCounselorProfile(user.id)
     ).then(p => {
-      setDest(p?.display_name && p?.phone ? '/kaunselor/clients' : '/kaunselor/setup');
-    }).catch(() => setDest('/kaunselor/clients'));
+      setDest(p?.display_name && p?.phone ? '/analytics' : '/kaunselor/setup');
+    }).catch(() => setDest('/analytics'));
   }, [user?.id]);
 
   if (!dest) return <LoadingSpinner />;
@@ -130,7 +130,7 @@ function HomeRoute() {
   const { user, loading } = useAuthStore();
   if (loading) return <LoadingSpinner />;
   if (user) {
-    const dest = isCounselorSubdomain() ? '/kaunselor/clients' : '/dashboard';
+    const dest = isCounselorSubdomain() ? '/analytics' : '/dashboard';
     return <Navigate to={dest} replace />;
   }
   if (isCounselorSubdomain()) return <CounselorLandingPage />;

@@ -123,7 +123,7 @@ export default function AnalyticsPage() {
   return (
     <div className="flex flex-col h-screen">
       <TopBar
-        title="Analitik"
+        title={localStorage.getItem('preferred_profession') === 'counselor' ? 'Dashboard' : 'Analitik'}
         actions={sessions.length > 0 && !loading && (
           <Button variant="secondary" size="sm" onClick={() => { exportCSV(sessions); toast.success('CSV berjaya dieksport.'); }}>
             Eksport CSV
