@@ -21,9 +21,12 @@ const PRICE_IDS = {
 
 const TOPUP_SESSIONS = { topup_1: 1, topup_5: 5, topup_10: 10 };
 
+// Strip BOM and whitespace from env var (PowerShell echo can add BOM)
+const stripeKey = () => (process.env.STRIPE_SECRET_KEY || '').replace(/^﻿/, '').trim();
+
 // Direct Stripe REST API calls — no SDK, no connection issues
 async function stripePost(path, params) {
-  const key = process.env.STRIPE_SECRET_KEY;
+  const key = stripeKey();
   const body = new URLSearchParams();
   function flatten(obj, prefix = '') {
     for (const [k, v] of Object.entries(obj)) {
@@ -48,7 +51,7 @@ async function stripePost(path, params) {
 }
 
 async function stripeGet(path) {
-  const key = process.env.STRIPE_SECRET_KEY;
+  const key = stripeKey();
   const res = await fetch(`https://api.stripe.com/v1${path}`, {
     headers: { Authorization: `Bearer ${key}` },
   });
