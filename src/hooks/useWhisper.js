@@ -1,19 +1,21 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { createWhisperClient } from '../api/whisper.js';
 
-export function useWhisper() {
+export function useWhisper({ lang = 'auto' } = {}) {
   const [transcript, setTranscript] = useState([]);
   const [status, setStatus] = useState('Bersedia');
   const chunksRef = useRef([]);
   const flushTimerRef = useRef(null);
   const clientRef = useRef(null);
   const isFlushing = useRef(false);
+  const langRef = useRef(lang);
+
+  useEffect(() => { langRef.current = lang; }, [lang]);
 
   useEffect(() => {
     clientRef.current = createWhisperClient({
       onTranscript: (text) => {
         setTranscript(prev => {
-          // Cap at 500 entries to prevent memory/DB bloat
           const next = [...prev, {
             id: crypto.randomUUID(),
             type: 'TRANSCRIPT',
@@ -28,6 +30,7 @@ export function useWhisper() {
         setStatus('Ralat pentranskripan');
       },
       onStatus: setStatus,
+      get lang() { return langRef.current; },
     });
   }, []);
 

@@ -139,9 +139,27 @@ export default async function handler(req, res) {
       return res.status(413).json({ error: 'Audio chunk too large' });
     }
 
+    // Language routing: 'auto' = no language param (Whisper auto-detect, best for BM+EN mix)
+    // 'ms' / 'ms-MY' → language=ms, 'en' variants → language=en
+    const rawLang = (fields.language || '').toLowerCase();
+    const whisperLang = rawLang === 'auto' || rawLang === '' ? null
+      : rawLang.startsWith('ms') ? 'ms'
+      : rawLang.startsWith('en') ? 'en'
+      : rawLang;
+
+    // Prompt guides Whisper on Malaysian context + code-switching
+    const prompts = {
+      ms: 'Soal siasat atau mesyuarat dalam Bahasa Malaysia. Nama, tempat, dan istilah rasmi Malaysia.',
+      en: 'Professional interview or meeting in English. Malaysian context, proper nouns.',
+      null: 'Soal siasat dalam Bahasa Malaysia dan English. Interview with code-switching BM+EN. Malaysian names and institutions.',
+    };
+    const whisperPrompt = prompts[whisperLang] ?? prompts[null];
+
     const form = new FormData();
     form.append('file', new Blob([audioBuffer], { type: audioMime }), 'audio.webm');
     form.append('model', 'whisper-1');
+    form.append('prompt', whisperPrompt);
+    if (whisperLang) form.append('language', whisperLang);
 
     const whisperRes = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',

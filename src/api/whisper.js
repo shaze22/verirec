@@ -45,7 +45,7 @@ export async function pollDiarization(jobId, { onProgress, maxWaitMs = 180_000 }
   throw new Error('diarize_timeout');
 }
 
-export function createWhisperClient({ onTranscript, onError, onStatus } = {}) {
+export function createWhisperClient({ onTranscript, onError, onStatus, lang = 'auto' } = {}) {
   let inFlight = 0;
   const MAX_CONCURRENT = 3;
 
@@ -60,6 +60,7 @@ export function createWhisperClient({ onTranscript, onError, onStatus } = {}) {
 
       const form = new FormData();
       form.append('audio', blob, 'chunk.webm');
+      form.append('language', lang || 'auto');
 
       const res = await fetch(CONFIG.api.transcribe, {
         method: 'POST',

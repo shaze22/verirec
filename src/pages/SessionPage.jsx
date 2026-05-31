@@ -55,20 +55,37 @@ export default function SessionPage() {
   const [generateStep, setGenerateStep] = useState('');
   const [started, setStarted] = useState(false);
   const [crisisAlert, setCrisisAlert] = useState(null);
-  const [transcriptLang, setTranscriptLang] = useState('ms-MY');
+  const [transcriptLang, setTranscriptLang] = useState('auto');
   const [endError, setEndError] = useState(false);
+  const autoPhaseRef = useRef(new Set()); // track which phases already auto-suggested
 
   const isResuming = sessionStorage.getItem('resuming') === 'true';
 
   const { start, pause, resume, stop, audioBlob, level, isRecording, isPaused, error: micError } = useAudioRecorder();
-  const { transcript, addChunk, flush } = useWhisper();
+  const { transcript, addChunk, flush } = useWhisper({ lang: transcriptLang });
   const timer = useTimer();
 
 
   const autoSaveRef = useRef(null);
   const detectedFlagsRef = useRef(new Set());
   const durationAtStopRef = useRef(0);
-  const fullAudioChunksRef = useRef([]); // collect all chunks for AssemblyAI diarization
+  const fullAudioChunksRef = useRef([]);
+
+  // PEACE Model auto-phase — advance phase based on elapsed time (investigation professions only)
+  const PEACE_THRESHOLDS_SEC = [0, 3 * 60, 8 * 60, 25 * 60, 45 * 60];
+  useEffect(() => {
+    if (!isInvestigationProf || !started || isPaused || !profession?.phases?.length) return;
+    const elapsed = timer.elapsed;
+    profession.phases.forEach((phase, idx) => {
+      if (idx === 0) return; // skip first phase (already active at start)
+      const threshold = PEACE_THRESHOLDS_SEC[idx] ?? (idx * 10 * 60);
+      if (elapsed >= threshold && !autoPhaseRef.current.has(idx)) {
+        autoPhaseRef.current.add(idx);
+        setCurrentPhase(phase);
+        toast(`📍 Fasa: ${phase}`, { icon: '🔄', duration: 3000 });
+      }
+    });
+  }, [timer.elapsed, started, isPaused, isInvestigationProf]);
 
   useEffect(() => {
     if (!sessionId) { navigate('/session/new'); return; }
@@ -455,8 +472,8 @@ export default function SessionPage() {
                 disabled={started}
                 className="text-xs border border-gray-200 rounded px-1.5 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50 ml-2 flex-shrink-0"
               >
+                <option value="auto">Auto BM+EN</option>
                 <option value="ms-MY">BM</option>
-                <option value="ms">Melayu</option>
                 <option value="en-MY">EN (MY)</option>
                 <option value="en-US">EN (US)</option>
               </select>
@@ -484,8 +501,8 @@ export default function SessionPage() {
                   disabled={started}
                   className="text-xs border border-gray-200 rounded px-1.5 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
                 >
-                  <option value="ms-MY">BM (Malaysia)</option>
-                  <option value="ms">Melayu</option>
+                  <option value="auto">Auto BM+EN (Campuran)</option>
+                  <option value="ms-MY">Bahasa Malaysia</option>
                   <option value="en-MY">English (MY)</option>
                   <option value="en-US">English (US)</option>
                 </select>

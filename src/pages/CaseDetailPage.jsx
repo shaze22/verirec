@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import {
@@ -106,12 +106,16 @@ export default function CaseDetailPage() {
   const [removing, setRemoving] = useState(null);
   const [statusSaving, setStatusSaving] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [showTimeline, setShowTimeline] = useState(false);
+  const [evidenceNote, setEvidenceNote] = useState('');
+  const [evidenceSaving, setEvidenceSaving] = useState(false);
 
   const load = useCallback(async () => {
     try {
       const [c, s] = await Promise.all([getCase(id), getCaseSessions(id)]);
       setCaseData(c);
       setSessions(s);
+      setEvidenceNote(localStorage.getItem(`case_evidence_${id}`) || c.description || '');
     } catch {
       toast.error('Fail kes tidak dijumpai.');
       navigate('/cases');
@@ -337,6 +341,86 @@ export default function CaseDetailPage() {
               ))}
             </div>
           )}
+
+          {/* Nota Bukti */}
+          <div className="bg-white border rounded-xl p-5 mt-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Nota Bukti & Ulasan Kes</h3>
+              <Button
+                size="sm"
+                variant="secondary"
+                loading={evidenceSaving}
+                onClick={async () => {
+                  setEvidenceSaving(true);
+                  try {
+                    localStorage.setItem(`case_evidence_${id}`, evidenceNote);
+                    await updateCase(id, { description: evidenceNote });
+                    toast.success('Nota disimpan.');
+                  } catch {
+                    localStorage.setItem(`case_evidence_${id}`, evidenceNote);
+                    toast.success('Nota disimpan secara tempatan.');
+                  } finally {
+                    setEvidenceSaving(false);
+                  }
+                }}
+              >
+                Simpan
+              </Button>
+            </div>
+            <textarea
+              value={evidenceNote}
+              onChange={e => setEvidenceNote(e.target.value)}
+              rows={4}
+              placeholder="Catatan bukti, nota siasatan, senarai dokumen, status tindakan polis/pendakwa raya..."
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            />
+            <p className="text-xs text-gray-400 mt-1">Nota ini disimpan dalam fail kes. Tidak dikira dalam hash sesi.</p>
+          </div>
+
+          {/* Timeline Kes */}
+          <div className="bg-white border rounded-xl overflow-hidden mt-4">
+            <button
+              onClick={() => setShowTimeline(p => !p)}
+              className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 transition-colors text-left"
+            >
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Timeline Aktiviti Kes</h3>
+              <svg className={`w-4 h-4 text-gray-400 transition-transform ${showTimeline ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {showTimeline && (
+              <div className="px-5 pb-5">
+                <div className="relative pl-5 border-l-2 border-gray-200 space-y-4">
+                  {/* Case created */}
+                  <div className="relative">
+                    <span className="absolute -left-[21px] w-4 h-4 rounded-full bg-blue-500 border-2 border-white" />
+                    <p className="text-xs text-gray-400">{format(new Date(caseData.created_at), 'dd MMM yyyy, HH:mm')}</p>
+                    <p className="text-sm font-medium text-gray-700">Fail kes dicipta</p>
+                    <p className="text-xs text-gray-500">{caseData.title}</p>
+                  </div>
+                  {/* Sessions in chronological order */}
+                  {[...sessions].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).map(s => (
+                    <div key={s.id} className="relative">
+                      <span className={`absolute -left-[21px] w-4 h-4 rounded-full border-2 border-white ${s.report ? 'bg-green-500' : 'bg-amber-400'}`} />
+                      <p className="text-xs text-gray-400">{format(new Date(s.created_at), 'dd MMM yyyy, HH:mm')}</p>
+                      <p className="text-sm font-medium text-gray-700 cursor-pointer hover:text-blue-600" onClick={() => navigate(`/session/${s.id}`)}>
+                        {s.title}
+                      </p>
+                      <p className="text-xs text-gray-500">{s.subject_name} · {Math.round((s.duration || 0) / 60)} min · {s.report ? '✓ Laporan siap' : 'Belum dijana'}</p>
+                    </div>
+                  ))}
+                  {/* Status if closed */}
+                  {caseData.status === 'closed' && (
+                    <div className="relative">
+                      <span className="absolute -left-[21px] w-4 h-4 rounded-full bg-gray-400 border-2 border-white" />
+                      <p className="text-xs text-gray-400">{format(new Date(caseData.updated_at || caseData.created_at), 'dd MMM yyyy')}</p>
+                      <p className="text-sm font-medium text-gray-700">Kes ditutup</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

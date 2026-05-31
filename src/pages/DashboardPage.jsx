@@ -79,6 +79,22 @@ function getOverdueFollowUps(sessions) {
   return count;
 }
 
+function getDeadlineAlerts(sessions) {
+  const today = new Date().toISOString().split('T')[0];
+  const alerts = [];
+  for (const s of sessions) {
+    if (!s.report?.followUpItems?.length) continue;
+    const checked = (() => { try { return JSON.parse(localStorage.getItem(`followup_${s.id}`) || '{}'); } catch { return {}; } })();
+    const deadlines = (() => { try { return JSON.parse(localStorage.getItem(`followup_deadlines_${s.id}`) || '{}'); } catch { return {}; } })();
+    s.report.followUpItems.forEach((item, i) => {
+      if (checked[i] || !deadlines[i]) return;
+      const daysLeft = Math.ceil((new Date(deadlines[i] + 'T00:00:00') - new Date(today + 'T00:00:00')) / 86400000);
+      if (daysLeft <= 2) alerts.push({ session: s, item, daysLeft, deadline: deadlines[i] });
+    });
+  }
+  return alerts.sort((a, b) => a.daysLeft - b.daysLeft);
+}
+
 const statusConfig = {
   active:  { label: 'Aktif',        color: 'green' },
   pending: { label: 'Ditangguhkan', color: 'yellow' },
@@ -303,6 +319,7 @@ export default function DashboardPage({ pageTitle }) {
   };
 
   const overdueCount = useMemo(() => getOverdueFollowUps(sessions), [sessions]);
+  const deadlineAlerts = useMemo(() => getDeadlineAlerts(sessions), [sessions]);
 
   const usageWarning = subscription && subscription.sessions_limit !== -1 &&
     subscription.sessions_used >= subscription.sessions_limit - 1 &&
@@ -421,6 +438,29 @@ export default function DashboardPage({ pageTitle }) {
             <p className="text-sm text-blue-800 flex-1">
               <span className="font-semibold">{overdueCount} item susulan</span> belum diselesaikan merentas sesi anda.
             </p>
+          </div>
+        )}
+
+        {/* Deadline alerts — overdue or due within 2 days */}
+        {!loading && deadlineAlerts.length > 0 && (
+          <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 space-y-2">
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-red-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-sm font-semibold text-red-800">Tindakan Susulan Mendesak ({deadlineAlerts.length})</p>
+            </div>
+            {deadlineAlerts.slice(0, 3).map((a, i) => (
+              <div key={i} className="flex items-start justify-between gap-2 pl-6">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-red-700 truncate">{a.session.title}</p>
+                  <p className="text-xs text-red-600 truncate">{a.item}</p>
+                </div>
+                <span className={`text-xs font-semibold flex-shrink-0 px-2 py-0.5 rounded-full ${a.daysLeft < 0 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                  {a.daysLeft < 0 ? `${Math.abs(a.daysLeft)}h tertunggak` : a.daysLeft === 0 ? 'Hari ini' : `${a.daysLeft}h lagi`}
+                </span>
+              </div>
+            ))}
           </div>
         )}
 

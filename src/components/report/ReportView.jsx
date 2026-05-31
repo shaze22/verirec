@@ -47,9 +47,14 @@ function Section({ title, children, color = 'gray' }) {
 
 function FollowUpTracker({ sessionId, items }) {
   const storageKey = `followup_${sessionId}`;
+  const deadlineKey = `followup_deadlines_${sessionId}`;
   const [checked, setChecked] = useState(() => {
     try { return JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch { return {}; }
   });
+  const [deadlines, setDeadlines] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(deadlineKey) || '{}'); } catch { return {}; }
+  });
+  const [editDeadline, setEditDeadline] = useState(null); // index of item being edited
 
   const toggle = (i) => {
     setChecked(prev => {
@@ -57,6 +62,26 @@ function FollowUpTracker({ sessionId, items }) {
       localStorage.setItem(storageKey, JSON.stringify(next));
       return next;
     });
+  };
+
+  const setDeadline = (i, date) => {
+    setDeadlines(prev => {
+      const next = { ...prev, [i]: date };
+      localStorage.setItem(deadlineKey, JSON.stringify(next));
+      return next;
+    });
+    setEditDeadline(null);
+  };
+
+  const today = new Date().toISOString().split('T')[0];
+
+  const deadlineStatus = (i) => {
+    const d = deadlines[i];
+    if (!d || checked[i]) return null;
+    if (d < today) return 'overdue';
+    const daysLeft = Math.ceil((new Date(d) - new Date(today)) / 86400000);
+    if (daysLeft <= 2) return 'soon';
+    return 'ok';
   };
 
   if (!items?.length) return null;
@@ -72,21 +97,54 @@ function FollowUpTracker({ sessionId, items }) {
         <div className="bg-amber-500 h-1.5 rounded-full transition-all" style={{ width: `${(done / items.length) * 100}%` }} />
       </div>
       <ul className="space-y-2">
-        {items.map((item, i) => (
-          <li key={i} className={`flex items-start gap-3 cursor-pointer group p-2 rounded-lg transition-colors ${checked[i] ? 'bg-amber-100/60' : 'hover:bg-amber-100/40'}`} onClick={() => toggle(i)}>
-            <div className={`w-5 h-5 rounded flex-shrink-0 border-2 flex items-center justify-center mt-0.5 transition-colors ${checked[i] ? 'bg-green-500 border-green-500' : 'border-amber-400 group-hover:border-amber-600'}`}>
-              {checked[i] && (
-                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-              )}
-            </div>
-            <div className="flex-1 flex items-start justify-between gap-2">
-              <span className={`text-sm transition-colors ${checked[i] ? 'text-amber-600 opacity-60' : 'text-amber-900'}`}>{item}</span>
-              {checked[i] && <span className="text-xs font-medium text-green-600 bg-green-100 px-1.5 py-0.5 rounded flex-shrink-0">Selesai</span>}
-            </div>
-          </li>
-        ))}
+        {items.map((item, i) => {
+          const ds = deadlineStatus(i);
+          return (
+            <li key={i} className={`flex items-start gap-3 group p-2 rounded-lg transition-colors ${checked[i] ? 'bg-amber-100/60' : 'hover:bg-amber-100/40'}`}>
+              <div
+                className={`w-5 h-5 rounded flex-shrink-0 border-2 flex items-center justify-center mt-0.5 transition-colors cursor-pointer ${checked[i] ? 'bg-green-500 border-green-500' : 'border-amber-400 group-hover:border-amber-600'}`}
+                onClick={() => toggle(i)}
+              >
+                {checked[i] && (
+                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className={`text-sm cursor-pointer ${checked[i] ? 'text-amber-600 opacity-60 line-through' : 'text-amber-900'}`} onClick={() => toggle(i)}>{item}</span>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  {/* Deadline display */}
+                  {deadlines[i] && !checked[i] && (
+                    <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${ds === 'overdue' ? 'bg-red-100 text-red-700' : ds === 'soon' ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-600'}`}>
+                      {ds === 'overdue' ? '⚠ Tertunggak' : ds === 'soon' ? '⏰ Mendesak' : '📅'} {format(new Date(deadlines[i] + 'T00:00:00'), 'dd/MM/yyyy')}
+                    </span>
+                  )}
+                  {/* Deadline set button */}
+                  {!checked[i] && editDeadline !== i && (
+                    <button onClick={() => setEditDeadline(i)} className="text-xs text-amber-600 hover:text-amber-800 underline opacity-0 group-hover:opacity-100 transition-opacity">
+                      {deadlines[i] ? 'Tukar tarikh' : '+ Tarikh akhir'}
+                    </button>
+                  )}
+                  {editDeadline === i && (
+                    <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                      <input
+                        type="date"
+                        min={today}
+                        defaultValue={deadlines[i] || today}
+                        className="text-xs border border-amber-300 rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                        onKeyDown={e => { if (e.key === 'Enter') setDeadline(i, e.target.value); if (e.key === 'Escape') setEditDeadline(null); }}
+                        autoFocus
+                      />
+                      <button onClick={e => setDeadline(i, e.target.previousSibling.value)} className="text-xs text-green-600 hover:text-green-800 font-medium">✓</button>
+                      <button onClick={() => setEditDeadline(null)} className="text-xs text-gray-400 hover:text-gray-600">✕</button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
