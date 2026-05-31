@@ -33,6 +33,10 @@ Pengesan subdomain via `src/lib/subdomain.js` — hanya `isCounselorSubdomain()`
 
 **PENTING — Platform separation rules:**
 - `isCounselorSubdomain()` adalah **satu-satunya** penentu counselor UI — **BUKAN** `localStorage preferred_profession`
+- `AnalyticsPage`: guna `isCounselorSubdomain()` untuk render CounselorDashboard, default `useCase='soal-siasat'` untuk www
+- Route `/sessions` → DashboardPage dengan `pageTitle="Sesi Terkini"` (tanpa redirect ke /analytics)
+- `SessionSetupPage`: dropdown "Fail Kes" hanya pada www.verirec.app (`!isCounselorSubdomain()`), simpan `case_id` ke sessionStorage
+- `ConsentPage`: masukkan `case_id` dari sessionStorage ke dalam session insert
 - `Sidebar`, `BottomNav`, `App.jsx`, `DashboardPage`, `ProfessionSelectPage`, `QuestionTemplatesPage` semua guna `isCounselorSubdomain()`
 - `www.verirec.app`: sesi counselor ditapis keluar, profesi counselor tidak muncul, tab kaunseling tersembunyi
 - `/dashboard` redirect ke `/analytics` pada www — Sidebar "Papan Pemuka" link ke `/analytics`
@@ -95,6 +99,16 @@ const isInvestigationProf = ['police','sprm','sispa','skmm','hr','jtk','peguam']
 Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 
 
+## Features Baru (2026-05-31 — sesi terkini)
+- `AnalyticsPage`: welcome state untuk professional user baru (0 sesi), 3 langkah onboarding
+- `Sidebar`: "Sesi Terkini" → `/sessions` (DashboardPage, sebelum "Sesi Baru")
+- `professions.js`: SISPA (OSA 1972), SKMM (CMA 1998), JTK (Akta Kerja 1955) — lengkap dengan soalan BM
+- `SessionSetupPage`: dropdown "Fail Kes" — link sesi ke kes semasa setup (www.verirec.app sahaja)
+- `SessionReportPage`: butang "Semak Keaslian Dokumen" — verify SHA-256 hash server-side
+- `api/report.js`: GET endpoint `?verify=true&session_id=` untuk hash verification
+- `CaseDetailPage`: butang "📦 Eksport Kes" — jsPDF export semua sesi dalam kes
+- `PricingPage`: plan "Organisasi" (RM999/bulan, 5 pengguna, 100 sesi/pengguna) ditambah
+
 ## Hobby Plan — 12 Serverless Functions (HARD LIMIT)
 Jangan tambah function baru tanpa remove/merge yang lain dulu.
 Semasa: admin, cron-reset-usage, gemini, report, share-session, stripe-billing, stripe-checkout, stripe-webhook, suggest, team-invite, transcribe, user-notifications
@@ -137,9 +151,9 @@ Semasa: admin, cron-reset-usage, gemini, report, share-session, stripe-billing, 
 - **TIADA free trial** — `trial_period_days` dibuang
 
 **PricingPage dalam app (`/pricing`):**
-- Tab "VeriRec Profesional": Percuma + Profesional (RM100) + top-up + Enterprise hubungi
+- Tab "VeriRec Profesional": Percuma + Profesional (RM100) + Organisasi (RM999, 5 pengguna) + Enterprise hubungi
 - Tab "Kaunselor": Kaunselor (RM100) + top-up
-- Pro/Biz tidak dipaparkan — hanya via Enterprise inquiry
+- Pro/Biz ditunjuk sebagai "Organisasi" — Stripe price ID tidak diubah
 
 ## Counselor Module
 - Public booking: `/book/:booking_code` → `PublicBookingPage.jsx`
@@ -193,7 +207,7 @@ vercel deploy --prod --force --scope syedshazni-7682s-projects
 - www.verirec.app + counselor.verirec.app (doctor/jkm redirect ke www)
 - Project ID: `prj_EwnDU0nKMOn56auUR1WZF1GeNI3f`
 - GitHub: `https://github.com/shaze22/verirec` (branch: main)
-- Last deployed: 2026-05-31 (commit `81a04dd`)
+- Last deployed: 2026-05-31 (commit `f66cffa` — professional UX improvements)
 - Supabase project ID: `sbakkkxuhkxfofpfhdtn`
 
 **Supabase Auth URL Configuration (dashboard):**
