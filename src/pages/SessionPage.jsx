@@ -45,6 +45,7 @@ export default function SessionPage() {
   const [flags, setFlags] = useState([]);
   const [lastAsked, setLastAsked] = useState('');
   const [activeTab, setActiveTab] = useState('transcript');
+  const [mobileAiTab, setMobileAiTab] = useState('ai');
   const [endModal, setEndModal] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [generateStep, setGenerateStep] = useState('');
@@ -361,6 +362,12 @@ export default function SessionPage() {
   const recentTranscript = entries.filter(e => e.type === 'TRANSCRIPT').slice(-5).map(e => e.text);
   const tabs = ['transcript', 'questions', 'assessment', 'ai', 'flags'];
   const tabLabels = { transcript: 'Transkrip', questions: 'Soalan', assessment: 'Assessment', ai: 'Cadangan AI', flags: `Bendera${flags.length ? ` (${flags.length})` : ''}` };
+  const mobileTabs = [
+    { key: 'transcript', icon: '📝', label: 'Transkrip' },
+    { key: 'questions',  icon: '❓', label: 'Soalan' },
+    { key: 'ai',        icon: '🤖', label: 'AI' },
+    { key: 'flags',     icon: '🚩', label: 'Bendera' },
+  ];
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -405,61 +412,80 @@ export default function SessionPage() {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                 </svg>
-                Mula Rakaman
+                {isMobile ? 'Mula' : 'Mula Rakaman'}
               </Button>
             ) : isPaused ? (
               <Button onClick={handleResume} variant="secondary">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                 </svg>
-                Sambung
+                {isMobile ? 'Sambung' : 'Sambung'}
               </Button>
             ) : (
               <Button onClick={handlePause} variant="secondary">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M10 9v6m4-6v6" />
                 </svg>
-                Jeda
+                {isMobile ? 'Jeda' : 'Jeda'}
               </Button>
             )}
             {started && (
-              <Button onClick={() => setEndModal(true)} variant="danger" className="ml-4">
-                Tamat Sesi
+              <Button onClick={() => setEndModal(true)} variant="danger" className={isMobile ? '' : 'ml-4'}>
+                {isMobile ? 'Tamat' : 'Tamat Sesi'}
               </Button>
             )}
           </div>
         </div>
 
         {/* Session context bar */}
-        <div className="px-4 py-1.5 bg-gray-50 border-t flex items-center gap-4 text-xs text-gray-500 overflow-x-auto">
-          <span className="font-medium text-gray-700 truncate max-w-[200px]">{setup.title || 'Sesi tanpa tajuk'}</span>
-          <span className="text-gray-300">|</span>
-          <span>{profession?.sessionType || 'Sesi'}</span>
-          <span className="text-gray-300">|</span>
-          <span>Subjek: <strong className="text-gray-700">{setup.subject_name || '—'}</strong></span>
-          {setup.case_number && (
-            <>
-              <span className="text-gray-300">|</span>
-              <span>No. Kes: <strong className="text-gray-700">{setup.case_number}</strong></span>
-            </>
-          )}
-          {isSpeechRecognitionSupported && (
-            <div className="ml-auto flex items-center gap-1.5 flex-shrink-0">
-              <span className="text-gray-400">Bahasa:</span>
+        {isMobile ? (
+          <div className="px-4 py-1.5 bg-gray-50 border-t flex items-center justify-between text-xs text-gray-500 min-w-0">
+            <span className="font-medium text-gray-700 truncate">{setup.subject_name || setup.title || 'Sesi'}</span>
+            {isSpeechRecognitionSupported && (
               <select
                 value={transcriptLang}
                 onChange={e => setTranscriptLang(e.target.value)}
                 disabled={started}
-                className="text-xs border border-gray-200 rounded px-1.5 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                className="text-xs border border-gray-200 rounded px-1.5 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50 ml-2 flex-shrink-0"
               >
-                <option value="ms-MY">BM (Malaysia)</option>
+                <option value="ms-MY">BM</option>
                 <option value="ms">Melayu</option>
-                <option value="en-MY">English (MY)</option>
-                <option value="en-US">English (US)</option>
+                <option value="en-MY">EN (MY)</option>
+                <option value="en-US">EN (US)</option>
               </select>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        ) : (
+          <div className="px-4 py-1.5 bg-gray-50 border-t flex items-center gap-4 text-xs text-gray-500 overflow-x-auto">
+            <span className="font-medium text-gray-700 truncate max-w-[200px]">{setup.title || 'Sesi tanpa tajuk'}</span>
+            <span className="text-gray-300">|</span>
+            <span>{profession?.sessionType || 'Sesi'}</span>
+            <span className="text-gray-300">|</span>
+            <span>Subjek: <strong className="text-gray-700">{setup.subject_name || '—'}</strong></span>
+            {setup.case_number && (
+              <>
+                <span className="text-gray-300">|</span>
+                <span>No. Kes: <strong className="text-gray-700">{setup.case_number}</strong></span>
+              </>
+            )}
+            {isSpeechRecognitionSupported && (
+              <div className="ml-auto flex items-center gap-1.5 flex-shrink-0">
+                <span className="text-gray-400">Bahasa:</span>
+                <select
+                  value={transcriptLang}
+                  onChange={e => setTranscriptLang(e.target.value)}
+                  disabled={started}
+                  className="text-xs border border-gray-200 rounded px-1.5 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                >
+                  <option value="ms-MY">BM (Malaysia)</option>
+                  <option value="ms">Melayu</option>
+                  <option value="en-MY">English (MY)</option>
+                  <option value="en-US">English (US)</option>
+                </select>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Main Content */}
@@ -477,17 +503,31 @@ export default function SessionPage() {
 
       {isMobile ? (
         <div className="flex flex-col flex-1 overflow-hidden">
-          <div className="flex border-b bg-white">
-            {tabs.map(tab => (
+          {/* Mobile tab bar — 4 tabs with icons */}
+          <div className="flex border-b bg-white px-1 flex-shrink-0">
+            {mobileTabs.map(t => (
               <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`flex-1 py-2 text-xs font-medium transition-colors ${activeTab === tab ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                key={t.key}
+                onClick={() => setActiveTab(t.key)}
+                className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 relative transition-colors min-h-[52px] ${
+                  activeTab === t.key ? 'text-blue-600' : 'text-gray-400'
+                }`}
               >
-                {tabLabels[tab]}
+                <span className="text-[18px] leading-none">{t.icon}</span>
+                <span className="text-[10px] font-medium leading-none">{t.label}</span>
+                {t.key === 'flags' && flags.length > 0 && (
+                  <span className="absolute top-2 right-[20%] min-w-[16px] h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1">
+                    {flags.length}
+                  </span>
+                )}
+                {activeTab === t.key && (
+                  <span className="absolute bottom-0 left-[20%] right-[20%] h-0.5 bg-blue-600 rounded-t-full" />
+                )}
               </button>
             ))}
           </div>
+
+          {/* Tab content */}
           <div className="flex-1 overflow-hidden">
             {activeTab === 'transcript' && <TranscriptPanel entries={entries} interim={interim} />}
             {activeTab === 'questions' && (
@@ -496,23 +536,40 @@ export default function SessionPage() {
                 currentPhase={currentPhase} onPhaseChange={setCurrentPhase} onAsk={handleAsk}
               />
             )}
-            {activeTab === 'assessment' && (
-              <AssessmentPanel
-                sessionId={sessionId}
-                subjectId={setup.subject_id}
-                userId={user?.id}
-              />
-            )}
             {activeTab === 'ai' && (
-              <AISuggestions
-                profession={setup.profession} phase={currentPhase}
-                lastQuestion={lastAsked} recentTranscript={recentTranscript}
-                entries={entries} isActive={started && !isPaused}
-                onSuggest={handleAsk}
-              />
+              <div className="flex flex-col h-full">
+                {/* AI sub-toggle */}
+                <div className="flex bg-gray-50 border-b text-xs flex-shrink-0">
+                  <button
+                    onClick={() => setMobileAiTab('ai')}
+                    className={`flex-1 py-2.5 font-semibold transition-colors ${mobileAiTab === 'ai' ? 'text-blue-600 border-b-2 border-blue-600 bg-white' : 'text-gray-500'}`}
+                  >
+                    🤖 Cadangan AI
+                  </button>
+                  <button
+                    onClick={() => setMobileAiTab('assessment')}
+                    className={`flex-1 py-2.5 font-semibold transition-colors ${mobileAiTab === 'assessment' ? 'text-blue-600 border-b-2 border-blue-600 bg-white' : 'text-gray-500'}`}
+                  >
+                    📊 Assessment
+                  </button>
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  {mobileAiTab === 'ai' ? (
+                    <AISuggestions
+                      profession={setup.profession} phase={currentPhase}
+                      lastQuestion={lastAsked} recentTranscript={recentTranscript}
+                      entries={entries} isActive={started && !isPaused}
+                      onSuggest={handleAsk}
+                    />
+                  ) : (
+                    <AssessmentPanel sessionId={sessionId} subjectId={setup.subject_id} userId={user?.id} />
+                  )}
+                </div>
+              </div>
             )}
             {activeTab === 'flags' && <FlagsPanel flags={flags} onRemove={removeFlag} />}
           </div>
+
           {started && <NoteBar onNote={handleNote} onFlag={handleFlag} />}
         </div>
       ) : (
