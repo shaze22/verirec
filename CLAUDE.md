@@ -259,7 +259,7 @@ vercel deploy --prod --force --scope syedshazni-7682s-projects
 | jsPDF text-based — ganti html2canvas, exportPDF sepenuhnya text-based | ✅ 2026-05-31 |
 | Bulk export data klien — CSV 14 kolumn dalam KaunslorClientsPage | ✅ 2026-05-31 |
 | Walk-in + booking unified flow — startNewSession → /session/setup/counselor | ✅ 2026-05-31 |
-| Mobile SessionPage redesign | ⏳ |
+| Mobile SessionPage redesign — 4-tab icons, AI+Assessment sub-toggle, compact bar | ✅ 2026-05-31 |
 
 ### Stripe Live Mode Steps
 1. Stripe dashboard → Live Mode → buat products sama
