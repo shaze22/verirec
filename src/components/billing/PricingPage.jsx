@@ -102,8 +102,8 @@ export function PricingPage() {
         ? 'Sila log masuk semula.'
         : err.message === 'Stripe not configured'
         ? 'Sistem pembayaran belum dikonfigurasi.'
-        : 'Pembayaran gagal. Cuba lagi.';
-      toast.error(msg);
+        : `Ralat: ${err.message}`;
+      toast.error(msg, { duration: 8000 });
     } finally {
       setLoading(null);
     }

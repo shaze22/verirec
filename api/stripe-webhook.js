@@ -6,7 +6,10 @@ const supabaseAdmin = createClient(
   process.env.VITE_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
 );
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: '2024-06-20',
+  maxNetworkRetries: 0,
+});
 
 const PLAN_LIMITS = { free: 2, counselor: 20, starter: 20, pro: 100, biz: -1 };
 

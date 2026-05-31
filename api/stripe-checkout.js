@@ -32,7 +32,11 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Stripe not configured' });
   }
 
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2024-06-20',
+    maxNetworkRetries: 0,
+    timeout: 8000,
+  });
 
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
@@ -63,11 +67,13 @@ export default async function handler(req, res) {
 
     let customerId = sub?.stripe_customer_id;
     if (customerId) {
-      // Verify customer exists in current Stripe mode (test↔live mismatch check)
+      // Verify customer exists in current Stripe mode (test↔live mismatch)
       try {
-        await stripe.customers.retrieve(customerId);
-      } catch {
-        customerId = null;
+        const cus = await stripe.customers.retrieve(customerId);
+        if (cus.deleted) customerId = null;
+      } catch (e) {
+        if (e.code === 'resource_missing') customerId = null;
+        else throw e;
       }
     }
     if (!customerId) {
