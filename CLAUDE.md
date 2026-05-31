@@ -267,6 +267,28 @@ vercel deploy --prod --force --scope syedshazni-7682s-projects
 3. Update `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` ke live keys
 4. Update webhook endpoint: `https://www.verirec.app/api/stripe-webhook`
 
+### ⚠️ GOTCHA KRITIKAL — Stripe + Vercel
+
+**1. PowerShell echo menambah BOM pada env vars**
+Jangan guna `echo "value" | vercel env add ...` — menambah BOM (U+FEFF) yang rosak API calls.
+Cara betul:
+```powershell
+$val = "sk_live_..."
+[System.IO.File]::WriteAllText("$env:TEMP\ev.txt", $val, [System.Text.UTF8Encoding]::new($false))
+Get-Content "$env:TEMP\ev.txt" | vercel env add VAR_NAME production --scope ...
+Remove-Item "$env:TEMP\ev.txt"
+```
+Dalam code, guna `clean()` helper: `const clean = (v) => (v || '').replace(/^﻿/, '').trim()`
+
+**2. Stripe SDK v22 tidak compatible dengan Vercel ESM**
+Jangan guna `new Stripe(key)` SDK — menyebabkan "An error occurred with our connection to Stripe".
+Guna `fetch` terus ke `https://api.stripe.com/v1/...` dengan Authorization header.
+Bila encode params, `encodeURIComponent()` pada VALUES sahaja — bukan KEYS (keys ada literal `[]`).
+
+**3. Stripe checkout success/cancel URL mesti guna origin dari request**
+Jangan hardcode `VITE_APP_URL` — counselor.verirec.app dan www.verirec.app ada session berasingan.
+Frontend hantar `window.location.origin`, server guna sebagai base URL.
+
 ## Email Domain (verirec.app)
 - Domain `verirec.app` dah tambah dalam Resend (ID: `0d836d3d-fddd-4462-b390-736bd1ebc8e4`, region Tokyo)
 - FROM: `noreply@verirec.app` dalam `api/_mailer.js`
