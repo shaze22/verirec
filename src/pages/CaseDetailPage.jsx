@@ -12,6 +12,79 @@ import { Badge } from '../components/ui/Badge.jsx';
 import { professionLabel } from '../data/professions.js';
 import toast from 'react-hot-toast';
 
+async function exportCasePDF(caseData, sessions) {
+  const { default: jsPDF } = await import('jspdf');
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W = pdf.internal.pageSize.getWidth();
+  const margin = 20;
+  const lineH = 7;
+  let y = margin;
+
+  const addLine = (text, size = 11, bold = false, color = [30, 30, 30]) => {
+    pdf.setFontSize(size);
+    pdf.setFont('helvetica', bold ? 'bold' : 'normal');
+    pdf.setTextColor(...color);
+    const lines = pdf.splitTextToSize(String(text || ''), W - margin * 2);
+    lines.forEach(line => {
+      if (y > 270) { pdf.addPage(); y = margin; }
+      pdf.text(line, margin, y);
+      y += lineH;
+    });
+  };
+
+  // Header
+  addLine('VeriRec — Eksport Fail Kes', 16, true, [37, 99, 235]);
+  addLine(`Sulit — Untuk Kegunaan Rasmi Sahaja`, 9, false, [150, 150, 150]);
+  y += 4;
+
+  // Case details
+  addLine(`Tajuk Kes: ${caseData.title}`, 13, true);
+  if (caseData.case_number) addLine(`No. Kes: ${caseData.case_number}`);
+  addLine(`Profesion: ${professionLabel(caseData.profession)}`);
+  addLine(`Status: ${caseData.status === 'active' ? 'Aktif' : caseData.status === 'closed' ? 'Ditutup' : 'Ditangguhkan'}`);
+  if (caseData.description) addLine(`Keterangan: ${caseData.description}`);
+  addLine(`Jumlah Sesi: ${sessions.length}`);
+  addLine(`Laporan Dijana: ${sessions.filter(s => s.report).length}`);
+  y += 5;
+
+  // Sessions list
+  addLine('Senarai Sesi', 12, true, [37, 99, 235]);
+  pdf.setDrawColor(200, 200, 200);
+  pdf.line(margin, y, W - margin, y);
+  y += 5;
+
+  sessions.forEach((s, i) => {
+    if (y > 250) { pdf.addPage(); y = margin; }
+    addLine(`${i + 1}. ${s.title}`, 11, true);
+    addLine(`   Subjek: ${s.subject_name} | Tarikh: ${format(new Date(s.created_at), 'dd/MM/yyyy')} | Tempoh: ${Math.round((s.duration || 0) / 60)} min`);
+    if (s.report?.riskLevel) addLine(`   Tahap Risiko: ${s.report.riskLevel === 'high' ? 'Tinggi' : s.report.riskLevel === 'medium' ? 'Sederhana' : 'Rendah'}`);
+    if (s.report?.summary) addLine(`   Ringkasan: ${s.report.summary}`, 10, false, [80, 80, 80]);
+    if (s.hash) addLine(`   Hash: ${s.hash.slice(0, 16)}…`, 9, false, [130, 130, 130]);
+    y += 2;
+  });
+
+  y += 5;
+
+  // Case hash
+  const crypto = await import('crypto');
+  const caseHashPayload = JSON.stringify({ case_id: caseData.id, sessions: sessions.map(s => s.hash || s.id) });
+  const caseHash = typeof window !== 'undefined'
+    ? await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(caseHashPayload))
+      .then(buf => Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join(''))
+    : '';
+
+  // Footer
+  if (y > 260) { pdf.addPage(); y = margin; }
+  pdf.setDrawColor(200, 200, 200);
+  pdf.line(margin, y, W - margin, y);
+  y += 5;
+  addLine('Sulit — Untuk Kegunaan Rasmi Sahaja', 9, true, [150, 50, 50]);
+  addLine(`Tarikh Eksport: ${format(new Date(), 'dd MMMM yyyy, HH:mm')}`, 9, false, [130, 130, 130]);
+  if (caseHash) addLine(`SHA-256 Kes: ${caseHash.slice(0, 32)}…`, 8, false, [130, 130, 130]);
+
+  pdf.save(`verirec-kes-${(caseData.case_number || caseData.id).replace(/[^a-z0-9]/gi, '-')}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+}
+
 const statusConfig = {
   active:  { label: 'Aktif',        color: 'green' },
   pending: { label: 'Ditangguhkan', color: 'yellow' },
@@ -32,6 +105,7 @@ export default function CaseDetailPage() {
   const [adding, setAdding] = useState(null);
   const [removing, setRemoving] = useState(null);
   const [statusSaving, setStatusSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -190,7 +264,29 @@ export default function CaseDetailPage() {
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
               Sesi dalam Fail Kes ({sessions.length})
             </h3>
-            <Button size="sm" onClick={openAddModal}>+ Tambah Sesi</Button>
+            <div className="flex items-center gap-2">
+              {sessions.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  loading={exporting}
+                  onClick={async () => {
+                    setExporting(true);
+                    try {
+                      await exportCasePDF(caseData, sessions);
+                      toast.success('PDF kes berjaya dieksport.');
+                    } catch {
+                      toast.error('Gagal mengeksport PDF kes.');
+                    } finally {
+                      setExporting(false);
+                    }
+                  }}
+                >
+                  📦 Eksport Kes
+                </Button>
+              )}
+              <Button size="sm" onClick={openAddModal}>+ Tambah Sesi</Button>
+            </div>
           </div>
 
           {sessions.length === 0 ? (
