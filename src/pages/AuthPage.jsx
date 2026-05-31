@@ -91,7 +91,7 @@ export default function AuthPage() {
   const subdomainProfession = counselorSubdomain ? 'counselor' : doctorSubdomain ? 'doctor' : jkmSubdomain ? 'jkm' : null;
   const professionFromUrl = subdomainProfession ?? searchParams.get('profession');
   const professionLabel = getProfessionLabel(professionFromUrl);
-  const postAuthRoute = counselorSubdomain ? '/kaunselor/clients' : doctorSubdomain ? '/doktor/clients' : jkmSubdomain ? '/jkm/clients' : '/dashboard';
+  const postAuthRoute = counselorSubdomain ? '/analytics' : doctorSubdomain ? '/doktor/dashboard' : jkmSubdomain ? '/jkm/dashboard' : '/dashboard';
 
   // Redirect when user is set (covers OAuth callback timing)
   useEffect(() => {
