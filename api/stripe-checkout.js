@@ -6,23 +6,24 @@ const supabaseAdmin = createClient(
 );
 
 const PRICE_IDS = {
-  starter_monthly:   process.env.STRIPE_PRICE_STARTER_MONTHLY,
-  starter_annual:    process.env.STRIPE_PRICE_STARTER_ANNUAL,
-  pro_monthly:       process.env.STRIPE_PRICE_PRO_MONTHLY,
-  pro_annual:        process.env.STRIPE_PRICE_PRO_ANNUAL,
-  biz_monthly:       process.env.STRIPE_PRICE_BIZ_MONTHLY,
-  biz_annual:        process.env.STRIPE_PRICE_BIZ_ANNUAL,
-  counselor_monthly: process.env.STRIPE_PRICE_COUNSELOR_MONTHLY,
-  counselor_annual:  process.env.STRIPE_PRICE_COUNSELOR_ANNUAL,
-  topup_1:           process.env.STRIPE_PRICE_TOPUP_1,
-  topup_5:           process.env.STRIPE_PRICE_TOPUP_5,
-  topup_10:          process.env.STRIPE_PRICE_TOPUP_10,
+  starter_monthly:   clean(process.env.STRIPE_PRICE_STARTER_MONTHLY),
+  starter_annual:    clean(process.env.STRIPE_PRICE_STARTER_ANNUAL),
+  pro_monthly:       clean(process.env.STRIPE_PRICE_PRO_MONTHLY),
+  pro_annual:        clean(process.env.STRIPE_PRICE_PRO_ANNUAL),
+  biz_monthly:       clean(process.env.STRIPE_PRICE_BIZ_MONTHLY),
+  biz_annual:        clean(process.env.STRIPE_PRICE_BIZ_ANNUAL),
+  counselor_monthly: clean(process.env.STRIPE_PRICE_COUNSELOR_MONTHLY),
+  counselor_annual:  clean(process.env.STRIPE_PRICE_COUNSELOR_ANNUAL),
+  topup_1:           clean(process.env.STRIPE_PRICE_TOPUP_1),
+  topup_5:           clean(process.env.STRIPE_PRICE_TOPUP_5),
+  topup_10:          clean(process.env.STRIPE_PRICE_TOPUP_10),
 };
 
 const TOPUP_SESSIONS = { topup_1: 1, topup_5: 5, topup_10: 10 };
 
-// Strip BOM and whitespace from env var (PowerShell echo can add BOM)
-const stripeKey = () => (process.env.STRIPE_SECRET_KEY || '').replace(/^﻿/, '').trim();
+// Strip BOM (U+FEFF) and whitespace — PowerShell echo adds BOM to env vars
+const clean = (v) => (v || '').replace(/^﻿/, '').trim();
+const stripeKey = () => clean(process.env.STRIPE_SECRET_KEY);
 
 // Direct Stripe REST API calls — no SDK, no connection issues
 async function stripePost(path, params) {
