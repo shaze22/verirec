@@ -239,7 +239,7 @@ vercel deploy --prod --force --scope syedshazni-7682s-projects
 ### 🔴 Kritikal (sebelum launch sebenar)
 | Item | Status |
 |------|--------|
-| Stripe live mode — products, prices, webhook, env vars semua live | ✅ 2026-05-31 |
+| Stripe live mode — products, prices, webhook, env vars semua live, topup diuji berjaya | ✅ 2026-05-31 |
 | Rate limit `/book/:booking_code` — RPC max 30/jam + honeypot + 5s load check | ✅ 2026-05-31 |
 | Error boundary React — `ErrorBoundary.jsx` wrap App dalam `main.jsx` | ✅ 2026-05-31 |
 | Stripe webhook URL: update ke `https://www.verirec.app/api/stripe-webhook` | ⏳ Manual |
