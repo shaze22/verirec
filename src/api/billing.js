@@ -20,7 +20,7 @@ async function authFetch(url, body) {
 }
 
 export async function createStripeCheckout(plan, annual = false) {
-  return authFetch(CONFIG.api.stripeCheckout, { plan, annual });
+  return authFetch(CONFIG.api.stripeCheckout, { plan, annual, origin: window.location.origin });
 }
 
 export async function createStripePortalSession() {

@@ -75,7 +75,8 @@ export default async function handler(req, res) {
     if (authError || !user) return res.status(401).json({ error: 'Unauthorized' });
 
     const body = await readBody(req);
-    const { plan, annual = false } = body;
+    const { plan, annual = false, origin } = body;
+    const baseUrl = origin || process.env.VITE_APP_URL || 'https://www.verirec.app';
 
     const isTopup = plan in TOPUP_SESSIONS;
     const isSubscription = ['starter', 'pro', 'biz', 'counselor'].includes(plan);
@@ -118,8 +119,8 @@ export default async function handler(req, res) {
       'payment_method_types[0]': 'card',
       'line_items[0][price]': priceId,
       'line_items[0][quantity]': 1,
-      success_url: `${process.env.VITE_APP_URL}/settings?payment=success`,
-      cancel_url: `${process.env.VITE_APP_URL}/pricing?payment=cancelled`,
+      success_url: `${baseUrl}/settings?payment=success&plan=${plan}`,
+      cancel_url: `${baseUrl}/pricing?payment=cancelled`,
       'metadata[user_id]': user.id,
       'metadata[plan]': plan,
     };

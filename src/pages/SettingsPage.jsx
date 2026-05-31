@@ -41,8 +41,13 @@ export default function SettingsPage() {
 
   useEffect(() => {
     const payment = searchParams.get('payment');
+    const plan = searchParams.get('plan');
     if (payment === 'success') {
-      toast.success('Pembayaran berjaya! Pelan anda telah dikemas kini.');
+      const topupMap = { topup_1: '1 sesi', topup_5: '5 sesi', topup_10: '10 sesi' };
+      const msg = topupMap[plan]
+        ? `Top-up berjaya! ${topupMap[plan]} tambahan telah dikreditkan.`
+        : 'Pembayaran berjaya! Pelan anda telah dikemas kini.';
+      toast.success(msg, { duration: 6000 });
       if (user) fetchSubscription(user.id);
     } else if (payment === 'cancelled') {
       toast.error('Pembayaran dibatalkan.');
