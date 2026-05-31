@@ -81,7 +81,7 @@ export default async function handler(req, res) {
 
     let sessionParams = {
       customer: customerId,
-      automatic_payment_methods: { enabled: true },
+      payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${process.env.VITE_APP_URL}/settings?payment=success`,
       cancel_url:  `${process.env.VITE_APP_URL}/pricing?payment=cancelled`,
