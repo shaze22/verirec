@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase.js';
 import { getSessions } from '../api/sessions.js';
 import { logEvent } from '../api/auditLog.js';
 import { getCounselorProfile, upsertCounselorProfile } from '../api/counselor.js';
-import { getSessionReceipt } from '../api/billing.js';
+import { getSessionReceipt, getStripeInvoices } from '../api/billing.js';
 import { Input, Textarea } from '../components/ui/Input.jsx';
 import { TopBar } from '../components/layout/TopBar.jsx';
 import { Button } from '../components/ui/Button.jsx';
@@ -58,14 +58,25 @@ export default function SettingsPage() {
       // Show payment success modal
       const isTopup = plan in TOPUP_LABELS;
       setPaymentModal({ plan, sessionId, amount: TOPUP_AMOUNTS[plan] || null, receiptUrl: null });
-      // Fetch receipt in background
-      if (sessionId) {
-        getSessionReceipt(sessionId).then(data => {
-          if (data?.receipt_url) {
-            setPaymentModal(prev => prev ? { ...prev, receiptUrl: data.receipt_url, amount: data.amount ? data.amount / 100 : prev.amount } : prev);
+      // Fetch receipt in background — try session first, fallback to latest charge
+      const fetchReceipt = async () => {
+        try {
+          if (sessionId) {
+            const data = await getSessionReceipt(sessionId);
+            if (data?.receipt_url) {
+              setPaymentModal(prev => prev ? { ...prev, receiptUrl: data.receipt_url, amount: data.amount ? data.amount / 100 : prev.amount } : prev);
+              return;
+            }
           }
-        }).catch(() => {});
-      }
+          // Fallback: get latest charge receipt
+          const { charges } = await getStripeInvoices();
+          const latest = charges?.[0];
+          if (latest?.receipt_url) {
+            setPaymentModal(prev => prev ? { ...prev, receiptUrl: latest.receipt_url, amount: latest.amount ? latest.amount / 100 : prev.amount } : prev);
+          }
+        } catch { /* silent fail — user can use Urus Langganan */ }
+      };
+      fetchReceipt();
     } else if (payment === 'cancelled') {
       toast.error('Pembayaran dibatalkan.');
     }

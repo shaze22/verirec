@@ -30,7 +30,12 @@ const TOPUP_SESSIONS = { topup_1: 1, topup_5: 5, topup_10: 10 };
 function toFormBody(params) {
   return Object.entries(params)
     .filter(([, v]) => v !== null && v !== undefined)
-    .map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`)
+    .map(([k, v]) => {
+      // Preserve {} for Stripe template vars like {CHECKOUT_SESSION_ID}
+      const encoded = encodeURIComponent(String(v))
+        .replace(/%7B/g, '{').replace(/%7D/g, '}');
+      return `${k}=${encoded}`;
+    })
     .join('&');
 }
 
