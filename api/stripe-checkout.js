@@ -1,5 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 
+// Strip BOM (U+FEFF) and whitespace — PowerShell echo adds BOM to env vars
+const clean = (v) => (v || '').replace(/^﻿/, '').trim();
+const stripeKey = () => clean(process.env.STRIPE_SECRET_KEY);
+
 const supabaseAdmin = createClient(
   process.env.VITE_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
@@ -20,10 +24,6 @@ const PRICE_IDS = {
 };
 
 const TOPUP_SESSIONS = { topup_1: 1, topup_5: 5, topup_10: 10 };
-
-// Strip BOM (U+FEFF) and whitespace — PowerShell echo adds BOM to env vars
-const clean = (v) => (v || '').replace(/^﻿/, '').trim();
-const stripeKey = () => clean(process.env.STRIPE_SECRET_KEY);
 
 // Direct Stripe REST API calls — no SDK, no connection issues
 // Keys contain literal [] (e.g. line_items[0][price]) — must NOT be encoded
