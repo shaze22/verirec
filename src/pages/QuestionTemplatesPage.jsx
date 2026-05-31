@@ -308,27 +308,38 @@ export default function QuestionTemplatesPage() {
 
         {/* ── SOALAN TAB ── */}
         {pageTab === 'soalan' && <>
-          {/* Use case tabs */}
-          <div className="flex gap-2 flex-wrap">
-            {[{ value: '', label: 'Semua' }, ...USE_CASE_OPTIONS].map(uc => (
-              <button key={uc.value} onClick={() => setFilterUseCase(uc.value)}
-                className={`text-sm px-3 py-1.5 rounded-full font-medium transition-colors border ${filterUseCase === uc.value ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'}`}>
-                {uc.label}
-              </button>
-            ))}
+          {/* Filter bar */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {[{ value: '', label: 'Semua' }, ...USE_CASE_OPTIONS].map(uc => {
+              const count = uc.value === '' ? templates.length : templates.filter(t => t.use_case === uc.value).length;
+              const active = filterUseCase === uc.value;
+              return (
+                <button key={uc.value} onClick={() => setFilterUseCase(uc.value)}
+                  className={`inline-flex items-center gap-1.5 text-sm px-3.5 py-1.5 rounded-full font-medium transition-all border ${
+                    active ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  }`}>
+                  {uc.label}
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${active ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
             {!isCounselor && (
               <select value={filterProfession} onChange={e => setFilterProfession(e.target.value)}
-                className="ml-2 px-3 py-1.5 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                className="px-3 py-1.5 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-600">
                 <option value="">Semua Profesion</option>
                 {PROFESSIONS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
               </select>
             )}
-            <span className="text-sm text-gray-400 flex items-center">{filtered.length} templat</span>
           </div>
 
-          {/* Import info */}
-          <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs text-blue-700">
-            <strong>Import Template:</strong> Guna butang "📥 Import" untuk muat naik fail <code>.csv</code> (satu soalan per baris) atau <code>.json</code> ({`{"name":"...", "questions":["..."], "use_case":"kaunseling"}`}).
+          {/* Import hint — subtle, compact */}
+          <div className="flex items-center gap-2 text-xs text-gray-400 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
+            <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Sokong import <strong>.csv</strong> (satu soalan per baris) dan <strong>.json</strong> — guna butang Import di atas kanan.</span>
           </div>
 
           {loading ? (
