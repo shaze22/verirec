@@ -1,10 +1,59 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
 import { useAuthStore } from '../../store/authStore.js';
 import { supabase } from '../../lib/supabase.js';
 import { TopBar } from '../../components/layout/TopBar.jsx';
 import { Button } from '../../components/ui/Button.jsx';
 import toast from 'react-hot-toast';
+
+function csvEscape(val) {
+  if (val == null) return '';
+  const s = String(val).replace(/"/g, '""');
+  return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s}"` : s;
+}
+
+async function exportClientsCSV(userId) {
+  const { data, error } = await supabase
+    .from('subjects')
+    .select('*, sessions(count), action_plans(id), clinical_referrals(id)')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+
+  const headers = [
+    'Nama', 'No. IC', 'No. Matrik/Staff', 'Tarikh Lahir', 'Jantina',
+    'Telefon', 'E-mel', 'Alamat', 'Tahap Risiko', 'Isu Utama',
+    'Jumlah Sesi', 'Jumlah Plan Tindakan', 'Jumlah Rujukan',
+    'Tarikh Didaftar',
+  ];
+
+  const rows = (data || []).map(c => [
+    c.name,
+    c.ic_number,
+    c.student_id,
+    c.date_of_birth ? format(new Date(c.date_of_birth), 'dd/MM/yyyy') : '',
+    c.gender,
+    c.phone,
+    c.email,
+    c.address,
+    c.risk_level || 'none',
+    c.presenting_issue,
+    c.sessions?.[0]?.count ?? 0,
+    c.action_plans?.length ?? 0,
+    c.clinical_referrals?.length ?? 0,
+    c.created_at ? format(new Date(c.created_at), 'dd/MM/yyyy') : '',
+  ].map(csvEscape));
+
+  const csv = [headers.map(csvEscape), ...rows].map(r => r.join(',')).join('\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `verirec-klien-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function KaunslorClientsPage() {
   const { user } = useAuthStore();
@@ -15,6 +64,7 @@ export default function KaunslorClientsPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [addForm, setAddForm] = useState({ name: '', phone: '', email: '', ic_number: '', address: '', notes: '' });
   const [adding, setAdding] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -48,7 +98,19 @@ export default function KaunslorClientsPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <TopBar title="Klien" action={<Button size="sm" onClick={() => setShowAdd(true)}>+ Klien Baru</Button>} />
+      <TopBar title="Klien" action={
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="secondary" loading={exporting} onClick={async () => {
+            setExporting(true);
+            try { await exportClientsCSV(user.id); toast.success('Data klien dieksport.'); }
+            catch { toast.error('Gagal mengeksport data.'); }
+            finally { setExporting(false); }
+          }}>
+            📤 Eksport CSV
+          </Button>
+          <Button size="sm" onClick={() => setShowAdd(true)}>+ Klien Baru</Button>
+        </div>
+      } />
       <div className="flex-1 overflow-auto p-4">
         <div className="max-w-2xl mx-auto space-y-4">
           <input type="text" placeholder="Cari nama, telefon, atau IC..." value={search}
