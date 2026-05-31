@@ -42,6 +42,8 @@ export default function PublicBookingPage() {
   const [consent, setConsent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
+  const [honeypot, setHoneypot] = useState(''); // bot trap — should always be empty
+  const pageLoadTime = useState(() => Date.now())[0];
 
   useEffect(() => {
     getCounselorByCode(code)
@@ -78,6 +80,10 @@ export default function PublicBookingPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!consent) return;
+    // Honeypot check — bots fill hidden fields, humans don't
+    if (honeypot) return;
+    // Minimum time check — humans take at least 5 seconds to fill a form
+    if (Date.now() - pageLoadTime < 5000) return;
     setSubmitting(true);
     try {
       const res = await submitAppointment(code, { ...form, date: selectedDate, time: selectedTime, consent });
@@ -90,7 +96,12 @@ export default function PublicBookingPage() {
       }
       setStep(4);
     } catch (err) {
-      alert('Gagal menghantar tempahan. Sila cuba lagi.');
+      const msg = err?.message || '';
+      if (msg.includes('rate_limit_exceeded')) {
+        alert('Terlalu banyak tempahan dihantar. Sila cuba lagi selepas sejam.');
+      } else {
+        alert('Gagal menghantar tempahan. Sila cuba lagi.');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -340,6 +351,13 @@ export default function PublicBookingPage() {
         {/* ── STEP 3: Consent ── */}
         {step === 3 && (
           <form onSubmit={handleSubmit} className="bg-white rounded-2xl border p-5 space-y-4">
+            {/* Honeypot — hidden from humans, filled by bots */}
+            <input
+              type="text" name="website" value={honeypot}
+              onChange={e => setHoneypot(e.target.value)}
+              style={{ display: 'none' }} tabIndex={-1} autoComplete="off"
+              aria-hidden="true"
+            />
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-gray-900">Persetujuan Klien</h3>
               <button type="button" onClick={() => setStep(2)} className="text-sm text-blue-600">← Kembali</button>

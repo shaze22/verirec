@@ -245,13 +245,91 @@ export default function KaunslorClientFilePage() {
                 )}
               </div>
 
+              {/* Intake completeness warning for walk-in clients */}
+              {!client?.ic_number && !client?.date_of_birth && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+                  <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                  </svg>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-amber-900">Borang Intake Tidak Lengkap</p>
+                    <p className="text-xs text-amber-700 mt-0.5">Klien ini masuk secara walk-in. Sila lengkapkan maklumat peribadi (IC, tarikh lahir, dsb.) mengikut SOP Borang Intake.</p>
+                  </div>
+                  <Button size="sm" variant="secondary" onClick={() => setEditing(true)}>Lengkapkan</Button>
+                </div>
+              )}
+
               {/* Personal details */}
               <div className="bg-white rounded-xl border p-5">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold text-gray-900">Maklumat Peribadi</h3>
                   {editing
                     ? <div className="flex gap-2"><Button size="sm" loading={saving} onClick={handleSave}>Simpan</Button><Button size="sm" variant="secondary" onClick={() => setEditing(false)}>Batal</Button></div>
-                    : <Button size="sm" variant="secondary" onClick={() => setEditing(true)}>Edit</Button>
+                    : <div className="flex gap-2">
+                        <Button size="sm" variant="secondary" onClick={() => {
+                          const counselorName = user?.user_metadata?.full_name || 'Kaunselor';
+                          const win = window.open('', '_blank', 'width=794,height=1123');
+                          const dobFmt = client.date_of_birth ? format(new Date(client.date_of_birth), 'dd/MM/yyyy') : '___________';
+                          const maritalMap = { single: 'Bujang', married: 'Berkahwin', divorced: 'Bercerai', widowed: 'Balu/Duda' };
+                          win.document.write(`<!DOCTYPE html><html><head>
+                            <title>Borang Intake — ${client.name}</title>
+                            <style>
+                              body{font-family:Arial,sans-serif;font-size:11px;padding:30px;color:#111;line-height:1.5}
+                              h1{font-size:13px;text-align:center;text-transform:uppercase;margin:0}
+                              h2{font-size:11px;text-align:center;color:#444;margin:2px 0 16px}
+                              .section{margin-bottom:14px}
+                              .sec-title{font-size:10px;font-weight:bold;text-transform:uppercase;background:#eee;padding:3px 6px;margin-bottom:6px}
+                              .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+                              .field{margin-bottom:6px}
+                              .label{font-size:9px;color:#666;text-transform:uppercase;margin-bottom:1px}
+                              .value{border-bottom:1px solid #999;min-height:16px;padding-bottom:1px;font-size:11px}
+                              .checkbox-row{display:flex;gap:16px;align-items:center;margin-bottom:4px}
+                              .cb{width:12px;height:12px;border:1px solid #333;display:inline-block;margin-right:4px;vertical-align:middle}
+                              .cb.checked{background:#333}
+                              .footer{margin-top:24px;font-size:8px;color:#888;text-align:center;border-top:1px solid #ddd;padding-top:6px}
+                              @media print{body{padding:15px}}
+                            </style></head><body>
+                            <h1>BORANG INTAKE KAUNSELING</h1>
+                            <h2>(Counseling Intake Form — CIF)</h2>
+                            <div class="sec-title">A. Maklumat Peribadi</div>
+                            <div class="grid">
+                              <div class="field"><div class="label">Nama Penuh</div><div class="value">${client.name||''}</div></div>
+                              <div class="field"><div class="label">No. IC / Passport</div><div class="value">${client.ic_number||''}</div></div>
+                              <div class="field"><div class="label">No. Matrik / Kakitangan</div><div class="value">${client.student_id||''}</div></div>
+                              <div class="field"><div class="label">Tarikh Lahir</div><div class="value">${dobFmt}</div></div>
+                              <div class="field"><div class="label">Jantina</div><div class="value">${client.gender||''}</div></div>
+                              <div class="field"><div class="label">Bangsa</div><div class="value">${client.race||''}</div></div>
+                              <div class="field"><div class="label">Agama</div><div class="value">${client.religion||''}</div></div>
+                              <div class="field"><div class="label">Status Perkahwinan</div><div class="value">${maritalMap[client.marital_status]||''}</div></div>
+                              <div class="field"><div class="label">Tahun Pengajian</div><div class="value">${client.year_of_study||''}</div></div>
+                              <div class="field"><div class="label">Pekerjaan / Program</div><div class="value">${client.occupation||''}</div></div>
+                              <div class="field"><div class="label">No. Telefon</div><div class="value">${client.phone||''}</div></div>
+                              <div class="field"><div class="label">E-mel</div><div class="value">${client.email||''}</div></div>
+                            </div>
+                            <div class="field"><div class="label">Alamat</div><div class="value">${client.address||''}</div></div>
+                            <div class="field"><div class="label">Kontak Kecemasan (Nama / Tel.)</div><div class="value">${client.emergency_contact_name||''} ${client.emergency_contact_phone ? '/ '+client.emergency_contact_phone : ''}</div></div>
+                            <div class="sec-title" style="margin-top:10px">B. Maklumat Sesi</div>
+                            <div class="grid">
+                              <div class="field"><div class="label">Jenis Sesi</div><div class="value">${client.session_type==='referred'?'Rujukan':'Sukarela'}</div></div>
+                              <div class="field"><div class="label">Sumber Rujukan</div><div class="value">${client.referral_source||''}</div></div>
+                            </div>
+                            <div class="field"><div class="label">Isu yang Dibawa (Presenting Issue)</div><div class="value" style="min-height:30px">${client.presenting_issue||''}</div></div>
+                            <div class="sec-title" style="margin-top:10px">C. Sejarah Klinikal</div>
+                            <div class="checkbox-row"><span class="${client.previous_counseling?'cb checked':'cb'}"></span>Pernah menerima kaunseling sebelum ini</div>
+                            <div class="checkbox-row"><span class="${client.psychiatric_history?'cb checked':'cb'}"></span>Ada sejarah psikiatri</div>
+                            <div class="checkbox-row"><span class="${client.psychiatric_medication?'cb checked':'cb'}"></span>Sedang mengambil ubat psikiatri</div>
+                            <div class="checkbox-row"><span class="${client.hostel_resident?'cb checked':'cb'}"></span>Penghuni asrama</div>
+                            <div style="margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:40px">
+                              <div><div style="border-top:1px solid #333;padding-top:4px;margin-top:40px"><strong>${client.name||'___________________'}</strong><br/>Tandatangan Klien<br/><span style="font-size:9px">Tarikh: ${format(new Date(),'dd/MM/yyyy')}</span></div></div>
+                              <div><div style="border-top:1px solid #333;padding-top:4px;margin-top:40px"><strong>${counselorName}</strong><br/>Tandatangan Kaunselor<br/><span style="font-size:9px">Tarikh: ${format(new Date(),'dd/MM/yyyy')}</span></div></div>
+                            </div>
+                            <div class="footer">SULIT — Unit Kaunseling — VeriRec Platform — verirec.app</div>
+                            <script>window.onload=function(){window.print()}</script>
+                          </body></html>`);
+                          win.document.close();
+                        }}>📋 Print Intake</Button>
+                        <Button size="sm" variant="secondary" onClick={() => setEditing(true)}>Edit</Button>
+                      </div>
                   }
                 </div>
                 {editing ? (
@@ -268,9 +346,11 @@ export default function KaunslorClientFilePage() {
                       { k: 'race', label: 'Bangsa', type: 'text' },
                       { k: 'religion', label: 'Agama', type: 'text' },
                       { k: 'occupation', label: 'Pekerjaan', type: 'text' },
+                      { k: 'year_of_study', label: 'Tahun Pengajian', type: 'text' },
                       { k: 'address', label: 'Alamat', type: 'text' },
                       { k: 'emergency_contact_name', label: 'Kontak Kecemasan', type: 'text' },
                       { k: 'emergency_contact_phone', label: 'Tel. Kecemasan', type: 'tel' },
+                      { k: 'referral_source', label: 'Sumber Rujukan', type: 'text' },
                     ].map(f => (
                       <div key={f.k} className="grid grid-cols-3 gap-2 items-center">
                         <label className="text-sm text-gray-500">{f.label}</label>
@@ -583,33 +663,121 @@ export default function KaunslorClientFilePage() {
                   <p>Tiada surat kebenaran ditandatangani lagi.</p>
                   <p className="text-sm mt-1">Kebenaran akan direkod apabila klien mengisi borang tempahan.</p>
                 </div>
-              ) : appointments.filter(a => a.consent_signed).map(a => (
-                <div key={a.id} className="bg-white rounded-xl border p-5 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-gray-900">Borang Persetujuan Makluman</h3>
-                    <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">✓ Ditandatangani</span>
-                  </div>
-                  <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 space-y-3 leading-relaxed">
-                    <p className="font-bold text-gray-900 text-center">BORANG PERSETUJUAN MAKLUMAN (Informed Consent Form)</p>
-                    <p><strong>Kaunseling</strong> adalah hubungan profesional antara anda dan kaunselor. Matlamat utama adalah untuk memudahkan perubahan tingkah laku, meningkatkan keupayaan membina hubungan, menggalakkan proses membuat keputusan, dan memudahkan potensi serta perkembangan peribadi.</p>
-                    <p><strong>Kerahsiaan:</strong> Kaunselor bertanggungjawab menjaga maklumat yang diperoleh semasa sesi kaunseling. Semua maklumat dirahsiakan kecuali: bahaya kepada diri/orang lain, perlindungan kanak-kanak, perintah mahkamah.</p>
-                    <p><strong>Hak Klien:</strong> Anda berhak bertanya tentang apa sahaja dalam sesi. Anda boleh meminta kaunselor merujuk kepada profesional lain. Anda bebas meninggalkan sesi pada bila-bila masa.</p>
-                    <p className="text-xs text-gray-500">Sesi mungkin dirakam untuk tujuan dokumentasi dengan teknologi AI, dilindungi berdasarkan PDPA 2010.</p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="bg-green-50 rounded-lg p-3">
-                      <p className="text-xs text-gray-500 mb-1">Tandatangan Klien</p>
-                      <p className="font-medium text-gray-900">{a.client_name}</p>
-                      <p className="text-xs text-gray-400 mt-1">{a.consent_at ? format(new Date(a.consent_at), 'dd MMM yyyy, HH:mm') : 'Tarikh tidak direkod'}</p>
+              ) : appointments.filter(a => a.consent_signed).map(a => {
+                const sessionDate = a.confirmed_date || a.requested_date;
+                const sessionTime = a.confirmed_time || a.requested_time;
+                const counselorName = user?.user_metadata?.full_name || '—';
+
+                const handlePrintConsent = () => {
+                  const win = window.open('', '_blank', 'width=794,height=1123');
+                  win.document.write(`<!DOCTYPE html><html><head>
+                    <title>Borang Persetujuan Makluman — ${a.client_name}</title>
+                    <style>
+                      body { font-family: Arial, sans-serif; font-size: 12px; padding: 40px; color: #111; line-height: 1.6; }
+                      h1 { font-size: 14px; text-align: center; text-transform: uppercase; margin-bottom: 4px; }
+                      h2 { font-size: 12px; text-align: center; color: #444; margin-top: 0; margin-bottom: 24px; }
+                      .section { margin-bottom: 16px; }
+                      .label { font-size: 10px; color: #666; text-transform: uppercase; margin-bottom: 2px; }
+                      .value { font-weight: bold; border-bottom: 1px solid #ccc; padding-bottom: 2px; min-height: 20px; }
+                      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+                      .body-text { font-size: 11px; line-height: 1.7; margin-bottom: 12px; }
+                      .sig-block { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+                      .sig-line { border-top: 1px solid #333; padding-top: 4px; margin-top: 40px; font-size: 11px; }
+                      .footer { margin-top: 30px; font-size: 9px; color: #888; text-align: center; border-top: 1px solid #eee; padding-top: 8px; }
+                      @media print { body { padding: 20px; } }
+                    </style>
+                  </head><body>
+                    <h1>BORANG PERSETUJUAN MAKLUMAN</h1>
+                    <h2>(Informed Consent Form)</h2>
+                    <div class="grid">
+                      <div><div class="label">Nama Klien</div><div class="value">${a.client_name || '—'}</div></div>
+                      <div><div class="label">No. IC / Passport</div><div class="value">${a.client_ic || '—'}</div></div>
+                      <div><div class="label">No. Matrik / Kakitangan</div><div class="value">${a.client_student_id || '—'}</div></div>
+                      <div><div class="label">Jantina</div><div class="value">${a.client_gender || '—'}</div></div>
+                      <div><div class="label">Tarikh Sesi</div><div class="value">${format(parseISO(sessionDate), 'dd MMMM yyyy')}</div></div>
+                      <div><div class="label">Masa Sesi</div><div class="value">${sessionTime?.slice(0,5) || '—'}</div></div>
                     </div>
-                    <div className="bg-blue-50 rounded-lg p-3">
-                      <p className="text-xs text-gray-500 mb-1">Butiran Tempahan</p>
-                      <p className="font-medium text-gray-900">{a.requested_date}</p>
-                      <p className="text-xs text-gray-400 mt-1">Pukul {a.requested_time?.slice(0,5)}</p>
+                    <div class="section">
+                      <p class="body-text"><strong>1. Perkhidmatan Kaunseling.</strong> Kaunseling adalah hubungan profesional antara anda dan kaunselor bertauliah. Matlamat utama adalah untuk memudahkan perubahan tingkah laku, meningkatkan keupayaan membina hubungan, menggalakkan proses membuat keputusan, dan memudahkan potensi serta perkembangan peribadi klien.</p>
+                      <p class="body-text"><strong>2. Kerahsiaan.</strong> Kaunselor bertanggungjawab menjaga kerahsiaan semua maklumat yang diperoleh semasa sesi kaunseling berdasarkan Akta Kaunselor 1998 dan PDPA 2010. Maklumat hanya boleh didedahkan dalam situasi berikut: (a) bahaya kepada diri sendiri atau orang lain; (b) perlindungan kanak-kanak; (c) perintah mahkamah.</p>
+                      <p class="body-text"><strong>3. Rakaman &amp; Dokumentasi.</strong> Sesi ini mungkin dirakam suara untuk tujuan dokumentasi klinikal menggunakan teknologi AI yang dilindungi. Semua data disimpan secara selamat mengikut PDPA 2010. Rakaman tidak akan dikongsi tanpa kebenaran anda.</p>
+                      <p class="body-text"><strong>4. Hak Klien.</strong> Anda berhak: (a) bertanya tentang apa sahaja berkaitan sesi; (b) meminta kaunselor merujuk kepada profesional lain; (c) memberhentikan sesi pada bila-bila masa; (d) mendapatkan salinan rekod anda dengan permohonan bertulis.</p>
+                      <p class="body-text"><strong>5. Had Kaunseling.</strong> Kaunseling bukan rawatan perubatan dan kaunselor bukan doktor. Jika anda memerlukan rawatan perubatan atau psikiatri, kaunselor akan membuat rujukan yang sesuai.</p>
                     </div>
+                    <p class="body-text">Dengan menandatangani / menyatakan persetujuan secara digital di bawah, saya mengakui bahawa saya telah membaca, memahami, dan bersetuju dengan syarat-syarat di atas.</p>
+                    <div class="sig-block">
+                      <div>
+                        <div class="sig-line">
+                          <strong>${a.client_name || '___________________'}</strong><br/>
+                          Tandatangan / Persetujuan Klien<br/>
+                          Tarikh: ${a.consent_at ? format(new Date(a.consent_at), 'dd/MM/yyyy HH:mm') : '___________'}
+                        </div>
+                      </div>
+                      <div>
+                        <div class="sig-line">
+                          <strong>${counselorName}</strong><br/>
+                          Tandatangan Kaunselor<br/>
+                          Tarikh: ${format(new Date(), 'dd/MM/yyyy')}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="footer">STRICTLY CONFIDENTIAL — VeriRec Counselor Platform — verirec.app</div>
+                    <script>window.onload = function(){ window.print(); }</script>
+                  </body></html>`);
+                  win.document.close();
+                };
+
+                return (
+                  <div key={a.id} className="bg-white rounded-xl border p-5 space-y-4">
+                    {/* Header */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Borang Persetujuan Makluman</h3>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {a.consent_at ? format(new Date(a.consent_at), 'dd MMM yyyy, HH:mm') : 'Tarikh tidak direkod'}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">✓ Ditandatangani</span>
+                        <Button size="sm" variant="secondary" onClick={handlePrintConsent}>🖨 Cetak</Button>
+                      </div>
+                    </div>
+
+                    {/* Client details */}
+                    <div className="grid grid-cols-2 gap-3 text-sm bg-gray-50 rounded-xl p-4">
+                      {[
+                        ['Nama', a.client_name],
+                        ['No. IC / Passport', a.client_ic],
+                        ['No. Matrik / Kakitangan', a.client_student_id],
+                        ['Jantina', a.client_gender],
+                        ['Tarikh Sesi', format(parseISO(sessionDate), 'dd MMM yyyy')],
+                        ['Masa Sesi', sessionTime?.slice(0, 5)],
+                      ].map(([label, val]) => val ? (
+                        <div key={label}>
+                          <p className="text-xs text-gray-400">{label}</p>
+                          <p className="font-medium text-gray-800">{val}</p>
+                        </div>
+                      ) : null)}
+                    </div>
+
+                    {/* Consent text summary */}
+                    <div className="border rounded-xl p-4 text-sm text-gray-600 space-y-2 leading-relaxed">
+                      <p className="font-semibold text-gray-800 text-center text-xs uppercase tracking-wide mb-3">Terma Persetujuan Yang Dipersetujui</p>
+                      <p><strong>Kerahsiaan:</strong> Maklumat sesi dirahsiakan berdasarkan Akta Kaunselor 1998 dan PDPA 2010, kecuali bahaya kepada diri/orang lain, perlindungan kanak-kanak, atau perintah mahkamah.</p>
+                      <p><strong>Rakaman:</strong> Sesi mungkin dirakam suara untuk dokumentasi klinikal menggunakan teknologi AI yang dilindungi. Data disimpan selamat mengikut PDPA 2010.</p>
+                      <p><strong>Hak Klien:</strong> Klien berhak bertanya, meminta rujukan, menghentikan sesi, atau mendapatkan salinan rekod.</p>
+                    </div>
+
+                    {/* Presenting issue */}
+                    {a.presenting_issue && (
+                      <div className="bg-blue-50 rounded-xl p-3">
+                        <p className="text-xs text-blue-500 mb-1">Isu Yang Dibawa</p>
+                        <p className="text-sm text-blue-900 italic">"{a.presenting_issue}"</p>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -680,21 +848,92 @@ export default function KaunslorClientFilePage() {
                   <div className="text-4xl mb-3">🏥</div>
                   <p>Belum ada rujukan untuk klien ini.</p>
                 </div>
-              ) : referrals.map(r => (
-                <div key={r.id} className="bg-white rounded-xl border p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-medium text-gray-900">{r.referred_to}</p>
-                      <p className="text-xs text-gray-500 capitalize">{r.referral_type}</p>
-                      {r.reason && <p className="text-sm text-gray-600 mt-1">{r.reason}</p>}
-                      <p className="text-xs text-gray-400 mt-1">{format(parseISO(r.created_at), 'dd MMM yyyy')}</p>
+              ) : referrals.map(r => {
+                const REFERRAL_LABELS = { psychiatry: 'Psikiatri', hospital: 'Hospital', social_welfare: 'Kebajikan Masyarakat', ngo: 'NGO / Badan Amal', other: 'Lain-lain' };
+                const handlePrintMemo = () => {
+                  const counselorName = user?.user_metadata?.full_name || 'Kaunselor';
+                  const refDate = format(parseISO(r.created_at), 'dd MMMM yyyy');
+                  const win = window.open('', '_blank', 'width=794,height=1123');
+                  win.document.write(`<!DOCTYPE html><html><head>
+                    <title>Memo Bantuan Profesional — ${client.name}</title>
+                    <style>
+                      body{font-family:Arial,sans-serif;font-size:11px;padding:40px;color:#111;line-height:1.7}
+                      .header{text-align:center;border-bottom:2px solid #333;padding-bottom:12px;margin-bottom:20px}
+                      .header h1{font-size:14px;text-transform:uppercase;margin:0 0 2px}
+                      .header p{font-size:10px;color:#555;margin:0}
+                      .memo-block{margin-bottom:16px}
+                      .memo-row{display:grid;grid-template-columns:120px 1fr;margin-bottom:4px}
+                      .memo-label{font-weight:bold;font-size:11px}
+                      .memo-value{font-size:11px}
+                      .subject-box{background:#f5f5f5;border:1px solid #ddd;border-radius:4px;padding:10px;margin:14px 0}
+                      .subject-row{display:grid;grid-template-columns:140px 1fr;margin-bottom:3px;font-size:11px}
+                      .body-text{font-size:11px;line-height:1.8;margin-bottom:10px}
+                      .sig-block{margin-top:36px;display:grid;grid-template-columns:1fr 1fr;gap:40px}
+                      .sig-line{border-top:1px solid #333;padding-top:4px;margin-top:36px;font-size:10px}
+                      .footer{margin-top:24px;font-size:8px;color:#888;text-align:center;border-top:1px solid #eee;padding-top:6px}
+                      @media print{body{padding:20px}}
+                    </style></head><body>
+                    <div class="header">
+                      <h1>Universiti Teknologi Malaysia</h1>
+                      <p>Unit Kaunseling | Bahagian Hal Ehwal Pelajar</p>
                     </div>
-                    <Badge color={r.status === 'completed' ? 'green' : r.status === 'sent' ? 'blue' : 'yellow'}>
-                      {r.status === 'completed' ? 'Selesai' : r.status === 'sent' ? 'Dihantar' : 'Menunggu'}
-                    </Badge>
+                    <div style="text-align:center;margin-bottom:20px">
+                      <strong style="font-size:13px;text-transform:uppercase;text-decoration:underline">MEMO UNTUK BANTUAN PROFESIONAL TAMBAHAN</strong><br/>
+                      <span style="font-size:10px;color:#555">(Memo for Extra Professional Assistance)</span>
+                    </div>
+                    <div class="memo-block">
+                      <div class="memo-row"><span class="memo-label">KEPADA</span><span class="memo-value">: ${r.referred_to}</span></div>
+                      <div class="memo-row"><span class="memo-label">DARIPADA</span><span class="memo-value">: ${counselorName}, Unit Kaunseling UTM</span></div>
+                      <div class="memo-row"><span class="memo-label">TARIKH</span><span class="memo-value">: ${refDate}</span></div>
+                      <div class="memo-row"><span class="memo-label">JENIS RUJUKAN</span><span class="memo-value">: ${REFERRAL_LABELS[r.referral_type]||r.referral_type}</span></div>
+                    </div>
+                    <div class="subject-box">
+                      <strong style="font-size:10px;text-transform:uppercase">Maklumat Klien</strong>
+                      <div style="margin-top:6px">
+                        <div class="subject-row"><span>Nama</span><span>: ${client.name||'—'}</span></div>
+                        <div class="subject-row"><span>No. IC / Passport</span><span>: ${client.ic_number||'—'}</span></div>
+                        <div class="subject-row"><span>No. Matrik / ID</span><span>: ${client.student_id||'—'}</span></div>
+                        <div class="subject-row"><span>Program / Tahun</span><span>: ${client.occupation||'—'} ${client.year_of_study?'/ '+client.year_of_study:''}</span></div>
+                        <div class="subject-row"><span>No. Telefon</span><span>: ${client.phone||'—'}</span></div>
+                      </div>
+                    </div>
+                    <p class="body-text"><strong>1. Tujuan Memo</strong><br/>
+                    Memo ini adalah untuk merujuk klien di atas kepada ${r.referred_to} bagi mendapatkan bantuan profesional tambahan dalam menangani isu yang dibincangkan dalam sesi kaunseling.</p>
+                    <p class="body-text"><strong>2. Sebab Rujukan</strong><br/>
+                    ${r.reason||'Klien memerlukan penilaian dan sokongan profesional tambahan yang di luar skop kaunseling.'}</p>
+                    <p class="body-text"><strong>3. Maklumat Isu</strong><br/>
+                    ${client.presenting_issue||'Rujuk rekod kaunseling untuk maklumat lanjut.'}</p>
+                    <p class="body-text"><strong>4. Tindakan Diperlukan</strong><br/>
+                    Pihak ${r.referred_to} dimohon untuk memberikan penilaian dan rawatan yang sesuai. Sebarang maklumbalas boleh dihantar kepada Unit Kaunseling UTM.</p>
+                    <p class="body-text" style="font-size:10px;color:#555">* Maklumat dalam memo ini adalah SULIT dan hanya untuk kegunaan pihak yang berkenaan sahaja.</p>
+                    <div class="sig-block">
+                      <div><div class="sig-line"><strong>${counselorName}</strong><br/>Kaunselor Bertauliah<br/>Unit Kaunseling UTM<br/>Tarikh: ${format(new Date(),'dd/MM/yyyy')}</div></div>
+                      <div><div class="sig-line">___________________<br/>Pengesahan Penerima<br/>Tarikh: ___________</div></div>
+                    </div>
+                    <div class="footer">SULIT — Unit Kaunseling UTM — VeriRec Platform — verirec.app</div>
+                    <script>window.onload=function(){window.print()}</script>
+                  </body></html>`);
+                  win.document.close();
+                };
+                return (
+                  <div key={r.id} className="bg-white rounded-xl border p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900">{r.referred_to}</p>
+                        <p className="text-xs text-gray-500">{REFERRAL_LABELS[r.referral_type] || r.referral_type}</p>
+                        {r.reason && <p className="text-sm text-gray-600 mt-1">{r.reason}</p>}
+                        <p className="text-xs text-gray-400 mt-1">{format(parseISO(r.created_at), 'dd MMM yyyy')}</p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <Button size="sm" variant="secondary" onClick={handlePrintMemo}>🖨 Jana Memo</Button>
+                        <Badge color={r.status === 'completed' ? 'green' : r.status === 'sent' ? 'blue' : 'yellow'}>
+                          {r.status === 'completed' ? 'Selesai' : r.status === 'sent' ? 'Dihantar' : 'Menunggu'}
+                        </Badge>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               {showAddReferral && (
                 <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 p-4">
                   <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
@@ -731,20 +970,24 @@ export default function KaunslorClientFilePage() {
                   <div className="text-4xl mb-3">📅</div>
                   <p>Tiada rekod temujanji.</p>
                 </div>
-              ) : appointments.map(a => (
-                <div key={a.id} className="bg-white rounded-xl border p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-gray-900">{format(parseISO(a.requested_date), 'dd MMM yyyy')} · {a.requested_time?.slice(0, 5)}</p>
-                      {a.presenting_issue && <p className="text-sm text-gray-500 italic mt-0.5">"{a.presenting_issue}"</p>}
-                      {a.counselor_notes && <p className="text-xs text-gray-400 mt-1">Nota: {a.counselor_notes}</p>}
+              ) : appointments.map(a => {
+                const displayDate = a.confirmed_date || a.requested_date;
+                const displayTime = a.confirmed_time || a.requested_time;
+                const badgeColor = a.status === 'confirmed' ? 'green' : a.status === 'completed' ? 'blue' : a.status === 'cancelled' ? 'gray' : 'yellow';
+                const badgeLabel = a.status === 'confirmed' ? 'Disahkan' : a.status === 'completed' ? 'Selesai' : a.status === 'cancelled' ? 'Dibatalkan' : 'Menunggu';
+                return (
+                  <div key={a.id} className="bg-white rounded-xl border p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-gray-900">{format(parseISO(displayDate), 'dd MMM yyyy')} · {displayTime?.slice(0, 5)}</p>
+                        {a.presenting_issue && <p className="text-sm text-gray-500 italic mt-0.5">"{a.presenting_issue}"</p>}
+                        {a.counselor_notes && <p className="text-xs text-gray-400 mt-1">Nota: {a.counselor_notes}</p>}
+                      </div>
+                      <Badge color={badgeColor}>{badgeLabel}</Badge>
                     </div>
-                    <Badge color={a.status === 'confirmed' ? 'green' : a.status === 'cancelled' ? 'gray' : 'yellow'}>
-                      {a.status === 'confirmed' ? 'Disahkan' : a.status === 'cancelled' ? 'Dibatalkan' : a.status === 'completed' ? 'Selesai' : 'Menunggu'}
-                    </Badge>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

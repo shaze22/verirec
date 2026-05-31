@@ -192,33 +192,38 @@ export function newAppointmentEmail(counselorName, client) {
   };
 }
 
-export function appointmentConfirmedEmail(counselorName, date, time, duration, isReschedule = false, counselor = {}) {
+export function appointmentConfirmedEmail(counselorName, date, time, duration, isReschedule = false, counselor = {}, rescheduleReason = null) {
+  const accentColor = isReschedule ? '#3b82f6' : '#10b981';
+  const accentLight = isReschedule ? '#eff6ff' : '#f0fdf4';
+  const accentBorder = isReschedule ? '#93c5fd' : '#86efac';
+  const accentText  = isReschedule ? '#1e40af' : '#166534';
   return {
-    subject: isReschedule ? `Tarikh Temujanji Dikemaskini — ${date} pukul ${time}` : `Temujanji Disahkan — ${date} pukul ${time}`,
+    subject: isReschedule ? `🔄 Tarikh Temujanji Dikemaskini — ${date} jam ${time}` : `✅ Temujanji Disahkan — ${date} jam ${time}`,
     html: base(`
       <div class="logo">
-        <div class="logo-box"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><polyline points="2,12 5,8 8,16 11,6 14,18 17,8 19,13 21,12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
+        <div class="logo-box" style="background:${accentColor}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><polyline points="2,12 5,8 8,16 11,6 14,18 17,8 19,13 21,12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
         <span class="logo-text">VeriRec</span>
       </div>
-      <h1>${isReschedule ? '🔄 Tarikh Temujanji Dikemaskini' : '✅ Temujanji Anda Disahkan'}</h1>
-      <p>${isReschedule ? `Tarikh temujanji anda bersama <strong>${counselorName}</strong> telah dikemaskini:` : `Temujanji anda bersama <strong>${counselorName}</strong> telah disahkan:`}</p>
-      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:16px;margin:16px 0">
-        <p style="margin:4px 0;color:#166534"><strong>📅 Tarikh:</strong> ${date}</p>
-        <p style="margin:4px 0;color:#166534"><strong>🕐 Masa:</strong> ${time}</p>
-        <p style="margin:4px 0;color:#166534"><strong>⏱ Tempoh:</strong> ${duration || 60} minit</p>
-        ${counselor.location ? `<p style="margin:4px 0;color:#166534"><strong>📍 Lokasi:</strong> ${counselor.location}</p>` : ''}
+      <div style="text-align:center;padding:8px 0 16px">
+        <div style="font-size:36px;margin-bottom:8px">${isReschedule ? '🔄' : '✅'}</div>
+        <h1 style="margin:0;font-size:20px;color:#0f172a">${isReschedule ? 'Tarikh Temujanji Dikemaskini' : 'Temujanji Anda Disahkan'}</h1>
+        <p style="margin:6px 0 0;color:#64748b;font-size:14px">${isReschedule ? `Temujanji anda bersama <strong>${counselorName}</strong> telah dijadual semula.` : `Temujanji anda bersama <strong>${counselorName}</strong> telah disahkan.`}</p>
       </div>
-      ${(counselor.phone || counselor.email) ? `
-      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 16px;margin:12px 0">
-        <p style="margin:0 0 6px;color:#1e293b;font-weight:600;font-size:13px">Hubungi Kaunselor Anda:</p>
-        ${counselor.phone ? `<p style="margin:2px 0;color:#475569;font-size:13px">📱 ${counselor.phone}</p>` : ''}
-        ${counselor.email ? `<p style="margin:2px 0;color:#475569;font-size:13px">📧 <a href="mailto:${counselor.email}" style="color:#2563eb">${counselor.email}</a></p>` : ''}
-      </div>` : ''}
-      ${counselor.calendarUrl ? `<a href="${counselor.calendarUrl}" style="display:inline-block;background:#10b981;color:#fff!important;text-decoration:none;padding:10px 20px;border-radius:8px;font-weight:600;font-size:13px;margin:8px 0">📅 Tambah ke Google Calendar →</a>` : ''}
-      <div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:12px 16px;margin:12px 0">
-        <p style="margin:0;color:#92400e;font-size:13px">⚠️ <strong>Pembatalan / Tukar Tarikh:</strong> Untuk membatalkan atau menukar tarikh, sila hubungi kaunselor anda terus sekurang-kurangnya 24 jam lebih awal.</p>
+      <div style="background:${accentLight};border:1px solid ${accentBorder};border-radius:12px;padding:20px;margin:16px 0">
+        <table style="width:100%;border-collapse:collapse">
+          <tr><td style="padding:6px 0;font-size:16px;width:30px">📅</td><td style="padding:6px 0;color:#374151;font-size:14px"><strong>Tarikh</strong></td><td style="padding:6px 0;color:${accentText};font-size:14px;font-weight:600;text-align:right">${date}</td></tr>
+          <tr><td style="padding:6px 0;font-size:16px">🕐</td><td style="padding:6px 0;color:#374151;font-size:14px"><strong>Masa</strong></td><td style="padding:6px 0;color:${accentText};font-size:14px;font-weight:600;text-align:right">${time}</td></tr>
+          <tr><td style="padding:6px 0;font-size:16px">⏱</td><td style="padding:6px 0;color:#374151;font-size:14px"><strong>Tempoh</strong></td><td style="padding:6px 0;color:#374151;font-size:14px;text-align:right">${duration || 60} minit</td></tr>
+          ${counselor.location ? `<tr><td style="padding:6px 0;font-size:16px">📍</td><td style="padding:6px 0;color:#374151;font-size:14px"><strong>Lokasi</strong></td><td style="padding:6px 0;color:#374151;font-size:13px;text-align:right">${counselor.location}</td></tr>` : ''}
+        </table>
       </div>
-      <p style="font-size:12px;color:#94a3b8">E-mel ini dihantar melalui sistem VeriRec bagi pihak kaunselor anda.</p>
+      ${isReschedule && rescheduleReason ? `<div style="background:#fefce8;border:1px solid #fde047;border-radius:10px;padding:14px 16px;margin:12px 0"><p style="margin:0 0 4px;color:#713f12;font-weight:600;font-size:13px">📝 Sebab Penukaran Tarikh</p><p style="margin:0;color:#78350f;font-size:13px">${rescheduleReason}</p></div>` : ''}
+      ${(counselor.phone || counselor.email) ? `<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;margin:12px 0"><p style="margin:0 0 8px;color:#1e293b;font-weight:600;font-size:13px">Hubungi Kaunselor Anda</p>${counselor.phone ? `<p style="margin:3px 0;color:#475569;font-size:13px">📱 <a href="tel:${counselor.phone}" style="color:#2563eb;text-decoration:none">${counselor.phone}</a></p>` : ''}${counselor.email ? `<p style="margin:3px 0;color:#475569;font-size:13px">📧 <a href="mailto:${counselor.email}" style="color:#2563eb">${counselor.email}</a></p>` : ''}</div>` : ''}
+      ${counselor.calendarUrl ? `<div style="text-align:center;margin:16px 0"><a href="${counselor.calendarUrl}" style="display:inline-block;background:${accentColor};color:#fff!important;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px">📅 Tambah ke Google Calendar</a></div>` : ''}
+      <div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:10px;padding:12px 16px;margin:12px 0">
+        <p style="margin:0;color:#92400e;font-size:12px">⚠️ <strong>Pembatalan / Tukar Tarikh:</strong> Hubungi kaunselor anda sekurang-kurangnya 24 jam lebih awal.</p>
+      </div>
+      <p style="font-size:11px;color:#94a3b8;text-align:center;margin-top:16px">E-mel ini dihantar melalui sistem VeriRec bagi pihak kaunselor anda.</p>
     `),
   };
 }

@@ -50,9 +50,9 @@ const counselorPlan = {
   key: 'counselor',
   label: 'Kaunselor',
   price: 100,
-  sessions: 10,
+  sessions: 20,
   features: [
-    '10 sesi/bulan',
+    '20 sesi/bulan',
     'Borang tempahan QR',
     'Fail klien lengkap',
     'Nota Sesi Kes (SOP)',
@@ -260,14 +260,18 @@ export function PricingPage() {
                 <div className="text-xs font-semibold text-emerald-700 mb-2">PELAN SEMASA</div>
               )}
               <h3 className="text-xl font-bold text-gray-900">Kaunselor Solo</h3>
-              <p className="text-sm text-gray-500 mt-0.5 mb-4">10 sesi termasuk setiap bulan</p>
+              <p className="text-sm text-gray-500 mt-0.5 mb-4">20 sesi termasuk setiap bulan</p>
 
-              <div className="mb-5">
+              <div className="mb-2">
                 <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-bold text-gray-900">RM100</span>
                   <span className="text-gray-500 text-sm">/bulan</span>
                 </div>
-                <p className="text-xs text-gray-400 mt-1">Bersamaan RM10/sesi — batalkan bila-bila masa</p>
+                <p className="text-xs text-gray-400 mt-1">Bersamaan RM5/sesi — batalkan bila-bila masa</p>
+              </div>
+              <div className="mb-4 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                <p className="text-xs font-semibold text-emerald-700">🎉 14 hari percubaan percuma</p>
+                <p className="text-xs text-emerald-600">Cuba semua ciri tanpa caj. Tanpa kad kredit.</p>
               </div>
 
               <ul className="space-y-2 mb-6 flex-1">

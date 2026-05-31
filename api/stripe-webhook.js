@@ -8,7 +8,7 @@ const supabaseAdmin = createClient(
 );
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-const PLAN_LIMITS = { free: 2, counselor: 10, starter: 20, pro: 100, biz: -1 };
+const PLAN_LIMITS = { free: 2, counselor: 20, starter: 20, pro: 100, biz: -1 };
 
 export const config = { api: { bodyParser: false } };
 

@@ -4,7 +4,7 @@ import { useAuthStore } from '../../store/authStore.js';
 import { useBillingStore } from '../../store/billingStore.js';
 import { usePwaInstall } from '../../hooks/usePwaInstall.js';
 
-const planLabels = { free: 'Percuma', starter: 'Starter', pro: 'Pro', biz: 'Perniagaan' };
+const planLabels = { free: 'Percuma', counselor: 'Kaunselor', starter: 'Starter', pro: 'Pro', biz: 'Perniagaan' };
 const ADMIN_EMAILS = ['syedshazni@todak.com', 'syedshazni@gmail.com'];
 
 const ICONS = {
@@ -117,9 +117,14 @@ export function Sidebar() {
         {subscription && (
           <div className="mb-3 px-3 py-3 bg-gray-800 rounded-xl">
             <div className="flex items-center justify-between mb-1.5">
-              <p className="text-xs font-medium text-white capitalize">
-                {planLabels[subscription.plan] || subscription.plan}
-              </p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-xs font-medium text-white capitalize">
+                  {planLabels[subscription.plan] || subscription.plan}
+                </p>
+                {subscription.status === 'trialing' && (
+                  <span className="text-xs bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded-full">Trial</span>
+                )}
+              </div>
               {subscription.sessions_limit !== -1 && (
                 <p className="text-xs text-gray-400">
                   {subscription.sessions_used}/{subscription.sessions_limit}

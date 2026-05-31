@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import DemoWalkthrough from '../components/DemoWalkthrough';
 
 const Logo = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-8 h-8 flex-shrink-0">
@@ -139,7 +140,7 @@ export default function CounselorLandingPage() {
                 Log Masuk
               </button>
             </div>
-            <p className="text-emerald-300 text-sm mt-4">Tiada kad kredit diperlukan • 2 sesi percuma</p>
+            <p className="text-emerald-300 text-sm mt-4">Tiada kad kredit diperlukan • 14 hari percubaan percuma</p>
           </div>
         </section>
 
@@ -186,6 +187,9 @@ export default function CounselorLandingPage() {
           </div>
         </section>
 
+        {/* Demo Walkthrough */}
+        <DemoWalkthrough />
+
         {/* How it works */}
         <section className="bg-gray-50 py-20 px-4">
           <div className="max-w-4xl mx-auto">
@@ -220,10 +224,14 @@ export default function CounselorLandingPage() {
               <div className="text-5xl font-bold text-gray-900 mb-1">
                 RM100<span className="text-xl font-normal text-gray-400">/bulan</span>
               </div>
-              <p className="text-gray-500 text-sm mb-6">10 sesi termasuk setiap bulan</p>
+              <p className="text-gray-500 text-sm mb-3">20 sesi termasuk setiap bulan</p>
+              <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 mb-5">
+                <p className="text-sm font-semibold text-emerald-700">🎉 14 hari percubaan percuma</p>
+                <p className="text-xs text-emerald-600">Cuba semua ciri tanpa caj. Tanpa kad kredit.</p>
+              </div>
               <ul className="space-y-3 text-left mb-8">
                 {[
-                  '10 sesi rakaman / bulan',
+                  '20 sesi rakaman / bulan',
                   'Fail klien digital',
                   'Tempahan QR automatik',
                   'Nota sesi format SOP (PDF)',
@@ -252,7 +260,7 @@ export default function CounselorLandingPage() {
               >
                 Mulakan Percuma →
               </button>
-              <p className="text-xs text-gray-400 mt-3">2 sesi percuma sebelum langganan. Batal bila-bila masa.</p>
+              <p className="text-xs text-gray-400 mt-3">14 hari percubaan percuma. Tiada kad kredit diperlukan. Batal bila-bila masa.</p>
             </div>
           </div>
         </section>
@@ -275,7 +283,7 @@ export default function CounselorLandingPage() {
         {/* CTA */}
         <section className="bg-emerald-700 py-16 px-4 text-center text-white">
           <h2 className="text-3xl font-bold mb-3">Sedia untuk memulakan?</h2>
-          <p className="text-emerald-200 mb-8 text-lg">2 sesi percuma. Tiada kad kredit.</p>
+          <p className="text-emerald-200 mb-8 text-lg">14 hari percubaan percuma. Tiada kad kredit.</p>
           <button
             onClick={() => navigate('/auth?mode=register&profession=counselor')}
             className="bg-white text-emerald-700 font-bold text-base px-10 py-3.5 rounded-xl hover:bg-emerald-50 transition-colors shadow-lg"

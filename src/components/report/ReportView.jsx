@@ -5,6 +5,7 @@ import { Button } from '../ui/Button.jsx';
 import { hashSession } from '../../lib/crypto.js';
 import { SignaturePad } from '../session/SignaturePad.jsx';
 import { saveSignature } from '../../api/sessions.js';
+import { supabase } from '../../lib/supabase.js';
 import toast from 'react-hot-toast';
 
 const riskColors  = { low: 'green', medium: 'yellow', high: 'red' };
@@ -75,23 +76,31 @@ function FollowUpTracker({ sessionId, items }) {
   );
 }
 
-function AnnotationSection({ sessionId }) {
-  const storageKey = `annotation_${sessionId}`;
-  const [note, setNote] = useState(() => localStorage.getItem(storageKey) || '');
+function AnnotationSection({ sessionId, initialNote }) {
+  const [note, setNote] = useState(initialNote || '');
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const handleEdit = () => { setDraft(note); setEditing(true); };
-  const handleSave = () => {
-    setNote(draft);
-    localStorage.setItem(storageKey, draft);
-    setEditing(false);
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await supabase.from('sessions').update({ counselor_notes: draft }).eq('id', sessionId);
+      setNote(draft);
+      setEditing(false);
+      toast.success('Nota disimpan.');
+    } catch {
+      toast.error('Gagal menyimpan nota.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-blue-900 uppercase">Nota Peribadi Pengendali Sesi</h3>
+        <h3 className="text-sm font-semibold text-blue-900 uppercase">Nota Kaunselor</h3>
         {!editing && (
           <button onClick={handleEdit} className="text-xs text-blue-600 hover:text-blue-800 font-medium">
             {note ? 'Edit' : '+ Tambah Nota'}
@@ -104,21 +113,23 @@ function AnnotationSection({ sessionId }) {
             value={draft}
             onChange={e => setDraft(e.target.value)}
             rows={4}
-            placeholder="Nota peribadi anda tentang sesi ini (tidak termasuk dalam laporan rasmi)..."
+            placeholder="Pemerhatian, penilaian tambahan, atau nota susulan untuk sesi ini..."
             className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             autoFocus
           />
           <div className="flex gap-2 justify-end">
             <button onClick={() => setEditing(false)} className="text-xs text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded border border-gray-200">Batal</button>
-            <button onClick={handleSave} className="text-xs text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded">Simpan</button>
+            <button onClick={handleSave} disabled={saving} className="text-xs text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded disabled:opacity-50">
+              {saving ? 'Menyimpan...' : 'Simpan'}
+            </button>
           </div>
         </div>
       ) : note ? (
         <p className="text-sm text-blue-900 whitespace-pre-wrap leading-relaxed">{note}</p>
       ) : (
-        <p className="text-sm text-blue-400 italic">Tiada nota. Klik "Tambah Nota" untuk menambah pemerhatian peribadi.</p>
+        <p className="text-sm text-blue-400 italic">Tiada nota. Klik "+ Tambah Nota" untuk menambah pemerhatian.</p>
       )}
-      <p className="text-xs text-blue-400 mt-3">Nota ini disimpan dalam peranti ini sahaja dan tidak termasuk dalam laporan rasmi.</p>
+      <p className="text-xs text-blue-400 mt-3">Nota ini disimpan dalam sistem dan hanya kelihatan kepada pengendali sesi.</p>
     </div>
   );
 }
@@ -379,7 +390,7 @@ function SignatureSection({ session }) {
   );
 }
 
-function TranscriptScript({ transcript = [] }) {
+function TranscriptScript({ transcript = [], forceExpand = false }) {
   const [expanded, setExpanded] = useState(false);
 
   const lines = transcript.filter(e =>
@@ -388,8 +399,9 @@ function TranscriptScript({ transcript = [] }) {
 
   if (!lines.length) return null;
 
+  const isExpanded = expanded || forceExpand;
   const preview = lines.slice(0, 4);
-  const shown = expanded ? lines : preview;
+  const shown = isExpanded ? lines : preview;
 
   return (
     <div className="border-t pt-6">
@@ -401,7 +413,7 @@ function TranscriptScript({ transcript = [] }) {
           onClick={() => setExpanded(v => !v)}
           className="text-xs text-blue-600 hover:text-blue-800 font-medium border border-blue-200 rounded-lg px-3 py-1 transition-colors no-print"
         >
-          {expanded ? 'Sembunyikan' : 'Tunjukkan Semua'}
+          {isExpanded ? 'Sembunyikan' : 'Tunjukkan Semua'}
         </button>
       </div>
 
@@ -433,7 +445,7 @@ function TranscriptScript({ transcript = [] }) {
           );
         })}
 
-        {!expanded && lines.length > 4 && (
+        {!isExpanded && lines.length > 4 && (
           <div className="text-center pt-2">
             <button
               onClick={() => setExpanded(true)}
@@ -446,7 +458,7 @@ function TranscriptScript({ transcript = [] }) {
       </div>
 
       {/* Print: always show full transcript */}
-      {!expanded && (
+      {!isExpanded && (
         <div className="hidden print:block space-y-1 font-mono text-sm bg-gray-50 rounded-xl p-4 border mt-2">
           {lines.slice(4).map((entry, i) => {
             const isInterviewer = entry.type === 'INTERVIEWER';
@@ -477,25 +489,40 @@ export function ReportView({ session }) {
   const [exporting, setExporting]   = useState(false);
   const [verifying, setVerifying]   = useState(false);
   const [verifyResult, setVerifyResult] = useState(null);
+  const [pdfCapturing, setPdfCapturing] = useState(false);
 
   if (!report) return <p className="text-gray-500 text-center py-12">Laporan belum dijana</p>;
 
   const exportPDF = async () => {
     setExporting(true);
+    setPdfCapturing(true);
     try {
       const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
         import('jspdf'),
         import('html2canvas'),
       ]);
-      const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true });
+      // Wait for React to re-render with full transcript expanded
+      await new Promise(r => setTimeout(r, 150));
+      const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true, windowWidth: reportRef.current.scrollWidth });
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       const imgData = canvas.toDataURL('image/png');
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      let yOffset = 0;
+      let remaining = imgHeight;
+      while (remaining > 0) {
+        pdf.addImage(imgData, 'PNG', 0, -yOffset, pdfWidth, imgHeight);
+        remaining -= pageHeight;
+        yOffset += pageHeight;
+        if (remaining > 0) pdf.addPage();
+      }
+
       pdf.save(`laporan-verirec-${id?.substring(0, 8)}.pdf`);
     } finally {
       setExporting(false);
+      setPdfCapturing(false);
     }
   };
 
@@ -644,6 +671,9 @@ export function ReportView({ session }) {
       textBox('Progress/Goal Achievement:', csn.progressGoalAchievement, 28);
       textBox('Needs for follow-up session/Plan for Next Follow-up Session:', csn.followUpPlan, 28);
       textBox('Termination of session:', csn.terminationNotes, 28);
+      if (csn.assessmentFindings) {
+        textBox('Assessment Findings (MBTI/RIASEC):', csn.assessmentFindings, 28);
+      }
 
       // ── Signature ──
       if (y + 40 > 275) { pdf.addPage(); y = M; }
@@ -703,7 +733,6 @@ export function ReportView({ session }) {
       <div className="flex items-center justify-between mb-6 no-print">
         <h2 className="text-xl font-bold text-gray-900">Laporan Sesi</h2>
         <div className="flex gap-3">
-          <Button variant="outline" onClick={() => window.print()}>Cetak</Button>
           {profession === 'counselor' && (
             <Button variant="secondary" onClick={printCaseNote} loading={exporting}>📄 Case Session Note</Button>
           )}
@@ -714,7 +743,7 @@ export function ReportView({ session }) {
       {/* Follow-up Tracker — above the printable report */}
       <div className="mb-6 space-y-4 no-print">
         <FollowUpTracker sessionId={id} items={report.followUpItems} />
-        <AnnotationSection sessionId={id} />
+        <AnnotationSection sessionId={id} initialNote={session.counselor_notes} />
       </div>
 
       <div ref={reportRef} className="bg-white rounded-xl border p-8 space-y-8 print:border-none">
@@ -817,6 +846,7 @@ export function ReportView({ session }) {
               ['Kemajuan / Pencapaian Matlamat', report.caseSessionNote.progressGoalAchievement],
               ['Rancangan Susulan', report.caseSessionNote.followUpPlan],
               ['Penamatan Sesi', report.caseSessionNote.terminationNotes],
+              ['Dapatan Assessment (MBTI/RIASEC)', report.caseSessionNote.assessmentFindings],
             ].filter(([, v]) => v).map(([label, value]) => (
               <div key={label}>
                 <p className="text-xs font-semibold text-gray-500 uppercase mb-1">{label}</p>
@@ -873,7 +903,7 @@ export function ReportView({ session }) {
         )}
 
         {/* Full Transcript / Script */}
-        <TranscriptScript transcript={transcript} />
+        <TranscriptScript transcript={transcript} forceExpand={pdfCapturing} />
 
         {/* Audio */}
         {audio_url && (
@@ -913,8 +943,8 @@ export function ReportView({ session }) {
           </p>
         </div>
 
-        {/* E-Signature */}
-        <SignatureSection session={session} />
+        {/* E-Signature — hidden for counselor (consent captured during booking) */}
+        {profession !== 'counselor' && <SignatureSection session={session} />}
       </div>
     </div>
   );

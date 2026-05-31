@@ -302,11 +302,15 @@ export default function SessionPage() {
       });
 
       setGenerateStep('Laporan siap!');
-      // Mark linked appointment as completed
+      // Mark the most recent confirmed appointment as completed (only past/today, not future)
       if (setup.subject_id) {
         const { supabase: _sb } = await import('../lib/supabase.js');
+        const today = new Date().toISOString().split('T')[0];
         _sb.from('appointments').update({ status: 'completed' })
-          .eq('subject_id', setup.subject_id).eq('status', 'confirmed').then(() => {}).catch(() => {});
+          .eq('subject_id', setup.subject_id)
+          .eq('status', 'confirmed')
+          .lte('confirmed_date', today)
+          .then(() => {}).catch(() => {});
       }
       sessionStorage.removeItem('session_setup');
       sessionStorage.removeItem('active_session_id');
@@ -333,6 +337,15 @@ export default function SessionPage() {
         session_info: { ...setup, duration: timer.elapsed },
       });
       setGenerateStep('Laporan siap!');
+      if (setup.subject_id) {
+        const { supabase: _sb } = await import('../lib/supabase.js');
+        const today = new Date().toISOString().split('T')[0];
+        _sb.from('appointments').update({ status: 'completed' })
+          .eq('subject_id', setup.subject_id)
+          .eq('status', 'confirmed')
+          .lte('confirmed_date', today)
+          .then(() => {}).catch(() => {});
+      }
       sessionStorage.removeItem('session_setup');
       sessionStorage.removeItem('active_session_id');
       toast.success('Laporan berjaya dijana!');

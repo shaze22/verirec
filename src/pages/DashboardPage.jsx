@@ -124,6 +124,7 @@ export default function DashboardPage() {
   const [pendingAppointments, setPendingAppointments] = useState([]);
   const navigate = useNavigate();
   const preferredProfession = localStorage.getItem('preferred_profession');
+  const pricingTarget = preferredProfession === 'counselor' ? '/pricing?tab=kaunselor' : '/pricing';
 
   // Counselor onboarding: only for counselor profession users
   useEffect(() => {
@@ -214,7 +215,7 @@ export default function DashboardPage() {
   }, [sessions, search, filterProfession, filterStatus]);
 
   const handleNewSession = () => {
-    if (!canStartSession()) { navigate('/pricing'); return; }
+    if (!canStartSession()) { navigate(pricingTarget); return; }
     if (preferredProfession) {
       navigate(`/session/setup/${preferredProfession}`);
     } else {
@@ -223,12 +224,12 @@ export default function DashboardPage() {
   };
 
   const handleChooseProfession = () => {
-    if (!canStartSession()) { navigate('/pricing'); return; }
+    if (!canStartSession()) { navigate(pricingTarget); return; }
     navigate('/session/new');
   };
 
   const handleQuickRecord = async () => {
-    if (!canStartSession()) { navigate('/pricing'); return; }
+    if (!canStartSession()) { navigate(pricingTarget); return; }
     setQuickRecording(true);
     try {
       const now = new Date();
@@ -423,7 +424,9 @@ export default function DashboardPage() {
             <p className="text-sm text-amber-800">
               Anda hampir mencapai had sesi bulan ini ({subscription.sessions_used}/{subscription.sessions_limit}).
             </p>
-            <Button size="sm" variant="outline" onClick={() => navigate('/pricing')}>Naik Taraf</Button>
+            <Button size="sm" variant="outline" onClick={() => navigate(pricingTarget)}>
+              {preferredProfession === 'counselor' ? 'Topup Sesi' : 'Naik Taraf'}
+            </Button>
           </div>
         )}
 

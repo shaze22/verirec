@@ -5,6 +5,7 @@ import { useBillingStore } from '../store/billingStore.js';
 import { supabase } from '../lib/supabase.js';
 import { getSessions } from '../api/sessions.js';
 import { logEvent } from '../api/auditLog.js';
+import { getCounselorProfile } from '../api/counselor.js';
 import { TopBar } from '../components/layout/TopBar.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { Modal } from '../components/ui/Modal.jsx';
@@ -35,6 +36,8 @@ export default function SettingsPage() {
   const [retentionDays, setRetentionDays] = useState(() => localStorage.getItem('retention_days') || '');
   const [referralCount, setReferralCount] = useState(null);
   const referralCode = user?.id?.replace(/-/g, '').slice(0, 10);
+  const isCounselor = localStorage.getItem('preferred_profession') === 'counselor';
+  const [counselorProfile, setCounselorProfile] = useState(null);
 
   useEffect(() => {
     const payment = searchParams.get('payment');
@@ -54,6 +57,9 @@ export default function SettingsPage() {
       .eq('status', 'completed')
       .then(({ count }) => setReferralCount(count || 0))
       .catch(() => {});
+    if (isCounselor) {
+      getCounselorProfile(user.id).then(p => setCounselorProfile(p)).catch(() => {});
+    }
   }, [user]);
 
   useEffect(() => {
@@ -216,6 +222,49 @@ export default function SettingsPage() {
               </div>
             </div>
           </section>
+
+          {/* Profil Kaunselor */}
+          {isCounselor && (
+            <section className="bg-white rounded-xl border p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">Profil Kaunselor</h2>
+                <Button variant="secondary" size="sm" onClick={() => navigate('/kaunselor/setup')}>
+                  Edit Profil
+                </Button>
+              </div>
+              {counselorProfile ? (
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Nama Paparan</span>
+                    <span className="font-medium">{counselorProfile.display_name || '—'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Telefon</span>
+                    <span className="font-medium">{counselorProfile.phone || '—'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">No. Pendaftaran</span>
+                    <span className="font-medium">{counselorProfile.registration_number || '—'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Kod Tempahan</span>
+                    <span className="font-mono font-bold text-gray-900">{counselorProfile.booking_code || '—'}</span>
+                  </div>
+                  {counselorProfile.klinik_address && (
+                    <div className="flex justify-between gap-4">
+                      <span className="text-gray-500 flex-shrink-0">Lokasi</span>
+                      <span className="font-medium text-right">{counselorProfile.klinik_address}</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-sm text-gray-500 mb-3">Profil kaunselor belum disediakan.</p>
+                  <Button size="sm" onClick={() => navigate('/kaunselor/setup')}>Sediakan Profil</Button>
+                </div>
+              )}
+            </section>
+          )}
 
           {/* Tukar Kata Laluan */}
           <section className="bg-white rounded-xl border p-6">

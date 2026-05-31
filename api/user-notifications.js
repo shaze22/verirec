@@ -48,7 +48,7 @@ export default async function handler(req, res) {
 
       const { data: appt } = await supabaseAdmin
         .from('appointments')
-        .select('client_email, confirmed_date, confirmed_time, requested_date, requested_time, counselor_id, status')
+        .select('client_email, confirmed_date, confirmed_time, requested_date, requested_time, counselor_id, status, counselor_notes')
         .eq('id', appointment_id).single();
       if (!appt || !appt.client_email) return res.status(200).json({ ok: true, skipped: 'no email' });
 
@@ -64,6 +64,9 @@ export default async function handler(req, res) {
       const duration = profile?.session_duration_minutes || 60;
       const isReschedule = appt.status === 'rescheduled';
       const counselorName = profile?.display_name || 'Kaunselor';
+      const rescheduleReason = isReschedule && appt.counselor_notes
+        ? appt.counselor_notes.replace('[Jadual Semula] ', '').trim()
+        : null;
 
       const calendarUrl = buildCalendarUrl(date, time, duration, counselorName, profile?.klinik_address);
       const counselorInfo = {
@@ -73,7 +76,7 @@ export default async function handler(req, res) {
         calendarUrl,
       };
 
-      const { subject, html } = appointmentConfirmedEmail(counselorName, date, time, duration, isReschedule, counselorInfo);
+      const { subject, html } = appointmentConfirmedEmail(counselorName, date, time, duration, isReschedule, counselorInfo, rescheduleReason);
       await sendEmail({ to: appt.client_email, subject, html });
       return res.status(200).json({ ok: true });
     }

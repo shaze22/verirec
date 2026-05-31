@@ -86,7 +86,7 @@ export default async function handler(req, res) {
     } else {
       sessionParams.mode = 'subscription';
       sessionParams.subscription_data = {
-        trial_period_days: plan === 'counselor' ? 0 : 14,
+        trial_period_days: 14,
         metadata: { user_id: user.id, plan },
       };
     }

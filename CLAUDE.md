@@ -195,9 +195,79 @@ vercel deploy --prod --force --scope syedshazni-7682s-projects
 - Status jadi 'rescheduled', email ke klien auto (subject berbeza dari confirm)
 - `appointmentConfirmedEmail(counselorName, date, time, duration, isReschedule)` — isReschedule=true tukar subject+header
 
+## SOP Flowchart Compliance (2026-05-30) — 10/10 ✅
+| Step | Feature | Status |
+|------|---------|--------|
+| 1. Walk-in/Appointment | `/book/:booking_code` + session setup walk-in | ✅ |
+| 2. Fill up Intake Form | Booking form fields + Maklumat tab edit + **📋 Print Intake (CIF)** + walk-in warning | ✅ |
+| 3. Attending client | Session setup + recording + AI real-time | ✅ |
+| 4. Informed consent | ConsentPage + booking consent + Tab Kebenaran + print | ✅ |
+| 5. Counselling process | Session recording, transcript, AI analysis, AssessmentPanel | ✅ |
+| 6. Follow up | Action plans, scheduled sessions, follow_up_date | ✅ |
+| 7. Extra Professional Help | Tab Rujukan + **🖨 Jana Memo PDF** rasmi | ✅ |
+| 8. Termination | `terminationNotes` dalam Case Session Note (AI) | ✅ |
+| 9. Counseling case report | Case Session Note PDF (jsPDF SOP) + AI report multi-page | ✅ |
+| 10. File the Document | KaunslorClientFilePage — 7 tabs semua rekod | ✅ |
+
+**Print Intake (CIF):** Butang dalam tab Maklumat → Borang Intake Kaunseling format SOP penuh (nama, IC, DOB, bangsa, agama, status, tahun, alamat, kecemasan, sejarah klinikal, tandatangan)
+**Jana Memo:** Butang pada setiap rujukan dalam tab Rujukan → Memo Bantuan Profesional Tambahan (header UTM, butiran klien, sebab, tindakan, tandatangan kaunselor + penerima)
+**Walk-in warning:** Jika IC+DOB kosong → banner "Borang Intake Tidak Lengkap" dengan butang "Lengkapkan"
+
+## Fixes Penting (2026-05-30)
+- `SignatureSection` hidden untuk counselor — consent dah ada dalam booking, tidak perlu sign semula dalam report
+- `exportPDF` full transcript: `pdfCapturing=true` → `TranscriptScript forceExpand` → 150ms wait → html2canvas → multi-page loop
+- "Cetak" button dibuang dari report — redundant, guna "Eksport PDF" sahaja
+- `AnnotationSection` ("Nota Kaunselor"): dari localStorage → DB `sessions.counselor_notes` column
+- Assessment results → AI report: `caseSessionNote.assessmentFindings` dalam ReportView UI + PDF
+- Appointment auto-complete: `.lte('confirmed_date', today)` filter — prevent mark future appointments
+- Tab Kebenaran: butiran klien penuh (IC, matrik, jantina) + 🖨 Cetak consent form
+- Tab Temujanji: badge completed = biru, papar confirmed_date bukan requested_date
+- Reschedule: appointment masa depan tunjuk dalam "Akan Datang" bukan "Lepas"
+- Reschedule card: badge biru, sebab jadual semula visible dalam kotak kuning
+- Email reschedule: redesign dengan icon centered, table layout, warna adaptive, sebab reschedule dari counselor_notes
+- `appointmentConfirmedEmail` terima param `rescheduleReason` — pass dari user-notifications.js
+- **GOTCHA**: `user-notifications.js` select query mesti include `counselor_notes` — kalau tertinggal, reason tak keluar dalam email
+
+## Test Account
+- URL: `counselor.verirec.app`
+- Email: `test.kaunselor@verirec.app` | Password: `Test1234!`
+- Plan: Counselor (10 sesi) | Booking code: `fmw7y2qc`
+- 3 klien dummy dengan 6 sesi, laporan AI, assessments, appointments, team
+
+## Production Readiness Roadmap
+
+### 🔴 Kritikal (sebelum launch sebenar)
+| Item | Status |
+|------|--------|
+| Stripe live mode — update 5 price IDs + secret key + webhook URL | ⏳ Manual di Stripe dashboard |
+| Rate limit `/book/:booking_code` — RPC max 30/jam + honeypot + 5s load check | ✅ 2026-05-31 |
+| Error boundary React — `ErrorBoundary.jsx` wrap App dalam `main.jsx` | ✅ 2026-05-31 |
+| Stripe webhook URL: update ke `https://www.verirec.app/api/stripe-webhook` | ⏳ Manual |
+
+### 🟠 Penting
+| Item | Status |
+|------|--------|
+| Free trial 14 hari — `stripe-checkout.js` `trial_period_days: 14` semua plans | ✅ 2026-05-31 |
+| Onboarding redirect ke `/kaunselor/setup` selepas signup | ✅ verified |
+| Pricing: 10 → 20 sesi/bulan (config, webhook, PricingPage, CounselorLanding, DB) | ✅ 2026-05-31 |
+| Demo / video walkthrough di landing page | ⏳ |
+
+### 🟡 Sederhana
+| Item | Status |
+|------|--------|
+| Bulk export data klien | ⏳ |
+| Walk-in + booking unified flow | ⏳ |
+| Mobile SessionPage redesign | ⏳ |
+| jsPDF text-based (ganti html2canvas untuk PDF export) | ⏳ |
+
+### Stripe Live Mode Steps
+1. Stripe dashboard → Live Mode → buat products sama
+2. Update 5 env vars Vercel: `STRIPE_PRICE_COUNSELOR_MONTHLY/ANNUAL`, `STRIPE_PRICE_TOPUP_1/5/10`
+3. Update `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` ke live keys
+4. Update webhook endpoint: `https://www.verirec.app/api/stripe-webhook`
+
 ## Email Domain (verirec.app)
 - Domain `verirec.app` dah tambah dalam Resend (ID: `0d836d3d-fddd-4462-b390-736bd1ebc8e4`, region Tokyo)
 - FROM: `noreply@verirec.app` dalam `api/_mailer.js`
 - `RESEND_API_KEY` dah set dalam Vercel production
-- DNS records dah tambah dalam Namecheap: DKIM, MX, SPF, DMARC
-- Status: **Pending verification** — akan auto-verify bila DNS Namecheap propagate
+- DNS records dah tambah dalam Namecheap: DKIM, MX, SPF, DMARC — **Verified ✅**

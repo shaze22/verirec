@@ -140,16 +140,24 @@ function RiskBadge({ level }) {
   );
 }
 
-function LockedOverlay() {
+function LockedOverlay({ profession }) {
   const navigate = useNavigate();
+  const isCounselor = profession === 'counselor' || localStorage.getItem('preferred_profession') === 'counselor';
+  const pricingUrl = isCounselor ? '/pricing?tab=kaunselor' : '/pricing';
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm rounded-lg z-10 p-4 text-center">
       <svg className="w-8 h-8 text-blue-600 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
       </svg>
-      <p className="text-sm font-semibold text-gray-900 mb-1">Cadangan AI</p>
-      <p className="text-xs text-gray-500 mb-3">Tersedia dalam pelan Starter ke atas</p>
-      <Button size="sm" onClick={() => navigate('/pricing')}>Naik Taraf</Button>
+      <p className="text-sm font-semibold text-gray-900 mb-1">Analisa AI</p>
+      <p className="text-xs text-gray-500 mb-3">
+        {isCounselor
+          ? 'Tersedia dalam pelan Kaunselor (RM100/bulan)'
+          : 'Tersedia dalam pelan Starter ke atas'}
+      </p>
+      <Button size="sm" onClick={() => navigate(pricingUrl)}>
+        {isCounselor ? 'Langganan Kaunselor' : 'Naik Taraf'}
+      </Button>
     </div>
   );
 }
@@ -229,7 +237,7 @@ function AutoAnalysis({ profession, phase, entries, isActive, hasAI, onSuggest }
           <div className="h-3 bg-gray-100 rounded w-full" />
           <div className="h-3 bg-gray-100 rounded w-2/3" />
         </div>
-        <LockedOverlay />
+        <LockedOverlay profession={profession} />
       </div>
     );
   }
@@ -410,7 +418,7 @@ function GenericSuggestions({ profession, phase, lastQuestion, recentTranscript,
               <div key={i} className="w-full p-2 rounded-lg text-xs bg-gray-50 text-gray-700">{q}</div>
             ))}
           </div>
-          <LockedOverlay />
+          <LockedOverlay profession={profession} />
         </div>
       )}
       {hasAI && suggestions && (

@@ -130,8 +130,11 @@ export default function SchedulePage() {
     }
   };
 
+  const isCounselor = localStorage.getItem('preferred_profession') === 'counselor';
+  const pricingTarget = isCounselor ? '/pricing?tab=kaunselor' : '/pricing';
+
   const handleStart = (item) => {
-    if (!canStartSession()) { navigate('/pricing'); return; }
+    if (!canStartSession()) { navigate(pricingTarget); return; }
     navigate(`/session/setup/${item.profession}`, {
       state: { prefill: { title: item.title, subject_name: item.subject_name || '', scheduled_id: item.id } }
     });

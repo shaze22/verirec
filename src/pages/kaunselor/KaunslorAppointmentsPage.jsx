@@ -206,9 +206,16 @@ export default function KaunslorAppointmentsPage() {
 
   if (loading) return <div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>;
 
+  const today = new Date().toISOString().split('T')[0];
   const pending = appointments.filter(a => a.status === 'pending');
-  const upcoming = appointments.filter(a => a.status === 'confirmed');
-  const past = appointments.filter(a => ['cancelled', 'completed', 'rescheduled'].includes(a.status));
+  const upcoming = appointments.filter(a =>
+    a.status === 'confirmed' ||
+    (a.status === 'rescheduled' && (a.confirmed_date || a.requested_date) >= today)
+  );
+  const past = appointments.filter(a =>
+    ['cancelled', 'completed'].includes(a.status) ||
+    (a.status === 'rescheduled' && (a.confirmed_date || a.requested_date) < today)
+  );
 
   return (
     <div className="flex flex-col h-screen">
@@ -265,26 +272,45 @@ export default function KaunslorAppointmentsPage() {
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3">Akan Datang</h3>
                   <div className="space-y-2">
-                    {upcoming.map(a => (
-                      <div key={a.id} className="bg-white border rounded-xl p-4 flex items-center justify-between gap-4">
-                        <div>
-                          <p className="font-medium text-gray-900">{a.client_name}</p>
-                          <p className="text-sm text-gray-500">
-                            {format(parseISO(a.confirmed_date || a.requested_date), 'dd MMM yyyy')} · {(a.confirmed_time || a.requested_time)?.slice(0, 5)}
-                          </p>
+                    {upcoming.map(a => {
+                      const isRescheduled = a.status === 'rescheduled';
+                      const rescheduleReason = isRescheduled && a.counselor_notes
+                        ? a.counselor_notes.replace('[Jadual Semula] ', '')
+                        : null;
+                      return (
+                        <div key={a.id} className={`border rounded-xl p-4 ${isRescheduled ? 'bg-blue-50 border-blue-200' : 'bg-white'}`}>
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <p className="font-medium text-gray-900">{a.client_name}</p>
+                                {isRescheduled && <Badge color="blue">Dijadual Semula</Badge>}
+                                {!isRescheduled && <Badge color="green">Disahkan</Badge>}
+                              </div>
+                              <p className="text-sm text-gray-500">
+                                📅 {format(parseISO(a.confirmed_date || a.requested_date), 'dd MMM yyyy')} · 🕐 {(a.confirmed_time || a.requested_time)?.slice(0, 5)}
+                              </p>
+                              {a.presenting_issue && (
+                                <p className="text-xs text-gray-400 mt-0.5 italic">"{a.presenting_issue}"</p>
+                              )}
+                              {rescheduleReason && (
+                                <p className="text-xs text-blue-700 mt-1 bg-blue-100 px-2 py-1 rounded-lg">
+                                  📝 Sebab jadual semula: {rescheduleReason}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+                              {a.subject_id && (
+                                <Button size="sm" onClick={() => navigate(`/kaunselor/clients/${a.subject_id}`)}>
+                                  Buka Profil
+                                </Button>
+                              )}
+                              <button onClick={() => openReschedule(a)} className="text-xs text-blue-500 hover:text-blue-700 font-medium">Jadual Semula</button>
+                              <button onClick={() => handleCancel(a.id)} className="text-xs text-gray-400 hover:text-red-500">Batal</button>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
-                          <Badge color="green">Disahkan</Badge>
-                          {a.subject_id && (
-                            <Button size="sm" onClick={() => navigate(`/kaunselor/clients/${a.subject_id}`)}>
-                              Buka Profil
-                            </Button>
-                          )}
-                          <button onClick={() => openReschedule(a)} className="text-xs text-blue-500 hover:text-blue-700 font-medium">Jadual Semula</button>
-                          <button onClick={() => handleCancel(a.id)} className="text-xs text-gray-400 hover:text-red-500">Batal</button>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -302,9 +328,19 @@ export default function KaunslorAppointmentsPage() {
                   <h3 className="font-semibold text-gray-500 text-sm mb-2">Lepas</h3>
                   <div className="space-y-2">
                     {past.map(a => (
-                      <div key={a.id} className="bg-gray-50 border border-gray-100 rounded-xl p-3 flex items-center justify-between text-sm">
-                        <span className="text-gray-600">{a.client_name} · {format(parseISO(a.requested_date), 'dd MMM')}</span>
-                        <Badge color={STATUS_CONFIG[a.status]?.color || 'gray'}>{STATUS_CONFIG[a.status]?.label}</Badge>
+                      <div key={a.id} className="bg-gray-50 border border-gray-100 rounded-xl p-3 flex items-center justify-between gap-3 text-sm">
+                        <div>
+                          <span className="text-gray-700 font-medium">{a.client_name}</span>
+                          <span className="text-gray-400"> · {format(parseISO(a.confirmed_date || a.requested_date), 'dd MMM yyyy')}</span>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {a.status === 'completed' && a.subject_id && (
+                            <Button size="sm" variant="secondary" onClick={() => navigate(`/kaunselor/clients/${a.subject_id}`)}>
+                              Profil
+                            </Button>
+                          )}
+                          <Badge color={STATUS_CONFIG[a.status]?.color || 'gray'}>{STATUS_CONFIG[a.status]?.label}</Badge>
+                        </div>
                       </div>
                     ))}
                   </div>

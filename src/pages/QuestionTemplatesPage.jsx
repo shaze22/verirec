@@ -53,7 +53,7 @@ export default function QuestionTemplatesPage() {
   const [templates, setTemplates] = useState([]);
   const [assessments, setAssessments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filterProfession, setFilterProfession] = useState('');
+  const [filterProfession, setFilterProfession] = useState(isCounselor ? 'counselor' : '');
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState(BLANK_FORM);
   const [saving, setSaving] = useState(false);
@@ -257,20 +257,25 @@ export default function QuestionTemplatesPage() {
 
         {/* ── SOALAN TAB ── */}
         {pageTab === 'soalan' && <>
-          {/* Filter */}
-          <div className="flex items-center gap-3 flex-wrap">
-            <select
-              value={filterProfession}
-              onChange={e => setFilterProfession(e.target.value)}
-              className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Semua Profesion</option>
-              {PROFESSIONS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
-            </select>
-            {filtered.length > 0 && (
-              <span className="text-sm text-gray-500">{filtered.length} templat</span>
-            )}
-          </div>
+          {/* Filter — hidden for counselors, they only see their own profession */}
+          {!isCounselor && (
+            <div className="flex items-center gap-3 flex-wrap">
+              <select
+                value={filterProfession}
+                onChange={e => setFilterProfession(e.target.value)}
+                className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Semua Profesion</option>
+                {PROFESSIONS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+              </select>
+              {filtered.length > 0 && (
+                <span className="text-sm text-gray-500">{filtered.length} templat</span>
+              )}
+            </div>
+          )}
+          {isCounselor && filtered.length > 0 && (
+            <span className="text-sm text-gray-500">{filtered.length} templat</span>
+          )}
 
           {loading ? (
             <div className="space-y-3">
@@ -430,16 +435,18 @@ export default function QuestionTemplatesPage() {
         }
       >
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Profesion</label>
-            <select
-              value={form.profession}
-              onChange={e => setForm(p => ({ ...p, profession: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {PROFESSIONS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
-            </select>
-          </div>
+          {!isCounselor && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Profesion</label>
+              <select
+                value={form.profession}
+                onChange={e => setForm(p => ({ ...p, profession: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {PROFESSIONS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+              </select>
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Nama Templat *</label>
             <input
