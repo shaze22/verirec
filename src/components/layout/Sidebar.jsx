@@ -60,8 +60,7 @@ export function Sidebar() {
   const isCounselor = isCounselorSubdomain();
   const navItems = isCounselor ? COUNSELOR_ITEMS
     : [
-      { to: '/dashboard', label: 'Papan Pemuka', icon: ICONS.dashboard },
-      { to: '/analytics',  label: 'Analitik',    icon: ICONS.chart },
+      { to: '/analytics', label: 'Papan Pemuka', icon: ICONS.dashboard },
       ...OTHER_ITEMS,
     ];
 

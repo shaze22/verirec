@@ -204,7 +204,7 @@ export default function App() {
                 <ProtectedRoute>
                   {isCounselorSubdomain()
                     ? <CounselorHome />
-                    : <AppLayout><DashboardPage /></AppLayout>}
+                    : <Navigate to="/analytics" replace />}
                 </ProtectedRoute>
               } />
               <Route path="/session/new" element={
