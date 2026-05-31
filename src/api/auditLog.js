@@ -22,3 +22,14 @@ export async function getAuditLogs(limit = 200) {
   if (error) throw error;
   return data;
 }
+
+export async function getSessionAuditLogs(sessionId, limit = 30) {
+  const { data, error } = await supabase
+    .from('audit_logs')
+    .select('*')
+    .eq('resource_id', sessionId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data || [];
+}

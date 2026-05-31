@@ -157,6 +157,7 @@ export default function SessionReportPage() {
       setSession(prev => ({ ...prev, status: updated.status }));
       const opt = STATUS_OPTIONS.find(o => o.value === newStatus);
       toast.success(`Status: ${opt?.label}`);
+      if (user) logEvent(user.id, 'session.status', 'session', id, session.title, { from: session.status || 'active', to: newStatus });
     } catch {
       toast.error('Gagal mengemas kini status');
     } finally {
@@ -186,6 +187,7 @@ export default function SessionReportPage() {
       const url = `${window.location.origin}/laporan/${token}`;
       await navigator.clipboard.writeText(url);
       toast.success('Pautan dikongsi berjaya disalin!');
+      if (user) logEvent(user.id, 'report.share', 'session', id, session?.title);
     } catch {
       toast.error('Gagal menjana pautan kongsi.');
     } finally {
@@ -204,6 +206,7 @@ export default function SessionReportPage() {
       });
       setShareToken(null);
       toast.success('Pautan kongsi dibatalkan.');
+      if (user) logEvent(user.id, 'report.share.revoke', 'session', id, session?.title);
     } catch {
       toast.error('Gagal membatalkan pautan.');
     }
@@ -290,6 +293,7 @@ export default function SessionReportPage() {
       setSession(prev => ({ ...prev, ...updated }));
       setEditModal(false);
       toast.success('Butiran sesi dikemas kini.');
+      if (user) logEvent(user.id, 'session.edit', 'session', id, session?.title);
     } catch {
       toast.error('Gagal menyimpan perubahan.');
     } finally {

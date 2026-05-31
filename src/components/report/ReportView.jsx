@@ -6,7 +6,23 @@ import { hashSession } from '../../lib/crypto.js';
 import { SignaturePad } from '../session/SignaturePad.jsx';
 import { saveSignature } from '../../api/sessions.js';
 import { supabase } from '../../lib/supabase.js';
+import { useAuthStore } from '../../store/authStore.js';
+import { logEvent, getSessionAuditLogs } from '../../api/auditLog.js';
 import toast from 'react-hot-toast';
+
+const ACTION_LABELS = {
+  'session.view':      'Laporan dibuka',
+  'report.view':       'Laporan dilihat (selepas PIN)',
+  'report.pin.unlock': 'PIN dibuka',
+  'report.pin.set':    'PIN ditetapkan',
+  'report.export':     'PDF dieksport',
+  'report.share':      'Pautan dikongsi',
+  'report.share.revoke': 'Pautan kongsi dibatalkan',
+  'report.verify':     'Keaslian disahkan',
+  'audio.play':        'Audio dimainkan',
+  'session.edit':      'Butiran diedit',
+  'session.status':    'Status diubah',
+};
 
 const riskColors  = { low: 'green', medium: 'yellow', high: 'red' };
 const riskLabels  = { low: 'Rendah', medium: 'Sederhana', high: 'Tinggi' };
@@ -485,10 +501,18 @@ function TranscriptScript({ transcript = [], forceExpand = false }) {
 
 export function ReportView({ session }) {
   const { report, hash, audio_url, created_at, subject_name, interviewer, profession, duration, transcript, id } = session;
+  const { user } = useAuthStore();
   const reportRef  = useRef(null);
   const [exporting, setExporting]   = useState(false);
   const [verifying, setVerifying]   = useState(false);
   const [verifyResult, setVerifyResult] = useState(null);
+  const [auditTrail, setAuditTrail] = useState([]);
+  const [auditExpanded, setAuditExpanded] = useState(false);
+
+  useEffect(() => {
+    if (!id) return;
+    getSessionAuditLogs(id).then(setAuditTrail).catch(() => {});
+  }, [id]);
 
   // PDF section selector — persisted in localStorage per profession
   const SECTION_KEY = `pdf_sections_${profession || 'default'}`;
@@ -737,15 +761,88 @@ export function ReportView({ session }) {
       bodyText(`Dicetak: ${format(new Date(), 'dd MMM yyyy, HH:mm')}`, 8, 'normal', [130, 130, 130]);
       bodyText('VeriRec — Platform Rakaman Sesi Profesional Malaysia', 7.5, 'normal', [130, 130, 130]);
 
-      // ── Page numbers ──
-      const pages = pdf.internal.getNumberOfPages();
-      for (let i = 1; i <= pages; i++) {
-        pdf.setPage(i);
-        pdf.setFontSize(7); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(160, 160, 160);
-        pdf.text('VeriRec — SULIT', M, 292);
-        pdf.text(`${i} / ${pages}`, W - M, 292, { align: 'right' });
+      // ── Chain of Custody page ──
+      pdf.addPage();
+      let cy = M;
+      const printedAt = format(new Date(), 'dd MMM yyyy, HH:mm:ss');
+      const printedBy = user?.email || 'Pengguna Sistem';
+
+      pdf.setFillColor(245, 247, 250);
+      pdf.rect(0, 0, W, 35, 'F');
+      pdf.setFontSize(13); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(10, 10, 10);
+      pdf.text('CHAIN OF CUSTODY', M, 14);
+      pdf.setFontSize(9); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(80, 80, 80);
+      pdf.text('Rekod Kawalan Dokumen — VeriRec', M, 22);
+      pdf.setFontSize(7.5); pdf.setTextColor(120, 120, 120);
+      pdf.text('Dokumen ini dijana secara automatik dan dilindungi SHA-256. Sebarang pengubahan akan merosakkan hash.', M, 30);
+      cy = 44;
+
+      const cocField = (label, value, valueRgb = [20, 20, 20]) => {
+        if (cy > 270) { pdf.addPage(); cy = M; }
+        pdf.setFontSize(7.5); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(100, 100, 100);
+        pdf.text(label.toUpperCase(), M, cy); cy += 4.5;
+        pdf.setFontSize(9); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(...valueRgb);
+        pdf.splitTextToSize(String(value || '—'), W - M * 2).forEach(l => {
+          if (cy > 270) { pdf.addPage(); cy = M; }
+          pdf.text(l, M, cy); cy += 5;
+        });
+        cy += 2;
+      };
+
+      cocField('ID Sesi', id || '—');
+      cocField('No. Kes', session.case_number || '—');
+      cocField('Profesion', profession || '—');
+      cocField('Subjek', subject_name || '—');
+      cocField('Pengendali Sesi', interviewer || '—');
+      cocField('Tarikh Sesi', created_at ? format(new Date(created_at), 'dd MMMM yyyy, HH:mm') : '—');
+      cocField('Tempoh Rakaman', `${Math.round((duration || 0) / 60)} minit`);
+      cy += 3;
+
+      pdf.setFontSize(8); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(60, 60, 60);
+      pdf.text('SHA-256 HASH (INTEGRITI DOKUMEN)', M, cy); cy += 5;
+      pdf.setFillColor(250, 250, 250); pdf.setDrawColor(200, 200, 200);
+      pdf.roundedRect(M, cy, W - M * 2, 12, 2, 2, 'FD');
+      pdf.setFontSize(7.5); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(30, 30, 30);
+      pdf.text(hash || 'Hash belum dijana', M + 4, cy + 7);
+      cy += 18;
+
+      cocField('STATUS INTEGRITI', hash ? '✓ Hash dijana — dokumen boleh disahkan' : '⚠ Hash belum dijana', hash ? [0, 120, 0] : [180, 80, 0]);
+      cy += 2;
+
+      pdf.setFontSize(8); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(60, 60, 60);
+      pdf.text('MAKLUMAT PERCETAKAN', M, cy); cy += 6;
+      cocField('Dicetak oleh', printedBy, [37, 99, 235]);
+      cocField('Tarikh & Masa Cetak', printedAt);
+
+      if (auditTrail.length > 0) {
+        cy += 2;
+        pdf.setFontSize(8); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(60, 60, 60);
+        pdf.text('LOG AKSES TERKINI', M, cy); cy += 5;
+        auditTrail.slice(0, 8).forEach(evt => {
+          if (cy > 270) { pdf.addPage(); cy = M; }
+          const label = ACTION_LABELS[evt.action] || evt.action;
+          const ts = format(new Date(evt.created_at), 'dd/MM/yyyy HH:mm');
+          pdf.setFontSize(8); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(60, 60, 60);
+          pdf.text(`${ts}  —  ${label}`, M, cy); cy += 5;
+        });
       }
 
+      cy = 280;
+      pdf.setFontSize(7); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(150, 50, 50);
+      pdf.text('SULIT — UNTUK KEGUNAAN RASMI SAHAJA', M, cy);
+      pdf.setFontSize(7); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(150, 150, 150);
+      pdf.text(`VeriRec Platform | ${printedAt}`, W - M, cy, { align: 'right' });
+
+      // ── Footer watermark on every page (with print info) ──
+      const totalPages = pdf.internal.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(6.5); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(160, 160, 160);
+        pdf.text(`SULIT — ${printedBy} — ${printedAt}`, M, 292);
+        pdf.text(`${i} / ${totalPages}`, W - M, 292, { align: 'right' });
+      }
+
+      if (user) logEvent(user.id, 'report.export', 'session', id, session.title || subject_name).catch(() => {});
       pdf.save(`laporan-verirec-${id?.substring(0, 8) || 'session'}.pdf`);
     } finally {
       setExporting(false);
@@ -1202,38 +1299,96 @@ export function ReportView({ session }) {
         {/* Audio */}
         {audio_url && (
           <Section title="Rakaman Audio">
-            <audio controls className="w-full" src={audio_url} />
+            <audio
+              controls
+              className="w-full"
+              src={audio_url}
+              onPlay={() => {
+                if (user) logEvent(user.id, 'audio.play', 'session', id, session.title || subject_name).catch(() => {});
+              }}
+            />
           </Section>
         )}
 
-        {/* Chain of Custody */}
+        {/* Chain of Custody — Enhanced */}
         <div className="border-t pt-6">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase">Rantai Jagaan (Chain of Custody)</h3>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Rantai Jagaan (Chain of Custody)</h3>
+              <p className="text-xs text-gray-400 mt-0.5">Rekod integriti dan akses dokumen ini</p>
+            </div>
             <Button size="sm" variant="outline" onClick={verifyHash} loading={verifying}>
               Sahkan Hash
             </Button>
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-4 font-mono text-xs break-all">
-            <p className="text-gray-500 mb-1">Hash SHA-256 (dijana di pelayan):</p>
-            <p className="text-gray-800 select-all">{hash || 'Tiada hash'}</p>
+          {/* Document identity */}
+          <div className="grid sm:grid-cols-2 gap-3 mb-4">
+            {[
+              { label: 'ID Sesi', value: id ? `${id.slice(0,8)}…` : '—', mono: true },
+              { label: 'Dicipta', value: created_at ? format(new Date(created_at), 'dd MMM yyyy, HH:mm') : '—' },
+              { label: 'Pengendali', value: interviewer || '—' },
+              { label: 'Platform', value: 'VeriRec (SHA-256 PDPA-Compliant)' },
+            ].map(({ label, value, mono }) => (
+              <div key={label} className="bg-gray-50 rounded-lg px-3 py-2">
+                <p className="text-xs text-gray-400 font-medium">{label}</p>
+                <p className={`text-sm text-gray-800 mt-0.5 ${mono ? 'font-mono' : ''}`}>{value}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Hash */}
+          <div className="bg-gray-50 rounded-xl p-4 mb-3">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">SHA-256 Hash</p>
+              {hash && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Dijana Pelayan</span>}
+            </div>
+            <p className="font-mono text-xs text-gray-800 break-all select-all leading-relaxed">{hash || 'Hash belum dijana'}</p>
           </div>
 
           {verifyResult && (
-            <div className={`mt-3 p-3 rounded-lg text-sm ${verifyResult.ok ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+            <div className={`mb-3 p-3 rounded-lg text-sm ${verifyResult.ok ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
               <p className={`font-medium mb-1 ${verifyResult.ok ? 'text-green-700' : 'text-red-700'}`}>
-                {verifyResult.ok ? '✓ Pengesahan berjaya — laporan tulen' : '✗ Pengesahan gagal — laporan mungkin diubah'}
+                {verifyResult.ok ? '✓ Dokumen Asal — Tidak Diubah' : '✗ Dokumen Mungkin Telah Diubah'}
               </p>
-              {verifyResult.hash && (
-                <p className="font-mono text-xs text-gray-600 break-all mb-1">Hash dikira semula: {verifyResult.hash}</p>
-              )}
-              <p className="text-xs text-gray-500">{verifyResult.note}</p>
+              {verifyResult.hash && <p className="font-mono text-xs text-gray-600 break-all">Hash semula: {verifyResult.hash}</p>}
+              {verifyResult.note && <p className="text-xs text-gray-500 mt-1">{verifyResult.note}</p>}
             </div>
           )}
 
-          <p className="text-xs text-gray-400 mt-2">
-            Hash ini membuktikan laporan tidak diubah suai selepas dijana. Dokumen ini diperakui oleh sistem VeriRec.
+          {/* Audit trail */}
+          {auditTrail.length > 0 && (
+            <div className="border rounded-xl overflow-hidden">
+              <button
+                onClick={() => setAuditExpanded(p => !p)}
+                className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+              >
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                  <span className="text-sm font-semibold text-gray-700">Log Akses ({auditTrail.length} rekod)</span>
+                </div>
+                <svg className={`w-4 h-4 text-gray-400 transition-transform ${auditExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              {auditExpanded && (
+                <div className="divide-y max-h-64 overflow-y-auto">
+                  {auditTrail.map(evt => (
+                    <div key={evt.id} className="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0" />
+                        <span className="text-sm text-gray-700">{ACTION_LABELS[evt.action] || evt.action}</span>
+                      </div>
+                      <span className="text-xs text-gray-400 flex-shrink-0 ml-3">
+                        {format(new Date(evt.created_at), 'dd/MM/yyyy HH:mm')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <p className="text-xs text-gray-400 mt-3">
+            Hash SHA-256 dikira di pelayan selepas laporan dijana. Sebarang pengubahan pada transkrip atau laporan akan merosakkan hash. Dokumen ini boleh dikemukakan sebagai bukti digital di mahkamah atau siasatan SPRM/PDRM.
           </p>
         </div>
 
