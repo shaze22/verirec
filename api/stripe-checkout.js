@@ -26,25 +26,23 @@ const clean = (v) => (v || '').replace(/^﻿/, '').trim();
 const stripeKey = () => clean(process.env.STRIPE_SECRET_KEY);
 
 // Direct Stripe REST API calls — no SDK, no connection issues
+// Keys contain literal [] (e.g. line_items[0][price]) — must NOT be encoded
+function toFormBody(params) {
+  return Object.entries(params)
+    .filter(([, v]) => v !== null && v !== undefined)
+    .map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`)
+    .join('&');
+}
+
 async function stripePost(path, params) {
   const key = stripeKey();
-  const body = new URLSearchParams();
-  function flatten(obj, prefix = '') {
-    for (const [k, v] of Object.entries(obj)) {
-      const key = prefix ? `${prefix}[${k}]` : k;
-      if (v !== null && typeof v === 'object' && !Array.isArray(v)) flatten(v, key);
-      else body.append(key, String(v));
-    }
-  }
-  flatten(params);
-
   const res = await fetch(`https://api.stripe.com/v1${path}`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${key}`,
       'Content-Type': 'application/x-www-form-urlencoded',
     },
-    body: body.toString(),
+    body: toFormBody(params),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error?.message || 'Stripe error');
@@ -107,7 +105,7 @@ export default async function handler(req, res) {
       }
     }
     if (!customerId) {
-      const customer = await stripePost('/customers', { email: user.email, 'metadata[user_id]': user.id });
+      const customer = await stripePost('/customers', { email: user.email, 'metadata[user_id]': user.id, description: 'VeriRec Kaunselor' });
       customerId = customer.id;
       await supabaseAdmin
         .from('subscriptions')
