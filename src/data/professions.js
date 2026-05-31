@@ -361,8 +361,6 @@ export const PROFESSIONS = [
     },
     redFlagKeywords: ['ugutan', 'buli', 'gangguan seksual', 'diskriminasi', 'suap', 'ancaman'],
   },
-];
-
   {
     id: 'sispa',
     label: 'Pegawai SISPA',
