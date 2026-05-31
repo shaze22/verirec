@@ -62,6 +62,14 @@ export default async function handler(req, res) {
       .single();
 
     let customerId = sub?.stripe_customer_id;
+    if (customerId) {
+      // Verify customer exists in current Stripe mode (test↔live mismatch check)
+      try {
+        await stripe.customers.retrieve(customerId);
+      } catch {
+        customerId = null;
+      }
+    }
     if (!customerId) {
       const customer = await stripe.customers.create({ email: user.email, metadata: { user_id: user.id } });
       customerId = customer.id;
