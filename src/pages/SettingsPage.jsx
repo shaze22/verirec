@@ -43,6 +43,16 @@ export default function SettingsPage() {
   const [editingProfile, setEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({});
   const [savingProfile, setSavingProfile] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [nameForm, setNameForm] = useState('');
+  const [savingName, setSavingName] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState('');
+  const [copied, setCopied] = useState(false);
+  const [notifPrefs, setNotifPrefs] = useState(() => ({
+    new_appointment: localStorage.getItem('notif_new_appointment') !== 'false',
+    session_reminder: localStorage.getItem('notif_session_reminder') !== 'false',
+    usage_warning: localStorage.getItem('notif_usage_warning') !== 'false',
+  }));
   const [paymentModal, setPaymentModal] = useState(null); // { plan, receiptUrl, amount, created }
   const [receiptLoading, setReceiptLoading] = useState(false);
 
@@ -91,7 +101,15 @@ export default function SettingsPage() {
       .then(({ count }) => setReferralCount(count || 0))
       .catch(() => {});
     if (isCounselor) {
-      getCounselorProfile(user.id).then(p => setCounselorProfile(p)).catch(() => {});
+      getCounselorProfile(user.id).then(async p => {
+        setCounselorProfile(p);
+        if (p?.booking_code) {
+          const bookingUrl = `${window.location.origin}/book/${p.booking_code}`;
+          const QRCode = (await import('qrcode')).default;
+          QRCode.toDataURL(bookingUrl, { width: 200, margin: 2, color: { dark: '#1e293b', light: '#ffffff' } })
+            .then(url => setQrDataUrl(url)).catch(() => {});
+        }
+      }).catch(() => {});
     }
   }, [user]);
 
@@ -311,16 +329,44 @@ export default function SettingsPage() {
           {/* Profil Akaun */}
           <section className="bg-white rounded-xl border p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Profil Akaun</h2>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between items-center">
                 <span className="text-gray-500">E-mel</span>
                 <span className="font-medium">{user?.email}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Nama</span>
-                <span className="font-medium">{user?.user_metadata?.full_name || '—'}</span>
+              <div className="flex justify-between items-center gap-3">
+                <span className="text-gray-500 flex-shrink-0">Nama</span>
+                {editingName ? (
+                  <div className="flex items-center gap-2 flex-1 justify-end">
+                    <input
+                      type="text"
+                      value={nameForm}
+                      onChange={e => setNameForm(e.target.value)}
+                      className="flex-1 max-w-[200px] px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Nama penuh"
+                      autoFocus
+                    />
+                    <Button size="sm" loading={savingName} onClick={async () => {
+                      if (!nameForm.trim()) return;
+                      setSavingName(true);
+                      try {
+                        await supabase.auth.updateUser({ data: { full_name: nameForm.trim() } });
+                        toast.success('Nama dikemas kini.');
+                        setEditingName(false);
+                      } catch { toast.error('Gagal menyimpan.'); }
+                      finally { setSavingName(false); }
+                    }}>Simpan</Button>
+                    <button onClick={() => setEditingName(false)} className="text-gray-400 hover:text-gray-600 text-xs">Batal</button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{user?.user_metadata?.full_name || '—'}</span>
+                    <button onClick={() => { setNameForm(user?.user_metadata?.full_name || ''); setEditingName(true); }}
+                      className="text-xs text-blue-500 hover:text-blue-700 font-medium">Edit</button>
+                  </div>
+                )}
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-gray-500">ID Pengguna</span>
                 <span className="font-mono text-xs text-gray-400">{user?.id?.substring(0, 16)}...</span>
               </div>
@@ -439,6 +485,43 @@ export default function SettingsPage() {
                       <p className="text-gray-700">{counselorProfile.bio}</p>
                     </div>
                   )}
+
+                  {/* QR + Booking Link */}
+                  {counselorProfile.booking_code && (
+                    <div className="pt-3 border-t border-gray-100 space-y-3">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">QR & Pautan Tempahan</p>
+                      <div className="flex items-start gap-4">
+                        {qrDataUrl && (
+                          <img src={qrDataUrl} alt="QR Tempahan" className="w-20 h-20 rounded-lg border border-gray-200 flex-shrink-0" />
+                        )}
+                        <div className="flex-1 space-y-2 min-w-0">
+                          <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                            <span className="text-xs text-gray-500 truncate flex-1">
+                              {window.location.origin}/book/{counselorProfile.booking_code}
+                            </span>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={async () => {
+                                await navigator.clipboard.writeText(`${window.location.origin}/book/${counselorProfile.booking_code}`);
+                                setCopied(true);
+                                setTimeout(() => setCopied(false), 2000);
+                              }}
+                              className="flex-1 text-xs font-semibold py-1.5 px-3 rounded-lg border border-emerald-300 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors"
+                            >
+                              {copied ? '✓ Disalin!' : '📋 Salin Pautan'}
+                            </button>
+                            <button
+                              onClick={() => navigate('/kaunselor/appointments?tab=slots')}
+                              className="flex-1 text-xs font-semibold py-1.5 px-3 rounded-lg border border-gray-200 text-gray-600 bg-white hover:bg-gray-50 transition-colors"
+                            >
+                              🕐 Slot Masa
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-center py-4">
@@ -553,6 +636,37 @@ export default function SettingsPage() {
                 Aktifkan 2FA
               </Button>
             )}
+          </section>
+
+          {/* Notifikasi */}
+          <section className="bg-white rounded-xl border p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">Notifikasi E-mel</h2>
+            <p className="text-sm text-gray-500 mb-4">Pilih jenis e-mel yang anda mahu terima.</p>
+            <div className="space-y-3">
+              {[
+                { key: 'new_appointment', label: 'Permintaan tempahan baharu', desc: 'E-mel bila klien hantar tempahan' },
+                { key: 'session_reminder', label: 'Peringatan sesi akan datang', desc: 'E-mel 1 jam sebelum sesi' },
+                { key: 'usage_warning', label: 'Amaran had penggunaan', desc: 'E-mel bila sesi hampir habis (80%)' },
+              ].map(({ key, label, desc }) => (
+                <div key={key} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">{label}</p>
+                    <p className="text-xs text-gray-400">{desc}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const newVal = !notifPrefs[key];
+                      setNotifPrefs(p => ({ ...p, [key]: newVal }));
+                      localStorage.setItem(`notif_${key}`, String(newVal));
+                      toast.success(newVal ? 'Notifikasi diaktifkan.' : 'Notifikasi dimatikan.');
+                    }}
+                    className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${notifPrefs[key] ? 'bg-emerald-500' : 'bg-gray-200'}`}
+                  >
+                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${notifPrefs[key] ? 'translate-x-5' : ''}`} />
+                  </button>
+                </div>
+              ))}
+            </div>
           </section>
 
           {/* Langganan & Penggunaan */}
