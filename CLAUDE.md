@@ -99,7 +99,21 @@ const isInvestigationProf = ['police','sprm','sispa','skmm','hr','jtk','peguam']
 Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 
 
-## Features Baru (2026-05-31 — sesi terbaru)
+## Features Baru (2026-06-01 — sesi terbaru)
+**Chain of Custody — Lebih Kuat:**
+- `auditLog.js`: tambah `getSessionAuditLogs(sessionId)` — fetch audit events per sesi
+- `ReportView.jsx`: Chain of Custody section dinaik taraf:
+  - Document identity cards (ID sesi, dicipta, pengendali, platform)
+  - Full SHA-256 hash + status badge "Dijana Pelayan"
+  - Collapsible audit trail log — semua akses dengan timestamp
+- `ReportView.jsx`: PDF export:
+  - Footer watermark setiap halaman: "SULIT — [user_email] — [datetime]"
+  - Halaman Chain of Custody penuh di akhir PDF (ID, hash, log akses 8 terbaru, print info)
+  - Log 'report.export' setiap kali PDF dieksport
+- `ReportView.jsx`: Audio `onPlay` → log 'audio.play' event
+- `SessionReportPage.jsx`: log 'session.status', 'report.share', 'report.share.revoke', 'session.edit'
+
+## Features Baru (2026-05-31 — sesi sebelumnya)
 - `ConsentPage` + `DashboardPage`: `incrementUsage()` dipanggil selepas session insert — fix bug sessions_used tidak increment
 - `SettingsPage`: section "Pengurusan Organisasi" untuk Pro/Biz plan — org name, team members, link ke /team
 - `TeamPage`: org capacity banner — "X/5 tempat ahli · 100 sesi/ahli/bulan", warning bila had dicapai
@@ -213,7 +227,7 @@ vercel deploy --prod --force --scope syedshazni-7682s-projects
 - www.verirec.app + counselor.verirec.app (doctor/jkm redirect ke www)
 - Project ID: `prj_EwnDU0nKMOn56auUR1WZF1GeNI3f`
 - GitHub: `https://github.com/shaze22/verirec` (branch: main)
-- Last deployed: 2026-05-31 (commit `6005ece` — org UI, sessions_used fix, mobile confirm)
+- Last deployed: 2026-06-01 (commit `76800e1` — chain of custody kuat)
 - Supabase project ID: `sbakkkxuhkxfofpfhdtn`
 
 **Supabase Auth URL Configuration (dashboard):**
