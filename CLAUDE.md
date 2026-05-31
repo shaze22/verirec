@@ -241,6 +241,7 @@ vercel deploy --prod --force --scope syedshazni-7682s-projects
 |------|--------|
 | Stripe live mode — topup berjaya, webhook crypto verify, billing portal via fetch | ✅ 2026-05-31 |
 | Payment success modal + sejarah pembayaran + resit per transaksi ✅ diuji berjaya | ✅ 2026-05-31 |
+| Settings: edit nama, QR tempahan, copy link, notifikasi toggles | ✅ 2026-05-31 |
 | Rate limit `/book/:booking_code` — RPC max 30/jam + honeypot + 5s load check | ✅ 2026-05-31 |
 | Error boundary React — `ErrorBoundary.jsx` wrap App dalam `main.jsx` | ✅ 2026-05-31 |
 | Stripe webhook URL: update ke `https://www.verirec.app/api/stripe-webhook` | ⏳ Manual |
