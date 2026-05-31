@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { generateConsentId } from '../lib/crypto.js';
 import { supabase } from '../lib/supabase.js';
 import { useAuthStore } from '../store/authStore.js';
+import { useBillingStore } from '../store/billingStore.js';
 import { Button } from '../components/ui/Button.jsx';
 import toast from 'react-hot-toast';
 
@@ -17,6 +18,7 @@ const CONSENT_ITEMS = [
 
 export default function ConsentPage() {
   const { user } = useAuthStore();
+  const { incrementUsage } = useBillingStore();
   const navigate = useNavigate();
   const [checked, setChecked] = useState([false, false, false, false]);
   const [loading, setLoading] = useState(false);
@@ -62,6 +64,7 @@ export default function ConsentPage() {
             })
             .select().single();
           if (error) throw error;
+          await incrementUsage().catch(() => {});
           sessionStorage.setItem('active_session_id', session.id);
           navigate('/session/active', { replace: true });
         } else {
@@ -113,6 +116,7 @@ export default function ConsentPage() {
 
       if (error) throw error;
 
+      await incrementUsage().catch(() => {});
       sessionStorage.setItem('active_session_id', session.id);
       navigate('/session/active');
     } catch (err) {

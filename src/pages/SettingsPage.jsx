@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/authStore.js';
 import { useBillingStore } from '../store/billingStore.js';
 import { supabase } from '../lib/supabase.js';
 import { getSessions } from '../api/sessions.js';
+import { getMyTeam, getTeamMembers } from '../api/teams.js';
 import { logEvent } from '../api/auditLog.js';
 import { getCounselorProfile, upsertCounselorProfile } from '../api/counselor.js';
 import { getSessionReceipt, getStripeInvoices } from '../api/billing.js';
@@ -17,7 +18,7 @@ import toast from 'react-hot-toast';
 
 export default function SettingsPage() {
   const { user, signOut } = useAuthStore();
-  const { fetchSubscription } = useBillingStore();
+  const { fetchSubscription, subscription } = useBillingStore();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -40,6 +41,10 @@ export default function SettingsPage() {
   const [referralCount, setReferralCount] = useState(null);
   const referralCode = user?.id?.replace(/-/g, '').slice(0, 10);
   const isCounselor = localStorage.getItem('preferred_profession') === 'counselor';
+  const isOrgPlan = subscription?.plan === 'pro' || subscription?.plan === 'biz';
+  const [orgName, setOrgName] = useState(() => localStorage.getItem(`org_name_${user?.id}`) || '');
+  const [orgNameSaving, setOrgNameSaving] = useState(false);
+  const [teamMembers, setTeamMembers] = useState([]);
   const [counselorProfile, setCounselorProfile] = useState(null);
   const [editingProfile, setEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({});
@@ -122,6 +127,14 @@ export default function SettingsPage() {
       .catch(() => {})
       .finally(() => setMfaLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!user || !isOrgPlan) return;
+    getMyTeam(user.id)
+      .then(team => team && getTeamMembers(team.id))
+      .then(members => setTeamMembers(members || []))
+      .catch(() => {});
+  }, [user, isOrgPlan]);
 
   const handleMfaEnroll = async () => {
     try {
@@ -876,6 +889,97 @@ export default function SettingsPage() {
               </div>
             </div>
           </section>
+
+          {/* Pengurusan Organisasi — Pro/Biz sahaja */}
+          {isOrgPlan && (
+            <section className="bg-white rounded-xl border p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-1">Pengurusan Organisasi</h2>
+              <p className="text-sm text-gray-500 mb-5">Urus ahli pasukan dan tetapan jabatan untuk Plan Organisasi anda.</p>
+              <div className="space-y-4">
+                {/* Org capacity */}
+                <div className="bg-blue-50 rounded-xl p-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-blue-900">Plan Organisasi</p>
+                    <p className="text-xs text-blue-700 mt-0.5">
+                      {teamMembers.filter(m => m.status === 'accepted').length}/5 tempat ahli digunakan · 100 sesi/ahli/bulan
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => navigate('/team')}
+                    className="text-xs font-semibold text-blue-600 hover:text-blue-800 bg-white border border-blue-200 px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    Urus Pasukan →
+                  </button>
+                </div>
+
+                {/* Org name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nama Jabatan / Unit</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={orgName}
+                      onChange={e => setOrgName(e.target.value)}
+                      placeholder="cth. Unit Siasatan SPRM Cawangan KL"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <Button
+                      size="sm"
+                      loading={orgNameSaving}
+                      onClick={() => {
+                        setOrgNameSaving(true);
+                        localStorage.setItem(`org_name_${user.id}`, orgName);
+                        setTimeout(() => {
+                          setOrgNameSaving(false);
+                          toast.success('Nama organisasi disimpan.');
+                        }, 300);
+                      }}
+                    >
+                      Simpan
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">Akan terpapar dalam laporan PDF sebagai nama organisasi.</p>
+                </div>
+
+                {/* Team members summary */}
+                {teamMembers.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Ahli Pasukan ({teamMembers.filter(m => m.status === 'accepted').length} aktif)</p>
+                    <div className="space-y-2">
+                      {teamMembers.slice(0, 5).map(m => (
+                        <div key={m.id} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg">
+                          <span className="text-sm text-gray-700 truncate">{m.email}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ml-2 ${
+                            m.status === 'accepted' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                          }`}>
+                            {m.status === 'accepted' ? 'Aktif' : 'Jemputan'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    {teamMembers.length > 5 && (
+                      <button onClick={() => navigate('/team')} className="text-xs text-blue-600 hover:underline mt-2">
+                        Lihat semua {teamMembers.length} ahli →
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Invite prompt if no team yet */}
+                {teamMembers.length === 0 && (
+                  <div className="text-center py-4 bg-gray-50 rounded-xl">
+                    <p className="text-sm text-gray-500 mb-2">Belum ada ahli pasukan dijemput.</p>
+                    <button
+                      onClick={() => navigate('/team')}
+                      className="text-sm font-semibold text-blue-600 hover:text-blue-800"
+                    >
+                      Jemput Ahli Pasukan →
+                    </button>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
 
           {/* Padam Akaun */}
           <section className="bg-white rounded-xl border border-red-200 p-6">

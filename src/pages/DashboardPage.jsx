@@ -103,7 +103,7 @@ function SkeletonCard() {
 
 export default function DashboardPage({ pageTitle }) {
   const { user } = useAuthStore();
-  const { canStartSession, subscription } = useBillingStore();
+  const { canStartSession, subscription, incrementUsage } = useBillingStore();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -240,6 +240,7 @@ export default function DashboardPage({ pageTitle }) {
         .select()
         .single();
       if (error) throw error;
+      await incrementUsage().catch(() => {});
       sessionStorage.setItem('session_setup', JSON.stringify(setup));
       sessionStorage.setItem('active_session_id', session.id);
       localStorage.setItem('preferred_profession', quickProfession);

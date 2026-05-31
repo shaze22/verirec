@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { useAuthStore } from '../store/authStore.js';
+import { useBillingStore } from '../store/billingStore.js';
 import { supabase } from '../lib/supabase.js';
 import { getMyTeam, createTeam, getTeamMembers, inviteMember, removeMember, updateMemberRole, updateTeamName } from '../api/teams.js';
 import { TopBar } from '../components/layout/TopBar.jsx';
@@ -23,6 +24,9 @@ const statusLabel = { pending: 'Jemputan Dihantar', active: 'Aktif' };
 
 export default function TeamPage() {
   const { user } = useAuthStore();
+  const { subscription } = useBillingStore();
+  const isOrgPlan = subscription?.plan === 'pro' || subscription?.plan === 'biz';
+  const ORG_SEAT_LIMIT = subscription?.plan === 'biz' ? 20 : 5;
   const [team, setTeam] = useState(null);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -156,6 +160,23 @@ export default function TeamPage() {
       <TopBar title="Pengurusan Pasukan" />
       <div className="flex-1 overflow-auto p-6 pb-20 md:pb-6">
         <div className="max-w-2xl mx-auto space-y-6">
+
+          {/* Org plan capacity banner */}
+          {isOrgPlan && (
+            <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-blue-900">Plan Organisasi</p>
+                <p className="text-xs text-blue-700 mt-0.5">
+                  {members.filter(m => m.status === 'accepted').length}/{ORG_SEAT_LIMIT} tempat ahli · 100 sesi/ahli/bulan
+                </p>
+              </div>
+              {members.filter(m => m.status === 'accepted').length >= ORG_SEAT_LIMIT && (
+                <span className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg">
+                  Had Ahli Dicapai
+                </span>
+              )}
+            </div>
+          )}
 
           {!team ? (
             /* Create team */
