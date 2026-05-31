@@ -34,7 +34,8 @@ const COUNSELOR_ITEMS = [
 
 // Other professions tabs
 const OTHER_ITEMS = [
-  { to: '/session/new', label: 'Sesi Baru',       icon: ICONS.mic },
+  { to: '/sessions',    label: 'Sesi Terkini',     icon: ICONS.mic },
+  { to: '/session/new', label: 'Sesi Baru',        icon: ICONS.mic },
   { to: '/subjects',    label: 'Subjek',           icon: ICONS.users },
   { to: '/cases',       label: 'Fail Kes',         icon: ICONS.folder },
   { to: '/jadual',      label: 'Jadual Sesi',      icon: ICONS.calendar },

@@ -363,6 +363,129 @@ export const PROFESSIONS = [
   },
 ];
 
+  {
+    id: 'sispa',
+    label: 'Pegawai SISPA',
+    icon: '🔒',
+    color: '#1e40af',
+    interviewerLabel: 'Pegawai Penyiasat',
+    subjectLabel: 'Individu yang Disiasat',
+    sessionType: 'Soal Siasat Keselamatan',
+    frameworks: ['OSA 1972', 'SISPA Guidelines', 'PEACE Model'],
+    phases: ['Pra-Siasat', 'Pembukaan', 'Penerokaan Bebas', 'Penyoalan', 'Penutup'],
+    questions: {
+      'Pra-Siasat': [
+        'Sila nyatakan nama penuh dan nombor kad pengenalan anda.',
+        'Adakah anda faham tujuan soal siasat keselamatan ini?',
+        'Adakah anda ingin mendapatkan peguam atau wakil sebelum meneruskan?',
+      ],
+      'Pembukaan': [
+        'Sesi ini dijalankan di bawah peruntukan OSA 1972. Adakah anda faham implikasinya?',
+        'Sila ceritakan peranan dan tanggungjawab rasmi anda dalam organisasi ini.',
+        'Berapa lama anda berkhidmat dalam bidang ini?',
+      ],
+      'Penerokaan Bebas': [
+        'Ceritakan peristiwa atau situasi yang menjadi subjek siasatan ini dalam kata-kata anda sendiri.',
+        'Siapakah individu lain yang terlibat atau mengetahui perkara ini?',
+        'Bilakah pertama kali anda mengetahui tentang perkara ini?',
+      ],
+      'Penyoalan': [
+        'Anda menyebut [X] — boleh anda terangkan dengan lebih lanjut?',
+        'Apakah akses yang anda miliki terhadap maklumat atau sistem berkenaan?',
+        'Adakah anda pernah berkongsi maklumat sensitif dengan pihak luar?',
+        'Apakah motivasi atau faktor yang mendorong tindakan yang anda gambarkan?',
+      ],
+      'Penutup': [
+        'Adakah terdapat maklumat tambahan yang anda ingin dedahkan secara sukarela?',
+        'Adakah penyata yang anda berikan adalah benar dan lengkap?',
+        'Saya akan membacakan semula penyata anda untuk pengesahan.',
+      ],
+    },
+    redFlagKeywords: ['kebocoran maklumat', 'intipan', 'sabotaj', 'akses tidak sah', 'dokumen sulit', 'OSA'],
+  },
+  {
+    id: 'skmm',
+    label: 'Pegawai SKMM',
+    icon: '📡',
+    color: '#0891b2',
+    interviewerLabel: 'Pegawai Penguatkuasa',
+    subjectLabel: 'Pihak yang Disiasat',
+    sessionType: 'Siasatan Komunikasi',
+    frameworks: ['Akta Komunikasi & Multimedia 1998', 'CMA Guidelines', 'PEACE Model'],
+    phases: ['Pra-Siasat', 'Pembukaan', 'Penerokaan Bebas', 'Penyoalan', 'Penutup'],
+    questions: {
+      'Pra-Siasat': [
+        'Sila nyatakan nama penuh, nombor pendaftaran syarikat/IC, dan peranan anda.',
+        'Adakah anda faham tujuan siasatan SKMM ini?',
+        'Adakah anda diwakili oleh peguam dalam proses ini?',
+      ],
+      'Pembukaan': [
+        'Siasatan ini dijalankan di bawah Akta Komunikasi dan Multimedia 1998. Adakah anda faham hak anda?',
+        'Sila terangkan perkhidmatan komunikasi atau multimedia yang anda sediakan atau gunakan.',
+        'Sejak bilakah perkhidmatan ini beroperasi?',
+      ],
+      'Penerokaan Bebas': [
+        'Ceritakan tentang operasi platform atau perkhidmatan yang menjadi subjek siasatan ini.',
+        'Siapakah pihak-pihak lain yang terlibat dalam pengendalian platform ini?',
+        'Apakah prosedur pematuhan yang anda ada untuk kandungan yang disiarkan?',
+      ],
+      'Penyoalan': [
+        'Berkaitan kandungan [X] — siapakah yang meluluskan atau menyiarkannya?',
+        'Adakah anda menyimpan log atau rekod pengguna mengikut keperluan CMA?',
+        'Apakah mekanisme anda untuk menangani aduan kandungan berbahaya?',
+        'Adakah anda pernah menerima arahan untuk menyebarkan kandungan yang melanggar undang-undang?',
+      ],
+      'Penutup': [
+        'Adakah terdapat perkara lain yang ingin anda jelaskan?',
+        'Adakah penyata ini tepat dan benar mengikut pengetahuan anda?',
+        'Sila tandatangan penyata ini sebagai pengesahan.',
+      ],
+    },
+    redFlagKeywords: ['kandungan berbahaya', 'hasutan', 'pornografi', 'penipuan dalam talian', 'pelanggaran CMA'],
+  },
+  {
+    id: 'jtk',
+    label: 'Pegawai JTK',
+    icon: '⚖️',
+    color: '#0d9488',
+    interviewerLabel: 'Pegawai JTK',
+    subjectLabel: 'Pekerja / Majikan',
+    sessionType: 'Siasatan Buruh',
+    frameworks: ['Akta Kerja 1955', 'ILO Standards', 'Akta Kesatuan Sekerja 1959'],
+    phases: ['Pengaduan Awal', 'Siasatan Majikan', 'Siasatan Pekerja', 'Mediasi', 'Penutup'],
+    questions: {
+      'Pengaduan Awal': [
+        'Sila nyatakan nama penuh, nombor kad pengenalan, dan nama majikan anda.',
+        'Apakah aduan atau isu buruh yang ingin anda laporkan?',
+        'Bilakah kejadian atau situasi ini mula berlaku?',
+      ],
+      'Siasatan Majikan': [
+        'Sila terangkan struktur dan polisi pekerjaan syarikat anda.',
+        'Apakah syarat-syarat pekerjaan yang termaktub dalam kontrak berkenaan?',
+        'Bagaimana pihak majikan menangani aduan pekerja dalam kes ini?',
+        'Adakah terdapat bukti bertulis seperti kontrak, slip gaji, atau rekod kehadiran?',
+      ],
+      'Siasatan Pekerja': [
+        'Ceritakan tentang keadaan kerja dan layanan yang anda terima.',
+        'Adakah gaji atau faedah anda dibayar mengikut peruntukan Akta Kerja 1955?',
+        'Adakah anda pernah membuat aduan secara dalaman kepada majikan? Apakah tindak balasnya?',
+        'Adakah terdapat saksi atau pekerja lain yang mengalami situasi yang sama?',
+      ],
+      'Mediasi': [
+        'Apakah penyelesaian yang anda harapkan daripada siasatan ini?',
+        'Adakah kedua-dua pihak bersedia untuk mencapai penyelesaian secara rundingan?',
+        'Apakah syarat minimum yang boleh diterima oleh kedua-dua pihak?',
+      ],
+      'Penutup': [
+        'Adakah terdapat maklumat tambahan yang ingin anda sampaikan?',
+        'Saya akan menyediakan laporan siasatan untuk tindakan selanjutnya.',
+        'Adakah kedua-dua pihak faham tentang proses rayuan jika tidak berpuas hati?',
+      ],
+    },
+    redFlagKeywords: ['eksploitasi pekerja', 'kerja paksa', 'pekerja asing haram', 'gaji bawah minimum', 'pemecatan salah'],
+  },
+];
+
 export function getProfession(id) {
   return PROFESSIONS.find(p => p.id === id);
 }

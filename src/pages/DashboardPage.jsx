@@ -101,7 +101,7 @@ function SkeletonCard() {
   );
 }
 
-export default function DashboardPage() {
+export default function DashboardPage({ pageTitle }) {
   const { user } = useAuthStore();
   const { canStartSession, subscription } = useBillingStore();
   const [sessions, setSessions] = useState([]);
@@ -368,7 +368,7 @@ export default function DashboardPage() {
         </div>
       )}
       <TopBar
-        title="Papan Pemuka"
+        title={pageTitle || "Papan Pemuka"}
         actions={
           selectMode ? (
             <div className="flex items-center gap-2">

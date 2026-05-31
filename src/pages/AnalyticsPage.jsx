@@ -1,10 +1,12 @@
 import { useEffect, useState, useMemo, lazy, Suspense } from 'react';
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore.js';
 import { getSessions } from '../api/sessions.js';
 import { professionLabel } from '../data/professions.js';
 import { TopBar } from '../components/layout/TopBar.jsx';
 import { Button } from '../components/ui/Button.jsx';
+import { isCounselorSubdomain } from '../lib/subdomain.js';
 import toast from 'react-hot-toast';
 
 const CounselorDashboard = lazy(() => import('./kaunselor/CounselorDashboard.jsx'));
@@ -80,10 +82,7 @@ function getUseCase(prof) {
 }
 
 export default function AnalyticsPage() {
-  const profession = localStorage.getItem('preferred_profession') || '';
-  const useCase    = getUseCase(profession);
-
-  if (useCase === 'kaunseling') {
+  if (isCounselorSubdomain()) {
     return (
       <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" /></div>}>
         <CounselorDashboard />
@@ -91,7 +90,11 @@ export default function AnalyticsPage() {
     );
   }
 
+  const profession = localStorage.getItem('preferred_profession') || '';
+  const useCase    = AUDIT_PROFS.has(profession) ? 'audit' : 'soal-siasat';
+
   const { user } = useAuthStore();
+  const navigate = useNavigate();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -188,8 +191,48 @@ export default function AnalyticsPage() {
         ) : (
           <div className="max-w-4xl mx-auto space-y-6">
 
+            {/* ── WELCOME STATE (new users) ── */}
+            {sessions.length === 0 && (
+              <div className="bg-white rounded-2xl border p-8 text-center max-w-lg mx-auto">
+                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                  </svg>
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Selamat Datang ke VeriRec Profesional</h2>
+                <p className="text-sm text-gray-500 mb-6">Platform rakaman &amp; analitik sesi soal siasat yang selamat dan patuh PDPA</p>
+                <ol className="text-left space-y-3 mb-7">
+                  {[
+                    ['Mulakan sesi', 'Pilih profesion dan isi butiran sesi anda'],
+                    ['Rakam & jana laporan AI', 'Transkripsi automatik + analisis SHA-256 chain of custody'],
+                    ['Urus fail kes & subjek', 'Susun sesi mengikut kes dan subjek untuk rujukan mudah'],
+                  ].map(([step, desc], i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <span className="w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{i + 1}</span>
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">{step}</p>
+                        <p className="text-xs text-gray-500">{desc}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+                <button
+                  onClick={() => navigate('/session/new')}
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-sm transition-colors mb-3"
+                >
+                  Mulakan Sesi Pertama →
+                </button>
+                <button
+                  onClick={() => navigate('/cases')}
+                  className="text-xs text-gray-400 hover:text-gray-600 underline"
+                >
+                  Lihat fail kes
+                </button>
+              </div>
+            )}
+
             {/* ── INVESTIGATE ANALYTICS ── */}
-            {useCase === 'soal-siasat' && (<>
+            {useCase === 'soal-siasat' && sessions.length > 0 && (<>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <StatCard label="Jumlah Kes" value={stats.total} sub="sepanjang masa" />
                 <StatCard label="Bulan Ini" value={stats.recentSessions} sub="30 hari lepas" />
@@ -260,7 +303,7 @@ export default function AnalyticsPage() {
             </>)}
 
             {/* ── AUDIT ANALYTICS ── */}
-            {useCase === 'audit' && (<>
+            {useCase === 'audit' && sessions.length > 0 && (<>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <StatCard label="Jumlah Audit" value={stats.total} sub="sepanjang masa" />
                 <StatCard label="Bulan Ini" value={stats.recentSessions} sub="30 hari lepas" />
@@ -311,80 +354,6 @@ export default function AnalyticsPage() {
               </div>
             </>)}
 
-            {/* ── GENERIC ANALYTICS (fallback) ── */}
-            {useCase === 'generic' && (<>
-            {/* Summary cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <StatCard label="Jumlah Sesi" value={stats.total} sub="sepanjang masa" />
-              <StatCard label="30 Hari Lepas" value={stats.recentSessions} sub="sesi terkini" />
-              <StatCard label="Laporan Dijana" value={stats.withReport} sub={`daripada ${stats.total} sesi`} />
-              <StatCard label="Purata Tempoh" value={`${stats.avgMinutes} min`} sub="per sesi" />
-            </div>
-
-            {/* Status breakdown */}
-            <div className="bg-white rounded-xl border p-5">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Status Kes</h3>
-              <div className="grid grid-cols-3 gap-4 text-center">
-                {[
-                  { key: 'active',  label: 'Aktif',        bg: 'bg-green-50', text: 'text-green-700' },
-                  { key: 'pending', label: 'Ditangguhkan', bg: 'bg-amber-50', text: 'text-amber-700' },
-                  { key: 'closed',  label: 'Ditutup',      bg: 'bg-gray-50',  text: 'text-gray-600' },
-                ].map(({ key, label, bg, text }) => (
-                  <div key={key} className={`${bg} rounded-xl p-4`}>
-                    <p className={`text-2xl font-bold ${text}`}>{stats.statusCounts[key]}</p>
-                    <p className="text-xs text-gray-500 mt-1">{label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Sessions by profession */}
-            <div className="bg-white rounded-xl border p-5">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Sesi Mengikut Profesion</h3>
-              {stats.total === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-6">Tiada sesi lagi</p>
-              ) : (
-                <BarChart data={stats.byProfession} maxVal={maxProfessionCount} colorClass="bg-blue-500" />
-              )}
-            </div>
-
-            {/* Risk distribution */}
-            <div className="bg-white rounded-xl border p-5">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Taburan Tahap Risiko</h3>
-              {stats.withReport === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-6">Jana laporan AI untuk melihat taburan risiko</p>
-              ) : (
-                <div className="space-y-3">
-                  {stats.riskData.map(({ key, label, count }) => {
-                    const pct = Math.round((count / maxRiskCount) * 100);
-                    return (
-                      <div key={key} className="flex items-center gap-3">
-                        <span className="text-sm text-gray-600 w-28 flex-shrink-0">{label}</span>
-                        <div className="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
-                          <div className={`h-full rounded-full transition-all ${riskColors[key]}`} style={{ width: `${pct}%` }} />
-                        </div>
-                        <span className="text-sm font-medium text-gray-700 w-6 text-right flex-shrink-0">{count}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* Completion rate */}
-            {stats.total > 0 && (
-              <div className="bg-white rounded-xl border p-5">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Kadar Laporan Dijana</h3>
-                <div className="flex items-center gap-4">
-                  <div className="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${Math.round((stats.withReport / stats.total) * 100)}%` }} />
-                  </div>
-                  <span className="text-sm font-semibold text-gray-700 flex-shrink-0">{Math.round((stats.withReport / stats.total) * 100)}%</span>
-                </div>
-                <p className="text-xs text-gray-400 mt-2">{stats.withReport} daripada {stats.total} sesi mempunyai laporan AI</p>
-              </div>
-            )}
-            </>)}
           </div>
         )}
       </div>

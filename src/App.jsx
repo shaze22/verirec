@@ -222,6 +222,9 @@ export default function App() {
               <Route path="/analytics" element={
                 <ProtectedRoute><AppLayout><AnalyticsPage /></AppLayout></ProtectedRoute>
               } />
+              <Route path="/sessions" element={
+                <ProtectedRoute><AppLayout><DashboardPage pageTitle="Sesi Terkini" /></AppLayout></ProtectedRoute>
+              } />
               <Route path="/subjects" element={
                 <ProtectedRoute><AppLayout><SubjectsPage /></AppLayout></ProtectedRoute>
               } />
