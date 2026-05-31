@@ -1,19 +1,53 @@
 import { createClient } from '@supabase/supabase-js';
-import Stripe from 'stripe';
+import { createHmac, timingSafeEqual } from 'crypto';
 import { sendEmail, paymentFailedEmail, subscriptionCancelledEmail } from './_mailer.js';
+
+const clean = (v) => (v || '').replace(/^﻿/, '').trim();
+const stripeKey = () => clean(process.env.STRIPE_SECRET_KEY);
 
 const supabaseAdmin = createClient(
   process.env.VITE_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
 );
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2024-06-20',
-  maxNetworkRetries: 0,
-});
 
 const PLAN_LIMITS = { free: 2, counselor: 20, starter: 20, pro: 100, biz: -1 };
 
 export const config = { api: { bodyParser: false } };
+
+// Stripe webhook signature verification — no SDK needed
+function verifyStripeSignature(rawBody, sigHeader, secret) {
+  const parts = sigHeader.split(',').reduce((acc, part) => {
+    const [k, v] = part.split('=');
+    acc[k] = v;
+    return acc;
+  }, {});
+  const timestamp = parts.t;
+  const signature = parts.v1;
+  if (!timestamp || !signature) throw new Error('Invalid signature header');
+
+  const payload = `${timestamp}.${rawBody}`;
+  const expected = createHmac('sha256', secret).update(payload, 'utf8').digest('hex');
+
+  const a = Buffer.from(signature, 'hex');
+  const b = Buffer.from(expected, 'hex');
+  if (a.length !== b.length || !timingSafeEqual(a, b)) {
+    throw new Error('Signature mismatch');
+  }
+
+  // Reject events older than 5 minutes
+  if (Math.abs(Date.now() / 1000 - parseInt(timestamp)) > 300) {
+    throw new Error('Timestamp too old');
+  }
+}
+
+async function stripeGet(path) {
+  const res = await fetch(`https://api.stripe.com/v1${path}`, {
+    headers: { Authorization: `Bearer ${stripeKey()}` },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || 'Stripe error');
+  return data;
+}
 
 async function getUserIdByCustomer(customerId) {
   const { data } = await supabaseAdmin
@@ -35,13 +69,16 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const sig = req.headers['stripe-signature'];
+  const webhookSecret = clean(process.env.STRIPE_WEBHOOK_SECRET);
+  let rawBody;
   let event;
 
   try {
     const chunks = [];
     for await (const chunk of req) chunks.push(chunk);
-    const rawBody = Buffer.concat(chunks);
-    event = stripe.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    rawBody = Buffer.concat(chunks);
+    verifyStripeSignature(rawBody.toString('utf8'), sig, webhookSecret);
+    event = JSON.parse(rawBody.toString('utf8'));
   } catch (err) {
     console.error('Webhook signature error:', err.message);
     return res.status(400).json({ error: `Webhook Error: ${err.message}` });
@@ -63,12 +100,12 @@ export default async function handler(req, res) {
           break;
         }
 
-        // Subscription checkout
+        // Subscription checkout — retrieve subscription status
         let status = 'active';
         let trialEnd = null;
         if (session.subscription) {
           try {
-            const stripeSub = await stripe.subscriptions.retrieve(session.subscription);
+            const stripeSub = await stripeGet(`/subscriptions/${session.subscription}`);
             if (stripeSub.status === 'trialing') {
               status = 'trialing';
               trialEnd = new Date(stripeSub.trial_end * 1000).toISOString();
@@ -88,12 +125,11 @@ export default async function handler(req, res) {
 
       case 'customer.subscription.updated': {
         const sub = event.data.object;
-        // Plan is stored in subscription metadata (set during checkout)
         const plan = sub.metadata?.plan;
         const userId = await getUserIdByCustomer(sub.customer);
         if (!userId) break;
         const updateData = { status: sub.status };
-        if (plan && PLAN_LIMITS.hasOwnProperty(plan)) {
+        if (plan && Object.hasOwn(PLAN_LIMITS, plan)) {
           updateData.plan = plan;
           updateData.sessions_limit = PLAN_LIMITS[plan];
         }
@@ -143,7 +179,6 @@ export default async function handler(req, res) {
         if (invoice.billing_reason === 'subscription_create') break;
         const userId = await getUserIdByCustomer(invoice.customer);
         if (!userId) break;
-        // Reset monthly usage + clear warning flag on renewal
         await supabaseAdmin.from('subscriptions').update({
           status: 'active',
           sessions_used: 0,
