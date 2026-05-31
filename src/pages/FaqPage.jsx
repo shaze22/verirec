@@ -82,12 +82,12 @@ export default function FaqPage() {
     <Helmet>
       <title>Soalan Lazim — VeriRec</title>
       <meta name="description" content="Jawapan kepada soalan lazim tentang VeriRec — pematuhan PDPA, keselamatan data, transkrip, rakaman audio, dan pelan harga." />
-      <link rel="canonical" href="https://verirec.vercel.app/faq" />
+      <link rel="canonical" href="https://www.verirec.app/faq" />
       <meta property="og:type" content="website" />
-      <meta property="og:url" content="https://verirec.vercel.app/faq" />
+      <meta property="og:url" content="https://www.verirec.app/faq" />
       <meta property="og:title" content="Soalan Lazim — VeriRec" />
       <meta property="og:description" content="Jawapan kepada soalan lazim tentang VeriRec — pematuhan PDPA, keselamatan data, transkrip, dan pelan harga." />
-      <meta property="og:image" content="https://verirec.vercel.app/pwa-512.svg" />
+      <meta property="og:image" content="https://www.verirec.app/pwa-512.svg" />
     </Helmet>
     <div className="min-h-screen bg-gray-50">
       {/* Nav */}

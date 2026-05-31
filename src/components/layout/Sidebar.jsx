@@ -3,6 +3,7 @@ import { clsx } from 'clsx';
 import { useAuthStore } from '../../store/authStore.js';
 import { useBillingStore } from '../../store/billingStore.js';
 import { usePwaInstall } from '../../hooks/usePwaInstall.js';
+import { isCounselorSubdomain } from '../../lib/subdomain.js';
 
 const planLabels = { free: 'Percuma', counselor: 'Kaunselor', starter: 'Starter', pro: 'Pro', biz: 'Perniagaan' };
 const ADMIN_EMAILS = ['syedshazni@todak.com', 'syedshazni@gmail.com'];
@@ -56,8 +57,8 @@ export function Sidebar() {
   const { subscription } = useBillingStore();
   const navigate = useNavigate();
   const { canInstall, install } = usePwaInstall();
-  const profession = localStorage.getItem('preferred_profession');
-  const navItems = profession === 'counselor' ? COUNSELOR_ITEMS
+  const isCounselor = isCounselorSubdomain();
+  const navItems = isCounselor ? COUNSELOR_ITEMS
     : [
       { to: '/dashboard', label: 'Papan Pemuka', icon: ICONS.dashboard },
       { to: '/analytics',  label: 'Analitik',    icon: ICONS.chart },

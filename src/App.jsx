@@ -203,7 +203,7 @@ export default function App() {
               {/* Protected — with sidebar + bottom nav */}
               <Route path="/dashboard" element={
                 <ProtectedRoute>
-                  {localStorage.getItem('preferred_profession') === 'counselor'
+                  {isCounselorSubdomain()
                     ? <CounselorHome />
                     : <AppLayout><DashboardPage /></AppLayout>}
                 </ProtectedRoute>

@@ -70,7 +70,7 @@ p{color:#475569;font-size:14px;line-height:1.6;margin:8px 0}
 .footer{text-align:center;margin-top:24px;font-size:12px;color:#94a3b8}
 </style></head>
 <body><div class="card">${content}<div class="footer">VeriRec · Platform Rakaman Sesi Profesional Malaysia<br>
-<a href="https://verirec.vercel.app" style="color:#2563eb">verirec.vercel.app</a></div></div></body></html>`;
+<a href="https://www.verirec.app" style="color:#2563eb">www.verirec.app</a></div></div></body></html>`;
 
 export function welcomeEmail(name) {
   return {
@@ -88,7 +88,7 @@ export function welcomeEmail(name) {
         <li>Jana laporan profesional dalam beberapa saat</li>
         <li>Simpan dan cari semua sesi dengan selamat</li>
       </ul>
-      <a href="https://verirec.vercel.app/dashboard" class="btn">Mula Sesi Pertama →</a>
+      <a href="https://www.verirec.app/dashboard" class="btn">Mula Sesi Pertama →</a>
       <p>Pelan Percuma anda termasuk <strong>2 sesi/bulan</strong>. Naik taraf bila bersedia.</p>
     `),
   };
@@ -106,7 +106,7 @@ export function limitWarningEmail(used, limit) {
       <h1>Had Sesi Hampir Penuh</h1>
       <div class="warn"><p>⚠️ Anda telah menggunakan <strong>${used} daripada ${limit} sesi</strong> (${pct}%) bulan ini.</p></div>
       <p>Apabila had dicapai, anda tidak dapat memulakan sesi baru sehingga bulan hadapan atau naik taraf pelan.</p>
-      <a href="https://verirec.vercel.app/pricing" class="btn">Naik Taraf Sekarang →</a>
+      <a href="https://www.verirec.app/pricing" class="btn">Naik Taraf Sekarang →</a>
       <p style="font-size:12px;color:#94a3b8">Had reset secara automatik pada 1hb setiap bulan.</p>
     `),
   };
@@ -123,7 +123,7 @@ export function paymentFailedEmail() {
       <h1>Pembayaran Gagal</h1>
       <p>Pembayaran langganan VeriRec anda telah gagal diproses. Perkhidmatan anda masih aktif buat sementara waktu.</p>
       <div class="warn"><p>⚠️ Sila kemas kini kaedah pembayaran anda untuk mengelakkan gangguan perkhidmatan.</p></div>
-      <a href="https://verirec.vercel.app/settings" class="btn">Kemas Kini Pembayaran →</a>
+      <a href="https://www.verirec.app/settings" class="btn">Kemas Kini Pembayaran →</a>
       <p>Jika anda memerlukan bantuan, hubungi kami di <a href="mailto:hello@verirec.app" style="color:#2563eb">hello@verirec.app</a></p>
     `),
   };
@@ -140,7 +140,7 @@ export function teamInviteEmail(inviterName, teamName, roleLabel) {
       <h1>Anda Dijemput!</h1>
       <p><strong>${inviterName}</strong> telah menjemput anda untuk menyertai pasukan <strong>"${teamName}"</strong> di VeriRec sebagai <strong>${roleLabel}</strong>.</p>
       <p>VeriRec adalah platform rakaman dan analitik sesi profesional yang patuh PDPA untuk Malaysia.</p>
-      <a href="https://verirec.vercel.app/auth?mode=register" class="btn">Terima Jemputan →</a>
+      <a href="https://www.verirec.app/auth?mode=register" class="btn">Terima Jemputan →</a>
       <p style="font-size:12px;color:#94a3b8">Jika anda sudah ada akaun, log masuk dengan e-mel yang sama untuk bergabung dengan pasukan secara automatik.</p>
     `),
   };
@@ -157,7 +157,7 @@ export function reportReadyEmail(sessionTitle, sessionId) {
       <h1>Laporan AI Sedia ✓</h1>
       <p>Laporan AI untuk sesi <strong>${sessionTitle || 'Sesi Anda'}</strong> telah berjaya dijana.</p>
       <p>Laporan merangkumi ringkasan eksekutif, penemuan utama, tahap risiko, dan cadangan tindakan susulan.</p>
-      <a href="https://verirec.vercel.app/session/${sessionId}" class="btn">Lihat Laporan →</a>
+      <a href="https://www.verirec.app/session/${sessionId}" class="btn">Lihat Laporan →</a>
       <p style="font-size:12px;color:#94a3b8">Laporan ini dilindungi dan hanya boleh diakses oleh anda.</p>
     `),
   };
@@ -179,7 +179,7 @@ export function monthlySummaryEmail(name, sessionsUsed, sessionsLimit, plan) {
         <p style="margin:4px 0;color:#0369a1"><strong>📋 Had Pelan ${planLabel}:</strong> ${sessionsLimit === -1 ? 'Tanpa Had' : `${sessionsLimit} sesi/bulan`}</p>
       </div>
       <p>Had sesi anda telah direset secara automatik. Anda kini bermula dengan had penuh untuk bulan ini.</p>
-      <a href="https://verirec.vercel.app/dashboard" class="btn">Lihat Dashboard →</a>
+      <a href="https://www.verirec.app/dashboard" class="btn">Lihat Dashboard →</a>
       ${sessionsLimit !== -1 && sessionsUsed >= sessionsLimit * 0.8 ? `<p style="font-size:12px;color:#64748b">💡 Pertimbangkan untuk naik taraf pelan bagi kapasiti yang lebih besar.</p>` : ''}
     `),
   };
@@ -204,7 +204,7 @@ export function newAppointmentEmail(counselorName, client) {
         <p style="margin:4px 0;color:#0369a1"><strong>🕐 Masa:</strong> ${client.time}</p>
         ${client.issue ? `<p style="margin:8px 0 4px;color:#0369a1"><strong>Isu:</strong> <em>${client.issue}</em></p>` : ''}
       </div>
-      <a href="https://verirec.vercel.app/kaunselor/appointments" class="btn">Sahkan Temujanji →</a>
+      <a href="https://www.verirec.app/kaunselor/appointments" class="btn">Sahkan Temujanji →</a>
       <p style="font-size:12px;color:#94a3b8">Sila sahkan atau laraskan temujanji dalam sistem.</p>
     `),
   };
@@ -286,7 +286,7 @@ export function subscriptionCancelledEmail(planLabel) {
       <h1>Langganan Dibatalkan</h1>
       <p>Langganan <strong>${planLabel}</strong> anda telah dibatalkan. Akaun anda kini menggunakan Pelan Percuma (2 sesi/bulan).</p>
       <p>Semua data dan laporan anda masih selamat dan boleh diakses.</p>
-      <a href="https://verirec.vercel.app/pricing" class="btn">Langgan Semula →</a>
+      <a href="https://www.verirec.app/pricing" class="btn">Langgan Semula →</a>
     `),
   };
 }

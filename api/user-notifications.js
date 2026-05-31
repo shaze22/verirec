@@ -142,7 +142,7 @@ export default async function handler(req, res) {
 
       const count = withItems.reduce((acc, s) => acc + s.report.followUpItems.length, 0);
       const listHtml = withItems.slice(0, 3).map(s =>
-        `<li><a href="https://verirec.vercel.app/session/${s.id}" style="color:#2563eb">${s.title || 'Sesi'}</a> — ${s.report.followUpItems.length} item</li>`
+        `<li><a href="https://www.verirec.app/session/${s.id}" style="color:#2563eb">${s.title || 'Sesi'}</a> — ${s.report.followUpItems.length} item</li>`
       ).join('');
 
       await sendEmail({
@@ -153,8 +153,8 @@ export default async function handler(req, res) {
             <h2 style="color:#0f172a;margin:0 0 8px">📋 Tindakan Susulan Belum Selesai</h2>
             <p style="color:#475569">Anda mempunyai <strong>${count} tindakan susulan</strong> yang masih belum diselesaikan:</p>
             <ul style="color:#475569;font-size:14px;line-height:2">${listHtml}</ul>
-            <a href="https://verirec.vercel.app/dashboard" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;margin:16px 0">Semak Dashboard →</a>
-            <p style="font-size:12px;color:#94a3b8;margin-top:16px">VeriRec · <a href="https://verirec.vercel.app" style="color:#2563eb">verirec.vercel.app</a></p>
+            <a href="https://www.verirec.app/dashboard" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;margin:16px 0">Semak Dashboard →</a>
+            <p style="font-size:12px;color:#94a3b8;margin-top:16px">VeriRec · <a href="https://www.verirec.app" style="color:#2563eb">www.verirec.app</a></p>
           </div></body></html>`,
       });
       return res.status(200).json({ ok: true, sent: true, count });

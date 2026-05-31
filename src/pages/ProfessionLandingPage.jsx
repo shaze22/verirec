@@ -49,7 +49,7 @@ const PROFESSION_META = {
   },
 };
 
-const BASE_URL = 'https://verirec.vercel.app';
+const BASE_URL = 'https://www.verirec.app';
 
 const PROFESSIONS = {
   counselor: {
