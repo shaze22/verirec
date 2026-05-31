@@ -8,7 +8,7 @@ import { BottomNav } from './components/layout/BottomNav.jsx';
 import { OfflineBanner } from './components/ui/OfflineBanner.jsx';
 import { CookieConsentBanner } from './components/CookieConsentBanner.jsx';
 import { useWindowSize } from './hooks/useWindowSize.js';
-import { isCounselorSubdomain } from './lib/subdomain.js';
+import { isCounselorSubdomain, isRetiredSubdomain } from './lib/subdomain.js';
 
 const AuthPage              = lazy(() => import('./pages/AuthPage.jsx'));
 const LandingPage           = lazy(() => import('./pages/LandingPage.jsx'));
@@ -136,6 +136,11 @@ function CounselorHome() {
 function HomeRoute() {
   const { user, loading } = useAuthStore();
   if (loading) return <LoadingSpinner />;
+  // doctor.verirec.app + jkm.verirec.app dah ditarik balik — redirect ke www
+  if (isRetiredSubdomain()) {
+    window.location.replace('https://www.verirec.app');
+    return <LoadingSpinner />;
+  }
   if (user) {
     const dest = isCounselorSubdomain() ? '/analytics' : '/dashboard';
     return <Navigate to={dest} replace />;

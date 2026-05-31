@@ -5,7 +5,7 @@ import { useAuthStore } from '../store/authStore.js';
 import { professionLabel as getProfessionLabel } from '../data/professions.js';
 import { Button } from '../components/ui/Button.jsx';
 import { Input } from '../components/ui/Input.jsx';
-import { isCounselorSubdomain, isDoctorSubdomain, isJKMSubdomain } from '../lib/subdomain.js';
+import { isCounselorSubdomain } from '../lib/subdomain.js';
 import toast from 'react-hot-toast';
 
 // Detect Supabase password recovery redirect (hash fragment)
@@ -86,12 +86,10 @@ export default function AuthPage() {
   const { user } = useAuthStore();
 
   const counselorSubdomain = isCounselorSubdomain();
-  const doctorSubdomain    = isDoctorSubdomain();
-  const jkmSubdomain       = isJKMSubdomain();
-  const subdomainProfession = counselorSubdomain ? 'counselor' : doctorSubdomain ? 'doctor' : jkmSubdomain ? 'jkm' : null;
+  const subdomainProfession = counselorSubdomain ? 'counselor' : null;
   const professionFromUrl = subdomainProfession ?? searchParams.get('profession');
   const professionLabel = getProfessionLabel(professionFromUrl);
-  const postAuthRoute = counselorSubdomain ? '/analytics' : doctorSubdomain ? '/doktor/dashboard' : jkmSubdomain ? '/jkm/dashboard' : '/dashboard';
+  const postAuthRoute = counselorSubdomain ? '/analytics' : '/dashboard';
 
   // Redirect when user is set (covers OAuth callback timing)
   useEffect(() => {

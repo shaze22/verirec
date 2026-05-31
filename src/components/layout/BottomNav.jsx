@@ -20,20 +20,6 @@ const COUNSELOR_NAV = [
   { to: '/settings',                label: 'Tetapan',    icon: I.settings },
 ];
 
-const DOCTOR_NAV = [
-  { to: '/doktor/dashboard',    label: 'Dashboard',  icon: I.chart },
-  { to: '/doktor/clients',      label: 'Pesakit',    icon: I.users },
-  { to: '/doktor/appointments', label: 'Temujanji',  icon: I.calendar },
-  { to: '/settings',            label: 'Tetapan',    icon: I.settings },
-];
-
-const JKM_NAV = [
-  { to: '/jkm/dashboard',    label: 'Dashboard',  icon: I.chart },
-  { to: '/jkm/clients',      label: 'Kes',        icon: I.users },
-  { to: '/jkm/appointments', label: 'Kunjungan',  icon: I.calendar },
-  { to: '/settings',         label: 'Tetapan',    icon: I.settings },
-];
-
 const OTHER_NAV = [
   { to: '/dashboard',   label: 'Utama',     icon: I.home },
   { to: '/session/new', label: 'Sesi',      icon: I.mic },
@@ -47,10 +33,7 @@ export function BottomNav() {
   const isCounselor = profession === 'counselor';
   const { signOut } = useAuthStore();
   const navigate = useNavigate();
-  const navItems = profession === 'counselor' ? COUNSELOR_NAV
-    : profession === 'doctor' ? DOCTOR_NAV
-    : profession === 'jkm'    ? JKM_NAV
-    : OTHER_NAV;
+  const navItems = profession === 'counselor' ? COUNSELOR_NAV : OTHER_NAV;
 
   const handleSignOut = async () => {
     await signOut();
@@ -73,7 +56,7 @@ export function BottomNav() {
         </NavLink>
       ))}
       {/* Logout button — mobile only, for portal professions */}
-      {(profession === 'counselor' || profession === 'doctor' || profession === 'jkm') && (
+      {profession === 'counselor' && (
         <button
           onClick={handleSignOut}
           className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium text-red-400 hover:text-red-600 transition-colors"
