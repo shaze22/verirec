@@ -489,40 +489,218 @@ export function ReportView({ session }) {
   const [exporting, setExporting]   = useState(false);
   const [verifying, setVerifying]   = useState(false);
   const [verifyResult, setVerifyResult] = useState(null);
-  const [pdfCapturing, setPdfCapturing] = useState(false);
 
   if (!report) return <p className="text-gray-500 text-center py-12">Laporan belum dijana</p>;
 
   const exportPDF = async () => {
     setExporting(true);
-    setPdfCapturing(true);
     try {
-      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
-        import('jspdf'),
-        import('html2canvas'),
-      ]);
-      // Wait for React to re-render with full transcript expanded
-      await new Promise(r => setTimeout(r, 150));
-      const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true, windowWidth: reportRef.current.scrollWidth });
+      const { default: jsPDF } = await import('jspdf');
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const imgData = canvas.toDataURL('image/png');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+      const W = 210, M = 15;
+      let y = M;
 
-      let yOffset = 0;
-      let remaining = imgHeight;
-      while (remaining > 0) {
-        pdf.addImage(imgData, 'PNG', 0, -yOffset, pdfWidth, imgHeight);
-        remaining -= pageHeight;
-        yOffset += pageHeight;
-        if (remaining > 0) pdf.addPage();
+      const checkPage = (needed = 12) => {
+        if (y + needed > 278) { pdf.addPage(); y = M; }
+      };
+
+      const sectionTitle = (title, rgb = [60, 60, 60]) => {
+        checkPage(14);
+        pdf.setFontSize(7.5); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(...rgb);
+        pdf.text(title.toUpperCase(), M, y);
+        y += 2;
+        pdf.setDrawColor(...rgb); pdf.setLineWidth(0.25);
+        pdf.line(M, y, W - M, y);
+        y += 5;
+      };
+
+      const bodyText = (text, size = 9, style = 'normal', rgb = [30, 30, 30]) => {
+        if (!text) return;
+        pdf.setFontSize(size); pdf.setFont('helvetica', style); pdf.setTextColor(...rgb);
+        pdf.splitTextToSize(String(text), W - M * 2).forEach(line => {
+          checkPage(5); pdf.text(line, M, y); y += 4.5;
+        });
+        y += 1.5;
+      };
+
+      const field = (label, value, rgb = [30, 30, 30]) => {
+        if (!value) return;
+        checkPage(10);
+        pdf.setFontSize(7.5); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(90, 90, 90);
+        pdf.text(label + ':', M, y); y += 4;
+        bodyText(value, 9, 'normal', rgb);
+      };
+
+      const bulletList = (items, bullet = '•', rgb = [30, 30, 30]) => {
+        if (!items?.length) return;
+        items.forEach(item => {
+          checkPage(6);
+          pdf.setFontSize(9); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(...rgb);
+          pdf.splitTextToSize(String(item), W - M * 2 - 5).forEach((line, i) => {
+            checkPage(5);
+            if (i === 0) pdf.text(bullet, M, y);
+            pdf.text(line, M + 5, y); y += 4.5;
+          });
+        });
+        y += 2;
+      };
+
+      // ── Header ──
+      pdf.setFillColor(245, 247, 250);
+      pdf.rect(0, 0, W, 32, 'F');
+      pdf.setFontSize(13); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(10, 10, 10);
+      pdf.text('Laporan Sesi VeriRec', M, 13);
+      pdf.setFontSize(9); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(80, 80, 80);
+      const profLabel = profession ? profession.charAt(0).toUpperCase() + profession.slice(1) : '';
+      pdf.text(`${profLabel} — ${subject_name || ''}`, M, 21);
+      if (case_number) { pdf.setFontSize(8); pdf.text(`No. Kes: ${case_number}`, M, 28); }
+      const dateStr = created_at ? format(new Date(created_at), 'dd MMM yyyy, HH:mm') : '';
+      pdf.setFontSize(9);
+      pdf.text(dateStr, W - M, 13, { align: 'right' });
+      pdf.text(interviewer || '', W - M, 21, { align: 'right' });
+      if (witness_officer) { pdf.setFontSize(8); pdf.text(witness_officer, W - M, 28, { align: 'right' }); }
+      y = 40;
+
+      // ── Risk / Sentiment / Duration ──
+      const boxW = (W - M * 2 - 6) / 3;
+      const riskLbl = { low: 'Rendah', medium: 'Sederhana', high: 'Tinggi' }[report.riskLevel] || (report.riskLevel || '-');
+      const sentLbl = { positive: 'Positif', neutral: 'Neutral', negative: 'Negatif' }[report.sentiment] || (report.sentiment || '-');
+      const durMin  = Math.round((duration || 0) / 60);
+      [
+        [`Risiko: ${riskLbl}`, report.riskJustification],
+        [`Sentimen: ${sentLbl}`, report.sentimentNote],
+        [`Tempoh: ${durMin} minit`, report.followUpRequired ? 'Susulan diperlukan' : ''],
+      ].forEach(([title, note], i) => {
+        const bx = M + i * (boxW + 3);
+        pdf.setDrawColor(200, 200, 200); pdf.setLineWidth(0.25); pdf.rect(bx, y, boxW, 18);
+        pdf.setFontSize(8.5); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(30, 30, 30);
+        pdf.text(title, bx + 3, y + 7);
+        if (note) {
+          pdf.setFontSize(7); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(90, 90, 90);
+          pdf.splitTextToSize(String(note), boxW - 6).slice(0, 1).forEach(l => pdf.text(l, bx + 3, y + 13));
+        }
+      });
+      y += 24;
+
+      // ── Summary ──
+      sectionTitle('Ringkasan Eksekutif');
+      bodyText(report.summary);
+
+      // ── Key Findings ──
+      if (report.keyFindings?.length > 0) {
+        sectionTitle('Penemuan Utama');
+        bulletList(report.keyFindings);
       }
 
-      pdf.save(`laporan-verirec-${id?.substring(0, 8)}.pdf`);
+      // ── Red Flags ──
+      if (report.redFlags?.length > 0) {
+        sectionTitle('Bendera Merah', [180, 30, 30]);
+        bulletList(report.redFlags, '★', [160, 20, 20]);
+      }
+
+      // ── Profession-specific ──
+      if (profession === 'counselor' && report.caseSessionNote) {
+        sectionTitle('Case Session Note', [30, 70, 180]);
+        const csn = report.caseSessionNote;
+        [
+          ['Isu yang Dibawa (Presented Issue)', csn.presentedIssue],
+          ['Isu yang Dikenal Pasti (Identified Issue)', csn.identifiedIssue],
+          ['Matlamat Bersama (Mutual Goal)', csn.mutualGoal],
+          ['Aktiviti / Intervensi', csn.activitiesInterventions],
+          ['Kemajuan / Pencapaian Matlamat', csn.progressGoalAchievement],
+          ['Rancangan Susulan', csn.followUpPlan],
+          ['Penamatan Sesi', csn.terminationNotes],
+          ['Dapatan Assessment (MBTI/RIASEC)', csn.assessmentFindings],
+        ].filter(([, v]) => v).forEach(([lbl, val]) => field(lbl, val));
+        if (report.problemTypes?.length > 0) field('Jenis Masalah', report.problemTypes.join(', '));
+      }
+
+      if (profession === 'counselor' && report.crisisIndicators?.detected) {
+        const ci = report.crisisIndicators;
+        sectionTitle('Penunjuk Krisis', [180, 30, 30]);
+        const ciLbl = ci.level === 'critical' ? 'Kritikal' : ci.level === 'watch' ? 'Perlu Pemantauan' : (ci.level || '-');
+        bodyText(`Tahap: ${ciLbl}`, 9, 'bold', [180, 30, 30]);
+        if (ci.notes) bodyText(ci.notes, 9, 'normal', [160, 30, 30]);
+        if (ci.resources?.length > 0) bulletList(ci.resources, '•', [160, 30, 30]);
+      }
+
+      if (profession === 'doctor' && report.soapNote) {
+        sectionTitle('SOAP Note', [20, 100, 60]);
+        const s = report.soapNote;
+        [['Subjective', s.subjective], ['Objective', s.objective], ['Assessment', s.assessment], ['Plan', s.plan]]
+          .filter(([, v]) => v).forEach(([lbl, val]) => field(lbl, val));
+      }
+
+      if ((profession === 'police' || profession === 'sprm') && report.statementSummary) {
+        sectionTitle('Ringkasan Pernyataan');
+        bodyText(report.statementSummary);
+      }
+
+      if (profession === 'iso' && report.ncrReport) {
+        sectionTitle('NCR Report');
+        const n = report.ncrReport;
+        [['Non-Conformance', n.nonConformance], ['Root Cause', n.rootCause], ['Corrective Action', n.correctiveAction], ['Preventive Action', n.preventiveAction]]
+          .filter(([, v]) => v).forEach(([lbl, val]) => field(lbl, val));
+      }
+
+      if (profession === 'hr' && report.dcpReport) {
+        sectionTitle('DCP Report');
+        const d = report.dcpReport;
+        [['Misconduct', d.misconduct], ['Findings', d.findings], ['Recommendation', d.recommendation]]
+          .filter(([, v]) => v).forEach(([lbl, val]) => field(lbl, val));
+      }
+
+      // ── Recommendations ──
+      if (report.recommendations?.length > 0) {
+        sectionTitle('Cadangan', [20, 110, 50]);
+        bulletList(report.recommendations, '→', [20, 90, 30]);
+      }
+
+      // ── Transcript ──
+      if (transcript?.length > 0) {
+        sectionTitle('Transkrip Penuh');
+        transcript.forEach(entry => {
+          checkPage(8);
+          const time = entry.timestamp ? format(new Date(entry.timestamp), 'HH:mm:ss') : '';
+          const spk  = entry.type === 'INTERVIEWER' ? (entry.speaker || 'Penemuduga')
+            : entry.type === 'NOTE' ? '[NOTA]' : entry.type === 'FLAG' ? '[BENDERA]' : 'Subjek';
+          const rgb  = entry.type === 'INTERVIEWER' ? [30, 60, 180]
+            : entry.type === 'FLAG' ? [180, 30, 30] : entry.type === 'NOTE' ? [140, 90, 0] : [60, 60, 60];
+          pdf.setFontSize(7.5); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(...rgb);
+          pdf.text(`${time}  ${spk}`, M, y); y += 4;
+          pdf.setFont('helvetica', 'normal'); pdf.setTextColor(40, 40, 40);
+          pdf.splitTextToSize(entry.text || '', W - M * 2 - 5).forEach(line => {
+            checkPage(5); pdf.text(line, M + 5, y); y += 4;
+          });
+          y += 1;
+        });
+      }
+
+      // ── Chain of Custody ──
+      checkPage(40);
+      y += 4;
+      sectionTitle('Rantai Jagaan (Chain of Custody)');
+      bodyText('Hash SHA-256 (dijana di pelayan):', 8, 'normal', [90, 90, 90]);
+      if (hash) {
+        pdf.setFontSize(7.5); pdf.setFont('courier', 'normal'); pdf.setTextColor(30, 30, 30);
+        pdf.splitTextToSize(hash, W - M * 2).forEach(line => { checkPage(5); pdf.text(line, M, y); y += 4; });
+        y += 4;
+      }
+      bodyText(`Dicetak: ${format(new Date(), 'dd MMM yyyy, HH:mm')}`, 8, 'normal', [130, 130, 130]);
+      bodyText('VeriRec — Platform Rakaman Sesi Profesional Malaysia', 7.5, 'normal', [130, 130, 130]);
+
+      // ── Page numbers ──
+      const pages = pdf.internal.getNumberOfPages();
+      for (let i = 1; i <= pages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(7); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(160, 160, 160);
+        pdf.text('VeriRec — SULIT', M, 292);
+        pdf.text(`${i} / ${pages}`, W - M, 292, { align: 'right' });
+      }
+
+      pdf.save(`laporan-verirec-${id?.substring(0, 8) || 'session'}.pdf`);
     } finally {
       setExporting(false);
-      setPdfCapturing(false);
     }
   };
 
@@ -903,7 +1081,7 @@ export function ReportView({ session }) {
         )}
 
         {/* Full Transcript / Script */}
-        <TranscriptScript transcript={transcript} forceExpand={pdfCapturing} />
+        <TranscriptScript transcript={transcript} />
 
         {/* Audio */}
         {audio_url && (
