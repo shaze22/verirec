@@ -195,7 +195,7 @@ vercel deploy --prod --force --scope syedshazni-7682s-projects
 ```
 - www.verirec.app + counselor.verirec.app + doctor.verirec.app + jkm.verirec.app
 - Project ID: `prj_EwnDU0nKMOn56auUR1WZF1GeNI3f`
-- Last deployed: 2026-05-31 (commit `eeb0df0`)
+- Last deployed: 2026-05-31 (commit `c9bdf40`)
 - Supabase project ID: `sbakkkxuhkxfofpfhdtn`
 
 ## ⚠️ GOTCHA KRITIKAL — Stripe + Vercel
