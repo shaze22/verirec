@@ -9,12 +9,13 @@ import toast from 'react-hot-toast';
 
 const PLAN_LABELS  = { free: 'Percuma', starter: 'Starter', pro: 'Pro', biz: 'Perniagaan' };
 const PLAN_COLORS  = { free: 'gray', starter: 'blue', pro: 'purple', biz: 'green' };
-const PLAN_PRICES  = { starter: 249, pro: 999, biz: 2499 };
+const PLAN_PRICES  = { starter: 100, pro: 999, biz: 2499 };
 const PLAN_OPTIONS = [
-  { value: 'free',    label: 'Percuma  (2 sesi)' },
-  { value: 'starter', label: 'Starter  (20 sesi)' },
-  { value: 'pro',     label: 'Pro  (100 sesi)' },
-  { value: 'biz',     label: 'Perniagaan  (200 sesi)' },
+  { value: 'free',      label: 'Percuma  (2 sesi)' },
+  { value: 'starter',   label: 'Profesional  (10 sesi)' },
+  { value: 'counselor', label: 'Kaunselor  (10 sesi)' },
+  { value: 'pro',       label: 'Pro  (100 sesi)' },
+  { value: 'biz',       label: 'Perniagaan  (200 sesi)' },
 ];
 
 function StatCard({ label, value, sub, color = 'blue' }) {

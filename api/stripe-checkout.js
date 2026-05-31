@@ -135,7 +135,6 @@ export default async function handler(req, res) {
       sessionParams['metadata[topup_sessions]'] = String(TOPUP_SESSIONS[plan]);
     } else {
       sessionParams.mode = 'subscription';
-      sessionParams['subscription_data[trial_period_days]'] = 14;
       sessionParams['subscription_data[metadata][user_id]'] = user.id;
       sessionParams['subscription_data[metadata][plan]'] = plan;
     }

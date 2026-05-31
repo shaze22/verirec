@@ -322,8 +322,8 @@ const PLANS = [
     notIncluded: ['Analisa AI Realtime', 'Laporan PDF', 'Sokongan keutamaan'],
   },
   {
-    key: 'starter', label: 'Profesional', price: 100, sessions: 20, popular: true, trial: false,
-    features: ['20 sesi/bulan', 'AI analisis realtime', 'Panduan PEACE Model', 'Laporan SOP PDF', 'Diarisasi speaker', 'Top-up sesi bila perlu'],
+    key: 'starter', label: 'Profesional', price: 100, sessions: 10, popular: true, trial: false,
+    features: ['10 sesi/bulan', 'AI analisis realtime', 'Panduan PEACE Model', 'Laporan SOP PDF', 'Diarisasi speaker', 'Top-up sesi bila perlu'],
     notIncluded: ['Pengguna tidak terhad', 'SLA 99.9%'],
   },
   {

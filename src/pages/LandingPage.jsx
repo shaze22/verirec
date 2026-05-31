@@ -452,11 +452,11 @@ export default function LandingPage() {
                   <span className="text-4xl font-bold text-gray-900">RM100</span>
                   <span className="text-gray-400 mb-1">/bulan</span>
                 </div>
-                <p className="text-sm text-gray-500 mt-1">20 sesi termasuk setiap bulan</p>
+                <p className="text-sm text-gray-500 mt-1">10 sesi termasuk setiap bulan</p>
               </div>
               <ul className="space-y-2.5 flex-1 mb-6">
                 {[
-                  '20 sesi rakaman / bulan',
+                  '10 sesi rakaman / bulan',
                   'AI analisis + bendera merah realtime',
                   'Panduan PEACE Model dalam sesi',
                   'Laporan SOP PDF (mengikut profesion)',
@@ -473,9 +473,9 @@ export default function LandingPage() {
                 ))}
               </ul>
               <button onClick={() => navigate('/auth?mode=register')} className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition-colors">
-                Cuba 14 Hari Percuma →
+                Mulakan Sekarang →
               </button>
-              <p className="text-xs text-center text-gray-400 mt-2">Tiada kad kredit diperlukan semasa trial</p>
+              <p className="text-xs text-center text-gray-400 mt-2">Tanpa kontrak jangka panjang · Batal bila-bila masa</p>
             </div>
           </div>
 
@@ -502,7 +502,7 @@ export default function LandingPage() {
 
           {/* Enterprise note */}
           <p className="text-center text-sm text-gray-500 mt-8">
-            Perlukan lebih 20 sesi sebulan atau akaun untuk pasukan besar?{' '}
+            Perlukan lebih 10 sesi sebulan atau akaun untuk pasukan besar?{' '}
             <a href="mailto:hello@verirec.app" className="text-blue-600 hover:underline font-medium">Hubungi kami</a>
           </p>
         </div>

@@ -81,7 +81,7 @@ export default function CounselorLandingPage() {
     <>
       <Helmet>
         <title>VeriRec Kaunselor — Platform Digital Sesi Kaunseling Malaysia</title>
-        <meta name="description" content="Platform pengurusan sesi kaunseling digital untuk kaunselor Malaysia — tempahan QR, fail klien, nota SOP automatik, pengesan red flag AI, MBTI & RIASEC. Cuba 14 hari percuma." />
+        <meta name="description" content="Platform pengurusan sesi kaunseling digital untuk kaunselor Malaysia — tempahan QR, fail klien, nota SOP automatik, pengesan red flag AI, MBTI & RIASEC. RM100/bulan, 10 sesi." />
         <meta name="keywords" content="platform kaunseling, software kaunselor, pengurusan sesi kaunseling, nota sesi SOP, kaunselor Malaysia, rekod klien digital, tempahan kaunseling QR, laporan AI kaunseling" />
         <meta name="robots" content="index, follow" />
         <meta name="author" content="VeriRec" />
@@ -93,7 +93,7 @@ export default function CounselorLandingPage() {
         <meta property="og:site_name" content="VeriRec untuk Kaunselor" />
         <meta property="og:locale" content="ms_MY" />
         <meta property="og:title" content="VeriRec Kaunselor — Platform Digital Sesi Kaunseling Malaysia" />
-        <meta property="og:description" content="Uruskan sesi kaunseling lebih bijak — tempahan QR, fail klien digital, nota SOP AI, pengesan red flag, MBTI & RIASEC. Patuh Akta Kaunselor 1998 & PDPA. Cuba 14 hari percuma." />
+        <meta property="og:description" content="Uruskan sesi kaunseling lebih bijak — tempahan QR, fail klien digital, nota SOP AI, pengesan red flag, MBTI & RIASEC. Patuh Akta Kaunselor 1998 & PDPA. RM100/bulan." />
         <meta property="og:image" content="https://counselor.verirec.app/og-counselor.svg" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
@@ -102,7 +102,7 @@ export default function CounselorLandingPage() {
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="VeriRec Kaunselor — Platform Digital Sesi Kaunseling Malaysia" />
-        <meta name="twitter:description" content="Uruskan sesi kaunseling lebih bijak — tempahan QR, fail klien digital, nota SOP AI, pengesan red flag. Cuba 14 hari percuma." />
+        <meta name="twitter:description" content="Uruskan sesi kaunseling lebih bijak — tempahan QR, fail klien digital, nota SOP AI, pengesan red flag. RM100/bulan, 10 sesi." />
         <meta name="twitter:image" content="https://counselor.verirec.app/og-counselor.svg" />
 
         {/* JSON-LD Structured Data */}
@@ -199,7 +199,7 @@ export default function CounselorLandingPage() {
                 Log Masuk
               </button>
             </div>
-            <p className="text-emerald-300 text-sm mt-4">Tiada kad kredit diperlukan • 14 hari percubaan percuma</p>
+            <p className="text-emerald-300 text-sm mt-4">Tanpa kontrak • Batal bila-bila masa</p>
           </div>
         </section>
 
@@ -283,14 +283,10 @@ export default function CounselorLandingPage() {
               <div className="text-5xl font-bold text-gray-900 mb-1">
                 RM100<span className="text-xl font-normal text-gray-400">/bulan</span>
               </div>
-              <p className="text-gray-500 text-sm mb-3">20 sesi termasuk setiap bulan</p>
-              <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 mb-5">
-                <p className="text-sm font-semibold text-emerald-700">🎉 14 hari percubaan percuma</p>
-                <p className="text-xs text-emerald-600">Cuba semua ciri tanpa caj. Tanpa kad kredit.</p>
-              </div>
+              <p className="text-gray-500 text-sm mb-5">10 sesi termasuk setiap bulan</p>
               <ul className="space-y-3 text-left mb-8">
                 {[
-                  '20 sesi rakaman / bulan',
+                  '10 sesi rakaman / bulan',
                   'Fail klien digital',
                   'Tempahan QR automatik',
                   'Nota sesi format SOP (PDF)',
@@ -319,7 +315,7 @@ export default function CounselorLandingPage() {
               >
                 Mulakan Percuma →
               </button>
-              <p className="text-xs text-gray-400 mt-3">14 hari percubaan percuma. Tiada kad kredit diperlukan. Batal bila-bila masa.</p>
+              <p className="text-xs text-gray-400 mt-3">Tanpa kontrak jangka panjang. Batal bila-bila masa.</p>
             </div>
           </div>
         </section>
@@ -342,7 +338,7 @@ export default function CounselorLandingPage() {
         {/* CTA */}
         <section className="bg-emerald-700 py-16 px-4 text-center text-white">
           <h2 className="text-3xl font-bold mb-3">Sedia untuk memulakan?</h2>
-          <p className="text-emerald-200 mb-8 text-lg">14 hari percubaan percuma. Tiada kad kredit.</p>
+          <p className="text-emerald-200 mb-8 text-lg">RM100/bulan. 10 sesi. Tanpa kontrak.</p>
           <button
             onClick={() => navigate('/auth?mode=register&profession=counselor')}
             className="bg-white text-emerald-700 font-bold text-base px-10 py-3.5 rounded-xl hover:bg-emerald-50 transition-colors shadow-lg"
