@@ -7,6 +7,7 @@ import { getSessions, deleteSessions } from '../api/sessions.js';
 import { getTeamSessions } from '../api/teams.js';
 import { PROFESSIONS, professionLabel } from '../data/professions.js';
 import { supabase } from '../lib/supabase.js';
+import { isCounselorSubdomain } from '../lib/subdomain.js';
 import { TopBar } from '../components/layout/TopBar.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { Badge } from '../components/ui/Badge.jsx';
@@ -116,38 +117,22 @@ export default function DashboardPage() {
   const [teamSessions, setTeamSessions] = useState([]);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showQuickRecord, setShowQuickRecord] = useState(false);
-  const [quickProfession, setQuickProfession] = useState(
-    () => localStorage.getItem('preferred_profession') || 'counselor'
-  );
+  const [quickProfession, setQuickProfession] = useState(() => {
+    const saved = localStorage.getItem('preferred_profession');
+    return (saved && saved !== 'counselor') ? saved : 'police';
+  });
   const [quickRecording, setQuickRecording] = useState(false);
-  const [counselorProfile, setCounselorProfile] = useState(null);
-  const [pendingAppointments, setPendingAppointments] = useState([]);
   const navigate = useNavigate();
   const preferredProfession = localStorage.getItem('preferred_profession');
-  const pricingTarget = preferredProfession === 'counselor' ? '/pricing?tab=kaunselor' : '/pricing';
-
-  // Counselor onboarding: only for counselor profession users
-  useEffect(() => {
-    if (!user) return;
-    supabase.from('counselor_profiles').select('id, display_name, booking_code').eq('user_id', user.id).maybeSingle()
-      .then(({ data }) => {
-        setCounselorProfile(data);
-        if (!data && preferredProfession === 'counselor' && !localStorage.getItem(`counselor_setup_skipped_${user.id}`)) {
-          navigate('/kaunselor/setup');
-        }
-        if (data) {
-          supabase.from('appointments').select('id, client_name, requested_date, requested_time, presenting_issue')
-            .eq('counselor_id', user.id).eq('status', 'pending').order('requested_date').limit(5)
-            .then(({ data: appts }) => setPendingAppointments(appts || []));
-        }
-      });
-  }, [user]);
+  const pricingTarget = '/pricing';
 
   useEffect(() => {
     if (!user) return;
     getSessions(user.id)
       .then(data => {
-        setSessions(data);
+        // www.verirec.app = professional platform — exclude counselor sessions
+        const filtered = data.filter(s => s.profession !== 'counselor');
+        setSessions(filtered);
         if (data.length === 0 && !localStorage.getItem(`onboarding_done_${user.id}`)) {
           setShowOnboarding(true);
         }
@@ -216,11 +201,8 @@ export default function DashboardPage() {
 
   const handleNewSession = () => {
     if (!canStartSession()) { navigate(pricingTarget); return; }
-    if (preferredProfession) {
-      navigate(`/session/setup/${preferredProfession}`);
-    } else {
-      navigate('/session/new');
-    }
+    const prof = preferredProfession && preferredProfession !== 'counselor' ? preferredProfession : null;
+    navigate(prof ? `/session/setup/${prof}` : '/session/new');
   };
 
   const handleChooseProfession = () => {
@@ -427,25 +409,6 @@ export default function DashboardPage() {
             <Button size="sm" variant="outline" onClick={() => navigate(pricingTarget)}>
               {preferredProfession === 'counselor' ? 'Topup Sesi' : 'Naik Taraf'}
             </Button>
-          </div>
-        )}
-
-        {/* Counselor pending appointments banner */}
-        {pendingAppointments.length > 0 && (
-          <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-semibold text-yellow-800">📅 {pendingAppointments.length} Tempahan Baru Menunggu Pengesahan</p>
-              <button onClick={() => navigate('/kaunselor/appointments')} className="text-xs text-yellow-700 font-medium hover:underline">Urus →</button>
-            </div>
-            <div className="space-y-1">
-              {pendingAppointments.slice(0, 2).map(a => (
-                <div key={a.id} className="text-xs text-yellow-700">
-                  • <strong>{a.client_name}</strong> — {a.requested_date} pukul {a.requested_time?.slice(0,5)}
-                  {a.presenting_issue && <span className="text-yellow-600 italic"> ("{a.presenting_issue.slice(0,40)}...")</span>}
-                </div>
-              ))}
-              {pendingAppointments.length > 2 && <p className="text-xs text-yellow-600">+{pendingAppointments.length - 2} lagi...</p>}
-            </div>
           </div>
         )}
 
