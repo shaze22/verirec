@@ -112,6 +112,32 @@ Untuk riskType: gunakan "suicidal" jika ada tanda bunuh diri, "self_harm" jika m
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
+
+  // GET — verify document integrity
+  if (req.method === 'GET') {
+    const { verify, session_id } = req.query;
+    if (verify !== 'true' || !session_id) return res.status(400).json({ error: 'Missing params' });
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) return res.status(401).json({ error: 'Unauthorized' });
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    if (authError || !user) return res.status(401).json({ error: 'Unauthorized' });
+    try {
+      const { data: session, error } = await supabaseAdmin
+        .from('sessions')
+        .select('id, user_id, report, hash, transcript')
+        .eq('id', session_id)
+        .eq('user_id', user.id)
+        .single();
+      if (error || !session) return res.status(403).json({ error: 'Forbidden' });
+      if (!session.hash || !session.report) return res.status(200).json({ match: false, reason: 'no_hash' });
+      const hashPayload = JSON.stringify({ report: session.report, transcript: session.transcript, session_id });
+      const computed = crypto.createHash('sha256').update(hashPayload).digest('hex');
+      return res.status(200).json({ match: computed === session.hash });
+    } catch (err) {
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {

@@ -66,6 +66,10 @@ export default function SessionReportPage() {
   const [editForm, setEditForm] = useState({});
   const [editSaving, setEditSaving] = useState(false);
 
+  // Verification state
+  const [verifying, setVerifying] = useState(false);
+  const [verifyResult, setVerifyResult] = useState(null);
+
   // Share state
   const [shareToken, setShareToken] = useState(null);
   const [shareLoading, setShareLoading] = useState(false);
@@ -230,6 +234,24 @@ export default function SessionReportPage() {
     const url = `${window.location.origin}/laporan/${token}`;
     const text = `Laporan sesi VeriRec: *${session?.title}*\n${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const handleVerify = async () => {
+    setVerifying(true);
+    setVerifyResult(null);
+    try {
+      const { data: { session: authSession } } = await supabase.auth.getSession();
+      const res = await fetch(`/api/report?verify=true&session_id=${id}`, {
+        headers: { Authorization: `Bearer ${authSession.access_token}` },
+      });
+      const json = await res.json();
+      if (json.error) throw new Error(json.error);
+      setVerifyResult(json.match ? 'authentic' : 'tampered');
+    } catch {
+      toast.error('Gagal mengesahkan dokumen.');
+    } finally {
+      setVerifying(false);
+    }
   };
 
   const handleResume = async () => {
@@ -465,6 +487,44 @@ export default function SessionReportPage() {
                 </div>
               )}
               <ReportView session={session} />
+
+              {/* Hash verification */}
+              {session.hash && (
+                <div className="mt-6 bg-gray-50 border rounded-xl p-5">
+                  <div className="flex items-center justify-between flex-wrap gap-3">
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Integriti Dokumen</p>
+                      <p className="text-sm text-gray-600 font-mono">SHA-256: <span className="font-semibold text-gray-800">{session.hash.slice(0, 8)}…</span></p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {verifyResult === 'authentic' && (
+                        <span className="flex items-center gap-1.5 text-sm font-semibold text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                          Dokumen Asal — Tidak Diubah
+                        </span>
+                      )}
+                      {verifyResult === 'tampered' && (
+                        <span className="flex items-center gap-1.5 text-sm font-semibold text-red-700 bg-red-50 border border-red-200 px-3 py-1.5 rounded-full">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></svg>
+                          Dokumen Telah Diubah
+                        </span>
+                      )}
+                      <button
+                        onClick={handleVerify}
+                        disabled={verifying}
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-60"
+                      >
+                        {verifying ? (
+                          <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                        )}
+                        {verifying ? 'Menyemak...' : 'Semak Keaslian Dokumen'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )
         ) : (
