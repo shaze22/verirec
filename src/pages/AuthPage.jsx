@@ -89,7 +89,7 @@ export default function AuthPage() {
   const subdomainProfession = counselorSubdomain ? 'counselor' : null;
   const professionFromUrl = subdomainProfession ?? searchParams.get('profession');
   const professionLabel = getProfessionLabel(professionFromUrl);
-  const postAuthRoute = counselorSubdomain ? '/analytics' : '/dashboard';
+  const postAuthRoute = '/analytics';
 
   // Redirect when user is set (covers OAuth callback timing)
   useEffect(() => {

@@ -136,8 +136,7 @@ function HomeRoute() {
     return <LoadingSpinner />;
   }
   if (user) {
-    const dest = isCounselorSubdomain() ? '/analytics' : '/dashboard';
-    return <Navigate to={dest} replace />;
+    return <Navigate to="/analytics" replace />;
   }
   if (isCounselorSubdomain()) return <CounselorLandingPage />;
   return <LandingPage />;

@@ -1,17 +1,23 @@
 import { useNavigate } from 'react-router-dom';
 import { PROFESSIONS } from '../data/professions.js';
 import { TopBar } from '../components/layout/TopBar.jsx';
+import { isCounselorSubdomain } from '../lib/subdomain.js';
 
 export default function ProfessionSelectPage() {
   const navigate = useNavigate();
   const preferred = localStorage.getItem('preferred_profession');
 
-  const sorted = preferred
+  // www.verirec.app = professional platform — exclude counselor
+  const availableProfessions = isCounselorSubdomain()
+    ? PROFESSIONS
+    : PROFESSIONS.filter(p => p.id !== 'counselor');
+
+  const sorted = preferred && preferred !== 'counselor'
     ? [
-        ...PROFESSIONS.filter(p => p.id === preferred),
-        ...PROFESSIONS.filter(p => p.id !== preferred),
+        ...availableProfessions.filter(p => p.id === preferred),
+        ...availableProfessions.filter(p => p.id !== preferred),
       ]
-    : PROFESSIONS;
+    : availableProfessions;
 
   return (
     <div className="flex flex-col h-screen">

@@ -5,6 +5,7 @@ import { PROFESSIONS } from '../data/professions.js';
 import { TopBar } from '../components/layout/TopBar.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { Modal } from '../components/ui/Modal.jsx';
+import { isCounselorSubdomain } from '../lib/subdomain.js';
 import toast from 'react-hot-toast';
 
 async function fetchTemplates(userId) {
@@ -43,18 +44,23 @@ async function deleteTemplate(id) {
   if (error) throw error;
 }
 
-const USE_CASE_OPTIONS = [
+const ALL_USE_CASE_OPTIONS = [
   { value: 'kaunseling',   label: '💬 Kaunseling',        color: 'bg-emerald-100 text-emerald-700' },
   { value: 'soal-siasat', label: '🔍 Soal-siasat',        color: 'bg-blue-100 text-blue-700' },
   { value: 'audit',        label: '📋 Audit & Pematuhan',  color: 'bg-amber-100 text-amber-700' },
 ];
+const USE_CASE_OPTIONS = isCounselorSubdomain()
+  ? ALL_USE_CASE_OPTIONS
+  : ALL_USE_CASE_OPTIONS.filter(o => o.value !== 'kaunseling');
 
-const BLANK_FORM = { id: null, profession: 'counselor', name: '', questionsText: '', use_case: 'kaunseling', is_team_template: false, team_id: null };
+const defaultUseCase = () => isCounselorSubdomain() ? 'kaunseling' : 'soal-siasat';
+const defaultProfession = () => isCounselorSubdomain() ? 'counselor' : 'police';
+const BLANK_FORM = { id: null, profession: defaultProfession(), name: '', questionsText: '', use_case: defaultUseCase(), is_team_template: false, team_id: null };
 const BLANK_ASSESSMENT = { id: null, name: '', description: '', questions: [{ id: '', text: '', options: ['Ya', 'Tidak'] }] };
 
 export default function QuestionTemplatesPage() {
   const { user } = useAuthStore();
-  const isCounselor = localStorage.getItem('preferred_profession') === 'counselor';
+  const isCounselor = isCounselorSubdomain();
   const [pageTab, setPageTab] = useState('soalan');
   const [templates, setTemplates] = useState([]);
   const [assessments, setAssessments] = useState([]);
@@ -139,7 +145,7 @@ export default function QuestionTemplatesPage() {
         const text = evt.target.result;
         let name = file.name.replace(/\.(csv|json)$/i, '');
         let questions = [];
-        let use_case = 'kaunseling';
+        let use_case = defaultUseCase();
 
         if (file.name.endsWith('.json')) {
           const parsed = JSON.parse(text);
@@ -329,7 +335,7 @@ export default function QuestionTemplatesPage() {
               <select value={filterProfession} onChange={e => setFilterProfession(e.target.value)}
                 className="px-3 py-1.5 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-600">
                 <option value="">Semua Profesion</option>
-                {PROFESSIONS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+                {PROFESSIONS.filter(p => isCounselor || p.id !== 'counselor').map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
               </select>
             </div>
           )}
@@ -527,7 +533,7 @@ export default function QuestionTemplatesPage() {
                 onChange={e => setForm(p => ({ ...p, profession: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                {PROFESSIONS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+                {PROFESSIONS.filter(p => isCounselor || p.id !== 'counselor').map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
               </select>
             </div>
           )}
