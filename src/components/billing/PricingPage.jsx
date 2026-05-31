@@ -216,11 +216,25 @@ export function PricingPage() {
             )}
           </div>
 
+          {/* Org plan */}
+          <div className="max-w-2xl mx-auto bg-white rounded-2xl border-2 border-gray-200 p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">Organisasi</p>
+                <p className="text-gray-700 text-sm mb-1">Untuk jabatan &amp; unit penyiasatan — sehingga 5 pengguna</p>
+                <p className="text-2xl font-bold text-gray-900">RM999<span className="text-sm font-normal text-gray-400">/bulan · 5 pengguna · 100 sesi/pengguna</span></p>
+              </div>
+              <Button variant="outline" className="flex-shrink-0" onClick={() => subscribe('enterprise')}>
+                Hubungi Kami →
+              </Button>
+            </div>
+          </div>
+
           {/* Enterprise */}
           <div className="max-w-2xl mx-auto bg-gray-50 rounded-2xl border p-6 text-center">
-            <p className="font-semibold text-gray-900 mb-1">Lebih 10 sesi sebulan atau pasukan besar?</p>
+            <p className="font-semibold text-gray-900 mb-1">Lebih besar? Pakej Institusi tersedia.</p>
             <p className="text-sm text-gray-500 mb-4">
-              Pakej khas untuk PDRM, SPRM, Kementerian, hospital kerajaan, dan syarikat besar.
+              Untuk PDRM, SPRM, Kementerian, hospital kerajaan, dan syarikat besar.
               Termasuk onboarding, latihan, dan sokongan SLA.
             </p>
             <Button variant="outline" onClick={() => subscribe('enterprise')}>
