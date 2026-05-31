@@ -1,12 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
-import Stripe from 'stripe';
 
 const supabaseAdmin = createClient(
   process.env.VITE_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
 );
 
-// Map plan+annual to Stripe price IDs (set these in Stripe dashboard)
 const PRICE_IDS = {
   starter_monthly:   process.env.STRIPE_PRICE_STARTER_MONTHLY,
   starter_annual:    process.env.STRIPE_PRICE_STARTER_ANNUAL,
@@ -16,13 +14,48 @@ const PRICE_IDS = {
   biz_annual:        process.env.STRIPE_PRICE_BIZ_ANNUAL,
   counselor_monthly: process.env.STRIPE_PRICE_COUNSELOR_MONTHLY,
   counselor_annual:  process.env.STRIPE_PRICE_COUNSELOR_ANNUAL,
-  // One-time top-up packs (no _annual variant)
   topup_1:           process.env.STRIPE_PRICE_TOPUP_1,
   topup_5:           process.env.STRIPE_PRICE_TOPUP_5,
   topup_10:          process.env.STRIPE_PRICE_TOPUP_10,
 };
 
 const TOPUP_SESSIONS = { topup_1: 1, topup_5: 5, topup_10: 10 };
+
+// Direct Stripe REST API calls — no SDK, no connection issues
+async function stripePost(path, params) {
+  const key = process.env.STRIPE_SECRET_KEY;
+  const body = new URLSearchParams();
+  function flatten(obj, prefix = '') {
+    for (const [k, v] of Object.entries(obj)) {
+      const key = prefix ? `${prefix}[${k}]` : k;
+      if (v !== null && typeof v === 'object' && !Array.isArray(v)) flatten(v, key);
+      else body.append(key, String(v));
+    }
+  }
+  flatten(params);
+
+  const res = await fetch(`https://api.stripe.com/v1${path}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${key}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: body.toString(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || 'Stripe error');
+  return data;
+}
+
+async function stripeGet(path) {
+  const key = process.env.STRIPE_SECRET_KEY;
+  const res = await fetch(`https://api.stripe.com/v1${path}`, {
+    headers: { Authorization: `Bearer ${key}` },
+  });
+  const data = await res.json();
+  if (!res.ok) throw Object.assign(new Error(data.error?.message || 'Stripe error'), { code: data.error?.code });
+  return data;
+}
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -31,12 +64,6 @@ export default async function handler(req, res) {
   if (!process.env.STRIPE_SECRET_KEY) {
     return res.status(500).json({ error: 'Stripe not configured' });
   }
-
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2024-06-20',
-    maxNetworkRetries: 0,
-    timeout: 8000,
-  });
 
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
@@ -57,7 +84,7 @@ export default async function handler(req, res) {
 
     const priceKey = isTopup ? plan : `${plan}_${annual ? 'annual' : 'monthly'}`;
     const priceId = PRICE_IDS[priceKey];
-    if (!priceId) return res.status(400).json({ error: 'Price not configured' });
+    if (!priceId) return res.status(400).json({ error: 'Price not configured: ' + priceKey });
 
     const { data: sub } = await supabaseAdmin
       .from('subscriptions')
@@ -67,9 +94,8 @@ export default async function handler(req, res) {
 
     let customerId = sub?.stripe_customer_id;
     if (customerId) {
-      // Verify customer exists in current Stripe mode (test↔live mismatch)
       try {
-        const cus = await stripe.customers.retrieve(customerId);
+        const cus = await stripeGet(`/customers/${customerId}`);
         if (cus.deleted) customerId = null;
       } catch (e) {
         if (e.code === 'resource_missing') customerId = null;
@@ -77,7 +103,7 @@ export default async function handler(req, res) {
       }
     }
     if (!customerId) {
-      const customer = await stripe.customers.create({ email: user.email, metadata: { user_id: user.id } });
+      const customer = await stripePost('/customers', { email: user.email, 'metadata[user_id]': user.id });
       customerId = customer.id;
       await supabaseAdmin
         .from('subscriptions')
@@ -85,27 +111,28 @@ export default async function handler(req, res) {
         .eq('user_id', user.id);
     }
 
-    let sessionParams = {
+    const sessionParams = {
       customer: customerId,
-      payment_method_types: ['card'],
-      line_items: [{ price: priceId, quantity: 1 }],
+      'payment_method_types[0]': 'card',
+      'line_items[0][price]': priceId,
+      'line_items[0][quantity]': 1,
       success_url: `${process.env.VITE_APP_URL}/settings?payment=success`,
-      cancel_url:  `${process.env.VITE_APP_URL}/pricing?payment=cancelled`,
-      metadata: { user_id: user.id, plan },
+      cancel_url: `${process.env.VITE_APP_URL}/pricing?payment=cancelled`,
+      'metadata[user_id]': user.id,
+      'metadata[plan]': plan,
     };
 
     if (isTopup) {
       sessionParams.mode = 'payment';
-      sessionParams.metadata.topup_sessions = String(TOPUP_SESSIONS[plan]);
+      sessionParams['metadata[topup_sessions]'] = String(TOPUP_SESSIONS[plan]);
     } else {
       sessionParams.mode = 'subscription';
-      sessionParams.subscription_data = {
-        trial_period_days: 14,
-        metadata: { user_id: user.id, plan },
-      };
+      sessionParams['subscription_data[trial_period_days]'] = 14;
+      sessionParams['subscription_data[metadata][user_id]'] = user.id;
+      sessionParams['subscription_data[metadata][plan]'] = plan;
     }
 
-    const session = await stripe.checkout.sessions.create(sessionParams);
+    const session = await stripePost('/checkout/sessions', sessionParams);
 
     return res.status(200).json({ url: session.url });
   } catch (err) {
