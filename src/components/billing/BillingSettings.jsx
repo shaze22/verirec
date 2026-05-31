@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useBillingStore } from '../../store/billingStore.js';
 import { createStripePortalSession, getStripeInvoices } from '../../api/billing.js';
 import { format, differenceInDays } from 'date-fns';
@@ -25,7 +25,17 @@ export function BillingSettings() {
   const { subscription } = useBillingStore();
   const [portalLoading, setPortalLoading] = useState(false);
   const [receiptLoading, setReceiptLoading] = useState(false);
+  const [charges, setCharges] = useState(null);
+  const [showHistory, setShowHistory] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (subscription?.plan !== 'free') {
+      getStripeInvoices()
+        .then(data => setCharges(data.charges || []))
+        .catch(() => setCharges([]));
+    }
+  }, [subscription?.plan]);
 
   if (!subscription) {
     return <div className="h-24 bg-gray-50 rounded-xl animate-pulse" />;
@@ -54,29 +64,12 @@ export function BillingSettings() {
   };
 
   const downloadReceipt = async () => {
-    if (!isPaid) {
-      toast.error('Tiada resit — anda menggunakan pelan percuma.');
-      return;
-    }
-    setReceiptLoading(true);
-    try {
-      const { invoices } = await getStripeInvoices();
-      if (!invoices?.length) {
-        toast.error('Tiada resit dijumpai.');
-        return;
-      }
-      const latest = invoices[0];
-      if (latest.invoice_pdf) {
-        window.open(latest.invoice_pdf, '_blank');
-      } else if (latest.hosted_invoice_url) {
-        window.open(latest.hosted_invoice_url, '_blank');
-      } else {
-        toast.error('PDF resit tidak tersedia.');
-      }
-    } catch {
-      toast.error('Gagal memuatkan resit. Cuba lagi.');
-    } finally {
-      setReceiptLoading(false);
+    if (!isPaid) { toast.error('Tiada resit — anda menggunakan pelan percuma.'); return; }
+    const latest = charges?.[0];
+    if (latest?.receipt_url) {
+      window.open(latest.receipt_url, '_blank');
+    } else {
+      toast.error('Tiada resit dijumpai. Cuba "Urus Langganan" untuk lihat semua invois.');
     }
   };
 
@@ -182,6 +175,55 @@ export function BillingSettings() {
         <p className="text-xs text-gray-400">
           "Urus Langganan" — batal, tukar kad, atau lihat semua invois melalui portal selamat Stripe.
         </p>
+      )}
+
+      {/* Payment History */}
+      {isPaid && charges !== null && (
+        <div>
+          <button
+            onClick={() => setShowHistory(v => !v)}
+            className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 font-medium transition-colors"
+          >
+            <svg className={`w-4 h-4 transition-transform ${showHistory ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+            Sejarah Pembayaran {charges.length > 0 && `(${charges.length})`}
+          </button>
+
+          {showHistory && (
+            <div className="mt-3 space-y-2">
+              {charges.length === 0 ? (
+                <p className="text-sm text-gray-400 text-center py-4">Tiada rekod pembayaran.</p>
+              ) : charges.map(c => (
+                <div key={c.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-800 truncate">
+                      {c.description || 'Pembayaran VeriRec'}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {format(new Date(c.created * 1000), 'dd MMM yyyy, HH:mm')}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <span className="text-sm font-bold text-gray-900">
+                      RM{(c.amount / 100).toFixed(2)}
+                    </span>
+                    {c.receipt_url && (
+                      <a
+                        href={c.receipt_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-emerald-600 hover:text-emerald-800 font-medium border border-emerald-200 px-2 py-1 rounded-lg hover:bg-emerald-50 transition-colors"
+                      >
+                        Resit
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

@@ -62,21 +62,45 @@ export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
       const customerId = await getCustomerId(user.id);
-      if (!customerId) return res.status(200).json({ invoices: [] });
+      if (!customerId) return res.status(200).json({ invoices: [], charges: [] });
 
-      const data = await stripeGet(`/invoices?customer=${customerId}&limit=10&status=paid`);
-      return res.status(200).json({
-        invoices: (data.data || []).map(inv => ({
-          id: inv.id,
-          number: inv.number,
-          amount_paid: inv.amount_paid,
-          currency: inv.currency,
-          created: inv.created,
-          invoice_pdf: inv.invoice_pdf,
-          hosted_invoice_url: inv.hosted_invoice_url,
-          description: inv.lines?.data?.[0]?.description || '',
-        })),
-      });
+      // Fetch specific session receipt (for success page)
+      const sessionId = req.query?.session_id || new URL(`https://x.com${req.url}`).searchParams.get('session_id');
+      if (sessionId) {
+        try {
+          const session = await stripeGet(`/checkout/sessions/${sessionId}`);
+          let receiptUrl = session.hosted_invoice_url || null;
+          // For one-time payment, get charge receipt
+          if (!receiptUrl && session.payment_intent) {
+            const pi = await stripeGet(`/payment_intents/${session.payment_intent}`);
+            if (pi.latest_charge) {
+              const charge = await stripeGet(`/charges/${pi.latest_charge}`);
+              receiptUrl = charge.receipt_url;
+            }
+          }
+          return res.status(200).json({
+            receipt_url: receiptUrl,
+            amount: session.amount_total,
+            currency: session.currency,
+            created: session.created,
+          });
+        } catch { /* fall through to charges list */ }
+      }
+
+      // Payment history — charges covers both topup (one-time) + subscription
+      const data = await stripeGet(`/charges?customer=${customerId}&limit=10`);
+      const charges = (data.data || [])
+        .filter(c => c.paid && c.status === 'succeeded')
+        .map(c => ({
+          id: c.id,
+          amount: c.amount,
+          currency: c.currency,
+          created: c.created,
+          description: c.description || c.billing_details?.name || '',
+          receipt_url: c.receipt_url,
+        }));
+
+      return res.status(200).json({ charges, invoices: [] });
     }
 
     if (req.method === 'POST') {

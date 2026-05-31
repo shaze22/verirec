@@ -40,6 +40,16 @@ export async function getStripeInvoices() {
   return res.json();
 }
 
+export async function getSessionReceipt(sessionId) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('auth_expired');
+  const res = await fetch(`${CONFIG.api.stripeBilling}?session_id=${sessionId}`, {
+    headers: { Authorization: `Bearer ${session.access_token}` },
+  });
+  if (!res.ok) return null;
+  return res.json();
+}
+
 export async function getSubscription(userId) {
   const { data, error } = await supabase
     .from('subscriptions')

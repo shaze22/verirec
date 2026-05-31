@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase.js';
 import { getSessions } from '../api/sessions.js';
 import { logEvent } from '../api/auditLog.js';
 import { getCounselorProfile, upsertCounselorProfile } from '../api/counselor.js';
+import { getSessionReceipt } from '../api/billing.js';
 import { Input, Textarea } from '../components/ui/Input.jsx';
 import { TopBar } from '../components/layout/TopBar.jsx';
 import { Button } from '../components/ui/Button.jsx';
@@ -42,21 +43,33 @@ export default function SettingsPage() {
   const [editingProfile, setEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({});
   const [savingProfile, setSavingProfile] = useState(false);
+  const [paymentModal, setPaymentModal] = useState(null); // { plan, receiptUrl, amount, created }
+  const [receiptLoading, setReceiptLoading] = useState(false);
+
+  const TOPUP_LABELS = { topup_1: 'Top-up 1 Sesi', topup_5: 'Top-up 5 Sesi', topup_10: 'Top-up 10 Sesi' };
+  const TOPUP_AMOUNTS = { topup_1: 13, topup_5: 60, topup_10: 100 };
 
   useEffect(() => {
     const payment = searchParams.get('payment');
     const plan = searchParams.get('plan');
+    const sessionId = searchParams.get('session_id');
     if (payment === 'success') {
-      const topupMap = { topup_1: '1 sesi', topup_5: '5 sesi', topup_10: '10 sesi' };
-      const msg = topupMap[plan]
-        ? `Top-up berjaya! ${topupMap[plan]} tambahan telah dikreditkan.`
-        : 'Pembayaran berjaya! Pelan anda telah dikemas kini.';
-      toast.success(msg, { duration: 6000 });
       if (user) fetchSubscription(user.id);
+      // Show payment success modal
+      const isTopup = plan in TOPUP_LABELS;
+      setPaymentModal({ plan, sessionId, amount: TOPUP_AMOUNTS[plan] || null, receiptUrl: null });
+      // Fetch receipt in background
+      if (sessionId) {
+        getSessionReceipt(sessionId).then(data => {
+          if (data?.receipt_url) {
+            setPaymentModal(prev => prev ? { ...prev, receiptUrl: data.receipt_url, amount: data.amount ? data.amount / 100 : prev.amount } : prev);
+          }
+        }).catch(() => {});
+      }
     } else if (payment === 'cancelled') {
       toast.error('Pembayaran dibatalkan.');
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -210,6 +223,77 @@ export default function SettingsPage() {
   return (
     <div className="flex flex-col h-screen">
       <TopBar title="Tetapan" />
+
+      {/* Payment Success Modal */}
+      {paymentModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-8 text-center">
+            {/* Success icon */}
+            <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-1">Pembayaran Berjaya!</h2>
+            <p className="text-gray-500 text-sm mb-5">
+              {TOPUP_LABELS[paymentModal.plan] || 'Langganan'} telah dikreditkan ke akaun anda.
+            </p>
+
+            {/* Payment details */}
+            <div className="bg-gray-50 rounded-xl p-4 text-left space-y-2 mb-5">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Produk</span>
+                <span className="font-medium">{TOPUP_LABELS[paymentModal.plan] || 'Langganan Kaunselor'}</span>
+              </div>
+              {paymentModal.amount && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Jumlah</span>
+                  <span className="font-bold text-gray-900">RM{Number(paymentModal.amount).toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Tarikh</span>
+                <span className="font-medium">{new Date().toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Status</span>
+                <span className="font-semibold text-emerald-600">✓ Berjaya</span>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="space-y-2">
+              {paymentModal.receiptUrl ? (
+                <a
+                  href={paymentModal.receiptUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full bg-emerald-600 text-white font-semibold py-2.5 rounded-xl hover:bg-emerald-700 transition-colors text-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Muat Turun Resit
+                </a>
+              ) : (
+                <button
+                  disabled
+                  className="flex items-center justify-center gap-2 w-full bg-gray-100 text-gray-400 font-semibold py-2.5 rounded-xl text-sm cursor-not-allowed"
+                >
+                  <div className="w-3 h-3 border-2 border-gray-300 border-t-gray-500 rounded-full animate-spin" />
+                  Memuat resit...
+                </button>
+              )}
+              <button
+                onClick={() => setPaymentModal(null)}
+                className="w-full text-gray-500 hover:text-gray-700 font-medium py-2 text-sm transition-colors"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="flex-1 overflow-auto p-6 pb-20 md:pb-6">
         <div className="max-w-2xl mx-auto space-y-8">
 
