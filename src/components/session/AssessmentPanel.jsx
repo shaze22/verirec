@@ -133,7 +133,7 @@ export function AssessmentPanel({ sessionId, subjectId, userId, onComplete }) {
           </>
         )}
       </div>
-      <p className="text-xs text-green-600 text-center">✓ Keputusan disimpan dalam sesi ini</p>
+      <p className="text-xs text-green-600 text-center">✓ Results disimpan dalam sesi ini</p>
     </div>
   );
 
@@ -191,7 +191,7 @@ export function AssessmentPanel({ sessionId, subjectId, userId, onComplete }) {
       <div className="p-3 border-t">
         <button onClick={handleSave} disabled={answered < total || saving || saved}
           className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold disabled:opacity-40 hover:bg-blue-700 transition-colors">
-          {saving ? 'Menyimpan...' : saved ? '✓ Disimpan' : `Selesai & Simpan (${answered}/${total})`}
+          {saving ? 'Menyimpan...' : saved ? '✓ Saved' : `Selesai & Simpan (${answered}/${total})`}
         </button>
       </div>
     </div>

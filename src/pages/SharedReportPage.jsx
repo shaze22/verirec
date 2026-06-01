@@ -75,7 +75,7 @@ export default function SharedReportPage() {
               </svg>
               <span className="font-bold text-gray-900">VeriRec</span>
               <span className="text-gray-300">|</span>
-              <span className="text-sm text-gray-500">Laporan Dikongsi</span>
+              <span className="text-sm text-gray-500">Shared Report</span>
             </div>
             <Link to="/auth" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
               Daftar Percuma →

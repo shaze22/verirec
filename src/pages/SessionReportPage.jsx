@@ -173,7 +173,7 @@ export default function SessionReportPage() {
       if (token_existing) {
         const url = `${window.location.origin}/laporan/${token_existing}`;
         await navigator.clipboard.writeText(url);
-        toast.success('Pautan disalin ke papan klip!');
+        toast.success('Link copied ke papan klip!');
         return;
       }
       const res = await fetch('/api/share-session', {
@@ -196,7 +196,7 @@ export default function SessionReportPage() {
   };
 
   const handleRevokeShare = async () => {
-    if (!window.confirm('Batalkan pautan kongsi? Sesiapa yang ada pautan lama tidak akan dapat akses lagi.')) return;
+    if (!window.confirm('Cancelkan pautan kongsi? Sesiapa yang ada pautan lama tidak akan dapat akses lagi.')) return;
     try {
       const { data: { session: authSession } } = await supabase.auth.getSession();
       await fetch('/api/share-session', {
@@ -251,7 +251,7 @@ export default function SessionReportPage() {
       if (json.error) throw new Error(json.error);
       setVerifyResult(json.match ? 'authentic' : 'tampered');
     } catch {
-      toast.error('Gagal mengesahkan dokumen.');
+      toast.error('Failed to verify dokumen.');
     } finally {
       setVerifying(false);
     }
@@ -307,7 +307,7 @@ export default function SessionReportPage() {
   return (
     <div className="flex flex-col h-screen">
       <TopBar
-        title="Laporan Sesi"
+        title="Session Report"
         actions={
           <div className="flex items-center gap-2">
             {session && (
@@ -332,7 +332,7 @@ export default function SessionReportPage() {
                     onClick={shareToken ? handleRevokeShare : handleShare}
                     disabled={shareLoading}
                     className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 ${shareToken ? 'text-blue-600 hover:text-red-600 hover:bg-red-50' : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'}`}
-                    title={shareToken ? 'Pautan aktif — klik untuk batalkan' : 'Kongsi laporan'}
+                    title={shareToken ? 'Pautan aktif — klik untuk batalkan' : 'Share laporan'}
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
@@ -523,7 +523,7 @@ export default function SessionReportPage() {
                         ) : (
                           <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                         )}
-                        {verifying ? 'Menyemak...' : 'Semak Keaslian Dokumen'}
+                        {verifying ? 'Menyemak...' : 'Verify Authenticity Dokumen'}
                       </button>
                     </div>
                   </div>
@@ -551,9 +551,9 @@ export default function SessionReportPage() {
             autoFocus
           />
           <div className="flex gap-3">
-            <Button type="button" variant="secondary" onClick={() => setPinModal(false)}>Batal</Button>
+            <Button type="button" variant="secondary" onClick={() => setPinModal(false)}>Cancel</Button>
             <Button type="submit" className="flex-1" loading={pinSaving} disabled={newPin.length < 4}>
-              Simpan PIN
+              Save PIN
             </Button>
           </div>
         </form>
@@ -566,8 +566,8 @@ export default function SessionReportPage() {
         title="Edit Butiran Sesi"
         footer={
           <div className="flex gap-3 justify-end">
-            <Button variant="secondary" onClick={() => setEditModal(false)}>Batal</Button>
-            <Button onClick={handleEditSave} loading={editSaving}>Simpan Perubahan</Button>
+            <Button variant="secondary" onClick={() => setEditModal(false)}>Cancel</Button>
+            <Button onClick={handleEditSave} loading={editSaving}>Save Perubahan</Button>
           </div>
         }
       >

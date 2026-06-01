@@ -73,7 +73,7 @@ Pengesan subdomain via `src/lib/subdomain.js` — hanya `isCounselorSubdomain()`
 ## Peraturan Wajib
 1. **Jangan panggil OpenAI/Anthropic/Stripe/Gemini dari browser** — semua melalui `/api/` routes
 2. **Jangan simpan secrets dalam `src/`** — hanya `VITE_` prefix dibenarkan di frontend
-3. **Semua UI text dalam Bahasa Malaysia** — code comments dalam English
+3. **All UI text in English** — code comments in English
 4. **Setiap async function perlu try/catch** — tiada silent failures
 5. **Consent data mesti tidak pernah dipadam** — PDPA compliance, audit trail kekal
 6. **SHA-256 hash dikira server-side** dalam `api/report.js` — bukan client-side

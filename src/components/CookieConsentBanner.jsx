@@ -64,24 +64,24 @@ export function CookieConsentBanner() {
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-900">Privasi &amp; Kuki</p>
+                <p className="text-sm font-semibold text-gray-900">Privacy &amp; Cookies</p>
                 <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-                  Kami menggunakan kuki penting (log masuk, keselamatan) dan kuki analitik pilihan (Google Analytics) untuk meningkatkan perkhidmatan.{' '}
+                  We use essential cookies (login, security) and optional analytics cookies (Google Analytics) to improve our service.{' '}
                   <button onClick={() => setDetail(d => !d)} className="text-blue-600 hover:underline">
-                    {detail ? 'Sembunyikan' : 'Ketahui lebih lanjut'}
+                    {detail ? 'Show less' : 'Learn more'}
                   </button>
                   {' '}·{' '}
-                  <a href="/privacy" className="text-blue-600 hover:underline">Dasar Privasi</a>
+                  <a href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</a>
                 </p>
                 {detail && (
                   <div className="mt-2 space-y-1.5">
                     <div className="flex items-start gap-2">
                       <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-1.5 flex-shrink-0" />
-                      <p className="text-xs text-gray-600"><strong>Kuki Penting</strong> — Log masuk, sesi, keselamatan CSRF. Sentiasa aktif, diperlukan untuk aplikasi berfungsi.</p>
+                      <p className="text-xs text-gray-600"><strong>Essential Cookies</strong> — Login, session, CSRF security. Always active, required for the app to function.</p>
                     </div>
                     <div className="flex items-start gap-2">
                       <span className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5 flex-shrink-0" />
-                      <p className="text-xs text-gray-600"><strong>Analitik (pilihan)</strong> — Google Analytics membantu kami memahami cara pengguna menggunakan VeriRec. Tiada data peribadi dikongsi.</p>
+                      <p className="text-xs text-gray-600"><strong>Analytics (optional)</strong> — Google Analytics helps us understand how users use VeriRec. No personal data is shared.</p>
                     </div>
                   </div>
                 )}
@@ -92,13 +92,13 @@ export function CookieConsentBanner() {
                 onClick={handleDecline}
                 className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                Kuki Penting Sahaja
+                Essential Only
               </button>
               <button
                 onClick={handleAccept}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Terima Semua
+                Accept All
               </button>
             </div>
           </div>

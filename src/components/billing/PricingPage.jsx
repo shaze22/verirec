@@ -76,7 +76,7 @@ export function PricingPage() {
     <>
     <Helmet>
       <title>Harga & Pelan — VeriRec</title>
-      <meta name="description" content="RM100/bulan, 10 sesi. Tanpa kontrak. Top-up bila perlu. Untuk penyiasat, juruaudit, kaunselor, doktor dan lebih lagi." />
+      <meta name="description" content="RM100/month, 10 sesi. No contract. Top-up bila perlu. Untuk penyiasat, juruaudit, kaunselor, doktor dan lebih lagi." />
       <link rel="canonical" href="https://www.verirec.app/pricing" />
     </Helmet>
     <div className="max-w-5xl mx-auto px-6 py-12">
@@ -94,7 +94,7 @@ export function PricingPage() {
               tab === 'umum' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            🔍 VeriRec Profesional
+            🔍 VeriRec Professional
           </button>
           <button
             onClick={() => setTab('kaunselor')}
@@ -102,7 +102,7 @@ export function PricingPage() {
               tab === 'kaunselor' ? 'bg-emerald-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            💬 Kaunselor
+            💬 Counselor
             {isCurrent('counselor') && <span className="w-2 h-2 rounded-full bg-emerald-300 inline-block" />}
           </button>
         </div>
@@ -119,13 +119,13 @@ export function PricingPage() {
               isCurrent('free') ? 'border-gray-400 bg-gray-50' : 'border-gray-200 bg-white'
             }`}>
               {isCurrent('free') && <p className="text-xs font-semibold text-gray-500 mb-2">PELAN SEMASA</p>}
-              <p className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-1">Percuma</p>
+              <p className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-1">Free</p>
               <div className="flex items-end gap-1 mb-1">
                 <span className="text-4xl font-bold text-gray-900">RM0</span>
               </div>
-              <p className="text-xs text-gray-400 mb-5">2 sesi sebulan · selama-lamanya</p>
+              <p className="text-xs text-gray-400 mb-5">2 sessions per month · selama-lamanya</p>
               <ul className="space-y-2 flex-1 mb-6">
-                {['2 sesi/bulan', 'Transkripsi AI realtime', 'Laporan asas PDF', 'SHA-256 chain of custody'].map(f => (
+                {['2 sesi/month', 'Transkripsi AI realtime', 'Laporan asas PDF', 'SHA-256 chain of custody'].map(f => (
                   <li key={f} className="flex items-start gap-2 text-sm text-gray-600">
                     <CheckIcon />
                     {f}
@@ -139,7 +139,7 @@ export function PricingPage() {
                 ))}
               </ul>
               <Button variant="outline" className="w-full" disabled={isCurrent('free') || subscription?.plan !== 'free'} onClick={() => navigate('/session/new')}>
-                {isCurrent('free') ? 'Pelan Semasa' : 'Teruskan Percuma'}
+                {isCurrent('free') ? 'Current Plan' : 'Teruskan Free'}
               </Button>
             </div>
 
@@ -149,14 +149,14 @@ export function PricingPage() {
             }`}>
               {!isCurrent('starter') && (
                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-4 py-1.5 rounded-full whitespace-nowrap shadow">
-                  PALING POPULAR
+                  MOST POPULAR
                 </div>
               )}
               {isCurrent('starter') && <p className="text-xs font-semibold text-blue-600 mb-2">PELAN SEMASA</p>}
-              <p className="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-1">Profesional</p>
+              <p className="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-1">Professional</p>
               <div className="flex items-end gap-1 mb-1">
                 <span className="text-4xl font-bold text-gray-900">RM100</span>
-                <span className="text-gray-400 text-sm mb-1">/bulan</span>
+                <span className="text-gray-400 text-sm mb-1">/month</span>
               </div>
               <p className="text-xs text-gray-400 mb-5">10 sesi · RM10/sesi · batalkan bila-bila masa</p>
               <ul className="space-y-2 flex-1 mb-6">
@@ -179,16 +179,16 @@ export function PricingPage() {
                 loading={loading === 'starter'}
                 onClick={() => subscribe('starter')}
               >
-                {isCurrent('starter') ? 'Pelan Aktif' : 'Langgan Sekarang'}
+                {isCurrent('starter') ? 'Pelan Aktif' : 'Subscribe Now'}
               </Button>
-              <p className="text-xs text-center text-gray-400 mt-2">Tanpa kontrak · Batal bila-bila masa</p>
+              <p className="text-xs text-center text-gray-400 mt-2">No contract · Cancel anytime</p>
             </div>
           </div>
 
           {/* Top-up */}
           <div className="max-w-md mx-auto bg-white rounded-2xl border p-6">
             <p className="text-sm font-bold text-gray-700 mb-1 text-center">Top-up Sesi Tambahan</p>
-            <p className="text-xs text-gray-400 text-center mb-4">Tersedia untuk pelan Profesional. Tidak luput — dibawa ke bulan berikutnya.</p>
+            <p className="text-xs text-gray-400 text-center mb-4">Tersedia untuk pelan Professional. Tidak luput — dibawa ke bulan berikutnya.</p>
             <div className="space-y-3">
               {CONFIG.topups.map(t => (
                 <div key={t.key} className="flex items-center justify-between">
@@ -212,7 +212,7 @@ export function PricingPage() {
               ))}
             </div>
             {subscription?.plan !== 'starter' && (
-              <p className="text-xs text-gray-400 text-center mt-3">Top-up hanya tersedia untuk pelan Profesional.</p>
+              <p className="text-xs text-gray-400 text-center mt-3">Top-up hanya tersedia untuk pelan Professional.</p>
             )}
           </div>
 
@@ -220,9 +220,9 @@ export function PricingPage() {
           <div className="max-w-2xl mx-auto bg-white rounded-2xl border-2 border-gray-200 p-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">Organisasi</p>
+                <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">Organization</p>
                 <p className="text-gray-700 text-sm mb-1">Untuk jabatan &amp; unit penyiasatan — sehingga 5 pengguna</p>
-                <p className="text-2xl font-bold text-gray-900">RM999<span className="text-sm font-normal text-gray-400">/bulan · 5 pengguna · 100 sesi/pengguna</span></p>
+                <p className="text-2xl font-bold text-gray-900">RM999<span className="text-sm font-normal text-gray-400">/month · 5 pengguna · 100 sesi/pengguna</span></p>
               </div>
               <Button variant="outline" className="flex-shrink-0" onClick={() => subscribe('enterprise')}>
                 Hubungi Kami →
@@ -255,14 +255,14 @@ export function PricingPage() {
             }`}>
               {!isCurrent('counselor') && (
                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-xs font-bold px-4 py-1.5 rounded-full whitespace-nowrap shadow">
-                  Untuk Kaunselor
+                  Untuk Counselor
                 </div>
               )}
               {isCurrent('counselor') && <p className="text-xs font-semibold text-emerald-700 mb-2">PELAN SEMASA</p>}
-              <p className="text-sm font-semibold text-emerald-600 uppercase tracking-wide mb-1">Kaunselor</p>
+              <p className="text-sm font-semibold text-emerald-600 uppercase tracking-wide mb-1">Counselor</p>
               <div className="flex items-end gap-1 mb-1">
                 <span className="text-4xl font-bold text-gray-900">RM100</span>
-                <span className="text-gray-400 text-sm mb-1">/bulan</span>
+                <span className="text-gray-400 text-sm mb-1">/month</span>
               </div>
               <p className="text-xs text-gray-400 mb-5">10 sesi · RM10/sesi · batalkan bila-bila masa</p>
               <ul className="space-y-2 flex-1 mb-6">
@@ -285,9 +285,9 @@ export function PricingPage() {
                 loading={loading === 'counselor'}
                 onClick={() => subscribe('counselor')}
               >
-                {isCurrent('counselor') ? 'Pelan Aktif' : 'Langgan Sekarang'}
+                {isCurrent('counselor') ? 'Pelan Aktif' : 'Subscribe Now'}
               </Button>
-              <p className="text-xs text-center text-gray-400 mt-2">Tanpa kontrak · Batal bila-bila masa</p>
+              <p className="text-xs text-center text-gray-400 mt-2">No contract · Cancel anytime</p>
             </div>
 
             {/* Top-up packs */}
@@ -319,7 +319,7 @@ export function PricingPage() {
               ))}
 
               {subscription?.plan !== 'counselor' && (
-                <p className="text-xs text-gray-400 text-center">Top-up hanya tersedia selepas melanggan Pelan Kaunselor.</p>
+                <p className="text-xs text-gray-400 text-center">Top-up hanya tersedia selepas melanggan Pelan Counselor.</p>
               )}
 
               <div className="bg-emerald-50 rounded-xl border border-emerald-100 p-4">

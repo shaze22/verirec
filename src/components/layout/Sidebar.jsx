@@ -7,7 +7,7 @@ import { usePwaInstall } from '../../hooks/usePwaInstall.js';
 import { isCounselorSubdomain } from '../../lib/subdomain.js';
 import { supabase } from '../../lib/supabase.js';
 
-const planLabels = { free: 'Percuma', counselor: 'Kaunselor', starter: 'Starter', pro: 'Pro', biz: 'Perniagaan' };
+const planLabels = { free: 'Free', counselor: 'Counselor', starter: 'Starter', pro: 'Pro', biz: 'Business' };
 const ADMIN_EMAILS = ['syedshazni@todak.com', 'syedshazni@gmail.com'];
 
 const ICONS = {
@@ -24,26 +24,26 @@ const ICONS = {
 
 // Counselor-specific tabs
 const COUNSELOR_ITEMS = [
-  { to: '/analytics',                label: 'Dashboard',  icon: ICONS.chart },
-  { to: '/kaunselor/clients',        label: 'Klien',      icon: ICONS.users },
-  { to: '/kaunselor/appointments',   label: 'Temujanji',  icon: ICONS.calendar },
-  { to: '/kaunselor/calendar',       label: 'Kalendar',   icon: ICONS.calendar },
-  { to: '/team',                     label: 'Pasukan',    icon: ICONS.team },
-  { to: '/templat',                  label: 'Templat',    icon: ICONS.doc },
-  { to: '/audit',                    label: 'Log Audit',  icon: ICONS.folder },
-  { to: '/settings',                 label: 'Tetapan',    icon: ICONS.settings },
+  { to: '/analytics',                label: 'Dashboard',    icon: ICONS.chart },
+  { to: '/kaunselor/clients',        label: 'Clients',      icon: ICONS.users },
+  { to: '/kaunselor/appointments',   label: 'Appointments', icon: ICONS.calendar },
+  { to: '/kaunselor/calendar',       label: 'Calendar',     icon: ICONS.calendar },
+  { to: '/team',                     label: 'Team',         icon: ICONS.team },
+  { to: '/templat',                  label: 'Templates',    icon: ICONS.doc },
+  { to: '/audit',                    label: 'Audit Log',    icon: ICONS.folder },
+  { to: '/settings',                 label: 'Settings',     icon: ICONS.settings },
 ];
 
-// Other professions tabs — Sesi Terkini & Subjek removed from primary nav.
-// Sessions are accessed through Fail Kes. Subjects via Carian Subjek (secondary link) or global search.
+// Other professions tabs — Recent Sessions & Subjects removed from primary nav.
+// Sessions are accessed through Case Files. Subjects via Subject Search (secondary link) or global search.
 const OTHER_ITEMS = [
-  { to: '/session/new', label: 'Sesi Baru',        icon: ICONS.mic,      cta: true },
-  { to: '/cases',       label: 'Fail Kes',         icon: ICONS.folder },
-  { to: '/jadual',      label: 'Jadual Sesi',      icon: ICONS.calendar },
-  { to: '/templat',     label: 'Templat Soalan',   icon: ICONS.doc },
-  { to: '/audit',       label: 'Log Audit',        icon: ICONS.doc },
-  { to: '/team',        label: 'Pasukan',          icon: ICONS.team },
-  { to: '/settings',    label: 'Tetapan',          icon: ICONS.settings },
+  { to: '/session/new', label: 'New Session',        icon: ICONS.mic,      cta: true },
+  { to: '/cases',       label: 'Case Files',         icon: ICONS.folder },
+  { to: '/jadual',      label: 'Schedule',           icon: ICONS.calendar },
+  { to: '/templat',     label: 'Question Templates', icon: ICONS.doc },
+  { to: '/audit',       label: 'Audit Log',          icon: ICONS.doc },
+  { to: '/team',        label: 'Team',               icon: ICONS.team },
+  { to: '/settings',    label: 'Settings',           icon: ICONS.settings },
 ];
 
 const Logo = () => (
@@ -62,7 +62,7 @@ export function Sidebar() {
   const isCounselor = isCounselorSubdomain();
   const navItems = isCounselor ? COUNSELOR_ITEMS
     : [
-      { to: '/analytics', label: 'Papan Pemuka', icon: ICONS.dashboard },
+      { to: '/analytics', label: 'Dashboard', icon: ICONS.dashboard },
       ...OTHER_ITEMS,
     ];
 
@@ -112,8 +112,8 @@ export function Sidebar() {
     ...(searchResults.subjects || []).map(s => ({ type: 'subject', id: s.id, label: s.name, path: `/subjects?id=${s.id}` })),
   ] : [];
 
-  const typeLabel = { session: 'Sesi', case: 'Kes', subject: 'Subjek' };
-  const typeColor = { session: 'text-blue-400', case: 'text-purple-400', subject: 'text-emerald-400' };
+  const typeLabel = { session: 'Sessions', case: 'Cases', subject: 'Subjects' };
+  const typeColor = { session: 'text-blue-400', case: 'text-purple-400', subject: 'text-violet-400' };
 
   const handleSearchKey = (e) => {
     if (e.key === 'Escape') { setSearchOpen(false); setSearchQuery(''); }
@@ -135,7 +135,7 @@ export function Sidebar() {
           <Logo />
           <div>
             <h1 className="text-base font-bold text-white leading-none">VeriRec</h1>
-            <p className="text-xs text-gray-400 mt-0.5">Platform Profesional</p>
+            <p className="text-xs text-gray-400 mt-0.5">{isCounselor ? 'Counselor Platform' : 'Professional Platform'}</p>
           </div>
         </div>
       </div>
@@ -153,7 +153,7 @@ export function Sidebar() {
               onChange={e => { setSearchQuery(e.target.value); setSearchOpen(true); }}
               onFocus={() => setSearchOpen(true)}
               onKeyDown={handleSearchKey}
-              placeholder="Cari sesi, kes, subjek..."
+              placeholder="Search sessions, cases, subjects..."
               className="w-full pl-8 pr-3 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
             />
             {searchQuery && (
@@ -167,7 +167,7 @@ export function Sidebar() {
           {searchOpen && searchQuery.trim() && searchResults && (
             <div className="absolute left-4 right-4 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-2xl z-50 overflow-hidden">
               {allResults.length === 0 ? (
-                <p className="text-xs text-gray-400 text-center py-3">Tiada hasil dijumpai</p>
+                <p className="text-xs text-gray-400 text-center py-3">No results found</p>
               ) : (
                 ['session', 'case', 'subject'].map(type => {
                   const items = allResults.filter(r => r.type === type);
@@ -202,8 +202,8 @@ export function Sidebar() {
             className={({ isActive }) => clsx(
               'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors',
               item.cta
-                ? 'bg-blue-600/15 text-blue-400 border border-blue-500/25 hover:bg-blue-600 hover:text-white hover:border-transparent font-medium'
-                : isActive ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                ? (isCounselor ? 'bg-violet-600/15 text-violet-400 border border-violet-500/25 hover:bg-violet-600 hover:text-white hover:border-transparent font-medium' : 'bg-blue-600/15 text-blue-400 border border-blue-500/25 hover:bg-blue-600 hover:text-white hover:border-transparent font-medium')
+                : isActive ? (isCounselor ? 'bg-violet-600 text-white' : 'bg-blue-600 text-white') : 'text-gray-400 hover:bg-gray-800 hover:text-white'
             )}
           >
             {item.icon}
@@ -222,7 +222,7 @@ export function Sidebar() {
               )}
             >
               {ICONS.users}
-              Carian Subjek
+              Subject Search
             </NavLink>
           </div>
         )}
@@ -238,7 +238,7 @@ export function Sidebar() {
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
-            Panel Admin
+            Admin Panel
           </NavLink>
         )}
       </nav>
@@ -252,7 +252,7 @@ export function Sidebar() {
                   {planLabels[subscription.plan] || subscription.plan}
                 </p>
                 {subscription.status === 'trialing' && (
-                  <span className="text-xs bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded-full">Trial</span>
+                  <span className="text-xs bg-violet-500/20 text-violet-300 px-1.5 py-0.5 rounded-full">Trial</span>
                 )}
               </div>
               {subscription.sessions_limit !== -1 && (
@@ -274,7 +274,7 @@ export function Sidebar() {
                 onClick={() => navigate('/pricing')}
                 className="mt-2 w-full text-xs text-blue-400 hover:text-blue-300 text-center transition-colors"
               >
-                Naik taraf →
+                Upgrade →
               </button>
             )}
           </div>
@@ -287,7 +287,7 @@ export function Sidebar() {
             <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            Pasang Aplikasi
+            Install App
           </button>
         )}
         <div className="px-3 py-2 flex items-center justify-between">
@@ -295,7 +295,7 @@ export function Sidebar() {
           <button
             onClick={handleSignOut}
             className="text-xs text-gray-500 hover:text-red-400 transition-colors flex-shrink-0 ml-2"
-            title="Log Keluar"
+            title="Sign Out"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

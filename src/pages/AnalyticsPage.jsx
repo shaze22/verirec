@@ -72,68 +72,68 @@ async function printMonthlyReport(user, sessions, reportMonth) {
   doc.setFontSize(15);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(255, 255, 255);
-  doc.text('LAPORAN BULANAN SIASATAN', M, 13);
+  doc.text('MONTHLY INVESTIGATION REPORT', M, 13);
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.text(monthLabel.toUpperCase(), M, 21);
   doc.setFontSize(9);
-  doc.text(`Dijana: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, W - M, 21, { align: 'right' });
+  doc.text(`Generated: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, W - M, 21, { align: 'right' });
   y = 36;
 
-  addLine(user?.user_metadata?.full_name || user?.email || 'Pegawai VeriRec', 11, true);
+  addLine(user?.user_metadata?.full_name || user?.email || 'VeriRec Officer', 11, true);
   y += 1;
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(80, 80, 80);
-  doc.text('Platform: VeriRec Profesional (www.verirec.app)', M, y);
+  doc.text('Platform: VeriRec Professional (www.verirec.app)', M, y);
   y += 5;
   rule();
 
-  section('Ringkasan Bulan Ini');
+  section('This Month Summary');
   const withReport   = monthSessions.filter(s => s.report).length;
   const totalDur     = monthSessions.reduce((acc, s) => acc + (s.duration || 0), 0);
   const avgMin       = monthSessions.length > 0 ? Math.round(totalDur / monthSessions.length / 60) : 0;
   const activeSess   = monthSessions.filter(s => (s.status || 'active') === 'active').length;
   const closedSess   = monthSessions.filter(s => s.status === 'closed').length;
-  row('Jumlah Sesi Dijalankan', monthSessions.length);
-  row('Laporan AI Dijana', withReport);
-  row('Purata Tempoh Sesi', `${avgMin} minit`);
-  row('Kes Aktif (Bulan Ini)', activeSess);
-  row('Kes Ditutup (Bulan Ini)', closedSess);
+  row('Total Sessions Conducted', monthSessions.length);
+  row('AI Reports Generated', withReport);
+  row('Average Session Duration', `${avgMin} min`);
+  row('Active Cases (This Month)', activeSess);
+  row('Closed Cases (This Month)', closedSess);
 
-  section('Taburan Tahap Risiko');
+  section('Risk Level Distribution');
   const sessWithRisk = monthSessions.filter(s => s.report?.riskLevel);
   if (sessWithRisk.length === 0) {
     doc.setFontSize(9);
     doc.setTextColor(150, 150, 150);
-    doc.text('Tiada data risiko — jana laporan AI untuk sesi tersebut.', M, y);
+    doc.text('No risk data — generate AI reports for those sessions.', M, y);
     y += 6;
   } else {
     const rCounts = { high: 0, medium: 0, low: 0 };
     sessWithRisk.forEach(s => { if (rCounts[s.report.riskLevel] !== undefined) rCounts[s.report.riskLevel]++; });
-    row('Tinggi', rCounts.high);
-    row('Sederhana', rCounts.medium);
-    row('Rendah', rCounts.low);
+    row('High', rCounts.high);
+    row('Moderate', rCounts.medium);
+    row('Low', rCounts.low);
   }
 
   if (monthSessions.length > 0) {
-    section('Senarai Sesi Bulan Ini');
-    const rl = { high: 'Tinggi', medium: 'Sederhana', low: 'Rendah' };
+    section('Session List This Month');
+    const rl = { high: 'High', medium: 'Moderate', low: 'Low' };
     monthSessions.forEach((s, i) => {
       if (y > 260) { doc.addPage(); y = M; }
       doc.setFontSize(8.5);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(30, 30, 30);
-      doc.text(`${i + 1}. ${s.title || 'Tanpa Tajuk'}`, M, y);
+      doc.text(`${i + 1}. ${s.title || 'Untitled'}`, M, y);
       y += 4.5;
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(80, 80, 80);
       doc.setFontSize(8);
       const details = [
-        `Subjek: ${s.subject_name || '-'}`,
-        `Tarikh: ${format(new Date(s.created_at), 'dd/MM/yyyy')}`,
-        `Tempoh: ${Math.round((s.duration || 0) / 60)} min`,
-        s.report?.riskLevel ? `Risiko: ${rl[s.report.riskLevel] || s.report.riskLevel}` : 'Tiada laporan',
+        `Subject: ${s.subject_name || '-'}`,
+        `Date: ${format(new Date(s.created_at), 'dd/MM/yyyy')}`,
+        `Duration: ${Math.round((s.duration || 0) / 60)} min`,
+        s.report?.riskLevel ? `Risk: ${rl[s.report.riskLevel] || s.report.riskLevel}` : 'No report',
       ].join('   ');
       doc.text(details, M + 4, y);
       y += 5;
@@ -154,21 +154,21 @@ async function printMonthlyReport(user, sessions, reportMonth) {
   doc.setFontSize(8.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(150, 50, 50);
-  doc.text('SULIT — UNTUK KEGUNAAN RASMI SAHAJA', M, y);
+  doc.text('CONFIDENTIAL — FOR OFFICIAL USE ONLY', M, y);
   y += 4.5;
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(130, 130, 130);
-  doc.text(`Tarikh Jana: ${format(new Date(), 'dd MMMM yyyy, HH:mm')}`, M, y);
+  doc.text(`Generated: ${format(new Date(), 'dd MMMM yyyy, HH:mm')}`, M, y);
   y += 4;
   doc.text(`SHA-256: ${hashHex.slice(0, 40)}...`, M, y);
 
-  doc.save(`verirec-laporan-bulanan-${reportMonth}.pdf`);
+  doc.save(`verirec-monthly-report-${reportMonth}.pdf`);
 }
 
 const CounselorDashboard = lazy(() => import('./kaunselor/CounselorDashboard.jsx'));
 
 const riskColors = { high: 'bg-red-500', medium: 'bg-amber-400', low: 'bg-green-500' };
-const riskLabels = { high: 'Tinggi', medium: 'Sederhana', low: 'Rendah' };
+const riskLabels = { high: 'High', medium: 'Moderate', low: 'Low' };
 
 function StatCard({ label, value, sub }) {
   return (
@@ -181,7 +181,7 @@ function StatCard({ label, value, sub }) {
 }
 
 function BarChart({ data, maxVal, colorClass }) {
-  if (!data.length) return <p className="text-sm text-gray-400 text-center py-6">Tiada data</p>;
+  if (!data.length) return <p className="text-sm text-gray-400 text-center py-6">No data</p>;
   return (
     <div className="space-y-3">
       {data.map(({ label, count }) => {
@@ -205,7 +205,7 @@ function BarChart({ data, maxVal, colorClass }) {
 
 function exportCSV(sessions) {
   const rows = [
-    ['Tajuk', 'Profesion', 'Nama Subjek', 'Status', 'Tempoh (min)', 'Tahap Risiko', 'Sentimen', 'Tarikh'],
+    ['Title', 'Profession', 'Subject Name', 'Status', 'Duration (min)', 'Risk Level', 'Sentiment', 'Date'],
     ...sessions.map(s => [
       s.title,
       professionLabel(s.profession),
@@ -222,7 +222,7 @@ function exportCSV(sessions) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `verirec-analitik-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+  a.download = `verirec-analytics-${format(new Date(), 'yyyy-MM-dd')}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -240,7 +240,7 @@ function getUseCase(prof) {
 export default function AnalyticsPage() {
   if (isCounselorSubdomain()) {
     return (
-      <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" /></div>}>
+      <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" /></div>}>
         <CounselorDashboard />
       </Suspense>
     );
@@ -260,7 +260,7 @@ export default function AnalyticsPage() {
     if (!user) return;
     getSessions(user.id)
       .then(setSessions)
-      .catch(() => toast.error('Gagal memuatkan data analitik'))
+      .catch(() => toast.error('Failed to load analytics data'))
       .finally(() => setLoading(false));
   }, [user]);
 
@@ -298,7 +298,7 @@ export default function AnalyticsPage() {
     // ── Investigate-specific ──
     const subjectRoles = {};
     for (const s of sessions) {
-      const role = s.subject_role || 'Tidak dinyatakan';
+      const role = s.subject_role || 'Not Specified';
       subjectRoles[role] = (subjectRoles[role] || 0) + 1;
     }
     const bySubjectRole = Object.entries(subjectRoles).map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count);
@@ -334,7 +334,7 @@ export default function AnalyticsPage() {
   return (
     <div className="flex flex-col h-screen">
       <TopBar
-        title={useCase === 'soal-siasat' ? 'Analitik Siasatan' : useCase === 'audit' ? 'Analitik Audit' : 'Analitik'}
+        title={useCase === 'soal-siasat' ? 'Investigation Analytics' : useCase === 'audit' ? 'Audit Analytics' : 'Analytics'}
         action={!loading && sessions.length > 0 && (
           <div className="flex items-center gap-2 flex-wrap">
             <div className="flex items-center gap-1.5 bg-gray-100 rounded-lg px-2.5 py-1">
@@ -350,16 +350,16 @@ export default function AnalyticsPage() {
                 loading={exporting}
                 onClick={async () => {
                   setExporting(true);
-                  try { await printMonthlyReport(user, sessions, reportMonth); toast.success('Laporan bulanan berjaya dieksport.'); }
-                  catch { toast.error('Gagal menjana laporan.'); }
+                  try { await printMonthlyReport(user, sessions, reportMonth); toast.success('Monthly report exported successfully.'); }
+                  catch { toast.error('Failed to generate report.'); }
                   finally { setExporting(false); }
                 }}
               >
-                Laporan Bulanan
+                Monthly Report
               </Button>
             </div>
-            <Button variant="secondary" size="sm" onClick={() => { exportCSV(sessions); toast.success('CSV berjaya dieksport.'); }}>
-              Eksport CSV
+            <Button variant="secondary" size="sm" onClick={() => { exportCSV(sessions); toast.success('CSV exported successfully.'); }}>
+              Export CSV
             </Button>
           </div>
         )}
@@ -380,13 +380,13 @@ export default function AnalyticsPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                   </svg>
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 mb-2">Selamat Datang ke VeriRec Profesional</h2>
-                <p className="text-sm text-gray-500 mb-6">Platform rakaman &amp; analitik sesi soal siasat yang selamat dan patuh PDPA</p>
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Welcome to VeriRec Professional</h2>
+                <p className="text-sm text-gray-500 mb-6">Secure PDPA-compliant recording &amp; analytics platform for interview sessions</p>
                 <ol className="text-left space-y-3 mb-7">
                   {[
-                    ['Mulakan sesi', 'Pilih profesion dan isi butiran sesi anda'],
-                    ['Rakam & jana laporan AI', 'Transkripsi automatik + analisis SHA-256 chain of custody'],
-                    ['Urus fail kes & subjek', 'Susun sesi mengikut kes dan subjek untuk rujukan mudah'],
+                    ['Start a session', 'Choose your profession and fill in session details'],
+                    ['Record & generate AI report', 'Automatic transcription + SHA-256 chain of custody analysis'],
+                    ['Manage case files & subjects', 'Organise sessions by case and subject for easy reference'],
                   ].map(([step, desc], i) => (
                     <li key={i} className="flex items-start gap-3">
                       <span className="w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{i + 1}</span>
@@ -401,13 +401,13 @@ export default function AnalyticsPage() {
                   onClick={() => navigate('/session/new')}
                   className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-sm transition-colors mb-3"
                 >
-                  Mulakan Sesi Pertama →
+                  Start Your First Session →
                 </button>
                 <button
                   onClick={() => navigate('/cases')}
                   className="text-xs text-gray-400 hover:text-gray-600 underline"
                 >
-                  Lihat fail kes
+                  View case files
                 </button>
               </div>
             )}
@@ -415,15 +415,15 @@ export default function AnalyticsPage() {
             {/* ── INVESTIGATE ANALYTICS ── */}
             {useCase === 'soal-siasat' && sessions.length > 0 && (<>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <StatCard label="Jumlah Kes" value={stats.total} sub="sepanjang masa" />
-                <StatCard label="Bulan Ini" value={stats.recentSessions} sub="30 hari lepas" />
-                <StatCard label="Kes Risiko Tinggi" value={stats.highRiskCases} sub="perlu perhatian" />
-                <StatCard label="Kadar Penutupan" value={`${stats.closureRate}%`} sub={`${stats.statusCounts.closed} kes ditutup`} />
+                <StatCard label="Total Cases" value={stats.total} sub="all time" />
+                <StatCard label="This Month" value={stats.recentSessions} sub="last 30 days" />
+                <StatCard label="High Risk Cases" value={stats.highRiskCases} sub="needs attention" />
+                <StatCard label="Closure Rate" value={`${stats.closureRate}%`} sub={`${stats.statusCounts.closed} cases closed`} />
               </div>
 
               <div className="grid md:grid-cols-2 gap-5">
                 <div className="bg-white rounded-xl border p-5">
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Trend Kes (6 Bulan)</h3>
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Case Trend (6 Months)</h3>
                   <div className="flex items-end gap-2 h-28">
                     {stats.monthlyTrend.map(d => (
                       <div key={d.label} className="flex-1 flex flex-col items-center gap-1">
@@ -436,20 +436,20 @@ export default function AnalyticsPage() {
                 </div>
 
                 <div className="bg-white rounded-xl border p-5">
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Jenis Subjek</h3>
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Subject Type</h3>
                   {stats.bySubjectRole.length === 0
-                    ? <p className="text-sm text-gray-400 text-center py-6">Tiada data — isi peranan subjek semasa setup sesi</p>
+                    ? <p className="text-sm text-gray-400 text-center py-6">No data — fill in subject role during session setup</p>
                     : <BarChart data={stats.bySubjectRole} maxVal={maxRoleCount} colorClass="bg-indigo-500" />}
                 </div>
               </div>
 
               <div className="bg-white rounded-xl border p-5">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Status Kes</h3>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Case Status</h3>
                 <div className="grid grid-cols-3 gap-4 text-center">
                   {[
-                    { key: 'active',  label: 'Aktif',        bg: 'bg-green-50', text: 'text-green-700' },
-                    { key: 'pending', label: 'Ditangguhkan', bg: 'bg-amber-50', text: 'text-amber-700' },
-                    { key: 'closed',  label: 'Ditutup',      bg: 'bg-gray-50',  text: 'text-gray-600' },
+                    { key: 'active',  label: 'Active',   bg: 'bg-green-50', text: 'text-green-700' },
+                    { key: 'pending', label: 'Pending',  bg: 'bg-amber-50', text: 'text-amber-700' },
+                    { key: 'closed',  label: 'Closed',   bg: 'bg-gray-50',  text: 'text-gray-600' },
                   ].map(({ key, label, bg, text }) => (
                     <div key={key} className={`${bg} rounded-xl p-4`}>
                       <p className={`text-2xl font-bold ${text}`}>{stats.statusCounts[key]}</p>
@@ -460,9 +460,9 @@ export default function AnalyticsPage() {
               </div>
 
               <div className="bg-white rounded-xl border p-5">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Taburan Tahap Risiko</h3>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Risk Level Distribution</h3>
                 {stats.withReport === 0
-                  ? <p className="text-sm text-gray-400 text-center py-6">Jana laporan AI untuk melihat taburan risiko</p>
+                  ? <p className="text-sm text-gray-400 text-center py-6">Generate AI reports to view risk distribution</p>
                   : <div className="space-y-3">{stats.riskData.map(({ key, label, count }) => (
                       <div key={key} className="flex items-center gap-3">
                         <span className="text-sm text-gray-600 w-28 flex-shrink-0">{label}</span>
@@ -474,11 +474,11 @@ export default function AnalyticsPage() {
                     ))}</div>}
               </div>
               <div className="bg-white rounded-xl border p-5">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Durasi & Laporan</h3>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Duration & Reports</h3>
                 <div className="grid grid-cols-3 gap-4 text-center">
-                  <div className="bg-blue-50 rounded-xl p-4"><p className="text-2xl font-bold text-blue-700">{stats.avgMinutes} min</p><p className="text-xs text-gray-500 mt-1">Purata Tempoh</p></div>
-                  <div className="bg-green-50 rounded-xl p-4"><p className="text-2xl font-bold text-green-700">{stats.withReport}</p><p className="text-xs text-gray-500 mt-1">Laporan Dijana</p></div>
-                  <div className="bg-purple-50 rounded-xl p-4"><p className="text-2xl font-bold text-purple-700">{stats.total > 0 ? Math.round((stats.withReport / stats.total) * 100) : 0}%</p><p className="text-xs text-gray-500 mt-1">Kadar Penyiapan</p></div>
+                  <div className="bg-blue-50 rounded-xl p-4"><p className="text-2xl font-bold text-blue-700">{stats.avgMinutes} min</p><p className="text-xs text-gray-500 mt-1">Avg Duration</p></div>
+                  <div className="bg-green-50 rounded-xl p-4"><p className="text-2xl font-bold text-green-700">{stats.withReport}</p><p className="text-xs text-gray-500 mt-1">Reports Generated</p></div>
+                  <div className="bg-purple-50 rounded-xl p-4"><p className="text-2xl font-bold text-purple-700">{stats.total > 0 ? Math.round((stats.withReport / stats.total) * 100) : 0}%</p><p className="text-xs text-gray-500 mt-1">Completion Rate</p></div>
                 </div>
               </div>
             </>)}
@@ -486,15 +486,15 @@ export default function AnalyticsPage() {
             {/* ── AUDIT ANALYTICS ── */}
             {useCase === 'audit' && sessions.length > 0 && (<>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <StatCard label="Jumlah Audit" value={stats.total} sub="sepanjang masa" />
-                <StatCard label="Bulan Ini" value={stats.recentSessions} sub="30 hari lepas" />
-                <StatCard label="Jumlah Flag/NCR" value={stats.totalFlags} sub="semua sesi" />
-                <StatCard label="Kadar Audit + NCR" value={`${stats.flagRate}%`} sub="ada penemuan" />
+                <StatCard label="Total Audits" value={stats.total} sub="all time" />
+                <StatCard label="This Month" value={stats.recentSessions} sub="last 30 days" />
+                <StatCard label="Total Flags/NCR" value={stats.totalFlags} sub="all sessions" />
+                <StatCard label="NCR Rate" value={`${stats.flagRate}%`} sub="with findings" />
               </div>
 
               <div className="grid md:grid-cols-2 gap-5">
                 <div className="bg-white rounded-xl border p-5">
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Trend Audit (6 Bulan)</h3>
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Audit Trend (6 Months)</h3>
                   <div className="flex items-end gap-2 h-28">
                     {stats.monthlyTrend.map(d => (
                       <div key={d.label} className="flex-1 flex flex-col items-center gap-1">
@@ -507,14 +507,14 @@ export default function AnalyticsPage() {
                 </div>
 
                 <div className="bg-white rounded-xl border p-5">
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Pematuhan</h3>
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Compliance</h3>
                   <div className="space-y-4">
                     <div>
-                      <div className="flex justify-between text-sm mb-1"><span className="text-gray-600">Audit dengan penemuan (flag/NCR)</span><span className="font-semibold">{stats.flagRate}%</span></div>
+                      <div className="flex justify-between text-sm mb-1"><span className="text-gray-600">Audits with findings (flag/NCR)</span><span className="font-semibold">{stats.flagRate}%</span></div>
                       <div className="w-full h-3 bg-gray-100 rounded-full"><div className="h-full bg-amber-500 rounded-full" style={{ width: `${stats.flagRate}%` }} /></div>
                     </div>
                     <div>
-                      <div className="flex justify-between text-sm mb-1"><span className="text-gray-600">Laporan dijana</span><span className="font-semibold">{stats.total > 0 ? Math.round((stats.withReport / stats.total) * 100) : 0}%</span></div>
+                      <div className="flex justify-between text-sm mb-1"><span className="text-gray-600">Reports generated</span><span className="font-semibold">{stats.total > 0 ? Math.round((stats.withReport / stats.total) * 100) : 0}%</span></div>
                       <div className="w-full h-3 bg-gray-100 rounded-full"><div className="h-full bg-green-500 rounded-full" style={{ width: `${stats.total > 0 ? Math.round((stats.withReport / stats.total) * 100) : 0}%` }} /></div>
                     </div>
                   </div>
@@ -522,7 +522,7 @@ export default function AnalyticsPage() {
               </div>
 
               <div className="bg-white rounded-xl border p-5">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Taburan Risiko Audit</h3>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Risk Distribution Audit</h3>
                 {stats.withReport === 0
                   ? <p className="text-sm text-gray-400 text-center py-6">Jana laporan AI untuk melihat taburan</p>
                   : <div className="space-y-3">{stats.riskData.map(({ key, label, count }) => (

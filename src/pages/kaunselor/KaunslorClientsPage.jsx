@@ -22,10 +22,10 @@ async function exportClientsCSV(userId) {
   if (error) throw error;
 
   const headers = [
-    'Nama', 'No. IC', 'No. Matrik/Staff', 'Tarikh Lahir', 'Jantina',
-    'Telefon', 'E-mel', 'Alamat', 'Tahap Risiko', 'Isu Utama',
-    'Jumlah Sesi', 'Jumlah Plan Tindakan', 'Jumlah Rujukan',
-    'Tarikh Didaftar',
+    'Name', 'IC No.', 'Matric/Staff No.', 'Date of Birth', 'Gender',
+    'Phone', 'Email', 'Address', 'Risk Level', 'Presenting Issue',
+    'Total Sessions', 'Total Action Plans', 'Total Referrals',
+    'Date Registered',
   ];
 
   const rows = (data || []).map(c => [
@@ -50,7 +50,7 @@ async function exportClientsCSV(userId) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `verirec-klien-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+  a.download = `verirec-clients-${format(new Date(), 'yyyy-MM-dd')}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -103,46 +103,46 @@ export default function KaunslorClientsPage() {
       setClients(prev => [{ ...data, sessions: [{ count: 0 }] }, ...prev]);
       setShowAdd(false);
       setAddForm({ name: '', phone: '', email: '', ic_number: '', address: '', notes: '' });
-      toast.success('Klien baru ditambah.');
-    } catch { toast.error('Gagal menambah klien.'); }
+      toast.success('New client added.');
+    } catch { toast.error('Failed to add client.'); }
     finally { setAdding(false); }
   };
 
   return (
     <div className="flex flex-col h-screen">
-      <TopBar title="Klien" action={
+      <TopBar title="Clients" action={
         <div className="flex items-center gap-2">
           <Button size="sm" variant="secondary" loading={exporting} onClick={async () => {
             setExporting(true);
-            try { await exportClientsCSV(user.id); toast.success('Data klien dieksport.'); }
-            catch { toast.error('Gagal mengeksport data.'); }
+            try { await exportClientsCSV(user.id); toast.success('Client data exported.'); }
+            catch { toast.error('Failed to export data.'); }
             finally { setExporting(false); }
           }}>
-            📤 Eksport CSV
+            📤 Export CSV
           </Button>
-          <Button size="sm" onClick={() => setShowAdd(true)}>+ Klien Baru</Button>
+          <Button size="sm" onClick={() => setShowAdd(true)}>+ New Client</Button>
         </div>
       } />
       <div className="flex-1 overflow-auto p-4">
         <div className="max-w-2xl mx-auto space-y-4">
-          <input type="text" placeholder="Cari nama, telefon, atau IC..." value={search}
+          <input type="text" placeholder="Search name, phone, or IC..." value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           <div className="flex gap-2">
             <select value={filterRisk} onChange={e => setFilterRisk(e.target.value)}
               className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-              <option value="">Semua Risiko</option>
-              <option value="suicidal">🔴 Kritikal</option>
-              <option value="self_harm">🟠 Tinggi</option>
-              <option value="mental_health">🟡 Sederhana</option>
-              <option value="none">🟢 Rendah</option>
+              <option value="">All Risk Levels</option>
+              <option value="suicidal">🔴 Critical</option>
+              <option value="self_harm">🟠 High</option>
+              <option value="mental_health">🟡 Moderate</option>
+              <option value="none">🟢 Low</option>
             </select>
             <select value={sortBy} onChange={e => setSortBy(e.target.value)}
               className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-              <option value="newest">Terbaru</option>
-              <option value="risk">Risiko Tertinggi</option>
-              <option value="name">Nama A–Z</option>
-              <option value="sessions">Sesi Terbanyak</option>
+              <option value="newest">Newest</option>
+              <option value="risk">Highest Risk</option>
+              <option value="name">Name A–Z</option>
+              <option value="sessions">Most Sessions</option>
             </select>
           </div>
 
@@ -153,8 +153,8 @@ export default function KaunslorClientsPage() {
           ) : filtered.length === 0 ? (
             <div className="text-center py-16 text-gray-400">
               <div className="text-4xl mb-3">👥</div>
-              <p className="font-medium">{search ? 'Tiada hasil' : 'Belum ada klien'}</p>
-              {!search && <p className="text-sm mt-1">Tambah klien atau kongsi QR kod untuk tempahan.</p>}
+              <p className="font-medium">{search ? 'No results' : 'No clients yet'}</p>
+              {!search && <p className="text-sm mt-1">Add a client or share your QR code for bookings.</p>}
             </div>
           ) : (
             <div className="space-y-2">
@@ -166,10 +166,10 @@ export default function KaunslorClientsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-gray-900 truncate">{c.name}</p>
-                    <p className="text-xs text-gray-400">{c.phone || c.email || 'Tiada kontak'}</p>
+                    <p className="text-xs text-gray-400">{c.phone || c.email || 'No contact'}</p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-sm font-medium text-gray-600">{c.sessions?.[0]?.count || 0} sesi</p>
+                    <p className="text-sm font-medium text-gray-600">{c.sessions?.[0]?.count || 0} sessions</p>
                     <p className="text-xs text-gray-400">→</p>
                   </div>
                 </button>
@@ -182,13 +182,13 @@ export default function KaunslorClientsPage() {
       {showAdd && (
         <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
-            <h3 className="font-semibold text-lg">Tambah Klien Baru</h3>
+            <h3 className="font-semibold text-lg">Add New Client</h3>
             <form onSubmit={handleAdd} className="space-y-3">
               {[
-                { k: 'name', label: 'Nama Penuh *', placeholder: 'Nama klien', required: true },
-                { k: 'phone', label: 'No. Telefon', placeholder: '01X-XXXXXXX' },
-                { k: 'email', label: 'E-mel', placeholder: 'email@contoh.com' },
-                { k: 'ic_number', label: 'No. IC', placeholder: '000101-10-0000' },
+                { k: 'name', label: 'Full Name *', placeholder: 'Client name', required: true },
+                { k: 'phone', label: 'Phone No.', placeholder: '01X-XXXXXXX' },
+                { k: 'email', label: 'Email', placeholder: 'email@example.com' },
+                { k: 'ic_number', label: 'IC No.', placeholder: '000101-10-0000' },
               ].map(f => (
                 <div key={f.k}>
                   <label className="text-xs text-gray-500 mb-1 block">{f.label}</label>
@@ -198,8 +198,8 @@ export default function KaunslorClientsPage() {
                 </div>
               ))}
               <div className="flex gap-3 pt-2">
-                <Button type="submit" loading={adding} className="flex-1">Tambah</Button>
-                <Button type="button" variant="secondary" onClick={() => setShowAdd(false)}>Batal</Button>
+                <Button type="submit" loading={adding} className="flex-1">Add</Button>
+                <Button type="button" variant="secondary" onClick={() => setShowAdd(false)}>Cancel</Button>
               </div>
             </form>
           </div>

@@ -78,7 +78,7 @@ function EvidenceAttachments({ caseId, userId }) {
   };
 
   const handleDelete = async (fileName) => {
-    if (!window.confirm(`Padam fail "${fileName}"?`)) return;
+    if (!window.confirm(`Delete fail "${fileName}"?`)) return;
     setDeletingFile(fileName);
     try {
       const { error } = await supabase.storage.from('evidence').remove([`${userId}/${caseId}/${fileName}`]);
@@ -104,7 +104,7 @@ function EvidenceAttachments({ caseId, userId }) {
   return (
     <div className="bg-white border rounded-xl p-5 mt-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Lampiran Bukti</h3>
+        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Evidence Attachments</h3>
         <div>
           <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.docx,.mp4" onChange={handleUpload} className="hidden" id="evidence-upload" />
           <label htmlFor="evidence-upload">
@@ -144,14 +144,14 @@ function EvidenceAttachments({ caseId, userId }) {
                   onClick={() => handleDownload(f.name)}
                   className="text-xs text-blue-600 hover:text-blue-800 px-2.5 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
                 >
-                  Muat Turun
+                  Download
                 </button>
                 <button
                   onClick={() => handleDelete(f.name)}
                   disabled={deletingFile === f.name}
                   className="text-xs text-red-500 hover:text-red-700 px-2.5 py-1.5 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
                 >
-                  {deletingFile === f.name ? '...' : 'Padam'}
+                  {deletingFile === f.name ? '...' : 'Delete'}
                 </button>
               </div>
             </div>
@@ -183,7 +183,7 @@ async function exportCasePDF(caseData, sessions) {
   };
 
   // Header
-  addLine('VeriRec — Eksport Fail Kes', 16, true, [37, 99, 235]);
+  addLine('VeriRec — Eksport Case File', 16, true, [37, 99, 235]);
   addLine(`Sulit — Untuk Kegunaan Rasmi Sahaja`, 9, false, [150, 150, 150]);
   y += 4;
 
@@ -286,7 +286,7 @@ export default function CaseDetailPage() {
       setUnassigned(data);
       setAddModal(true);
     } catch {
-      toast.error('Gagal memuatkan sesi.');
+      toast.error('Failed to load sessions.');
     }
   };
 
@@ -309,21 +309,21 @@ export default function CaseDetailPage() {
       setAddModal(false);
       load();
     } catch {
-      toast.error('Gagal menambah sesi.');
+      toast.error('Gagal menambah sessions.');
     } finally {
       setAdding(null);
     }
   };
 
   const handleRemove = async (sessionId) => {
-    if (!window.confirm('Buang sesi ini dari fail kes?')) return;
+    if (!window.confirm('Buang sessions ini dari fail kes?')) return;
     setRemoving(sessionId);
     try {
       await removeSessionFromCase(sessionId);
       setSessions(prev => prev.filter(s => s.id !== sessionId));
       toast.success('Sesi dibuang dari fail kes.');
     } catch {
-      toast.error('Gagal membuang sesi.');
+      toast.error('Gagal membuang sessions.');
     } finally {
       setRemoving(null);
     }
@@ -371,7 +371,7 @@ export default function CaseDetailPage() {
       try { await updateCase(id, { ai_summary: summaryText }); } catch { /* fallback ke localStorage OK */ }
       toast.success('Ringkasan AI berjaya dijana.');
     } catch (err) {
-      toast.error(err.message || 'Gagal menjana ringkasan AI.');
+      toast.error(err.message || 'Failed to generate summary AI.');
     } finally {
       setGeneratingAI(false);
     }
@@ -380,7 +380,7 @@ export default function CaseDetailPage() {
   if (loading) {
     return (
       <div className="flex flex-col h-screen">
-        <TopBar title="Fail Kes" onBack={() => navigate('/cases')} />
+        <TopBar title="Case File" onBack={() => navigate('/cases')} />
         <div className="flex-1 p-6">
           <div className="max-w-3xl mx-auto space-y-4">
             <div className="h-32 bg-gray-100 rounded-xl animate-pulse" />
@@ -399,7 +399,7 @@ export default function CaseDetailPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <TopBar title="Fail Kes" />
+      <TopBar title="Case File" />
       <div className="flex-1 overflow-auto p-6 pb-20 md:pb-6">
         <div className="max-w-3xl mx-auto">
 
@@ -411,7 +411,7 @@ export default function CaseDetailPage() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            Semua Fail Kes
+            Semua Case File
           </button>
 
           {/* Case Header */}
@@ -479,11 +479,11 @@ export default function CaseDetailPage() {
                     onClick={generateAISummary}
                     disabled={sessions.filter(s => s.report).length < 2}
                   >
-                    Jana Semula
+                    Regenerate
                   </Button>
                 </div>
                 <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{aiSummary}</p>
-                <p className="text-xs text-blue-400 mt-3">Dijana oleh AI berdasarkan {sessions.filter(s => s.report).length} laporan sesi</p>
+                <p className="text-xs text-blue-400 mt-3">Dijana oleh AI berdasarkan {sessions.filter(s => s.report).length} laporan sessions</p>
               </div>
             ) : sessions.filter(s => s.report).length >= 2 ? (
               <button
@@ -499,7 +499,7 @@ export default function CaseDetailPage() {
                 ) : (
                   <>
                     <span className="text-lg">🤖</span>
-                    <span className="text-sm text-blue-700 font-medium">Jana Ringkasan Kes (AI)</span>
+                    <span className="text-sm text-blue-700 font-medium">Generate Case Summary (AI)</span>
                     <span className="text-xs text-blue-400">berdasarkan {sessions.filter(s => s.report).length} laporan</span>
                   </>
                 )}
@@ -510,7 +510,7 @@ export default function CaseDetailPage() {
           {/* Sessions */}
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
-              Sesi dalam Fail Kes ({sessions.length})
+              Sesi dalam Case File ({sessions.length})
             </h3>
             <div className="flex items-center gap-2">
               {sessions.length > 0 && (
@@ -522,7 +522,7 @@ export default function CaseDetailPage() {
                     setExporting(true);
                     try {
                       await exportCasePDF(caseData, sessions);
-                      toast.success('PDF kes berjaya dieksport.');
+                      toast.success('PDF kes berjaya exported.');
                     } catch {
                       toast.error('Gagal mengeksport PDF kes.');
                     } finally {
@@ -530,11 +530,11 @@ export default function CaseDetailPage() {
                     }
                   }}
                 >
-                  📦 Eksport Kes
+                  📦 Export Case
                 </Button>
               )}
-              <Button size="sm" variant="secondary" onClick={openAddModal}>+ Sesi Sedia Ada</Button>
-              <Button size="sm" onClick={startNewSession}>🎙 Sesi Baru</Button>
+              <Button size="sm" variant="secondary" onClick={openAddModal}>+ Existing Session</Button>
+              <Button size="sm" onClick={startNewSession}>🎙 New Session</Button>
             </div>
           </div>
 
@@ -543,9 +543,9 @@ export default function CaseDetailPage() {
               <svg className="w-10 h-10 mx-auto mb-3 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
               </svg>
-              <p className="text-sm">Belum ada sesi dalam fail kes ini.</p>
+              <p className="text-sm">Belum ada sessions dalam fail kes ini.</p>
               <button onClick={startNewSession} className="mt-2 text-sm text-blue-600 hover:underline font-medium">
-                🎙 Mulakan sesi pertama →
+                🎙 Mulakan sessions pertama →
               </button>
             </div>
           ) : (
@@ -570,8 +570,8 @@ export default function CaseDetailPage() {
                       <span className="text-xs text-gray-400">{format(new Date(s.created_at), 'dd MMM yyyy')}</span>
                       <span className="text-xs text-gray-400">{Math.round((s.duration || 0) / 60)} min</span>
                       {s.report
-                        ? <Badge color="green" className="text-xs">Laporan Siap</Badge>
-                        : <Badge color="gray" className="text-xs">Belum dijana</Badge>
+                        ? <Badge color="green" className="text-xs">Report Ready</Badge>
+                        : <Badge color="gray" className="text-xs">Not Generated</Badge>
                       }
                     </div>
                   </div>
@@ -590,7 +590,7 @@ export default function CaseDetailPage() {
           {/* Nota Bukti */}
           <div className="bg-white border rounded-xl p-5 mt-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Nota Bukti & Ulasan Kes</h3>
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Evidence Notes & Case Comments</h3>
               <Button
                 size="sm"
                 variant="secondary"
@@ -600,7 +600,7 @@ export default function CaseDetailPage() {
                   try {
                     localStorage.setItem(`case_evidence_${id}`, evidenceNote);
                     await updateCase(id, { description: evidenceNote });
-                    toast.success('Nota disimpan.');
+                    toast.success('Nota saved.');
                   } catch {
                     localStorage.setItem(`case_evidence_${id}`, evidenceNote);
                     toast.success('Nota disimpan secara tempatan.');
@@ -609,7 +609,7 @@ export default function CaseDetailPage() {
                   }
                 }}
               >
-                Simpan
+                Save
               </Button>
             </div>
             <textarea
@@ -619,10 +619,10 @@ export default function CaseDetailPage() {
               placeholder="Catatan bukti, nota siasatan, senarai dokumen, status tindakan polis/pendakwa raya..."
               className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             />
-            <p className="text-xs text-gray-400 mt-1">Nota ini disimpan dalam fail kes. Tidak dikira dalam hash sesi.</p>
+            <p className="text-xs text-gray-400 mt-1">Nota ini disimpan dalam fail kes. Tidak dikira dalam hash sessions.</p>
           </div>
 
-          {/* Lampiran Bukti */}
+          {/* Evidence Attachments */}
           {user && <EvidenceAttachments caseId={id} userId={user.id} />}
 
           {/* Timeline Kes */}
@@ -631,7 +631,7 @@ export default function CaseDetailPage() {
               onClick={() => setShowTimeline(p => !p)}
               className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 transition-colors text-left"
             >
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Timeline Aktiviti Kes</h3>
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Case Activity Timeline</h3>
               <svg className={`w-4 h-4 text-gray-400 transition-transform ${showTimeline ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
@@ -654,7 +654,7 @@ export default function CaseDetailPage() {
                       <p className="text-sm font-medium text-gray-700 cursor-pointer hover:text-blue-600" onClick={() => navigate(`/session/${s.id}`)}>
                         {s.title}
                       </p>
-                      <p className="text-xs text-gray-500">{s.subject_name} · {Math.round((s.duration || 0) / 60)} min · {s.report ? '✓ Laporan siap' : 'Belum dijana'}</p>
+                      <p className="text-xs text-gray-500">{s.subject_name} · {Math.round((s.duration || 0) / 60)} min · {s.report ? '✓ Laporan siap' : 'Not Generated'}</p>
                     </div>
                   ))}
                   {/* Status if closed */}
@@ -662,7 +662,7 @@ export default function CaseDetailPage() {
                     <div className="relative">
                       <span className="absolute -left-[21px] w-4 h-4 rounded-full bg-gray-400 border-2 border-white" />
                       <p className="text-xs text-gray-400">{format(new Date(caseData.updated_at || caseData.created_at), 'dd MMM yyyy')}</p>
-                      <p className="text-sm font-medium text-gray-700">Kes ditutup</p>
+                      <p className="text-sm font-medium text-gray-700">Case closed</p>
                     </div>
                   )}
                 </div>
@@ -673,15 +673,15 @@ export default function CaseDetailPage() {
       </div>
 
       {/* Add Session Modal */}
-      <Modal open={addModal} onClose={() => setAddModal(false)} title="Tambah Sesi ke Fail Kes">
+      <Modal open={addModal} onClose={() => setAddModal(false)} title="Tambah Sesi ke Case File">
         {unassigned.length === 0 ? (
           <div className="text-center py-8 text-gray-400">
-            <p className="text-sm">Semua sesi sudah dikaitkan dengan fail kes.</p>
-            <p className="text-xs mt-1">Buat sesi baru terlebih dahulu.</p>
+            <p className="text-sm">Semua sessions sudah dikaitkan dengan fail kes.</p>
+            <p className="text-xs mt-1">Buat sessions baru terlebih dahulu.</p>
           </div>
         ) : (
           <div className="space-y-2">
-            <p className="text-sm text-gray-500 mb-3">Pilih sesi yang ingin ditambah ke fail kes ini:</p>
+            <p className="text-sm text-gray-500 mb-3">Pilih sessions yang ingin ditambah ke fail kes ini:</p>
             {unassigned.map(s => (
               <div key={s.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
                 <div className="min-w-0">

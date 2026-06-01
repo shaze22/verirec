@@ -38,9 +38,9 @@ export default function LogoutPage() {
             </svg>
           </div>
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mt-3">Log Keluar Berjaya</h2>
+        <h2 className="text-xl font-bold text-gray-900 mt-3">Signed Out Successfully</h2>
         <p className="text-sm text-gray-500 mt-2 mb-6">
-          Anda telah log keluar dengan selamat. Sesi anda telah ditamatkan.
+          You have been signed out safely. Your session has been terminated.
         </p>
 
         <div className="space-y-3">
@@ -48,19 +48,19 @@ export default function LogoutPage() {
             onClick={() => navigate('/auth')}
             className="w-full py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors"
           >
-            Log Masuk Semula
+            Sign In Again
           </button>
           <button
             onClick={() => navigate('/')}
             className="w-full py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-200 transition-colors"
           >
-            Laman Utama
+            Home
           </button>
         </div>
 
         <p className="text-xs text-gray-400 mt-5">
-          Mengalihkan ke laman utama dalam{' '}
-          <span className="font-semibold text-gray-600">{countdown}</span> saat...
+          Redirecting to home in{' '}
+          <span className="font-semibold text-gray-600">{countdown}</span> seconds...
         </p>
       </div>
     </div>

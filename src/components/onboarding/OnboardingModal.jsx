@@ -8,7 +8,7 @@ const STEPS = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     ),
-    title: 'Selamat Datang ke VeriRec',
+    title: 'Welcome to VeriRec',
     desc: 'Platform rakaman dan analisis sesi profesional yang patuh PDPA. Direka khas untuk kaunselor, polis, doktor, peguam, dan lebih ramai.',
   },
   {
@@ -103,7 +103,7 @@ export function OnboardingModal({ userId, onDismiss }) {
                 onClick={() => setStep(s => s + 1)}
                 className="w-full py-3 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors"
               >
-                Seterusnya
+                Next
               </button>
             )}
             <button

@@ -45,7 +45,7 @@ async function deleteTemplate(id) {
 }
 
 const ALL_USE_CASE_OPTIONS = [
-  { value: 'kaunseling',   label: '💬 Kaunseling',        color: 'bg-emerald-100 text-emerald-700' },
+  { value: 'kaunseling',   label: '💬 Kaunseling',        color: 'bg-violet-100 text-violet-700' },
   { value: 'soal-siasat', label: '🔍 Soal-siasat',        color: 'bg-blue-100 text-blue-700' },
   { value: 'audit',        label: '📋 Audit & Pematuhan',  color: 'bg-amber-100 text-amber-700' },
 ];
@@ -110,16 +110,16 @@ export default function QuestionTemplatesPage() {
         setAssessments(prev => [...prev, saved]);
       }
       setAssessModal(false);
-      toast.success('Assessment disimpan.');
+      toast.success('Assessment saved.');
     } catch { toast.error('Gagal menyimpan assessment.'); }
     finally { setSavingAssess(false); }
   };
 
   const handleDeleteAssessment = async (id) => {
-    if (!window.confirm('Padam assessment ini?')) return;
+    if (!window.confirm('Delete assessment ini?')) return;
     await supabase.from('assessment_sets').delete().eq('id', id).eq('user_id', user.id);
     setAssessments(prev => prev.filter(a => a.id !== id));
-    toast.success('Assessment dipadam.');
+    toast.success('Assessment deleted.');
   };
 
   const addQuestion = () => setAssessForm(f => ({ ...f, questions: [...f.questions, { id: '', text: '', options: ['Ya', 'Tidak'] }] }));
@@ -188,7 +188,7 @@ export default function QuestionTemplatesPage() {
           : [...prev, saved]
       );
       setModal(false);
-      toast.success(form.id ? 'Templat dikemas kini.' : 'Templat baharu ditambah.');
+      toast.success(form.id ? 'Templat dikemas kini.' : 'Templat baharu added.');
     } catch {
       toast.error('Gagal menyimpan templat.');
     } finally {
@@ -197,11 +197,11 @@ export default function QuestionTemplatesPage() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Padam templat ini?')) return;
+    if (!window.confirm('Delete templat ini?')) return;
     try {
       await deleteTemplate(id);
       setTemplates(prev => prev.filter(t => t.id !== id));
-      toast.success('Templat dipadam.');
+      toast.success('Template deleted.');
     } catch {
       toast.error('Gagal memadam templat.');
     }
@@ -209,7 +209,7 @@ export default function QuestionTemplatesPage() {
 
   const copyQuestions = (questions) => {
     navigator.clipboard.writeText(questions.join('\n'))
-      .then(() => toast.success('Soalan disalin ke papan klip.'))
+      .then(() => toast.success('Questions disalin ke papan klip.'))
       .catch(() => toast.error('Gagal menyalin.'));
   };
 
@@ -227,7 +227,7 @@ export default function QuestionTemplatesPage() {
   return (
     <div className="flex flex-col h-screen">
       <TopBar
-        title="Templat Soalan"
+        title="Question Templates"
         action={
           pageTab === 'soalan' ? (
             <div className="flex items-center gap-2">
@@ -237,7 +237,7 @@ export default function QuestionTemplatesPage() {
                   📥 <span className="hidden sm:inline">Import</span>
                 </span>
               </label>
-              <Button onClick={openNew} size="sm">+ Templat Baru</Button>
+              <Button onClick={openNew} size="sm">+ New Template</Button>
             </div>
           ) : (
             <Button onClick={() => { setAssessForm(BLANK_ASSESSMENT); setAssessModal(true); }} size="sm">+ Assessment Baru</Button>
@@ -248,7 +248,7 @@ export default function QuestionTemplatesPage() {
       {/* Page tabs */}
       <div className="flex border-b bg-white px-6 gap-1">
         {[
-          { id:'soalan', label:'Templat Soalan' },
+          { id:'soalan', label:'Question Templates' },
           ...(isCounselor ? [{ id:'assessment', label:'Custom Assessment' }] : []),
         ].map(t => (
           <button key={t.id} onClick={() => setPageTab(t.id)}
@@ -289,7 +289,7 @@ export default function QuestionTemplatesPage() {
                         });
                         setAssessModal(true);
                       }}>Edit</Button>
-                      <Button size="sm" variant="danger" onClick={() => handleDeleteAssessment(a.id)}>Padam</Button>
+                      <Button size="sm" variant="danger" onClick={() => handleDeleteAssessment(a.id)}>Delete</Button>
                     </div>
                   )}
                 </div>
@@ -412,7 +412,7 @@ export default function QuestionTemplatesPage() {
                           <button
                             onClick={e => { e.stopPropagation(); handleDelete(t.id); }}
                             className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Padam templat"
+                            title="Delete templat"
                           >
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -465,8 +465,8 @@ export default function QuestionTemplatesPage() {
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs text-gray-500">Soalan-soalan</label>
-                  <button type="button" onClick={addQuestion} className="text-xs text-blue-600 font-medium">+ Tambah Soalan</button>
+                  <label className="text-xs text-gray-500">Questions-soalan</label>
+                  <button type="button" onClick={addQuestion} className="text-xs text-blue-600 font-medium">+ Tambah Questions</button>
                 </div>
                 <div className="space-y-3 max-h-64 overflow-y-auto">
                   {assessForm.questions.map((q, i) => (
@@ -495,8 +495,8 @@ export default function QuestionTemplatesPage() {
               </div>
             </div>
             <div className="flex gap-3 pt-2">
-              <Button onClick={handleSaveAssessment} loading={savingAssess} className="flex-1">Simpan Assessment</Button>
-              <Button variant="secondary" onClick={() => setAssessModal(false)}>Batal</Button>
+              <Button onClick={handleSaveAssessment} loading={savingAssess} className="flex-1">Save Assessment</Button>
+              <Button variant="secondary" onClick={() => setAssessModal(false)}>Cancel</Button>
             </div>
           </div>
         </div>
@@ -505,11 +505,11 @@ export default function QuestionTemplatesPage() {
       <Modal
         open={modal}
         onClose={() => setModal(false)}
-        title={form.id ? 'Edit Templat' : 'Templat Soalan Baharu'}
+        title={form.id ? 'Edit Templat' : 'Question Templates Baharu'}
         footer={
           <div className="flex gap-3 justify-end">
-            <Button variant="secondary" onClick={() => setModal(false)}>Batal</Button>
-            <Button onClick={handleSave} loading={saving}>Simpan Templat</Button>
+            <Button variant="secondary" onClick={() => setModal(false)}>Cancel</Button>
+            <Button onClick={handleSave} loading={saving}>Save Templat</Button>
           </div>
         }
       >
@@ -552,17 +552,17 @@ export default function QuestionTemplatesPage() {
             </div>
           )}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nama Templat *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Template Name *</label>
             <input
               type="text"
               value={form.name}
               onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-              placeholder="cth. Soalan Kaunseling Asas, Siasatan Awal Polis"
+              placeholder="cth. Questions Kaunseling Asas, Siasatan Awal Polis"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Soalan (satu per baris) *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Questions (satu per baris) *</label>
             <textarea
               value={form.questionsText}
               onChange={e => setForm(p => ({ ...p, questionsText: e.target.value }))}

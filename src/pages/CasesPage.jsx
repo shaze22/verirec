@@ -21,9 +21,9 @@ const professions = [
 ];
 
 const statusConfig = {
-  active:  { label: 'Aktif',        color: 'green' },
+  active:  { label: 'Active',        color: 'green' },
   pending: { label: 'Ditangguhkan', color: 'yellow' },
-  closed:  { label: 'Ditutup',      color: 'gray' },
+  closed:  { label: 'Closed',      color: 'gray' },
 };
 
 const emptyForm = { title: '', case_number: '', profession: '', status: 'active', description: '' };
@@ -32,17 +32,17 @@ function CaseForm({ value, onChange }) {
   const set = (field) => (e) => onChange({ ...value, [field]: e.target.value });
   return (
     <div className="space-y-4">
-      <Input label="Tajuk Fail Kes *" value={value.title} onChange={set('title')} placeholder="cth. Kes Kaunseling Ahmad 2026" required />
+      <Input label="Tajuk Case Files *" value={value.title} onChange={set('title')} placeholder="cth. Kes Kaunseling Ahmad 2026" required />
       <div className="grid grid-cols-2 gap-3">
-        <Input label="Nombor Kes" value={value.case_number} onChange={set('case_number')} placeholder="cth. KS/2026/001" />
+        <Input label="Case Number" value={value.case_number} onChange={set('case_number')} placeholder="cth. KS/2026/001" />
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Profesion</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Profession</label>
           <select
             value={value.profession}
             onChange={set('profession')}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">Semua Profesion</option>
+            <option value="">All Professions</option>
             {professions.map(p => (
               <option key={p.id} value={p.id}>{p.label}</option>
             ))}
@@ -56,9 +56,9 @@ function CaseForm({ value, onChange }) {
           onChange={set('status')}
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value="active">Aktif</option>
+          <option value="active">Active</option>
           <option value="pending">Ditangguhkan</option>
-          <option value="closed">Ditutup</option>
+          <option value="closed">Closed</option>
         </select>
       </div>
       <Textarea label="Penerangan" value={value.description} onChange={set('description')} rows={3} placeholder="Penerangan ringkas tentang kes ini..." />
@@ -129,14 +129,14 @@ export default function CasesPage() {
 
   const handleDelete = async (id, e) => {
     e.stopPropagation();
-    if (!window.confirm('Padam fail kes ini? Sesi yang dikaitkan tidak akan terpadam.')) return;
+    if (!window.confirm('Delete fail kes ini? Sesi yang dikaitkan tidak akan terpadam.')) return;
     setDeleting(id);
     try {
       await deleteCase(id);
       setCases(prev => prev.filter(c => c.id !== id));
       toast.success('Fail kes dipadamkan.');
     } catch {
-      toast.error('Gagal memadam. Cuba lagi.');
+      toast.error('Failed to delete. Cuba lagi.');
     } finally {
       setDeleting(null);
     }
@@ -149,18 +149,18 @@ export default function CasesPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <TopBar title="Fail Kes" />
+      <TopBar title="Case Files" />
       <div className="flex-1 overflow-auto p-6 pb-20 md:pb-6">
         <div className="max-w-3xl mx-auto">
 
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Fail Kes</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Case Files</h2>
               <p className="text-sm text-gray-500 mt-0.5">
                 {loading ? 'Memuatkan...' : `${cases.length} fail kes`}
               </p>
             </div>
-            <Button onClick={openCreate}>+ Buka Fail Kes</Button>
+            <Button onClick={openCreate}>+ Buka Case Files</Button>
           </div>
 
           {cases.length > 2 && (
@@ -178,7 +178,7 @@ export default function CasesPage() {
               <svg className="w-12 h-12 mx-auto mb-3 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
               </svg>
-              <p className="text-sm font-medium">{search ? 'Tiada fail kes dijumpai.' : 'Tiada fail kes lagi.'}</p>
+              <p className="text-sm font-medium">{search ? 'No case files dijumpai.' : 'No case files lagi.'}</p>
               {!search && (
                 <button onClick={openCreate} className="mt-2 text-sm text-blue-600 hover:underline">
                   Buka fail kes pertama →
@@ -231,7 +231,7 @@ export default function CasesPage() {
                           disabled={deleting === c.id}
                           className="text-xs text-gray-400 hover:text-red-600 px-2 py-1 rounded hover:bg-red-50 transition-colors disabled:opacity-50"
                         >
-                          {deleting === c.id ? '...' : 'Padam'}
+                          {deleting === c.id ? '...' : 'Delete'}
                         </button>
                       </div>
                     </div>
@@ -243,13 +243,13 @@ export default function CasesPage() {
         </div>
       </div>
 
-      <Modal open={!!modal} onClose={() => setModal(null)} title={modal?.mode === 'create' ? 'Buka Fail Kes Baru' : 'Edit Fail Kes'}>
+      <Modal open={!!modal} onClose={() => setModal(null)} title={modal?.mode === 'create' ? 'Buka Case Files Baru' : 'Edit Case Files'}>
         <form onSubmit={handleSave} className="space-y-4">
           <CaseForm value={form} onChange={setForm} />
           <div className="flex gap-3 pt-2">
-            <Button type="button" variant="secondary" onClick={() => setModal(null)}>Batal</Button>
+            <Button type="button" variant="secondary" onClick={() => setModal(null)}>Cancel</Button>
             <Button type="submit" className="flex-1" loading={saving}>
-              {modal?.mode === 'create' ? 'Buka Fail Kes' : 'Kemas Kini'}
+              {modal?.mode === 'create' ? 'Buka Case Files' : 'Kemas Kini'}
             </Button>
           </div>
         </form>

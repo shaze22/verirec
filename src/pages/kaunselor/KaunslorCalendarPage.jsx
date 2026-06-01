@@ -5,7 +5,7 @@ import { useAuthStore } from '../../store/authStore.js';
 import { supabase } from '../../lib/supabase.js';
 import { TopBar } from '../../components/layout/TopBar.jsx';
 
-const DAY_LABELS = ['Ahd', 'Isn', 'Sel', 'Rab', 'Kha', 'Jum', 'Sab'];
+const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function KaunslorCalendarPage() {
   const { user } = useAuthStore();
@@ -48,7 +48,7 @@ export default function KaunslorCalendarPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <TopBar title="Kalendar" />
+      <TopBar title="Calendar" />
       <div className="flex-1 overflow-auto p-4 pb-20 md:pb-6">
         <div className="max-w-3xl mx-auto space-y-4">
 
@@ -65,8 +65,8 @@ export default function KaunslorCalendarPage() {
 
           {/* Legend */}
           <div className="flex gap-4 text-xs text-gray-500">
-            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-blue-500 inline-block" />Sesi</span>
-            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-emerald-500 inline-block" />Temujanji</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-blue-500 inline-block" />Sessions</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-violet-500 inline-block" />Appointments</span>
           </div>
 
           {/* Calendar grid */}
@@ -78,7 +78,7 @@ export default function KaunslorCalendarPage() {
             </div>
             {loading ? (
               <div className="h-64 flex items-center justify-center">
-                <div className="w-6 h-6 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                <div className="w-6 h-6 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
               </div>
             ) : (
               <div className="grid grid-cols-7">
@@ -104,7 +104,7 @@ export default function KaunslorCalendarPage() {
                           <div key={s.id} className="w-full bg-blue-100 text-blue-700 text-[9px] rounded px-1 truncate">{s.subject_name}</div>
                         ))}
                         {da.slice(0, 1).map(a => (
-                          <div key={a.id} className="w-full bg-emerald-100 text-emerald-700 text-[9px] rounded px-1 truncate">{a.client_name}</div>
+                          <div key={a.id} className="w-full bg-violet-100 text-violet-700 text-[9px] rounded px-1 truncate">{a.client_name}</div>
                         ))}
                         {(ds.length + da.length > 2) && (
                           <div className="text-[9px] text-gray-400">+{ds.length + da.length - 2} lagi</div>
@@ -127,23 +127,23 @@ export default function KaunslorCalendarPage() {
                     <span className="w-3 h-3 rounded-full bg-blue-500 flex-shrink-0" />
                     <div>
                       <p className="text-sm font-medium text-gray-800">{s.subject_name}</p>
-                      <p className="text-xs text-gray-400">Sesi · {Math.round((s.duration || 0) / 60)} min</p>
+                      <p className="text-xs text-gray-400">Session · {Math.round((s.duration || 0) / 60)} min</p>
                     </div>
                   </div>
-                  <button onClick={() => navigate(`/session/${s.id}`)} className="text-xs text-blue-600 font-medium hover:underline">Buka →</button>
+                  <button onClick={() => navigate(`/session/${s.id}`)} className="text-xs text-blue-600 font-medium hover:underline">Open →</button>
                 </div>
               ))}
               {selectedEvents.appointments.map(a => (
                 <div key={a.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
                   <div className="flex items-center gap-3">
-                    <span className="w-3 h-3 rounded-full bg-emerald-500 flex-shrink-0" />
+                    <span className="w-3 h-3 rounded-full bg-violet-500 flex-shrink-0" />
                     <div>
                       <p className="text-sm font-medium text-gray-800">{a.client_name}</p>
-                      <p className="text-xs text-gray-400">Temujanji · {a.confirmed_time || '—'}</p>
+                      <p className="text-xs text-gray-400">Appointment · {a.confirmed_time || '—'}</p>
                     </div>
                   </div>
                   {a.subject_id && (
-                    <button onClick={() => navigate(`/kaunselor/clients/${a.subject_id}`)} className="text-xs text-emerald-600 font-medium hover:underline">Profil →</button>
+                    <button onClick={() => navigate(`/kaunselor/clients/${a.subject_id}`)} className="text-xs text-violet-600 font-medium hover:underline">Profile →</button>
                   )}
                 </div>
               ))}
@@ -152,7 +152,7 @@ export default function KaunslorCalendarPage() {
 
           {selected && selectedEvents && selectedEvents.sessions.length === 0 && selectedEvents.appointments.length === 0 && (
             <div className="bg-white rounded-xl border p-4 text-center text-gray-400 text-sm">
-              Tiada aktiviti pada {format(selected, 'dd MMM yyyy')}
+              No activity on {format(selected, 'dd MMM yyyy')}
             </div>
           )}
 

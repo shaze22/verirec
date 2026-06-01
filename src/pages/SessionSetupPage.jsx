@@ -36,15 +36,15 @@ function LabelWithTooltip({ label, tooltip, required }) {
 }
 
 const professionCaseFields = {
-  police:    { caseLabel: 'Nombor Laporan Polis',      casePlaceholder: 'cth. P/TLNG/000123/2026',  witnessLabel: 'Pegawai Penyiasat / Saksi' },
-  sprm:      { caseLabel: 'Nombor Kes SPRM',            casePlaceholder: 'cth. SPRM/2026/000123',    witnessLabel: 'Pegawai Pendakwa' },
-  hr:        { caseLabel: 'Nombor Kes Tatatertib',      casePlaceholder: 'cth. HR/ID/2026/001',      witnessLabel: 'Pegawai HR / Saksi Periksa' },
-  iso:       { caseLabel: 'Nombor Audit',               casePlaceholder: 'cth. AUDIT/ISO/2026-Q2',   witnessLabel: 'Wakil Auditee' },
-  doctor:    { caseLabel: 'Nombor Pendaftaran Pesakit', casePlaceholder: 'cth. P-2026-001234',        witnessLabel: 'Jururawat / Staf Bertugas' },
-  counselor: { caseLabel: 'Nombor Kes Kaunseling',      casePlaceholder: 'cth. KSL/2026/001',        witnessLabel: 'Penyelia / Kaunselor Rujukan' },
-  court:     { caseLabel: 'Nombor Kes Mahkamah',        casePlaceholder: 'cth. MA-22NCC-XXX-2026',   witnessLabel: 'Peguam Bertentangan / Hakim' },
-  peguam:    { caseLabel: 'Nombor Fail Kes',             casePlaceholder: 'cth. PG/2026/001234',       witnessLabel: 'Rakan Kongsi / Penyelia Kes' },
-  jkm:       { caseLabel: 'Nombor Kes Kebajikan',        casePlaceholder: 'cth. JKM/2026/KK/001234',   witnessLabel: 'Pegawai Penyelia / Ketua Unit' },
+  police:    { caseLabel: 'Police Report Number',      casePlaceholder: 'e.g. P/TLNG/000123/2026',  witnessLabel: 'Investigating Officer / Witness' },
+  sprm:      { caseLabel: 'MACC Case Number',            casePlaceholder: 'e.g. MACC/2026/000123',    witnessLabel: 'Prosecuting Officer' },
+  hr:        { caseLabel: 'Disciplinary Case Number',      casePlaceholder: 'e.g. HR/ID/2026/001',      witnessLabel: 'HR Officer / Examining Witness' },
+  iso:       { caseLabel: 'Audit Number',               casePlaceholder: 'e.g. AUDIT/ISO/2026-Q2',   witnessLabel: 'Auditee Representative' },
+  doctor:    { caseLabel: 'Patient Registration Number', casePlaceholder: 'e.g. P-2026-001234',        witnessLabel: 'Nurse / On-duty Staff' },
+  counselor: { caseLabel: 'Counseling Case Number',      casePlaceholder: 'e.g. KSL/2026/001',        witnessLabel: 'Supervisor / Referring Counselor' },
+  court:     { caseLabel: 'Court Case Number',        casePlaceholder: 'e.g. MA-22NCC-XXX-2026',   witnessLabel: 'Opposing Counsel / Judge' },
+  peguam:    { caseLabel: 'Case File Number',             casePlaceholder: 'e.g. PG/2026/001234',       witnessLabel: 'Partner / Case Supervisor' },
+  jkm:       { caseLabel: 'Welfare Case Number',        casePlaceholder: 'e.g. JKM/2026/KK/001234',   witnessLabel: 'Supervising Officer / Unit Head' },
 };
 
 export default function SessionSetupPage() {
@@ -147,7 +147,7 @@ export default function SessionSetupPage() {
 
   const handleBack = () => {
     if (hasData(form)) {
-      if (!window.confirm('Data yang anda masukkan akan hilang. Teruskan?')) return;
+      if (!window.confirm('The data you entered will be lost. Continue?')) return;
     }
     navigate(-1);
   };
@@ -173,11 +173,11 @@ export default function SessionSetupPage() {
     navigate('/session/consent');
   };
 
-  if (!profession) return <p className="p-6 text-red-500">Profesion tidak dijumpai.</p>;
+  if (!profession) return <p className="p-6 text-red-500">Profession not found.</p>;
 
   return (
     <div className="flex flex-col h-screen">
-      <TopBar title={`Persediaan Sesi — ${profession.label}`} />
+      <TopBar title={`Session Setup — ${profession.label}`} />
       <div className="flex-1 overflow-auto p-6 pb-20 md:pb-6">
         <div className="max-w-2xl mx-auto bg-white rounded-xl border p-6">
           <div className="flex items-center gap-3 mb-6 pb-4 border-b">
@@ -193,8 +193,8 @@ export default function SessionSetupPage() {
             <div className="mb-4 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex items-center gap-3">
               <span className="text-blue-600 text-lg">📁</span>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-blue-800">Diteruskan dari Fail Kes</p>
-                <p className="text-xs text-blue-600">{casePrefill.case_title}{casePrefill.case_number ? ` · ${casePrefill.case_number}` : ''} — Fail kes telah dipra-pilih.</p>
+                <p className="text-sm font-semibold text-blue-800">Continued from Case File</p>
+                <p className="text-xs text-blue-600">{casePrefill.case_title}{casePrefill.case_number ? ` · ${casePrefill.case_number}` : ''} — Case file has been pre-selected.</p>
               </div>
               <button type="button" onClick={() => navigate(-1)} className="text-xs text-blue-600 hover:text-blue-800 font-medium underline">
                 Kembali
@@ -204,13 +204,13 @@ export default function SessionSetupPage() {
 
           {/* Banner: pre-filled from client file */}
           {form.subject_id && professionId === 'counselor' && (
-            <div className="mb-4 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center gap-3">
-              <span className="text-emerald-600 text-lg">👤</span>
+            <div className="mb-4 bg-violet-50 border border-violet-200 rounded-xl px-4 py-3 flex items-center gap-3">
+              <span className="text-violet-600 text-lg">👤</span>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-emerald-800">Diteruskan dari Fail Klien</p>
-                <p className="text-xs text-emerald-600">Maklumat klien telah dipra-isi. Semak dan tambah maklumat jika perlu.</p>
+                <p className="text-sm font-semibold text-violet-800">Continued from Client File</p>
+                <p className="text-xs text-violet-600">Client information has been pre-filled. Review and add if needed.</p>
               </div>
-              <button type="button" onClick={() => navigate(-1)} className="text-xs text-emerald-600 hover:text-emerald-800 font-medium underline">
+              <button type="button" onClick={() => navigate(-1)} className="text-xs text-violet-600 hover:text-violet-800 font-medium underline">
                 Kembali
               </button>
             </div>
@@ -218,12 +218,12 @@ export default function SessionSetupPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <LabelWithTooltip label="Tajuk Sesi" required tooltip="Nama yang akan muncul dalam senarai sesi. Gunakan nama yang mudah dikenal pasti, cth: 'Sesi Penilaian Ahmad #3'." />
-              <Input value={form.title} onChange={set('title')} placeholder="cth. Sesi Kaunseling #001" required />
+              <LabelWithTooltip label="Session Title" required tooltip="Name that will appear in the session list. Gunakan nama yang mudah dikenal pasti, cth: 'Sesi Penilaian Ahmad #3'." />
+              <Input value={form.title} onChange={set('title')} placeholder="e.g. Counseling Session #001" required />
             </div>
 
             <div>
-              <LabelWithTooltip label={profession.interviewerLabel || 'Nama Pengendali Sesi'} required tooltip="Nama profesional yang menjalankan sesi ini. Nama ini akan terpapar dalam laporan rasmi." />
+              <LabelWithTooltip label={profession.interviewerLabel || 'Session Handler Name'} required tooltip="Nama profesional yang menjalankan sesi ini. Nama ini akan terpapar dalam laporan rasmi." />
               <Input value={form.interviewer} onChange={set('interviewer')} placeholder="Nama anda" required />
             </div>
 
@@ -241,11 +241,11 @@ export default function SessionSetupPage() {
                   {profession.subjectLabel || 'Nama Klien'}
                 </span>
                 <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-gray-200 bg-gray-50">
-                  <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-sm flex-shrink-0">
+                  <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center text-violet-700 font-bold text-sm flex-shrink-0">
                     {form.subject_name?.charAt(0)?.toUpperCase()}
                   </div>
                   <span className="text-sm font-medium text-gray-800">{form.subject_name}</span>
-                  <span className="ml-auto text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">Fail Klien</span>
+                  <span className="ml-auto text-xs text-violet-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">Client File</span>
                 </div>
               </div>
             ) : (
@@ -260,8 +260,8 @@ export default function SessionSetupPage() {
             )}
 
             <div>
-              <LabelWithTooltip label="Peranan/Jawatan Subjek" tooltip="Peranan subjek dalam konteks sesi ini. Membantu AI menganalisis transkrip dengan lebih tepat." />
-              <Input value={form.subject_role} onChange={set('subject_role')} placeholder="cth. Klien, Saksi, Tertuduh, Pesakit" />
+              <LabelWithTooltip label="Subject Role/Position" tooltip="Peranan subjek dalam konteks sesi ini. Membantu AI menganalisis transkrip dengan lebih tepat." />
+              <Input value={form.subject_role} onChange={set('subject_role')} placeholder="e.g. Client, Witness, Accused, Patient" />
             </div>
 
             {caseFields.witnessLabel && (
@@ -273,25 +273,25 @@ export default function SessionSetupPage() {
 
             {!isCounselorSubdomain() && (
               <div>
-                <LabelWithTooltip label="Pegawai Hadir Lain" tooltip="Pegawai-pegawai lain yang turut hadir dalam sesi ini selain saksi utama. Pisahkan nama dengan koma." />
+                <LabelWithTooltip label="Other Officers Present" tooltip="Pegawai-pegawai lain yang turut hadir dalam sesi ini selain saksi utama. Pisahkan nama dengan koma." />
                 <Textarea
                   value={form.other_officers}
                   onChange={set('other_officers')}
                   rows={2}
-                  placeholder="cth. Insp. Ahmad, Sgt. Razak, DSP Halim (pisahkan dengan koma)"
+                  placeholder="e.g. Insp. Ahmad, Sgt. Razak, DSP Halim (separate with commas)"
                 />
               </div>
             )}
 
             <div>
-              <LabelWithTooltip label="Nota Konteks" tooltip="Maklumat latar belakang yang membantu AI menghasilkan cadangan soalan dan laporan yang lebih tepat. Tidak akan dikongsi dengan subjek." />
-              <Textarea value={form.context_notes} onChange={set('context_notes')} rows={3} placeholder="Latar belakang kes, tujuan sesi, maklumat relevan lain..." />
+              <LabelWithTooltip label="Context Notes" tooltip="Maklumat latar belakang yang membantu AI menghasilkan cadangan soalan dan laporan yang lebih tepat. Tidak akan dikongsi dengan subjek." />
+              <Textarea value={form.context_notes} onChange={set('context_notes')} rows={3} placeholder="Case background, session purpose, other relevant information..." />
             </div>
 
             {/* Custom org fields (defined in Settings) */}
             {customFieldLabels.length > 0 && (
               <div>
-                <p className="text-sm font-medium text-gray-700 mb-2">Maklumat Tambahan Organisasi</p>
+                <p className="text-sm font-medium text-gray-700 mb-2">Additional Organization Information</p>
                 <div className="space-y-2">
                   {customFieldLabels.map(label => (
                     <div key={label}>
@@ -312,13 +312,13 @@ export default function SessionSetupPage() {
             {/* Kaitkan dengan Fail Kes — hanya pada www.verirec.app */}
             {showCasePicker && activeCases.length > 0 && (
               <div>
-                <LabelWithTooltip label="Kaitkan dengan Fail Kes (pilihan)" tooltip="Pilih fail kes yang berkaitan untuk mengatur sesi ini secara automatik. Boleh ditukar kemudian." />
+                <LabelWithTooltip label="Link to Case File (optional)" tooltip="Pilih fail kes yang berkaitan untuk mengatur sesi ini secara automatik. Boleh ditukar kemudian." />
                 <select
                   value={selectedCaseId}
                   onChange={e => handleCaseChange(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Tanpa kes (kes bebas)</option>
+                  <option value="">No case (standalone)</option>
                   {activeCases
                     .filter(c => !c.profession || c.profession === professionId)
                     .map(c => (
@@ -331,7 +331,7 @@ export default function SessionSetupPage() {
                       .filter(c => c.profession && c.profession !== professionId)
                       .map(c => (
                         <option key={c.id} value={c.id}>
-                          {c.title}{c.case_number ? ` — ${c.case_number}` : ''} (profesion lain)
+                          {c.title}{c.case_number ? ` — ${c.case_number}` : ''} (other profession)
                         </option>
                       ))
                   )}
@@ -341,13 +341,13 @@ export default function SessionSetupPage() {
 
             {teamMembers.length > 0 && (
               <div>
-                <LabelWithTooltip label="Tugaskan Kepada" tooltip="Tugaskan sesi ini kepada ahli pasukan anda. Mereka akan dapat melihat sesi ini dalam dashboard mereka." />
+                <LabelWithTooltip label="Assign To" tooltip="Tugaskan sesi ini kepada ahli pasukan anda. Mereka akan dapat melihat sesi ini dalam dashboard mereka." />
                 <select
                   value={form.assignee_id}
                   onChange={e => setForm(prev => ({ ...prev, assignee_id: e.target.value }))}
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Diri sendiri (tiada penugasan)</option>
+                  <option value="">Myself (no assignment)</option>
                   {teamMembers.map(m => (
                     <option key={m.id} value={m.user_id}>{m.email} ({m.role})</option>
                   ))}
@@ -357,7 +357,7 @@ export default function SessionSetupPage() {
 
             <div className="flex gap-3 pt-2">
               <Button type="button" variant="secondary" onClick={handleBack}>Kembali</Button>
-              <Button type="submit" className="flex-1">Teruskan ke Persetujuan →</Button>
+              <Button type="submit" className="flex-1">Continue to Consent →</Button>
             </div>
           </form>
         </div>

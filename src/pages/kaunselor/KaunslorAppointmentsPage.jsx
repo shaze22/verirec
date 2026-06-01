@@ -11,11 +11,11 @@ import toast from 'react-hot-toast';
 import QRCode from 'qrcode';
 
 const STATUS_CONFIG = {
-  pending:     { label: 'Menunggu',   color: 'yellow' },
-  confirmed:   { label: 'Disahkan',   color: 'green' },
-  rescheduled: { label: 'Dijadual semula', color: 'blue' },
-  cancelled:   { label: 'Dibatalkan', color: 'gray' },
-  completed:   { label: 'Selesai',    color: 'gray' },
+  pending:     { label: 'Pending',      color: 'yellow' },
+  confirmed:   { label: 'Confirmed',    color: 'green' },
+  rescheduled: { label: 'Rescheduled',  color: 'blue' },
+  cancelled:   { label: 'Cancelled',    color: 'gray' },
+  completed:   { label: 'Completed',    color: 'gray' },
 };
 
 export default function KaunslorAppointmentsPage() {
@@ -69,14 +69,14 @@ export default function KaunslorAppointmentsPage() {
     try {
       const s = await addSlot(user.id, addSlotForm);
       setSlots(prev => [...prev, s].sort((a, b) => a.day_of_week - b.day_of_week || a.start_time.localeCompare(b.start_time)));
-      toast.success('Slot ditambah.');
-    } catch { toast.error('Gagal menambah slot.'); }
+      toast.success('Slot added.');
+    } catch { toast.error('Failed to add slot.'); }
   };
 
   const handleDeleteSlot = async (id) => {
-    if (!window.confirm('Padam slot ini?')) return;
+    if (!window.confirm('Delete this slot?')) return;
     try { await deleteSlot(id); setSlots(prev => prev.filter(s => s.id !== id)); }
-    catch { toast.error('Gagal memadam.'); }
+    catch { toast.error('Failed to delete.'); }
   };
 
   const openConfirm = (appt) => {
@@ -101,14 +101,14 @@ export default function KaunslorAppointmentsPage() {
       setAppointments(prev => prev.map(a => a.id === updated.id ? { ...a, ...updated } : a));
       setConfirmModal(false);
       if (status === 'confirmed') {
-        toast.success('Temujanji disahkan!', { duration: 5000 });
+        toast.success('Appointment confirmed!', { duration: 5000 });
         // Navigate to subject profile
         const subjectId = updated.subject_id || updated.subjects?.id;
         if (subjectId) {
           setTimeout(() => navigate(`/kaunselor/clients/${subjectId}`), 800);
         }
       } else {
-        toast.success('Temujanji dikemaskini.');
+        toast.success('Appointment updated.');
       }
       // Send confirmation email to client
       if (status === 'confirmed' && session?.access_token) {
@@ -117,16 +117,16 @@ export default function KaunslorAppointmentsPage() {
           headers: { Authorization: `Bearer ${session.access_token}` },
         }).catch(() => {});
       }
-    } catch { toast.error('Gagal mengemaskini.'); }
+    } catch { toast.error('Failed to update.'); }
   };
 
   const handleCancel = async (id) => {
-    if (!window.confirm('Batalkan temujanji ini?')) return;
+    if (!window.confirm('Cancel this appointment?')) return;
     try {
       const updated = await updateAppointment(id, { status: 'cancelled' });
       setAppointments(prev => prev.map(a => a.id === id ? { ...a, ...updated } : a));
-      toast.success('Temujanji dibatalkan.');
-    } catch { toast.error('Gagal.'); }
+      toast.success('Appointment cancelled.');
+    } catch { toast.error('Failed.'); }
   };
 
   const openReschedule = (appt) => {
@@ -141,7 +141,7 @@ export default function KaunslorAppointmentsPage() {
 
   const handleReschedule = async () => {
     if (!rescheduleForm.new_date || !rescheduleForm.new_time) {
-      toast.error('Sila pilih tarikh dan masa baru.');
+      toast.error('Please select a new date and time.');
       return;
     }
     setRescheduling(true);
@@ -152,12 +152,12 @@ export default function KaunslorAppointmentsPage() {
         confirmed_date: rescheduleForm.new_date,
         confirmed_time: rescheduleForm.new_time,
         counselor_notes: rescheduleForm.reason
-          ? `[Jadual Semula] ${rescheduleForm.reason}`
+          ? `[Rescheduled] ${rescheduleForm.reason}`
           : rescheduleAppt.counselor_notes,
       });
       setAppointments(prev => prev.map(a => a.id === updated.id ? { ...a, ...updated } : a));
       setRescheduleModal(false);
-      toast.success('Temujanji dijadual semula.');
+      toast.success('Appointment rescheduled.');
       // Email client
       if (session?.access_token) {
         fetch(`/api/user-notifications?type=appointment-confirmed&appointment_id=${rescheduleAppt.id}`, {
@@ -165,7 +165,7 @@ export default function KaunslorAppointmentsPage() {
           headers: { Authorization: `Bearer ${session.access_token}` },
         }).catch(() => {});
       }
-    } catch { toast.error('Gagal menjadual semula.'); }
+    } catch { toast.error('Failed to reschedule.'); }
     finally { setRescheduling(false); }
   };
 
@@ -187,16 +187,16 @@ export default function KaunslorAppointmentsPage() {
       setScheduledSessions(prev => [...prev, data].sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at)));
       setShowAddSchedule(false);
       setScheduleForm({ title: '', subject_name: '', scheduled_at: '', notes: '' });
-      toast.success('Jadual ditambah.');
-    } catch { toast.error('Gagal menyimpan jadual.'); }
+      toast.success('Schedule added.');
+    } catch { toast.error('Failed to save schedule.'); }
     finally { setSavingSchedule(false); }
   };
 
   const handleDeleteSchedule = async (id) => {
-    if (!window.confirm('Padam jadual ini?')) return;
+    if (!window.confirm('Delete this schedule?')) return;
     await supabase.from('scheduled_sessions').delete().eq('id', id).catch(() => {});
     setScheduledSessions(prev => prev.filter(s => s.id !== id));
-    toast.success('Jadual dipadam.');
+    toast.success('Schedule deleted.');
   };
 
   const handleMarkDone = async (id) => {
@@ -222,17 +222,17 @@ export default function KaunslorAppointmentsPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <TopBar title="Temujanji" />
+      <TopBar title="Appointments" />
       <div className="flex-1 overflow-auto">
 
         {/* Tabs */}
         <div className="flex bg-white border-b px-4 gap-1 pt-2 overflow-x-auto">
           {[
-            { id: 'appointments', label: `Permintaan${pending.length ? ` (${pending.length})` : ''}` },
-            { id: 'jadual', label: `Jadual (${scheduledSessions.filter(s => s.status === 'upcoming').length})` },
-            { id: 'slots', label: 'Slot Masa' },
-            { id: 'qr', label: 'QR & Pautan' },
-            { id: 'rujukan', label: `Rujukan Pasukan${incomingReferrals.filter(r => r.status === 'pending').length ? ` (${incomingReferrals.filter(r => r.status === 'pending').length})` : ''}` },
+            { id: 'appointments', label: `Requests${pending.length ? ` (${pending.length})` : ''}` },
+            { id: 'jadual', label: `Schedule (${scheduledSessions.filter(s => s.status === 'upcoming').length})` },
+            { id: 'slots', label: 'Time Slots' },
+            { id: 'qr', label: 'QR & Link' },
+            { id: 'rujukan', label: `Team Referrals${incomingReferrals.filter(r => r.status === 'pending').length ? ` (${incomingReferrals.filter(r => r.status === 'pending').length})` : ''}` },
           ].map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
               className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${tab === t.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
@@ -248,7 +248,7 @@ export default function KaunslorAppointmentsPage() {
             <div className="space-y-6">
               {pending.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-3">Menunggu Pengesahan ({pending.length})</h3>
+                  <h3 className="font-semibold text-gray-900 mb-3">Pending Confirmation ({pending.length})</h3>
                   <div className="space-y-3">
                     {pending.map(a => (
                       <div key={a.id} className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
@@ -262,8 +262,8 @@ export default function KaunslorAppointmentsPage() {
                             {a.presenting_issue && <p className="text-sm text-gray-600 mt-1 italic">"{a.presenting_issue}"</p>}
                           </div>
                           <div className="flex gap-2 flex-shrink-0">
-                            <Button size="sm" onClick={() => openConfirm(a)}>Sahkan</Button>
-                            <Button size="sm" variant="secondary" onClick={() => handleCancel(a.id)}>Tolak</Button>
+                            <Button size="sm" onClick={() => openConfirm(a)}>Confirm</Button>
+                            <Button size="sm" variant="secondary" onClick={() => handleCancel(a.id)}>Reject</Button>
                           </div>
                         </div>
                       </div>
@@ -274,7 +274,7 @@ export default function KaunslorAppointmentsPage() {
 
               {upcoming.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-3">Akan Datang</h3>
+                  <h3 className="font-semibold text-gray-900 mb-3">Upcoming</h3>
                   <div className="space-y-2">
                     {upcoming.map(a => {
                       const isRescheduled = a.status === 'rescheduled';
@@ -287,8 +287,8 @@ export default function KaunslorAppointmentsPage() {
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-0.5">
                                 <p className="font-medium text-gray-900">{a.client_name}</p>
-                                {isRescheduled && <Badge color="blue">Dijadual Semula</Badge>}
-                                {!isRescheduled && <Badge color="green">Disahkan</Badge>}
+                                {isRescheduled && <Badge color="blue">Rescheduled</Badge>}
+                                {!isRescheduled && <Badge color="green">Confirmed</Badge>}
                               </div>
                               <p className="text-sm text-gray-500">
                                 📅 {format(parseISO(a.confirmed_date || a.requested_date), 'dd MMM yyyy')} · 🕐 {(a.confirmed_time || a.requested_time)?.slice(0, 5)}
@@ -298,18 +298,18 @@ export default function KaunslorAppointmentsPage() {
                               )}
                               {rescheduleReason && (
                                 <p className="text-xs text-blue-700 mt-1 bg-blue-100 px-2 py-1 rounded-lg">
-                                  📝 Sebab jadual semula: {rescheduleReason}
+                                  📝 Reschedule reason: {rescheduleReason}
                                 </p>
                               )}
                             </div>
                             <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
                               {a.subject_id && (
                                 <Button size="sm" onClick={() => navigate(`/kaunselor/clients/${a.subject_id}`)}>
-                                  Buka Profil
+                                  Open Profile
                                 </Button>
                               )}
-                              <button onClick={() => openReschedule(a)} className="text-xs text-blue-500 hover:text-blue-700 font-medium">Jadual Semula</button>
-                              <button onClick={() => handleCancel(a.id)} className="text-xs text-gray-400 hover:text-red-500">Batal</button>
+                              <button onClick={() => openReschedule(a)} className="text-xs text-blue-500 hover:text-blue-700 font-medium">Reschedule</button>
+                              <button onClick={() => handleCancel(a.id)} className="text-xs text-gray-400 hover:text-red-500">Cancel</button>
                             </div>
                           </div>
                         </div>
@@ -322,14 +322,14 @@ export default function KaunslorAppointmentsPage() {
               {pending.length === 0 && upcoming.length === 0 && (
                 <div className="text-center py-16 text-gray-400">
                   <div className="text-4xl mb-3">📅</div>
-                  <p className="font-medium">Tiada temujanji buat masa ini</p>
-                  <p className="text-sm mt-1">Kongsi QR kod anda kepada klien untuk mulakan.</p>
+                  <p className="font-medium">No appointments at the moment</p>
+                  <p className="text-sm mt-1">Share your QR code with clients to get started.</p>
                 </div>
               )}
 
               {past.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-gray-500 text-sm mb-2">Lepas</h3>
+                  <h3 className="font-semibold text-gray-500 text-sm mb-2">Past</h3>
                   <div className="space-y-2">
                     {past.map(a => (
                       <div key={a.id} className="bg-gray-50 border border-gray-100 rounded-xl p-3 flex items-center justify-between gap-3 text-sm">
@@ -340,7 +340,7 @@ export default function KaunslorAppointmentsPage() {
                         <div className="flex items-center gap-2 flex-shrink-0">
                           {a.status === 'completed' && a.subject_id && (
                             <Button size="sm" variant="secondary" onClick={() => navigate(`/kaunselor/clients/${a.subject_id}`)}>
-                              Profil
+                              Profile
                             </Button>
                           )}
                           <Badge color={STATUS_CONFIG[a.status]?.color || 'gray'}>{STATUS_CONFIG[a.status]?.label}</Badge>
@@ -356,18 +356,18 @@ export default function KaunslorAppointmentsPage() {
           {/* ── JADUAL TAB ── */}
           {tab === 'jadual' && (
             <div className="space-y-4">
-              <Button onClick={() => setShowAddSchedule(true)} className="w-full">+ Tambah Jadual Sesi</Button>
+              <Button onClick={() => setShowAddSchedule(true)} className="w-full">+ Add Session Schedule</Button>
 
               {/* Upcoming */}
               {scheduledSessions.filter(s => s.status === 'upcoming').length === 0 ? (
                 <div className="text-center py-12 text-gray-400">
                   <div className="text-4xl mb-3">📅</div>
-                  <p className="font-medium">Tiada sesi dijadualkan</p>
-                  <p className="text-sm mt-1">Tambah jadual sesi untuk klien anda.</p>
+                  <p className="font-medium">No sessions scheduled</p>
+                  <p className="text-sm mt-1">Add a session schedule for your clients.</p>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <p className="text-xs font-semibold text-gray-500 uppercase">Akan Datang</p>
+                  <p className="text-xs font-semibold text-gray-500 uppercase">Upcoming</p>
                   {scheduledSessions.filter(s => s.status === 'upcoming').map(s => {
                     const dt = new Date(s.scheduled_at);
                     const isToday = dt.toDateString() === new Date().toDateString();
@@ -375,17 +375,17 @@ export default function KaunslorAppointmentsPage() {
                       <div key={s.id} className={`rounded-xl border p-4 ${isToday ? 'bg-blue-50 border-blue-200' : 'bg-white'}`}>
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1">
-                            {isToday && <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full font-medium mb-1 inline-block">Hari Ini</span>}
+                            {isToday && <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full font-medium mb-1 inline-block">Today</span>}
                             <p className="font-medium text-gray-900">{s.title}</p>
-                            {s.subject_name && <p className="text-sm text-gray-500">Klien: {s.subject_name}</p>}
+                            {s.subject_name && <p className="text-sm text-gray-500">Client: {s.subject_name}</p>}
                             <p className="text-sm text-blue-700 mt-0.5">
                               {format(dt, 'dd MMM yyyy')} · {format(dt, 'HH:mm')}
                             </p>
                             {s.notes && <p className="text-xs text-gray-400 mt-1 italic">{s.notes}</p>}
                           </div>
                           <div className="flex gap-2 flex-shrink-0">
-                            <button onClick={() => handleMarkDone(s.id)} className="text-xs text-green-600 hover:text-green-800 font-medium">✓ Selesai</button>
-                            <button onClick={() => handleDeleteSchedule(s.id)} className="text-xs text-gray-400 hover:text-red-500">Padam</button>
+                            <button onClick={() => handleMarkDone(s.id)} className="text-xs text-green-600 hover:text-green-800 font-medium">✓ Done</button>
+                            <button onClick={() => handleDeleteSchedule(s.id)} className="text-xs text-gray-400 hover:text-red-500">Delete</button>
                           </div>
                         </div>
                       </div>
@@ -397,14 +397,14 @@ export default function KaunslorAppointmentsPage() {
               {/* Past */}
               {scheduledSessions.filter(s => s.status !== 'upcoming').length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs font-semibold text-gray-400 uppercase">Lepas</p>
+                  <p className="text-xs font-semibold text-gray-400 uppercase">Past</p>
                   {scheduledSessions.filter(s => s.status !== 'upcoming').slice(0, 5).map(s => (
                     <div key={s.id} className="bg-gray-50 border border-gray-100 rounded-xl p-3 flex items-center justify-between text-sm">
                       <div>
                         <p className="text-gray-600">{s.title}{s.subject_name ? ` — ${s.subject_name}` : ''}</p>
                         <p className="text-xs text-gray-400">{format(new Date(s.scheduled_at), 'dd MMM yyyy · HH:mm')}</p>
                       </div>
-                      <span className="text-xs text-gray-400">{s.status === 'completed' ? 'Selesai' : 'Dibatalkan'}</span>
+                      <span className="text-xs text-gray-400">{s.status === 'completed' ? 'Completed' : 'Cancelled'}</span>
                     </div>
                   ))}
                 </div>
@@ -414,34 +414,34 @@ export default function KaunslorAppointmentsPage() {
               {showAddSchedule && (
                 <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 p-4">
                   <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
-                    <h3 className="font-semibold text-lg">Tambah Jadual Sesi</h3>
+                    <h3 className="font-semibold text-lg">Add Session Schedule</h3>
                     <form onSubmit={handleAddSchedule} className="space-y-3">
                       <div>
-                        <label className="text-xs text-gray-500 mb-1 block">Tajuk Sesi *</label>
+                        <label className="text-xs text-gray-500 mb-1 block">Session Title *</label>
                         <input type="text" value={scheduleForm.title} onChange={e => setScheduleForm(f => ({ ...f, title: e.target.value }))} required
-                          placeholder="cth. Sesi Kaunseling Ahmad"
+                          placeholder="e.g. Counseling Session - Ahmad"
                           className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-500 mb-1 block">Nama Klien</label>
+                        <label className="text-xs text-gray-500 mb-1 block">Client Name</label>
                         <input type="text" value={scheduleForm.subject_name} onChange={e => setScheduleForm(f => ({ ...f, subject_name: e.target.value }))}
-                          placeholder="Nama klien (pilihan)"
+                          placeholder="Client name (optional)"
                           className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-500 mb-1 block">Tarikh & Masa *</label>
+                        <label className="text-xs text-gray-500 mb-1 block">Date & Time *</label>
                         <input type="datetime-local" value={scheduleForm.scheduled_at} onChange={e => setScheduleForm(f => ({ ...f, scheduled_at: e.target.value }))} required
                           className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-500 mb-1 block">Nota</label>
+                        <label className="text-xs text-gray-500 mb-1 block">Notes</label>
                         <textarea value={scheduleForm.notes} onChange={e => setScheduleForm(f => ({ ...f, notes: e.target.value }))} rows={2}
-                          placeholder="Nota untuk sesi ini..."
+                          placeholder="Notes for this session..."
                           className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
                       </div>
                       <div className="flex gap-3 pt-2">
-                        <Button type="submit" loading={savingSchedule} className="flex-1">Simpan</Button>
-                        <Button type="button" variant="secondary" onClick={() => setShowAddSchedule(false)}>Batal</Button>
+                        <Button type="submit" loading={savingSchedule} className="flex-1">Save</Button>
+                        <Button type="button" variant="secondary" onClick={() => setShowAddSchedule(false)}>Cancel</Button>
                       </div>
                     </form>
                   </div>
@@ -454,10 +454,10 @@ export default function KaunslorAppointmentsPage() {
           {tab === 'slots' && (
             <div className="space-y-5">
               <div className="bg-white rounded-xl border p-5">
-                <h3 className="font-semibold text-gray-900 mb-4">Tambah Slot Masa</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">Add Time Slot</h3>
                 <form onSubmit={handleAddSlot} className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="text-xs text-gray-500 mb-1 block">Hari</label>
+                    <label className="text-xs text-gray-500 mb-1 block">Day</label>
                     <select value={addSlotForm.day_of_week}
                       onChange={e => setAddSlotForm(f => ({ ...f, day_of_week: +e.target.value }))}
                       className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -465,26 +465,26 @@ export default function KaunslorAppointmentsPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs text-gray-500 mb-1 block">Mula</label>
+                    <label className="text-xs text-gray-500 mb-1 block">Start</label>
                     <input type="time" value={addSlotForm.start_time}
                       onChange={e => setAddSlotForm(f => ({ ...f, start_time: e.target.value }))}
                       className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                   <div>
-                    <label className="text-xs text-gray-500 mb-1 block">Tamat</label>
+                    <label className="text-xs text-gray-500 mb-1 block">End</label>
                     <input type="time" value={addSlotForm.end_time}
                       onChange={e => setAddSlotForm(f => ({ ...f, end_time: e.target.value }))}
                       className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                   <div className="col-span-3">
-                    <Button type="submit" variant="secondary" className="w-full">+ Tambah Slot</Button>
+                    <Button type="submit" variant="secondary" className="w-full">+ Add Slot</Button>
                   </div>
                 </form>
               </div>
 
               {slots.length === 0 ? (
                 <div className="text-center py-10 text-gray-400">
-                  <p>Belum ada slot. Tambah slot masa yang anda tersedia.</p>
+                  <p>No slots yet. Add your available time slots.</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -516,13 +516,13 @@ export default function KaunslorAppointmentsPage() {
               <div className="bg-white rounded-xl border p-6 text-center">
                 {qrDataUrl ? (
                   <>
-                    <img src={qrDataUrl} alt="QR Kod Tempahan" className="mx-auto rounded-xl mb-4" style={{ width: 220 }} />
-                    <p className="text-sm text-gray-500 mb-1">Pautan Tempahan</p>
+                    <img src={qrDataUrl} alt="Booking QR Code" className="mx-auto rounded-xl mb-4" style={{ width: 220 }} />
+                    <p className="text-sm text-gray-500 mb-1">Booking Link</p>
                     <p className="font-mono text-xs bg-gray-50 rounded-lg px-3 py-2 text-gray-700 break-all">{bookingUrl}</p>
                     <div className="flex gap-3 justify-center mt-4">
                       <Button variant="secondary" onClick={() => {
                         const win = window.open('', '_blank', 'width=480,height=600');
-                        win.document.write(`<!DOCTYPE html><html><head><title>QR Tempahan - VeriRec</title>
+                        win.document.write(`<!DOCTYPE html><html><head><title>Booking QR - VeriRec</title>
                           <style>
                             @page{size:A4;margin:1.5cm}
                             *{box-sizing:border-box}
@@ -534,32 +534,32 @@ export default function KaunslorAppointmentsPage() {
                             .url{font-family:monospace;background:#f1f5f9;padding:5px 10px;border-radius:6px;font-size:10px;margin:6px 0}
                           </style>
                         </head><body>
-                          <h2>VeriRec — QR Tempahan</h2>
-                          <p>Imbas kod QR ini untuk buat temujanji</p>
+                          <h2>VeriRec — Booking QR</h2>
+                          <p>Scan this QR code to make an appointment</p>
                           <img src="${qrDataUrl}" alt="QR"/>
                           <p class="url">${bookingUrl}</p>
                           <script>window.onload=()=>window.print();<\/script>
                         </body></html>`);
                         win.document.close();
                       }}>
-                        🖨 Print / Simpan PDF
+                        🖨 Print / Save PDF
                       </Button>
-                      <Button onClick={() => { navigator.clipboard.writeText(bookingUrl); toast.success('Pautan disalin!'); }}>
-                        Salin Pautan
+                      <Button onClick={() => { navigator.clipboard.writeText(bookingUrl); toast.success('Link copied!'); }}>
+                        Copy Link
                       </Button>
                     </div>
                   </>
-                ) : <p className="text-gray-400">QR kod tidak tersedia.</p>}
+                ) : <p className="text-gray-400">QR code not available.</p>}
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800 space-y-2">
-                <p className="font-semibold">Cara guna QR kod ini:</p>
+                <p className="font-semibold">How to use this QR code:</p>
                 <ol className="list-decimal list-inside space-y-1 text-blue-700">
-                  <li>Print atau share QR kod kepada klien</li>
-                  <li>Klien scan QR → buka borang tempahan</li>
-                  <li>Klien isi maklumat, pilih tarikh/masa, sign consent</li>
-                  <li>Anda terima notifikasi dan sahkan temujanji</li>
-                  <li>Profil klien auto-dibuat dalam sistem</li>
+                  <li>Print or share the QR code with clients</li>
+                  <li>Client scans QR → opens booking form</li>
+                  <li>Client fills in details, selects date/time, signs consent</li>
+                  <li>You receive notification and confirm the appointment</li>
+                  <li>Client profile is automatically created in the system</li>
                 </ol>
               </div>
             </div>
@@ -570,13 +570,13 @@ export default function KaunslorAppointmentsPage() {
               {incomingReferrals.length === 0 ? (
                 <div className="text-center py-16 text-gray-400">
                   <div className="text-4xl mb-3">👥</div>
-                  <p className="text-sm">Tiada rujukan pasukan masuk.</p>
+                  <p className="text-sm">No incoming team referrals.</p>
                 </div>
               ) : incomingReferrals.map(ref => (
                 <div key={ref.id} className={`bg-white rounded-xl border p-4 ${ref.status === 'pending' ? 'border-amber-200' : ''}`}>
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="flex-1">
-                      <p className="font-semibold text-gray-900">{ref.subjects?.name || 'Klien'}</p>
+                      <p className="font-semibold text-gray-900">{ref.subjects?.name || 'Client'}</p>
                       {ref.subjects?.presenting_issue && (
                         <p className="text-xs text-gray-500 italic mt-0.5">"{ref.subjects.presenting_issue}"</p>
                       )}
@@ -588,7 +588,7 @@ export default function KaunslorAppointmentsPage() {
                       ref.status === 'accepted' ? 'bg-green-100 text-green-700' :
                       ref.status === 'declined' ? 'bg-red-100 text-red-700' :
                       'bg-amber-100 text-amber-700'}`}>
-                      {ref.status === 'accepted' ? 'Diterima' : ref.status === 'declined' ? 'Ditolak' : 'Baharu'}
+                      {ref.status === 'accepted' ? 'Accepted' : ref.status === 'declined' ? 'Declined' : 'New'}
                     </span>
                   </div>
                   {ref.status === 'pending' && (
@@ -598,32 +598,32 @@ export default function KaunslorAppointmentsPage() {
                           try {
                             await supabase.from('team_referrals').update({ status: 'accepted' }).eq('id', ref.id);
                             setIncomingReferrals(prev => prev.map(r => r.id === ref.id ? { ...r, status: 'accepted' } : r));
-                            toast.success('Rujukan diterima.');
-                          } catch { toast.error('Gagal mengemas kini.'); }
+                            toast.success('Referral accepted.');
+                          } catch { toast.error('Failed to update.'); }
                         }}
-                        className="flex-1 text-sm font-medium bg-emerald-600 text-white rounded-lg py-1.5 hover:bg-emerald-700 transition-colors"
-                      >✓ Terima</button>
+                        className="flex-1 text-sm font-medium bg-violet-600 text-white rounded-lg py-1.5 hover:bg-violet-700 transition-colors"
+                      >✓ Accept</button>
                       <button
                         onClick={async () => {
                           try {
                             await supabase.from('team_referrals').update({ status: 'declined' }).eq('id', ref.id);
                             setIncomingReferrals(prev => prev.map(r => r.id === ref.id ? { ...r, status: 'declined' } : r));
-                            toast('Rujukan ditolak.');
-                          } catch { toast.error('Gagal mengemas kini.'); }
+                            toast('Referral declined.');
+                          } catch { toast.error('Failed to update.'); }
                         }}
                         className="flex-1 text-sm font-medium bg-gray-100 text-gray-700 rounded-lg py-1.5 hover:bg-gray-200 transition-colors"
-                      >✗ Tolak</button>
+                      >✗ Decline</button>
                       <button
                         onClick={() => navigate(`/kaunselor/clients/${ref.subject_id}`)}
                         className="flex-1 text-sm font-medium bg-blue-50 text-blue-700 rounded-lg py-1.5 hover:bg-blue-100 transition-colors"
-                      >Lihat Profil</button>
+                      >View Profile</button>
                     </div>
                   )}
                   {ref.status !== 'pending' && (
                     <button
                       onClick={() => navigate(`/kaunselor/clients/${ref.subject_id}`)}
                       className="mt-2 text-xs text-blue-600 hover:underline"
-                    >Lihat Profil Klien →</button>
+                    >View Client Profile →</button>
                   )}
                 </div>
               ))}
@@ -637,41 +637,41 @@ export default function KaunslorAppointmentsPage() {
       {rescheduleModal && rescheduleAppt && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
-            <h3 className="font-semibold text-lg">Jadual Semula Temujanji</h3>
+            <h3 className="font-semibold text-lg">Reschedule Appointment</h3>
             <div className="bg-gray-50 rounded-lg p-3 text-sm">
               <p className="font-medium">{rescheduleAppt.client_name}</p>
               <p className="text-gray-500">{rescheduleAppt.client_phone} · {rescheduleAppt.client_email}</p>
               <p className="text-gray-500 mt-1">
-                Asal: {format(parseISO(rescheduleAppt.confirmed_date || rescheduleAppt.requested_date), 'dd MMM yyyy')} · {(rescheduleAppt.confirmed_time || rescheduleAppt.requested_time)?.slice(0,5)}
+                Original: {format(parseISO(rescheduleAppt.confirmed_date || rescheduleAppt.requested_date), 'dd MMM yyyy')} · {(rescheduleAppt.confirmed_time || rescheduleAppt.requested_time)?.slice(0,5)}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-gray-500 mb-1 block">Tarikh Baru</label>
+                <label className="text-xs text-gray-500 mb-1 block">New Date</label>
                 <input type="date" value={rescheduleForm.new_date}
                   onChange={e => setRescheduleForm(f => ({ ...f, new_date: e.target.value }))}
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
-                <label className="text-xs text-gray-500 mb-1 block">Masa Baru</label>
+                <label className="text-xs text-gray-500 mb-1 block">New Time</label>
                 <input type="time" value={rescheduleForm.new_time}
                   onChange={e => setRescheduleForm(f => ({ ...f, new_time: e.target.value }))}
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
             </div>
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">Sebab / Nota (pilihan)</label>
+              <label className="text-xs text-gray-500 mb-1 block">Reason / Notes (optional)</label>
               <textarea value={rescheduleForm.reason}
                 onChange={e => setRescheduleForm(f => ({ ...f, reason: e.target.value }))}
-                rows={2} placeholder="cth. Kaunselor ada urusan mendesak..."
+                rows={2} placeholder="e.g. Counselor has urgent matters..."
                 className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
             </div>
             <div className="bg-blue-50 rounded-lg p-3 text-xs text-blue-700">
-              Email notifikasi tarikh baru akan dihantar kepada klien secara automatik.
+              Email notification with the new date will be sent to the client automatically.
             </div>
             <div className="flex gap-3">
-              <Button onClick={handleReschedule} loading={rescheduling} className="flex-1">✓ Sahkan Jadual Baru</Button>
-              <Button variant="secondary" onClick={() => setRescheduleModal(false)}>Batal</Button>
+              <Button onClick={handleReschedule} loading={rescheduling} className="flex-1">✓ Confirm New Schedule</Button>
+              <Button variant="secondary" onClick={() => setRescheduleModal(false)}>Cancel</Button>
             </div>
           </div>
         </div>
@@ -681,7 +681,7 @@ export default function KaunslorAppointmentsPage() {
       {confirmModal && selectedAppt && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
-            <h3 className="font-semibold text-lg">Sahkan Temujanji</h3>
+            <h3 className="font-semibold text-lg">Confirm Appointment</h3>
             <div className="bg-gray-50 rounded-lg p-3 text-sm">
               <p className="font-medium">{selectedAppt.client_name}</p>
               <p className="text-gray-500">{selectedAppt.client_phone} · {selectedAppt.client_email}</p>
@@ -689,7 +689,7 @@ export default function KaunslorAppointmentsPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-gray-500 mb-1 block">Tarikh Disahkan</label>
+                <label className="text-xs text-gray-500 mb-1 block">Confirmed Date</label>
                 <input type="date" value={confirmForm.confirmed_date}
                   onChange={e => setConfirmForm(f => ({ ...f, confirmed_date: e.target.value }))}
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
@@ -702,16 +702,16 @@ export default function KaunslorAppointmentsPage() {
               </div>
             </div>
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">Nota (pilihan)</label>
+              <label className="text-xs text-gray-500 mb-1 block">Notes (optional)</label>
               <textarea value={confirmForm.counselor_notes}
                 onChange={e => setConfirmForm(f => ({ ...f, counselor_notes: e.target.value }))}
-                rows={2} placeholder="Nota untuk rekod..."
+                rows={2} placeholder="Notes for records..."
                 className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
             </div>
             <div className="flex gap-3">
-              <Button onClick={() => handleConfirm('confirmed')} className="flex-1">✓ Sahkan</Button>
-              <Button onClick={() => handleConfirm('rescheduled')} variant="secondary" className="flex-1">Jadual Semula</Button>
-              <Button onClick={() => setConfirmModal(false)} variant="secondary">Batal</Button>
+              <Button onClick={() => handleConfirm('confirmed')} className="flex-1">✓ Confirm</Button>
+              <Button onClick={() => handleConfirm('rescheduled')} variant="secondary" className="flex-1">Reschedule</Button>
+              <Button onClick={() => setConfirmModal(false)} variant="secondary">Cancel</Button>
             </div>
           </div>
         </div>

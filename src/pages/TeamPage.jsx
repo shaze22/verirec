@@ -20,7 +20,7 @@ const ROLES = [
 const roleColor = { admin: 'red', interviewer: 'blue', viewer: 'gray' };
 const roleLabel = { admin: 'Admin', interviewer: 'Penemuduga', viewer: 'Penonton' };
 const statusColor = { pending: 'yellow', active: 'green' };
-const statusLabel = { pending: 'Jemputan Dihantar', active: 'Aktif' };
+const statusLabel = { pending: 'Jemputan Dihantar', active: 'Active' };
 
 export default function TeamPage() {
   const { user } = useAuthStore();
@@ -67,7 +67,7 @@ export default function TeamPage() {
       const t = await createTeam(user.id, teamName.trim());
       setTeam(t);
       setMembers([]);
-      toast.success('Pasukan berjaya dicipta!');
+      toast.success('Team berjaya dicipta!');
     } catch {
       toast.error('Gagal mencipta pasukan.');
     } finally {
@@ -116,7 +116,7 @@ export default function TeamPage() {
       setInviteRole('interviewer');
       toast.success(`E-mel jemputan dihantar kepada ${inviteEmail}.`);
     } catch {
-      toast.error('Gagal menghantar jemputan.');
+      toast.error('Failed to send jemputan.');
     } finally {
       setInviting(false);
     }
@@ -128,7 +128,7 @@ export default function TeamPage() {
     try {
       await removeMember(id);
       setMembers(prev => prev.filter(m => m.id !== id));
-      toast.success('Ahli dibuang dari pasukan.');
+      toast.success('Member dibuang dari pasukan.');
     } catch {
       toast.error('Gagal membuang ahli.');
     } finally {
@@ -149,7 +149,7 @@ export default function TeamPage() {
   if (loading) {
     return (
       <div className="flex flex-col h-screen">
-        <TopBar title="Pasukan" />
+        <TopBar title="Team" />
         <div className="flex-1 p-6"><div className="max-w-2xl mx-auto space-y-4">{[1,2].map(i => <div key={i} className="h-32 bg-gray-100 rounded-xl animate-pulse" />)}</div></div>
       </div>
     );
@@ -157,7 +157,7 @@ export default function TeamPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <TopBar title="Pengurusan Pasukan" />
+      <TopBar title="Pengurusan Team" />
       <div className="flex-1 overflow-auto p-6 pb-20 md:pb-6">
         <div className="max-w-2xl mx-auto space-y-6">
 
@@ -172,7 +172,7 @@ export default function TeamPage() {
               </div>
               {members.filter(m => m.status === 'accepted').length >= ORG_SEAT_LIMIT && (
                 <span className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg">
-                  Had Ahli Dicapai
+                  Had Member Dicapai
                 </span>
               )}
             </div>
@@ -186,7 +186,7 @@ export default function TeamPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">Buat Pasukan Anda</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">Buat Team Anda</h2>
               <p className="text-sm text-gray-500 mb-6 max-w-sm mx-auto">
                 Jemput rakan sekerja untuk bekerjasama. Urus peranan dan akses dari satu tempat.
               </p>
@@ -216,7 +216,7 @@ export default function TeamPage() {
                         autoFocus
                       />
                       <Button type="submit" size="sm" loading={savingName}>Simpan</Button>
-                      <Button type="button" size="sm" variant="secondary" onClick={() => setEditingName(false)}>Batal</Button>
+                      <Button type="button" size="sm" variant="secondary" onClick={() => setEditingName(false)}>Cancel</Button>
                     </form>
                   ) : (
                     <div className="flex items-center gap-3">
@@ -232,18 +232,18 @@ export default function TeamPage() {
                       <button onClick={() => { setNewName(team.name); setEditingName(true); }} className="text-xs text-gray-400 hover:text-blue-600 ml-2">Edit</button>
                     </div>
                   )}
-                  <Button onClick={() => setInviteModal(true)}>+ Jemput Ahli</Button>
+                  <Button onClick={() => setInviteModal(true)}>+ Invite Member</Button>
                 </div>
 
                 {/* Stats */}
                 <div className="grid grid-cols-3 gap-3 pt-4 border-t">
                   <div className="text-center">
                     <p className="text-xl font-bold text-gray-900">{members.length}</p>
-                    <p className="text-xs text-gray-500">Ahli dijemput</p>
+                    <p className="text-xs text-gray-500">Member dijemput</p>
                   </div>
                   <div className="text-center">
                     <p className="text-xl font-bold text-gray-900">{members.filter(m => m.status === 'active').length}</p>
-                    <p className="text-xs text-gray-500">Aktif</p>
+                    <p className="text-xs text-gray-500">Active</p>
                   </div>
                   <div className="text-center">
                     <p className="text-xl font-bold text-gray-900">{members.filter(m => m.status === 'pending').length}</p>
@@ -254,7 +254,7 @@ export default function TeamPage() {
 
               {/* Role explanation */}
               <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-                <p className="text-xs font-semibold text-blue-700 mb-2">Peranan Ahli Pasukan</p>
+                <p className="text-xs font-semibold text-blue-700 mb-2">Peranan Member Team</p>
                 <div className="space-y-1.5">
                   {ROLES.map(r => (
                     <div key={r.value} className="flex items-center gap-2">
@@ -268,11 +268,11 @@ export default function TeamPage() {
               {/* Member list */}
               <div>
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-                  Ahli Pasukan ({members.length})
+                  Member Team ({members.length})
                 </h3>
                 {members.length === 0 ? (
                   <div className="text-center py-10 bg-white border rounded-xl text-gray-400">
-                    <p className="text-sm">Belum ada ahli. Klik "Jemput Ahli" untuk mula.</p>
+                    <p className="text-sm">Belum ada ahli. Klik "Invite Member" untuk mula.</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -283,7 +283,7 @@ export default function TeamPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 truncate">{user?.email}</p>
-                        <p className="text-xs text-gray-400">Pemilik akaun</p>
+                        <p className="text-xs text-gray-400">Owner akaun</p>
                       </div>
                       <Badge color="red" className="text-xs">Admin</Badge>
                     </div>
@@ -325,10 +325,10 @@ export default function TeamPage() {
       </div>
 
       {/* Invite Modal */}
-      <Modal open={inviteModal} onClose={() => setInviteModal(false)} title="Jemput Ahli Pasukan">
+      <Modal open={inviteModal} onClose={() => setInviteModal(false)} title="Invite Member Team">
         <form onSubmit={handleInvite} className="space-y-4">
           <Input
-            label="E-mel Ahli"
+            label="Member Email"
             type="email"
             value={inviteEmail}
             onChange={e => setInviteEmail(e.target.value)}
@@ -353,8 +353,8 @@ export default function TeamPage() {
             Kongsi pautan <strong>verirec.app</strong> kepada ahli yang dijemput untuk mendaftar menggunakan e-mel yang sama.
           </div>
           <div className="flex gap-3">
-            <Button type="button" variant="secondary" onClick={() => setInviteModal(false)}>Batal</Button>
-            <Button type="submit" className="flex-1" loading={inviting}>Hantar Jemputan</Button>
+            <Button type="button" variant="secondary" onClick={() => setInviteModal(false)}>Cancel</Button>
+            <Button type="submit" className="flex-1" loading={inviting}>Send Invitation</Button>
           </div>
         </form>
       </Modal>

@@ -7,15 +7,15 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 const PLAN_CONFIG = {
-  free:      { label: 'Percuma',    bg: 'bg-gray-100',    text: 'text-gray-700', ring: 'ring-gray-200' },
-  counselor: { label: 'Kaunselor',  bg: 'bg-emerald-600', text: 'text-white',    ring: 'ring-emerald-300' },
+  free:      { label: 'Free',    bg: 'bg-gray-100',    text: 'text-gray-700', ring: 'ring-gray-200' },
+  counselor: { label: 'Counselor',  bg: 'bg-emerald-600', text: 'text-white',    ring: 'ring-emerald-300' },
   starter:   { label: 'Starter',    bg: 'bg-blue-600',    text: 'text-white',    ring: 'ring-blue-300' },
   pro:       { label: 'Pro',        bg: 'bg-violet-600',  text: 'text-white',    ring: 'ring-violet-300' },
   biz:       { label: 'Perniagaan', bg: 'bg-emerald-600', text: 'text-white',    ring: 'ring-emerald-300' },
 };
 
 const STATUS_CONFIG = {
-  active:   { label: 'Aktif',              dot: 'bg-green-500' },
+  active:   { label: 'Active',              dot: 'bg-green-500' },
   trialing: { label: 'Tempoh Percubaan',   dot: 'bg-blue-500' },
   past_due: { label: 'Pembayaran Tertunggak', dot: 'bg-red-500' },
   canceled: { label: 'Dibatalkan',         dot: 'bg-gray-400' },
@@ -69,7 +69,7 @@ export function BillingSettings() {
     if (latest?.receipt_url) {
       window.open(latest.receipt_url, '_blank');
     } else {
-      toast.error('Tiada resit dijumpai. Cuba "Urus Langganan" untuk lihat semua invois.');
+      toast.error('Tiada resit dijumpai. Cuba "Urus Subscription" untuk lihat semua invois.');
     }
   };
 
@@ -150,11 +150,11 @@ export function BillingSettings() {
       {/* Action buttons */}
       <div className="flex flex-wrap gap-2">
         <Button variant="outline" onClick={() => navigate(subscription.plan === 'counselor' ? '/pricing?tab=kaunselor' : '/pricing')}>
-          {subscription.plan === 'counselor' ? 'Topup Sesi' : isPaid ? 'Tukar Pelan' : 'Naik Taraf'}
+          {subscription.plan === 'counselor' ? 'Top Up Sessions' : isPaid ? 'Tukar Plan' : 'Naik Taraf'}
         </Button>
         {isPaid && (
           <Button variant="outline" loading={portalLoading} onClick={openPortal}>
-            Urus Langganan
+            Urus Subscription
           </Button>
         )}
         <Button
@@ -167,13 +167,13 @@ export function BillingSettings() {
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          Muat Turun Resit
+          Download Receipt
         </Button>
       </div>
 
       {isPaid && (
         <p className="text-xs text-gray-400">
-          "Urus Langganan" — batal, tukar kad, atau lihat semua invois melalui portal selamat Stripe.
+          "Urus Subscription" — batal, tukar kad, atau lihat semua invois melalui portal selamat Stripe.
         </p>
       )}
 
@@ -193,7 +193,7 @@ export function BillingSettings() {
           {showHistory && (
             <div className="mt-3 space-y-2">
               {charges.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-4">Tiada rekod pembayaran.</p>
+                <p className="text-sm text-gray-400 text-center py-4">No records pembayaran.</p>
               ) : charges.map(c => (
                 <div key={c.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 gap-3">
                   <div className="min-w-0">

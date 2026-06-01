@@ -13,7 +13,7 @@ import { Modal } from '../components/ui/Modal.jsx';
 import toast from 'react-hot-toast';
 
 const riskColors = { low: 'green', medium: 'yellow', high: 'red' };
-const riskLabels = { low: 'Rendah', medium: 'Sederhana', high: 'Tinggi' };
+const riskLabels = { low: 'Low', medium: 'Moderate', high: 'High' };
 const riskOrder  = { low: 0, medium: 1, high: 2 };
 
 function RiskTrend({ sessions }) {
@@ -52,7 +52,7 @@ function SubjectHistoryModal({ subject, onClose }) {
   }, [subject]);
 
   return (
-    <Modal open={!!subject} onClose={onClose} title={`Sejarah Sesi — ${subject?.name}`}>
+    <Modal open={!!subject} onClose={onClose} title={`History Sesi — ${subject?.name}`}>
       {loading ? (
         <div className="flex justify-center py-8"><div className="w-6 h-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>
       ) : sessions.length === 0 ? (
@@ -102,7 +102,7 @@ function SubjectForm({ value, onChange }) {
   const set = (field) => (e) => onChange({ ...value, [field]: e.target.value });
   return (
     <div className="space-y-4">
-      <Input label="Nama Penuh *" value={value.name} onChange={set('name')} placeholder="Nama penuh subjek" required />
+      <Input label="Full Name *" value={value.name} onChange={set('name')} placeholder="Nama penuh subjek" required />
       <Input label="Nombor IC / Pasport" value={value.ic_number} onChange={set('ic_number')} placeholder="cth. 901231-07-5123" />
       <div className="grid grid-cols-2 gap-3">
         <Input label="Telefon" value={value.phone} onChange={set('phone')} placeholder="cth. 012-3456789" />
@@ -187,7 +187,7 @@ export default function SubjectsPage() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Padam profil ini? Sesi yang dikaitkan tidak akan terpadam.')) return;
+    if (!window.confirm('Delete profil ini? Sesi yang dikaitkan tidak akan terpadam.')) return;
     setDeleting(id);
     try {
       await deleteSubject(id);
@@ -276,7 +276,7 @@ export default function SubjectsPage() {
                         onClick={() => setHistorySubject(s)}
                         className="text-xs text-gray-500 hover:text-blue-600 transition-colors px-2.5 py-1.5 rounded-lg hover:bg-blue-50"
                       >
-                        Sejarah
+                        History
                       </button>
                     )}
                     <button
@@ -290,7 +290,7 @@ export default function SubjectsPage() {
                       disabled={deleting === s.id}
                       className="text-xs text-gray-500 hover:text-red-600 transition-colors px-2.5 py-1.5 rounded-lg hover:bg-red-50 disabled:opacity-50"
                     >
-                      {deleting === s.id ? '...' : 'Padam'}
+                      {deleting === s.id ? '...' : 'Delete'}
                     </button>
                   </div>
                 </div>
@@ -315,9 +315,9 @@ export default function SubjectsPage() {
         <form onSubmit={handleSave} className="space-y-4">
           <SubjectForm value={form} onChange={setForm} />
           <div className="flex gap-3 pt-2">
-            <Button type="button" variant="secondary" onClick={() => setModal(null)}>Batal</Button>
+            <Button type="button" variant="secondary" onClick={() => setModal(null)}>Cancel</Button>
             <Button type="submit" className="flex-1" loading={saving}>
-              {modal?.mode === 'create' ? 'Simpan Profil' : 'Kemas Kini'}
+              {modal?.mode === 'create' ? 'Save Profil' : 'Kemas Kini'}
             </Button>
           </div>
         </form>

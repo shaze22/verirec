@@ -10,10 +10,10 @@ import toast from 'react-hot-toast';
 import jsPDF from 'jspdf';
 
 const RISK_CONFIG = {
-  none:          { label: 'Rendah',    color: 'bg-green-500',  text: 'text-green-700',  bg: 'bg-green-50' },
-  mental_health: { label: 'Sederhana', color: 'bg-amber-400',  text: 'text-amber-700',  bg: 'bg-amber-50' },
-  self_harm:     { label: 'Tinggi',    color: 'bg-orange-500', text: 'text-orange-700', bg: 'bg-orange-50' },
-  suicidal:      { label: 'Kritikal',  color: 'bg-red-500',    text: 'text-red-700',    bg: 'bg-red-50' },
+  none:          { label: 'Low',      color: 'bg-green-500',  text: 'text-green-700',  bg: 'bg-green-50' },
+  mental_health: { label: 'Moderate', color: 'bg-amber-400',  text: 'text-amber-700',  bg: 'bg-amber-50' },
+  self_harm:     { label: 'High',     color: 'bg-orange-500', text: 'text-orange-700', bg: 'bg-orange-50' },
+  suicidal:      { label: 'Critical', color: 'bg-red-500',    text: 'text-red-700',    bg: 'bg-red-50' },
 };
 
 function StatCard({ label, value, sub, color = 'text-gray-900', bg = 'bg-white', onClick }) {
@@ -53,12 +53,12 @@ export default function CounselorDashboard() {
         const appt = payload.new;
         setAppointments(prev => [appt, ...prev]);
         if (Notification.permission === 'granted') {
-          new Notification('VeriRec — Temujanji Baru', {
-            body: `${appt.client_name} minta temujanji pada ${appt.requested_date} jam ${appt.requested_time || ''}`,
+          new Notification('VeriRec — New Appointment', {
+            body: `${appt.client_name} requested an appointment on ${appt.requested_date} at ${appt.requested_time || ''}`,
             icon: '/favicon.svg',
           });
         }
-        toast('📅 Temujanji baru dari ' + appt.client_name, { duration: 5000 });
+        toast('📅 New appointment from ' + appt.client_name, { duration: 5000 });
       })
       .subscribe();
     return () => supabase.removeChannel(channel);
@@ -180,7 +180,7 @@ export default function CounselorDashboard() {
 
       const section = (title) => {
         y += 3;
-        doc.setFillColor(16, 185, 129);
+        doc.setFillColor(139, 92, 246);
         doc.rect(MARGIN, y, W - MARGIN * 2, 7, 'F');
         doc.setFontSize(9);
         doc.setFont('helvetica', 'bold');
@@ -202,12 +202,12 @@ export default function CounselorDashboard() {
       };
 
       // Header
-      doc.setFillColor(16, 185, 129);
+      doc.setFillColor(139, 92, 246);
       doc.rect(0, 0, W, 28, 'F');
       doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(255, 255, 255);
-      doc.text('LAPORAN BULANAN KAUNSELING', MARGIN, 13);
+      doc.text('MONTHLY COUNSELING REPORT', MARGIN, 13);
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.text(monthLabel.toUpperCase(), MARGIN, 21);
@@ -219,41 +219,41 @@ export default function CounselorDashboard() {
       if (profile) {
         line(profile.klinik_name || 'Unit Kaunseling', 11, true);
         y += 1;
-        if (profile.display_name) { doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(80, 80, 80); doc.text(`Kaunselor: ${profile.display_name}${profile.registration_number ? ` (${profile.registration_number})` : ''}`, MARGIN, y); y += 5; }
+        if (profile.display_name) { doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(80, 80, 80); doc.text(`Counselor: ${profile.display_name}${profile.registration_number ? ` (${profile.registration_number})` : ''}`, MARGIN, y); y += 5; }
       }
       rule(true);
 
       // Summary stats
-      section('Ringkasan Bulan Ini');
-      row('Jumlah Sesi Dijalankan', monthSessions.length);
-      row('Klien Baharu Didaftarkan', monthClients.length);
-      row('Temujanji Selesai', (monthAppts || []).filter(a => a.status === 'completed').length);
-      row('Temujanji Dikonfirmasi', (monthAppts || []).filter(a => a.status === 'confirmed').length);
-      row('Jumlah Klien Aktif (Keseluruhan)', clients.length);
+      section('Monthly Summary');
+      row('Total Sessions Conducted', monthSessions.length);
+      row('New Clients Registered', monthClients.length);
+      row('Appointments Completed', (monthAppts || []).filter(a => a.status === 'completed').length);
+      row('Appointments Confirmed', (monthAppts || []).filter(a => a.status === 'confirmed').length);
+      row('Total Active Clients (Overall)', clients.length);
 
       // Risk distribution
-      section('Taburan Risiko (Sesi Bulan Ini)');
+      section('Risk Distribution (This Month\'s Sessions)');
       if (monthSessions.length === 0) {
-        doc.setFontSize(9); doc.setTextColor(150, 150, 150); doc.text('Tiada sesi dalam bulan ini.', MARGIN, y); y += 6;
+        doc.setFontSize(9); doc.setTextColor(150, 150, 150); doc.text('No sessions this month.', MARGIN, y); y += 6;
       } else {
-        const riskLabels = { none: 'Rendah / Tiada Risiko', mental_health: 'Sederhana (Kesihatan Mental)', self_harm: 'Tinggi (Kecederaan Diri)', suicidal: 'Kritikal (Bunuh Diri)' };
+        const riskLabels = { none: 'Low / No Risk', mental_health: 'Moderate (Mental Health)', self_harm: 'High (Self-Harm)', suicidal: 'Critical (Suicidal)' };
         Object.entries(riskCounts).forEach(([k, v]) => row(riskLabels[k], v));
       }
 
       // Problem types
       if (topProblems.length > 0) {
-        section('Isu Utama Klien');
+        section('Top Client Issues');
         topProblems.forEach(([issue, count]) => row(issue, count, true));
       }
 
       // Session trend (last 6 months table)
-      section('Trend Sesi (6 Bulan Lepas)');
+      section('Session Trend (Last 6 Months)');
       stats.monthlyData.forEach(d => row(d.label, d.count));
 
       // Appointments
       if ((monthAppts || []).length > 0) {
-        section('Senarai Temujanji');
-        const apptStatusLabel = { confirmed: 'Disahkan', completed: 'Selesai', pending: 'Menunggu', cancelled: 'Dibatal', rescheduled: 'Dijadual Semula' };
+        section('Appointments List');
+        const apptStatusLabel = { confirmed: 'Confirmed', completed: 'Completed', pending: 'Pending', cancelled: 'Cancelled', rescheduled: 'Rescheduled' };
         monthAppts.slice(0, 20).forEach(a => {
           doc.setFontSize(8.5);
           doc.setFont('helvetica', 'normal');
@@ -271,14 +271,14 @@ export default function CounselorDashboard() {
       doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(150, 150, 150);
-      doc.text('Dokumen ini dijana secara automatik oleh VeriRec — Platform Kaunseling Digital', MARGIN, y);
-      doc.text('Sulit & Terhad — Untuk Kegunaan Dalaman Sahaja', W - MARGIN, y, { align: 'right' });
+      doc.text('This document was automatically generated by VeriRec — Digital Counseling Platform', MARGIN, y);
+      doc.text('Confidential & Restricted — For Internal Use Only', W - MARGIN, y, { align: 'right' });
 
-      doc.save(`Laporan-Kaunseling-${reportMonth}.pdf`);
-      toast.success(`Laporan ${monthLabel} berjaya dijana.`);
+      doc.save(`Counseling-Report-${reportMonth}.pdf`);
+      toast.success(`Report for ${monthLabel} generated successfully.`);
     } catch (err) {
       console.error(err);
-      toast.error('Gagal menjana laporan.');
+      toast.error('Failed to generate report.');
     } finally {
       setExporting(false);
     }
@@ -289,7 +289,7 @@ export default function CounselorDashboard() {
       <div className="flex flex-col h-screen">
         <TopBar title="Dashboard" />
         <div className="flex-1 flex items-center justify-center">
-          <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
     );
@@ -303,13 +303,13 @@ export default function CounselorDashboard() {
             type="month"
             value={reportMonth}
             onChange={e => setReportMonth(e.target.value)}
-            className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 hidden sm:block"
+            className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500 hidden sm:block"
           />
           <Button size="sm" variant="secondary" loading={exporting} onClick={exportMonthlyReport}>
-            📊 Laporan
+            📊 Report
           </Button>
           <Button size="sm" onClick={() => navigate('/session/setup/counselor')}>
-            + Sesi Baru
+            + New Session
           </Button>
         </div>
       } />
@@ -318,38 +318,38 @@ export default function CounselorDashboard() {
 
           {/* Usage bar for counselor */}
           {subscription && (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center justify-between gap-4">
+            <div className="bg-violet-50 border border-violet-200 rounded-xl px-4 py-3 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center flex-shrink-0">
                   <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-emerald-800">
-                    {subscription.sessions_used} / {subscription.sessions_limit} sesi bulan ini
-                    {subscription.extra_sessions > 0 && <span className="text-emerald-600"> + {subscription.extra_sessions} topup</span>}
+                  <p className="text-sm font-semibold text-violet-800">
+                    {subscription.sessions_used} / {subscription.sessions_limit} sessions this month
+                    {subscription.extra_sessions > 0 && <span className="text-violet-600"> + {subscription.extra_sessions} top-up</span>}
                   </p>
-                  <div className="w-48 h-1.5 bg-emerald-200 rounded-full mt-1">
-                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(100, (subscription.sessions_used / subscription.sessions_limit) * 100)}%` }} />
+                  <div className="w-48 h-1.5 bg-violet-200 rounded-full mt-1">
+                    <div className="h-full bg-violet-500 rounded-full" style={{ width: `${Math.min(100, (subscription.sessions_used / subscription.sessions_limit) * 100)}%` }} />
                   </div>
                 </div>
               </div>
-              <button onClick={() => navigate('/pricing?tab=kaunselor')} className="text-xs font-semibold text-emerald-700 bg-white border border-emerald-300 px-3 py-1.5 rounded-lg hover:bg-emerald-50 flex-shrink-0">
-                Topup
+              <button onClick={() => navigate('/pricing?tab=kaunselor')} className="text-xs font-semibold text-violet-700 bg-white border border-violet-300 px-3 py-1.5 rounded-lg hover:bg-violet-50 flex-shrink-0">
+                Top Up
               </button>
             </div>
           )}
 
           {/* Stat cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <StatCard label="Jumlah Klien" value={clients.length} sub="klien berdaftar" onClick={() => navigate('/kaunselor/clients')} />
-            <StatCard label="Sesi Bulan Ini" value={stats.sessionsThisMonth} sub={format(new Date(), 'MMMM yyyy')} />
-            <StatCard label="Temujanji Baru" value={stats.pendingAppts} sub="menunggu pengesahan"
+            <StatCard label="Total Clients" value={clients.length} sub="registered clients" onClick={() => navigate('/kaunselor/clients')} />
+            <StatCard label="Sessions This Month" value={stats.sessionsThisMonth} sub={format(new Date(), 'MMMM yyyy')} />
+            <StatCard label="New Appointments" value={stats.pendingAppts} sub="pending confirmation"
               color={stats.pendingAppts > 0 ? 'text-amber-600' : 'text-gray-900'}
               bg={stats.pendingAppts > 0 ? 'bg-amber-50' : 'bg-white'}
               onClick={() => navigate('/kaunselor/appointments')} />
-            <StatCard label="Risiko Tinggi" value={stats.highRisk} sub="klien perlu perhatian"
+            <StatCard label="High Risk" value={stats.highRisk} sub="clients needing attention"
               color={stats.highRisk > 0 ? 'text-red-600' : 'text-gray-900'}
               bg={stats.highRisk > 0 ? 'bg-red-50' : 'bg-white'}
               onClick={() => navigate('/kaunselor/clients')} />
@@ -358,15 +358,15 @@ export default function CounselorDashboard() {
           <div className="grid md:grid-cols-2 gap-5">
             {/* Sessions trend */}
             <div className="bg-white rounded-xl border p-5">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Trend Sesi (6 Bulan)</h3>
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Session Trend (6 Months)</h3>
               {sessions.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-8">Belum ada sesi</p>
+                <p className="text-sm text-gray-400 text-center py-8">No sessions yet</p>
               ) : (
                 <div className="flex items-end gap-2 h-28">
                   {stats.monthlyData.map(({ label, count }) => (
                     <div key={label} className="flex-1 flex flex-col items-center gap-1">
                       <span className="text-xs text-gray-500">{count > 0 ? count : ''}</span>
-                      <div className="w-full rounded-t-md bg-emerald-500 transition-all" style={{ height: `${Math.max(4, (count / maxMonthly) * 80)}px` }} />
+                      <div className="w-full rounded-t-md bg-violet-500 transition-all" style={{ height: `${Math.max(4, (count / maxMonthly) * 80)}px` }} />
                       <span className="text-[10px] text-gray-400">{label}</span>
                     </div>
                   ))}
@@ -376,9 +376,9 @@ export default function CounselorDashboard() {
 
             {/* Risk distribution */}
             <div className="bg-white rounded-xl border p-5">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Taburan Risiko Klien</h3>
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Client Risk Distribution</h3>
               {clients.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-8">Belum ada klien</p>
+                <p className="text-sm text-gray-400 text-center py-8">No clients yet</p>
               ) : (
                 <div className="space-y-3">
                   {Object.entries(RISK_CONFIG).map(([key, cfg]) => {
@@ -403,11 +403,11 @@ export default function CounselorDashboard() {
             {/* Upcoming appointments */}
             <div className="bg-white rounded-xl border p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Temujanji Akan Datang</h3>
-                <button onClick={() => navigate('/kaunselor/appointments')} className="text-xs text-emerald-600 hover:text-emerald-800 font-medium">Lihat semua →</button>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Upcoming Appointments</h3>
+                <button onClick={() => navigate('/kaunselor/appointments')} className="text-xs text-violet-600 hover:text-violet-800 font-medium">View all →</button>
               </div>
               {stats.upcomingAppts.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-6">Tiada temujanji akan datang</p>
+                <p className="text-sm text-gray-400 text-center py-6">No upcoming appointments</p>
               ) : (
                 <div className="space-y-2">
                   {stats.upcomingAppts.map(a => (
@@ -417,7 +417,7 @@ export default function CounselorDashboard() {
                         <p className="text-xs text-gray-400">{a.confirmed_date || a.requested_date} • {a.confirmed_time || '—'}</p>
                       </div>
                       <button onClick={() => a.subject_id && navigate(`/kaunselor/clients/${a.subject_id}`)}
-                        className="text-xs text-emerald-600 hover:text-emerald-800 font-medium">Profil →</button>
+                        className="text-xs text-violet-600 hover:text-violet-800 font-medium">Profile →</button>
                     </div>
                   ))}
                 </div>
@@ -427,11 +427,11 @@ export default function CounselorDashboard() {
             {/* Recent sessions */}
             <div className="bg-white rounded-xl border p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Sesi Terkini</h3>
-                <button onClick={() => navigate('/kaunselor/clients')} className="text-xs text-emerald-600 hover:text-emerald-800 font-medium">Semua klien →</button>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Recent Sessions</h3>
+                <button onClick={() => navigate('/kaunselor/clients')} className="text-xs text-violet-600 hover:text-violet-800 font-medium">All clients →</button>
               </div>
               {stats.recentSessions.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-6">Belum ada sesi</p>
+                <p className="text-sm text-gray-400 text-center py-6">No sessions yet</p>
               ) : (
                 <div className="space-y-2">
                   {stats.recentSessions.map(s => (
@@ -446,7 +446,7 @@ export default function CounselorDashboard() {
                             s.report.riskLevel === 'high' ? 'bg-red-100 text-red-700' :
                             s.report.riskLevel === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
                           }`}>
-                            {s.report.riskLevel === 'high' ? 'Tinggi' : s.report.riskLevel === 'medium' ? 'Sederhana' : 'Rendah'}
+                            {s.report.riskLevel === 'high' ? 'High' : s.report.riskLevel === 'medium' ? 'Moderate' : 'Low'}
                           </span>
                         )}
                       </div>
@@ -460,13 +460,13 @@ export default function CounselorDashboard() {
           {/* Top presenting issues */}
           {stats.topIssues.length > 0 && (
             <div className="bg-white rounded-xl border p-5">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Isu Utama Klien</h3>
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Top Client Issues</h3>
               <div className="space-y-2">
                 {stats.topIssues.map(([issue, count], i) => (
                   <div key={i} className="flex items-center gap-3">
                     <span className="text-sm text-gray-600 flex-1 truncate">{issue}</span>
                     <div className="w-24 h-4 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${(count / stats.topIssues[0][1]) * 100}%` }} />
+                      <div className="h-full bg-violet-400 rounded-full" style={{ width: `${(count / stats.topIssues[0][1]) * 100}%` }} />
                     </div>
                     <span className="text-sm font-medium text-gray-600 w-5 text-right">{count}</span>
                   </div>

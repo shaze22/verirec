@@ -33,23 +33,23 @@ async function exportComparisonPDF(s1, s2) {
   pdf.setFillColor(37, 99, 235);
   pdf.rect(0, 0, W, 22, 'F');
   pdf.setFontSize(13); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(255, 255, 255);
-  pdf.text('PERBANDINGAN SESI — VeriRec', M, 13);
+  pdf.text('SESSION COMPARISON — VeriRec', M, 13);
   pdf.setFontSize(8); pdf.setFont('helvetica', 'normal');
-  pdf.text(`Dijana: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, W - M, 13, { align: 'right' });
+  pdf.text(`Generated: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, W - M, 13, { align: 'right' });
   y = 30;
 
-  const rl = { high: 'Tinggi', medium: 'Sederhana', low: 'Rendah' };
-  const sl = { positive: 'Positif', neutral: 'Neutral', negative: 'Negatif' };
+  const rl = { high: 'High', medium: 'Moderate', low: 'Low' };
+  const sl = { positive: 'Positive', neutral: 'Neutral', negative: 'Negative' };
   const riskRgb = { high: [200, 30, 30], medium: [200, 140, 0], low: [30, 150, 60] };
 
   const rows = [
-    ['Tajuk', s1.title, s2.title],
-    ['Tarikh', format(new Date(s1.created_at), 'dd MMM yyyy'), format(new Date(s2.created_at), 'dd MMM yyyy')],
-    ['Tempoh', `${Math.round((s1.duration || 0) / 60)} minit`, `${Math.round((s2.duration || 0) / 60)} minit`],
-    ['Subjek', s1.subject_name, s2.subject_name],
-    ['Tahap Risiko', rl[s1.report?.riskLevel] || '—', rl[s2.report?.riskLevel] || '—'],
-    ['Sentimen', sl[s1.report?.sentiment] || '—', sl[s2.report?.sentiment] || '—'],
-    ['Ringkasan AI', s1.report?.summary || '—', s2.report?.summary || '—'],
+    ['Title', s1.title, s2.title],
+    ['Date', format(new Date(s1.created_at), 'dd MMM yyyy'), format(new Date(s2.created_at), 'dd MMM yyyy')],
+    ['Duration', `${Math.round((s1.duration || 0) / 60)} minit`, `${Math.round((s2.duration || 0) / 60)} minit`],
+    ['Subject', s1.subject_name, s2.subject_name],
+    ['Risk Level', rl[s1.report?.riskLevel] || '—', rl[s2.report?.riskLevel] || '—'],
+    ['Sentiment', sl[s1.report?.sentiment] || '—', sl[s2.report?.sentiment] || '—'],
+    ['AI Summary', s1.report?.summary || '—', s2.report?.summary || '—'],
   ];
 
   rows.forEach(([label, v1, v2]) => {
@@ -60,7 +60,7 @@ async function exportComparisonPDF(s1, s2) {
     y += 4;
     const saveY = y;
     // Col 1
-    const isRisk = label === 'Tahap Risiko';
+    const isRisk = label === 'Risk Level';
     const rgb1 = isRisk ? (riskRgb[s1.report?.riskLevel] || [30, 30, 30]) : [30, 30, 30];
     const rgb2 = isRisk ? (riskRgb[s2.report?.riskLevel] || [30, 30, 30]) : [30, 30, 30];
     addLine(v1, M, 9, false, rgb1);
@@ -78,9 +78,9 @@ async function exportComparisonPDF(s1, s2) {
 
   // Footer
   pdf.setFontSize(7); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(150, 50, 50);
-  pdf.text('SULIT — UNTUK KEGUNAAN RASMI SAHAJA', M, H - 8);
+  pdf.text('CONFIDENTIAL — FOR OFFICIAL USE ONLY', M, H - 8);
 
-  pdf.save(`verirec-perbandingan-sesi-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+  pdf.save(`verirec-session-comparison-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
 }
 
 async function exportBulkPDF(sessions) {
@@ -106,35 +106,35 @@ async function exportBulkPDF(sessions) {
       });
     };
 
-    addLine('VeriRec — Laporan Sesi', 16, true, [37, 99, 235]);
+    addLine('VeriRec — Session Report', 16, true, [37, 99, 235]);
     y += 3;
-    addLine(`Tajuk: ${s.title}`, 12, true);
-    addLine(`Profesion: ${professionLabel(s.profession)}`);
-    addLine(`Subjek: ${s.subject_name}`);
-    addLine(`Tarikh: ${format(new Date(s.created_at), 'dd MMM yyyy, HH:mm')}`);
-    addLine(`Tempoh: ${Math.round((s.duration || 0) / 60)} minit`);
-    if (s.report?.riskLevel) addLine(`Tahap Risiko: ${s.report.riskLevel}`);
+    addLine(`Title: ${s.title}`, 12, true);
+    addLine(`Profession: ${professionLabel(s.profession)}`);
+    addLine(`Subject: ${s.subject_name}`);
+    addLine(`Date: ${format(new Date(s.created_at), 'dd MMM yyyy, HH:mm')}`);
+    addLine(`Duration: ${Math.round((s.duration || 0) / 60)} min`);
+    if (s.report?.riskLevel) addLine(`Risk Level: ${s.report.riskLevel}`);
     y += 4;
 
     if (s.report?.summary) {
-      addLine('Ringkasan:', 11, true);
+      addLine('Summary:', 11, true);
       addLine(s.report.summary, 10);
       y += 3;
     }
     if (s.report?.keyFindings?.length) {
-      addLine('Penemuan Utama:', 11, true);
+      addLine('Key Findings:', 11, true);
       s.report.keyFindings.forEach(f => addLine(`• ${f}`, 10));
       y += 3;
     }
     if (s.report?.recommendations?.length) {
-      addLine('Cadangan:', 11, true);
+      addLine('Recommendations:', 11, true);
       s.report.recommendations.forEach(r => addLine(`→ ${r}`, 10));
     }
 
     addLine(`─── ${idx + 1} / ${sessions.length} ───`, 9, false, [150, 150, 150]);
   });
 
-  pdf.save(`verirec-eksport-pukal-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+  pdf.save(`verirec-bulk-export-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
 }
 
 function getOverdueFollowUps(sessions) {
@@ -165,9 +165,9 @@ function getDeadlineAlerts(sessions) {
 }
 
 const statusConfig = {
-  active:  { label: 'Aktif',        color: 'green' },
-  pending: { label: 'Ditangguhkan', color: 'yellow' },
-  closed:  { label: 'Ditutup',      color: 'gray' },
+  active:  { label: 'Active',        color: 'green' },
+  pending: { label: 'Pending', color: 'yellow' },
+  closed:  { label: 'Closed',      color: 'gray' },
 };
 
 function SkeletonCard() {
@@ -229,16 +229,16 @@ export default function DashboardPage({ pageTitle }) {
           const notifKey = `followup_notif_${new Date().toDateString()}_${user.id}`;
           if (!localStorage.getItem(notifKey)) {
             if (Notification.permission === 'granted') {
-              new Notification('VeriRec — Tindakan Susulan', {
-                body: `${overdueCount} tindakan susulan belum selesai. Semak dashboard anda.`,
+              new Notification('VeriRec — Follow-up Actions', {
+                body: `${overdueCount} follow-up actions pending. Check your dashboard.`,
                 icon: '/favicon.svg',
               });
               localStorage.setItem(notifKey, '1');
             } else if (Notification.permission === 'default') {
               Notification.requestPermission().then(p => {
                 if (p === 'granted') {
-                  new Notification('VeriRec — Tindakan Susulan', {
-                    body: `${overdueCount} tindakan susulan belum selesai.`,
+                  new Notification('VeriRec — Follow-up Actions', {
+                    body: `${overdueCount} follow-up actions pending.`,
                     icon: '/favicon.svg',
                   });
                   localStorage.setItem(notifKey, '1');
@@ -248,7 +248,7 @@ export default function DashboardPage({ pageTitle }) {
           }
         }
       })
-      .catch(() => toast.error('Gagal memuatkan sesi'))
+      .catch(() => toast.error('Failed to load sessions'))
       .finally(() => setLoading(false));
 
     getTeamSessions()
@@ -303,12 +303,12 @@ export default function DashboardPage({ pageTitle }) {
     try {
       const now = new Date();
       const pad = n => String(n).padStart(2, '0');
-      const autoTitle = `Rakaman ${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      const autoTitle = `Recording ${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
       const interviewer = user.email.split('@')[0];
       const setup = {
         profession: quickProfession,
         title: autoTitle,
-        subject_name: 'Tidak dinyatakan',
+        subject_name: 'Not specified',
         subject_role: '',
         case_number: '',
         context_notes: '',
@@ -321,7 +321,7 @@ export default function DashboardPage({ pageTitle }) {
           title: autoTitle,
           profession: quickProfession,
           interviewer,
-          subject_name: 'Tidak dinyatakan',
+          subject_name: 'Not specified',
           consent_signed: false,
         })
         .select()
@@ -333,7 +333,7 @@ export default function DashboardPage({ pageTitle }) {
       localStorage.setItem('preferred_profession', quickProfession);
       navigate('/session/active');
     } catch {
-      toast.error('Gagal memulakan sesi.');
+      toast.error('Failed to start session.');
       setQuickRecording(false);
     }
   };
@@ -357,7 +357,7 @@ export default function DashboardPage({ pageTitle }) {
 
   const handleBulkDelete = async () => {
     if (selected.size === 0) return;
-    const confirmed = window.confirm(`Padam ${selected.size} sesi yang dipilih? Tindakan ini tidak boleh dibatalkan.`);
+    const confirmed = window.confirm(`Delete ${selected.size} selected sessions? This action cannot be undone.`);
     if (!confirmed) return;
     setBulkDeleting(true);
     try {
@@ -365,9 +365,9 @@ export default function DashboardPage({ pageTitle }) {
       setSessions(prev => prev.filter(s => !selected.has(s.id)));
       setSelected(new Set());
       setSelectMode(false);
-      toast.success(`${selected.size} sesi dipadam`);
+      toast.success(`${selected.size} sessions deleted`);
     } catch {
-      toast.error('Gagal memadam sesi');
+      toast.error('Failed to delete sessions');
     } finally {
       setBulkDeleting(false);
     }
@@ -377,13 +377,13 @@ export default function DashboardPage({ pageTitle }) {
 
   const handleBulkExport = async () => {
     const targets = filteredSessions.filter(s => selected.has(s.id) && s.report);
-    if (!targets.length) { toast.error('Tiada sesi berpilih yang mempunyai laporan.'); return; }
+    if (!targets.length) { toast.error('No selected sessions have reports.'); return; }
     setBulkExporting(true);
     try {
       await exportBulkPDF(targets);
-      toast.success(`${targets.length} laporan dieksport sebagai PDF.`);
+      toast.success(`${targets.length} reports exported as PDF.`);
     } catch {
-      toast.error('Gagal mengeksport PDF.');
+      toast.error('Failed to export PDF.');
     } finally {
       setBulkExporting(false);
     }
@@ -412,13 +412,13 @@ export default function DashboardPage({ pageTitle }) {
                 </svg>
               </div>
               <div>
-                <h2 className="text-base font-semibold text-gray-900">Rekod Cepat</h2>
-                <p className="text-xs text-gray-500">Terus rakam tanpa isi borang</p>
+                <h2 className="text-base font-semibold text-gray-900">Quick Record</h2>
+                <p className="text-xs text-gray-500">Record directly without filling a form</p>
               </div>
             </div>
 
             <div className="mb-5">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Profesion</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Profession</label>
               <select
                 value={quickProfession}
                 onChange={e => setQuickProfession(e.target.value)}
@@ -429,7 +429,7 @@ export default function DashboardPage({ pageTitle }) {
                 ))}
               </select>
               <p className="text-xs text-gray-400 mt-1.5">
-                Tajuk dan butiran boleh dikemaskini selepas sesi.
+                Title and details can be updated after the session.
               </p>
             </div>
 
@@ -462,29 +462,29 @@ export default function DashboardPage({ pageTitle }) {
         const s1 = filteredSessions.find(s => s.id === id1) || sessions.find(s => s.id === id1);
         const s2 = filteredSessions.find(s => s.id === id2) || sessions.find(s => s.id === id2);
         if (!s1 || !s2) return null;
-        const rl = { high: 'Tinggi', medium: 'Sederhana', low: 'Rendah' };
-        const sl = { positive: 'Positif', neutral: 'Neutral', negative: 'Negatif' };
+        const rl = { high: 'High', medium: 'Moderate', low: 'Low' };
+        const sl = { positive: 'Positive', neutral: 'Neutral', negative: 'Negative' };
         const riskColor = { high: 'text-red-600 bg-red-50', medium: 'text-amber-600 bg-amber-50', low: 'text-green-600 bg-green-50' };
         const riskOrder = { low: 0, medium: 1, high: 2 };
         const riskDiff = (riskOrder[s2.report?.riskLevel] ?? -1) - (riskOrder[s1.report?.riskLevel] ?? -1);
         const sameSub = s1.subject_name?.toLowerCase() === s2.subject_name?.toLowerCase();
 
         const rows = [
-          { label: 'Tarikh', v1: format(new Date(s1.created_at), 'dd MMM yyyy'), v2: format(new Date(s2.created_at), 'dd MMM yyyy') },
-          { label: 'Tempoh', v1: `${Math.round((s1.duration || 0) / 60)} minit`, v2: `${Math.round((s2.duration || 0) / 60)} minit` },
-          { label: 'Subjek', v1: s1.subject_name || '—', v2: s2.subject_name || '—', highlight: !sameSub },
-          { label: 'Tahap Risiko', v1: rl[s1.report?.riskLevel] || '—', v2: rl[s2.report?.riskLevel] || '—', riskKey1: s1.report?.riskLevel, riskKey2: s2.report?.riskLevel },
-          { label: 'Sentimen', v1: sl[s1.report?.sentiment] || '—', v2: sl[s2.report?.sentiment] || '—' },
-          { label: 'Ringkasan AI', v1: s1.report?.summary, v2: s2.report?.summary, multiline: true },
-          { label: 'Penemuan Utama', v1: s1.report?.keyFindings?.slice(0, 2).join(' • '), v2: s2.report?.keyFindings?.slice(0, 2).join(' • '), multiline: true },
-          { label: 'Cadangan', v1: s1.report?.recommendations?.slice(0, 2).join(' • '), v2: s2.report?.recommendations?.slice(0, 2).join(' • '), multiline: true },
+          { label: 'Date', v1: format(new Date(s1.created_at), 'dd MMM yyyy'), v2: format(new Date(s2.created_at), 'dd MMM yyyy') },
+          { label: 'Duration', v1: `${Math.round((s1.duration || 0) / 60)} minit`, v2: `${Math.round((s2.duration || 0) / 60)} minit` },
+          { label: 'Subject', v1: s1.subject_name || '—', v2: s2.subject_name || '—', highlight: !sameSub },
+          { label: 'Risk Level', v1: rl[s1.report?.riskLevel] || '—', v2: rl[s2.report?.riskLevel] || '—', riskKey1: s1.report?.riskLevel, riskKey2: s2.report?.riskLevel },
+          { label: 'Sentiment', v1: sl[s1.report?.sentiment] || '—', v2: sl[s2.report?.sentiment] || '—' },
+          { label: 'AI Summary', v1: s1.report?.summary, v2: s2.report?.summary, multiline: true },
+          { label: 'Key Findings', v1: s1.report?.keyFindings?.slice(0, 2).join(' • '), v2: s2.report?.keyFindings?.slice(0, 2).join(' • '), multiline: true },
+          { label: 'Recommendations', v1: s1.report?.recommendations?.slice(0, 2).join(' • '), v2: s2.report?.recommendations?.slice(0, 2).join(' • '), multiline: true },
         ];
 
         return (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 overflow-auto">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
               <div className="flex items-center justify-between px-6 py-4 border-b">
-                <h2 className="text-lg font-bold text-gray-900">Perbandingan Sesi</h2>
+                <h2 className="text-lg font-bold text-gray-900">Session Comparison</h2>
                 <div className="flex gap-2">
                   <Button
                     size="sm"
@@ -492,8 +492,8 @@ export default function DashboardPage({ pageTitle }) {
                     loading={comparingExport}
                     onClick={async () => {
                       setComparingExport(true);
-                      try { await exportComparisonPDF(s1, s2); toast.success('PDF perbandingan dieksport.'); }
-                      catch { toast.error('Gagal mengeksport PDF.'); }
+                      try { await exportComparisonPDF(s1, s2); toast.success('Comparison PDF exported.'); }
+                      catch { toast.error('Failed to export PDF.'); }
                       finally { setComparingExport(false); }
                     }}
                   >
@@ -509,22 +509,22 @@ export default function DashboardPage({ pageTitle }) {
               <div className="overflow-auto flex-1 p-6">
                 {riskDiff !== 0 && (
                   <div className={`mb-4 rounded-xl px-4 py-2.5 text-sm font-medium ${riskDiff > 0 ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
-                    {riskDiff > 0 ? '⚠️ Risiko meningkat dari Sesi 1 ke Sesi 2' : '✅ Risiko menurun dari Sesi 1 ke Sesi 2'}
+                    {riskDiff > 0 ? '⚠️ Risk increased from Session 1 to Session 2' : '✅ Risk decreased from Session 1 to Session 2'}
                   </div>
                 )}
                 {!sameSub && (
                   <div className="mb-4 rounded-xl px-4 py-2.5 text-sm font-medium bg-amber-50 text-amber-700">
-                    ℹ️ Dua sesi ini melibatkan subjek yang berbeza
+                    ℹ️ These two sessions involve different subjects
                   </div>
                 )}
                 <div className="grid grid-cols-3 gap-0 border rounded-xl overflow-hidden">
                   <div className="bg-gray-50 p-3 text-xs font-semibold text-gray-400 uppercase" />
                   <div className="bg-blue-50 p-3 text-center">
-                    <p className="text-xs font-semibold text-blue-600 uppercase">Sesi 1</p>
+                    <p className="text-xs font-semibold text-blue-600 uppercase">Session 1</p>
                     <p className="text-sm font-medium text-gray-900 truncate">{s1.title}</p>
                   </div>
                   <div className="bg-indigo-50 p-3 text-center">
-                    <p className="text-xs font-semibold text-indigo-600 uppercase">Sesi 2</p>
+                    <p className="text-xs font-semibold text-indigo-600 uppercase">Session 2</p>
                     <p className="text-sm font-medium text-gray-900 truncate">{s2.title}</p>
                   </div>
                   {rows.map(({ label, v1, v2, riskKey1, riskKey2, multiline, highlight }) => (
@@ -546,7 +546,7 @@ export default function DashboardPage({ pageTitle }) {
       })()}
 
       <TopBar
-        title={pageTitle || "Papan Pemuka"}
+        title={pageTitle || "Dashboard"}
         actions={
           selectMode ? (
             <div className="flex items-center gap-2">
@@ -566,17 +566,17 @@ export default function DashboardPage({ pageTitle }) {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <Button variant="secondary" onClick={() => setShowQuickRecord(true)} title="Rekod Cepat">
+              <Button variant="secondary" onClick={() => setShowQuickRecord(true)} title="Quick Record">
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                <span className="hidden sm:inline">Rekod Cepat</span>
+                <span className="hidden sm:inline">Quick Record</span>
               </Button>
               <Button onClick={handleNewSession}>
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
-                <span className="hidden sm:inline">Sesi Baru</span>
+                <span className="hidden sm:inline">New Session</span>
               </Button>
             </div>
           )
@@ -587,10 +587,10 @@ export default function DashboardPage({ pageTitle }) {
         {usageWarning && (
           <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center justify-between">
             <p className="text-sm text-amber-800">
-              Anda hampir mencapai had sesi bulan ini ({subscription.sessions_used}/{subscription.sessions_limit}).
+              You are about to reach your monthly session limit ({subscription.sessions_used}/{subscription.sessions_limit}).
             </p>
             <Button size="sm" variant="outline" onClick={() => navigate(pricingTarget)}>
-              {preferredProfession === 'counselor' ? 'Topup Sesi' : 'Naik Taraf'}
+              {preferredProfession === 'counselor' ? 'Top Up Sessions' : 'Upgrade'}
             </Button>
           </div>
         )}
@@ -613,7 +613,7 @@ export default function DashboardPage({ pageTitle }) {
               <svg className="w-4 h-4 text-red-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <p className="text-sm font-semibold text-red-800">Tindakan Susulan Mendesak ({deadlineAlerts.length})</p>
+              <p className="text-sm font-semibold text-red-800">Urgent Follow-up Actions ({deadlineAlerts.length})</p>
             </div>
             {deadlineAlerts.slice(0, 3).map((a, i) => (
               <div key={i} className="flex items-start justify-between gap-2 pl-6">
@@ -622,7 +622,7 @@ export default function DashboardPage({ pageTitle }) {
                   <p className="text-xs text-red-600 truncate">{a.item}</p>
                 </div>
                 <span className={`text-xs font-semibold flex-shrink-0 px-2 py-0.5 rounded-full ${a.daysLeft < 0 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
-                  {a.daysLeft < 0 ? `${Math.abs(a.daysLeft)}h tertunggak` : a.daysLeft === 0 ? 'Hari ini' : `${a.daysLeft}h lagi`}
+                  {a.daysLeft < 0 ? `${Math.abs(a.daysLeft)}d overdue` : a.daysLeft === 0 ? 'Today' : `${a.daysLeft}d remaining`}
                 </span>
               </div>
             ))}
@@ -641,17 +641,17 @@ export default function DashboardPage({ pageTitle }) {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Tiada Sesi Lagi</h3>
-            <p className="text-gray-500 mb-2 max-w-sm mx-auto text-sm">Mulakan sesi pertama anda untuk merakam dan menganalisis sesi profesional secara automatik.</p>
-            <p className="text-gray-400 text-xs mb-6 max-w-xs mx-auto">Isi butiran sesi, dapatkan persetujuan subjek, kemudian rakam dan jana laporan AI secara automatik.</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Sessions Yet</h3>
+            <p className="text-gray-500 mb-2 max-w-sm mx-auto text-sm">Start your first session to automatically record and analyze professional sessions.</p>
+            <p className="text-gray-400 text-xs mb-6 max-w-xs mx-auto">Fill in session details, obtain subject consent, then record and auto-generate an AI report.</p>
             <Button onClick={handleNewSession}>
               {preferredProfession
-                ? `Mulakan Sesi ${professionLabel(preferredProfession)} Pertama`
-                : 'Mulakan Sesi Pertama'}
+                ? `Start First ${professionLabel(preferredProfession)} Session`
+                : 'Start First Session'}
             </Button>
             {preferredProfession && (
               <button onClick={handleChooseProfession} className="block mt-3 text-xs text-gray-400 hover:text-gray-600 mx-auto">
-                Pilih profesion lain →
+                Choose another profession →
               </button>
             )}
           </div>
@@ -660,7 +660,7 @@ export default function DashboardPage({ pageTitle }) {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <div className="flex items-center gap-3">
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                  Sesi Terkini ({sessions.length})
+                  Recent Sessions ({sessions.length})
                 </h3>
                 {sessions.length > 1 && !selectMode && (
                   <button
@@ -678,7 +678,7 @@ export default function DashboardPage({ pageTitle }) {
                     onClick={toggleSelectAll}
                     className="text-xs text-blue-600 hover:text-blue-800 font-medium"
                   >
-                    {selected.size === filteredSessions.length ? 'Nyahpilih Semua' : 'Pilih Semua'}
+                    {selected.size === filteredSessions.length ? 'Deselect All' : 'Select All'}
                   </button>
                 )}
               </div>
@@ -691,7 +691,7 @@ export default function DashboardPage({ pageTitle }) {
                     type="text"
                     value={search}
                     onChange={e => setSearch(e.target.value)}
-                    placeholder="Cari tajuk, subjek, no. kes..."
+                    placeholder="Search title, subject, case no..."
                     className="pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg w-56 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   {search && (
@@ -707,7 +707,7 @@ export default function DashboardPage({ pageTitle }) {
                   onChange={e => setFilterProfession(e.target.value)}
                   className="py-2 pl-3 pr-8 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Semua Profesion</option>
+                  <option value="">All Professions</option>
                   {PROFESSIONS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
                 </select>
                 <select
@@ -715,10 +715,10 @@ export default function DashboardPage({ pageTitle }) {
                   onChange={e => setFilterStatus(e.target.value)}
                   className="py-2 pl-3 pr-8 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Semua Status</option>
-                  <option value="active">Aktif</option>
-                  <option value="pending">Ditangguhkan</option>
-                  <option value="closed">Ditutup</option>
+                  <option value="">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="pending">Pending</option>
+                  <option value="closed">Closed</option>
                 </select>
                 {(search || filterProfession || filterStatus) && (
                   <button
@@ -732,7 +732,7 @@ export default function DashboardPage({ pageTitle }) {
             </div>
 
             {filteredSessions.length === 0 ? (
-              <p className="text-center text-gray-400 text-sm py-10">Tiada sesi sepadan dengan carian "{search}"</p>
+              <p className="text-center text-gray-400 text-sm py-10">No sessions match the search "{search}"</p>
             ) : (
               <div className="grid gap-3">
                 {filteredSessions.map(s => {
@@ -789,13 +789,13 @@ export default function DashboardPage({ pageTitle }) {
                         <p className="text-xs text-gray-400">{format(new Date(s.created_at), 'dd MMM yyyy')}</p>
                         <p className="text-xs text-gray-400">{Math.round((s.duration || 0) / 60)} minit</p>
                         {s.recording_status === 'draft' ? (
-                          <Badge color="yellow" className="text-xs">Draf</Badge>
+                          <Badge color="yellow" className="text-xs">Draft</Badge>
                         ) : s.recording_status === 'in_progress' ? (
-                          <Badge color="orange" className="text-xs">Dalam Proses</Badge>
+                          <Badge color="orange" className="text-xs">In Progress</Badge>
                         ) : s.report ? (
-                          <Badge color="green" className="text-xs">Laporan Siap</Badge>
+                          <Badge color="green" className="text-xs">Report Ready</Badge>
                         ) : (
-                          <Badge color="gray" className="text-xs">Belum dijana</Badge>
+                          <Badge color="gray" className="text-xs">Not Generated</Badge>
                         )}
                       </div>
                     </div>
@@ -814,7 +814,7 @@ export default function DashboardPage({ pageTitle }) {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                Sesi Berjadual
+                Scheduled Sessions
               </h3>
               <button onClick={() => navigate('/jadual')} className="text-xs text-blue-600 hover:text-blue-700">
                 Lihat semua →
@@ -849,7 +849,7 @@ export default function DashboardPage({ pageTitle }) {
               <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              Sesi Pasukan ({teamSessions.length})
+              Team Sessions ({teamSessions.length})
             </h3>
             <div className="grid gap-3">
               {teamSessions.map(s => (
@@ -877,9 +877,9 @@ export default function DashboardPage({ pageTitle }) {
                     <p className="text-xs text-gray-400">{format(new Date(s.created_at), 'dd MMM yyyy')}</p>
                     <p className="text-xs text-gray-400">{Math.round((s.duration || 0) / 60)} minit</p>
                     {s.report ? (
-                      <Badge color="green" className="text-xs">Laporan Siap</Badge>
+                      <Badge color="green" className="text-xs">Report Ready</Badge>
                     ) : (
-                      <Badge color="gray" className="text-xs">Belum dijana</Badge>
+                      <Badge color="gray" className="text-xs">Not Generated</Badge>
                     )}
                   </div>
                 </div>

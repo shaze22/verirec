@@ -82,7 +82,7 @@ export default function SessionPage() {
       if (elapsed >= threshold && !autoPhaseRef.current.has(idx)) {
         autoPhaseRef.current.add(idx);
         setCurrentPhase(phase);
-        toast(`📍 Fasa: ${phase}`, { icon: '🔄', duration: 3000 });
+        toast(`📍 Phase: ${phase}`, { icon: '🔄', duration: 3000 });
       }
     });
   }, [timer.elapsed, started, isPaused, isInvestigationProf]);
@@ -114,7 +114,7 @@ export default function SessionPage() {
         const newOnes = transcript.filter(e => !ids.has(e.id));
         const combined = [...prev, ...newOnes];
         if (combined.length >= 490 && prev.length < 490) {
-          toast('Transkrip menghampiri had 500 entri.', { icon: '⚠️' });
+          toast('Transcript menghampiri had 500 entri.', { icon: '⚠️' });
         }
         return combined.length > 500 ? combined.slice(combined.length - 500) : combined;
       });
@@ -160,7 +160,7 @@ export default function SessionPage() {
 
   useEffect(() => {
     if (micError) {
-      const msgs = { no_mic: 'Tiada mikrofon dijumpai.', permission_denied: 'Kebenaran mikrofon ditolak.', not_supported: 'Perakam audio tidak disokong.' };
+      const msgs = { no_mic: 'Tiada mikrofon dijumpai.', permission_denied: 'Kebenaran mikrofon declined.', not_supported: 'Perakam audio tidak disokong.' };
       toast.error(msgs[micError] || 'Ralat mikrofon.');
     }
   }, [micError]);
@@ -402,9 +402,9 @@ export default function SessionPage() {
 
   const recentTranscript = entries.filter(e => e.type === 'TRANSCRIPT').slice(-5).map(e => e.text);
   const tabs = ['transcript', 'questions', 'assessment', 'ai', 'flags'];
-  const tabLabels = { transcript: 'Transkrip', questions: 'Soalan', assessment: 'Assessment', ai: 'Cadangan AI', flags: `Bendera${flags.length ? ` (${flags.length})` : ''}` };
+  const tabLabels = { transcript: 'Transcript', questions: 'Soalan', assessment: 'Assessment', ai: 'AI Suggestions', flags: `Bendera${flags.length ? ` (${flags.length})` : ''}` };
   const mobileTabs = [
-    { key: 'transcript', icon: '📝', label: 'Transkrip' },
+    { key: 'transcript', icon: '📝', label: 'Transcript' },
     { key: 'questions',  icon: '❓', label: 'Soalan' },
     { key: 'ai',        icon: '🤖', label: 'AI' },
     { key: 'flags',     icon: '🚩', label: 'Bendera' },
@@ -467,7 +467,7 @@ export default function SessionPage() {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M10 9v6m4-6v6" />
                 </svg>
-                {isMobile ? 'Jeda' : 'Jeda'}
+                {isMobile ? 'Pause' : 'Pause'}
               </Button>
             )}
             {started && (
@@ -511,7 +511,7 @@ export default function SessionPage() {
             )}
             {isSpeechRecognitionSupported && (
               <div className="ml-auto flex items-center gap-1.5 flex-shrink-0">
-                <span className="text-gray-400">Bahasa:</span>
+                <span className="text-gray-400">Language:</span>
                 <select
                   value={transcriptLang}
                   onChange={e => setTranscriptLang(e.target.value)}
@@ -519,7 +519,7 @@ export default function SessionPage() {
                   className="text-xs border border-gray-200 rounded px-1.5 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
                 >
                   <option value="auto">Auto BM+EN (Campuran)</option>
-                  <option value="ms-MY">Bahasa Malaysia</option>
+                  <option value="ms-MY">Language Malaysia</option>
                   <option value="en-MY">English (MY)</option>
                   <option value="en-US">English (US)</option>
                 </select>
@@ -585,7 +585,7 @@ export default function SessionPage() {
                     onClick={() => setMobileAiTab('ai')}
                     className={`flex-1 py-2.5 font-semibold transition-colors ${mobileAiTab === 'ai' ? 'text-blue-600 border-b-2 border-blue-600 bg-white' : 'text-gray-500'}`}
                   >
-                    🤖 Cadangan AI
+                    🤖 AI Suggestions
                   </button>
                   <button
                     onClick={() => setMobileAiTab('assessment')}
@@ -630,13 +630,13 @@ export default function SessionPage() {
           {/* AI Suggestions — always visible on desktop, toggle on md */}
           <div className="w-72 flex flex-col overflow-hidden">
             <div className="flex border-b bg-white text-xs xl:hidden">
-              <button onClick={() => setActiveTab('ai')} className={`flex-1 py-2 font-medium ${activeTab !== 'assessment' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>Cadangan AI</button>
+              <button onClick={() => setActiveTab('ai')} className={`flex-1 py-2 font-medium ${activeTab !== 'assessment' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>AI Suggestions</button>
               <button onClick={() => setActiveTab('assessment')} className={`flex-1 py-2 font-medium ${activeTab === 'assessment' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>
                 {isInvestigationProf ? 'PEACE Model' : 'Assessment'}
               </button>
             </div>
             <div className="hidden xl:flex items-center px-3 py-2 border-b bg-white">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Cadangan AI</span>
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">AI Suggestions</span>
             </div>
             <div className="flex-1 overflow-auto">
               {activeTab === 'assessment' ? (
@@ -684,7 +684,7 @@ export default function SessionPage() {
             <div className="flex gap-3 justify-end">
               <Button variant="secondary" onClick={() => setEndModal(false)}>Batal</Button>
               <Button variant="danger" onClick={handleEnd}>
-                Ya, Tamat &amp; Jana Laporan
+                Ya, Tamat &amp; Generate Report
               </Button>
             </div>
           )
@@ -706,11 +706,11 @@ export default function SessionPage() {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold mb-2 text-gray-900">Analisis AI Gagal</h3>
-              <p className="text-gray-600 text-sm mb-1">Data sesi telah berjaya disimpan.</p>
+              <p className="text-gray-600 text-sm mb-1">Data sesi telah berjaya saved.</p>
               <p className="text-gray-500 text-xs mb-5">Laporan boleh dijana semula dari halaman laporan sesi.</p>
               <div className="flex flex-col gap-2">
                 <Button onClick={handleRetryReport} className="w-full">
-                  Cuba Semula Jana Laporan
+                  Cuba Semula Generate Report
                 </Button>
                 <Button variant="secondary" className="w-full" onClick={() => {
                   sessionStorage.removeItem('session_setup');

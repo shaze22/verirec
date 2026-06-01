@@ -82,13 +82,13 @@ export default function AudioLibraryPage() {
   };
 
   const handleDelete = async (rec) => {
-    if (!window.confirm(`Padam "${rec.title || rec.file_name}"? Tindakan ini tidak boleh dibatalkan.`)) return;
+    if (!window.confirm(`Delete "${rec.title || rec.file_name}"? Tindakan ini tidak boleh dibatalkan.`)) return;
     try {
       await deleteAudio(rec.id, rec.storage_path);
       setRecordings(prev => prev.filter(r => r.id !== rec.id));
-      toast.success('Rakaman dipadam');
+      toast.success('Recording deleted');
     } catch {
-      toast.error('Gagal memadam rakaman');
+      toast.error('Failed to delete rakaman');
     }
   };
 
@@ -136,7 +136,7 @@ export default function AudioLibraryPage() {
     if (!selected.size) return;
     const toDelete = recordings.filter(r => selected.has(r.id));
     const totalSz = toDelete.reduce((a, r) => a + (r.file_size || 0), 0);
-    if (!window.confirm(`Padam ${toDelete.length} rakaman (${formatBytes(totalSz)})? Tindakan ini tidak boleh dibatalkan.`)) return;
+    if (!window.confirm(`Delete ${toDelete.length} rakaman (${formatBytes(totalSz)})? Tindakan ini tidak boleh dibatalkan.`)) return;
     setBulkDeleting(true);
     let done = 0;
     for (const rec of toDelete) {
@@ -149,7 +149,7 @@ export default function AudioLibraryPage() {
     setSelected(new Set());
     setSelectMode(false);
     getStorageUsage(user.id).then(setStorageUsed).catch(() => {});
-    toast.success(`${done} rakaman dipadam.`);
+    toast.success(`${done} rakaman deleted.`);
     setBulkDeleting(false);
   };
 
@@ -179,7 +179,7 @@ export default function AudioLibraryPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <TopBar title="Perpustakaan Audio" />
+      <TopBar title="Audio Library" />
 
       <div className="flex-1 overflow-auto p-4 pb-20 md:pb-6">
         {!loading && recordings.length > 0 && (
@@ -203,11 +203,11 @@ export default function AudioLibraryPage() {
               const plan = subscription?.plan || 'free';
               const limit = STORAGE_LIMITS[plan] ?? STORAGE_LIMITS.free;
               const pct = Math.min(100, (storageUsed / limit) * 100);
-              const barColor = pct > 90 ? 'bg-red-500' : pct > 70 ? 'bg-amber-500' : 'bg-emerald-500';
+              const barColor = pct > 90 ? 'bg-red-500' : pct > 70 ? 'bg-amber-500' : 'bg-violet-500';
               return (
                 <div className="bg-white rounded-xl border p-4 mb-4">
                   <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="font-medium text-gray-700">Storan Digunakan</span>
+                    <span className="font-medium text-gray-700">Storage Used</span>
                     <span className="text-gray-500">{formatBytes(storageUsed)} / {formatBytes(limit)}</span>
                   </div>
                   <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -261,7 +261,7 @@ export default function AudioLibraryPage() {
                         loading={bulkDeleting}
                         onClick={handleBulkDelete}
                       >
-                        🗑 Padam {selected.size} ({formatBytes(selectedSize)})
+                        🗑 Delete {selected.size} ({formatBytes(selectedSize)})
                       </Button>
                     )}
                     <Button size="sm" variant="secondary" onClick={() => { setSelectMode(false); setSelected(new Set()); }}>
@@ -270,7 +270,7 @@ export default function AudioLibraryPage() {
                   </>
                 ) : (
                   <Button size="sm" variant="secondary" onClick={() => setSelectMode(true)}>
-                    Pilih & Padam
+                    Pilih & Delete
                   </Button>
                 )}
               </div>
@@ -297,7 +297,7 @@ export default function AudioLibraryPage() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-12 text-gray-400">
-            <p className="text-sm">Tiada rakaman dalam julat tarikh ini.</p>
+            <p className="text-sm">No recordings dalam julat tarikh ini.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -421,7 +421,7 @@ export default function AudioLibraryPage() {
                     </button>
                     <button
                       onClick={() => handleDelete(rec)}
-                      title="Padam"
+                      title="Delete"
                       className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

@@ -60,16 +60,16 @@ export default function KaunslorSetupPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.display_name.trim()) return toast.error('Sila masukkan nama paparan.');
-    if (!form.phone.trim()) return toast.error('Sila masukkan nombor telefon.');
-    if (form.credentials.length === 0) return toast.error('Pilih sekurang-kurangnya satu kelayakan.');
+    if (!form.display_name.trim()) return toast.error('Please enter a display name.');
+    if (!form.phone.trim()) return toast.error('Please enter a phone number.');
+    if (form.credentials.length === 0) return toast.error('Select at least one credential.');
     setSaving(true);
     try {
       await upsertCounselorProfile({ ...form, user_id: user.id });
-      toast.success('Profil kaunselor disimpan!');
+      toast.success('Counselor profile saved!');
       navigate('/kaunselor/clients');
     } catch (err) {
-      toast.error(err.message || 'Gagal menyimpan profil.');
+      toast.error(err.message || 'Failed to save profile.');
     } finally {
       setSaving(false);
     }
@@ -79,12 +79,12 @@ export default function KaunslorSetupPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <TopBar title="Persediaan Profil Kaunselor" />
+      <TopBar title="Counselor Profile Setup" />
       <div className="flex-1 overflow-auto p-6 pb-20 md:pb-6">
         <div className="max-w-2xl mx-auto space-y-6">
 
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800 flex items-start justify-between gap-3">
-            <span><strong>Selamat datang ke VeriRec Counselor Module.</strong> Lengkapkan profil anda untuk mula menerima temujanji daripada klien.</span>
+            <span><strong>Welcome to VeriRec Counselor Module.</strong> Complete your profile to start accepting appointments from clients.</span>
             <button type="button" onClick={() => { localStorage.setItem(`counselor_setup_skipped_${user?.id}`, '1'); navigate('/dashboard'); }}
               className="text-xs text-blue-500 hover:text-blue-700 flex-shrink-0 underline">Skip</button>
           </div>
@@ -93,18 +93,18 @@ export default function KaunslorSetupPage() {
 
             {/* Personal info */}
             <div className="bg-white rounded-xl border p-5 space-y-4">
-              <h3 className="font-semibold text-gray-900">Maklumat Peribadi</h3>
-              <Input label="Nama Paparan *" value={form.display_name} onChange={set('display_name')} placeholder="Nama yang akan dilihat oleh klien" required />
-              <Input label="Nombor Telefon / WhatsApp *" value={form.phone} onChange={set('phone')} type="tel" placeholder="cth. 012-3456789" required />
-              <Input label="Nombor Pendaftaran" value={form.registration_number} onChange={set('registration_number')} placeholder="cth. BKR/0123/2024" />
-              <Textarea label="Bio / Tentang Saya" value={form.bio} onChange={set('bio')} rows={3} placeholder="Perkenalan ringkas tentang pengalaman dan pendekatan kaunseling anda..." />
+              <h3 className="font-semibold text-gray-900">Personal Information</h3>
+              <Input label="Display Name *" value={form.display_name} onChange={set('display_name')} placeholder="Name that will be shown to clients" required />
+              <Input label="Phone / WhatsApp Number *" value={form.phone} onChange={set('phone')} type="tel" placeholder="e.g. 012-3456789" required />
+              <Input label="Registration Number" value={form.registration_number} onChange={set('registration_number')} placeholder="e.g. BKR/0123/2024" />
+              <Textarea label="Bio / About Me" value={form.bio} onChange={set('bio')} rows={3} placeholder="Brief introduction about your experience and counseling approach..." />
             </div>
 
             {/* Practice type */}
             <div className="bg-white rounded-xl border p-5 space-y-4">
-              <h3 className="font-semibold text-gray-900">Lokasi & Jenis Amalan</h3>
+              <h3 className="font-semibold text-gray-900">Location & Practice Type</h3>
               <div className="grid grid-cols-2 gap-3">
-                {[{ val: 'solo', label: '👤 Solo Practitioner', desc: 'Amalan persendirian' }, { val: 'klinik', label: '🏥 Klinik / Pusat', desc: 'Ada admin / receptionist' }].map(opt => (
+                {[{ val: 'solo', label: '👤 Solo Practitioner', desc: 'Private practice' }, { val: 'klinik', label: '🏥 Clinic / Center', desc: 'Has admin / receptionist' }].map(opt => (
                   <button key={opt.val} type="button"
                     onClick={() => setForm(f => ({ ...f, practice_type: opt.val }))}
                     className={`p-4 rounded-xl border-2 text-left transition-all ${form.practice_type === opt.val ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}>
@@ -114,15 +114,15 @@ export default function KaunslorSetupPage() {
                 ))}
               </div>
               {form.practice_type === 'klinik' && (
-                <Input label="Nama Klinik / Pusat" value={form.klinik_name} onChange={set('klinik_name')} placeholder="cth. Klinik Kaunseling Bestari" />
+                <Input label="Clinic / Center Name" value={form.klinik_name} onChange={set('klinik_name')} placeholder="e.g. Bestari Counseling Clinic" />
               )}
-              <Textarea label="Alamat / Lokasi Sesi *" value={form.klinik_address} onChange={set('klinik_address')} rows={2} placeholder="Alamat tempat sesi kaunseling dijalankan (akan dipaparkan kepada klien dalam e-mel pengesahan)..." />
-              <p className="text-xs text-gray-400">Maklumat ini akan dipaparkan dalam e-mel pengesahan temujanji klien.</p>
+              <Textarea label="Session Address / Location *" value={form.klinik_address} onChange={set('klinik_address')} rows={2} placeholder="Address where counseling sessions are held (will be shown to clients in confirmation emails)..." />
+              <p className="text-xs text-gray-400">This information will be shown in client appointment confirmation emails.</p>
             </div>
 
             {/* Credentials */}
             <div className="bg-white rounded-xl border p-5 space-y-3">
-              <h3 className="font-semibold text-gray-900">Kelayakan *</h3>
+              <h3 className="font-semibold text-gray-900">Credentials *</h3>
               <div className="flex flex-wrap gap-2">
                 {CREDENTIALS_OPTIONS.map(c => (
                   <Tag key={c} label={c} selected={form.credentials.includes(c)} onToggle={() => toggleTag('credentials', c)} />
@@ -132,7 +132,7 @@ export default function KaunslorSetupPage() {
 
             {/* Specializations */}
             <div className="bg-white rounded-xl border p-5 space-y-3">
-              <h3 className="font-semibold text-gray-900">Kepakaran</h3>
+              <h3 className="font-semibold text-gray-900">Specializations</h3>
               <div className="flex flex-wrap gap-2">
                 {SPECIALIZATIONS_OPTIONS.map(s => (
                   <Tag key={s} label={s} selected={form.specializations.includes(s)} onToggle={() => toggleTag('specializations', s)} />
@@ -142,29 +142,29 @@ export default function KaunslorSetupPage() {
 
             {/* Session settings */}
             <div className="bg-white rounded-xl border p-5 space-y-4">
-              <h3 className="font-semibold text-gray-900">Tetapan Sesi</h3>
+              <h3 className="font-semibold text-gray-900">Session Settings</h3>
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">Tempoh Sesi (minit)</label>
+                <label className="text-sm font-medium text-gray-700 mb-1 block">Session Duration (minutes)</label>
                 <select value={form.session_duration_minutes} onChange={e => setForm(f => ({ ...f, session_duration_minutes: +e.target.value }))}
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  {[30, 45, 60, 90, 120].map(m => <option key={m} value={m}>{m} minit</option>)}
+                  {[30, 45, 60, 90, 120].map(m => <option key={m} value={m}>{m} minutes</option>)}
                 </select>
               </div>
               <div className="flex items-center gap-3">
                 <input type="checkbox" id="accepting" checked={form.is_accepting_appointments}
                   onChange={e => setForm(f => ({ ...f, is_accepting_appointments: e.target.checked }))}
                   className="w-4 h-4 text-blue-600 rounded" />
-                <label htmlFor="accepting" className="text-sm text-gray-700">Menerima temujanji baru daripada klien</label>
+                <label htmlFor="accepting" className="text-sm text-gray-700">Accepting new appointments from clients</label>
               </div>
               <div className="bg-gray-50 rounded-lg p-3">
-                <p className="text-xs text-gray-500 mb-1">Kod Tempahan Anda</p>
+                <p className="text-xs text-gray-500 mb-1">Your Booking Code</p>
                 <p className="font-mono font-bold text-gray-900 text-lg">{form.booking_code}</p>
                 <p className="text-xs text-gray-400 mt-1">URL: www.verirec.app/book/{form.booking_code}</p>
               </div>
             </div>
 
             <Button type="submit" className="w-full" size="lg" loading={saving}>
-              Simpan & Teruskan ke Jadual Temujanji →
+              Save &amp; Continue to Appointments →
             </Button>
           </form>
         </div>

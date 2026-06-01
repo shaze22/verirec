@@ -21,7 +21,7 @@ export default function ProfessionSelectPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <TopBar title="Pilih Profesion" />
+      <TopBar title="Choose Profession" />
       <div className="flex-1 overflow-auto p-6 pb-20 md:pb-6">
         {preferred && (
           <p className="text-sm text-blue-600 font-medium mb-4 flex items-center gap-1.5">

@@ -5,7 +5,10 @@ export function getSubdomain() {
   return null;
 }
 
-export const isCounselorSubdomain = () => getSubdomain() === 'counselor';
+const COUNSELOR_DOMAINS = ['kaunselor.app', 'www.kaunselor.app'];
+
+export const isCounselorSubdomain = () =>
+  getSubdomain() === 'counselor' || COUNSELOR_DOMAINS.includes(window.location.hostname);
 
 // doctor.verirec.app dan jkm.verirec.app dah dibuang — redirect ke www.verirec.app
 export const isRetiredSubdomain = () => ['doctor', 'jkm'].includes(getSubdomain());

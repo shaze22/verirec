@@ -5,7 +5,7 @@ import { format, addDays, startOfToday, parseISO } from 'date-fns';
 
 const Logo = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-8 h-8">
-    <rect width="32" height="32" rx="8" fill="#2563eb"/>
+    <rect width="32" height="32" rx="8" fill="#8b5cf6"/>
     <polyline points="4,16 7,11 10,21 13,9 16,23 19,11 22,18 25,14 28,16"
       stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
   </svg>
@@ -48,11 +48,11 @@ export default function PublicBookingPage() {
   useEffect(() => {
     getCounselorByCode(code)
       .then(data => {
-        if (!data) { setError('Pautan tempahan tidak sah.'); return; }
-        if (!data.is_accepting) { setError('Kaunselor ini tidak menerima temujanji buat masa ini.'); return; }
+        if (!data) { setError('Invalid booking link.'); return; }
+        if (!data.is_accepting) { setError('This counselor is not accepting appointments at this time.'); return; }
         setCounselor(data);
       })
-      .catch(() => setError('Gagal memuatkan maklumat kaunselor.'))
+      .catch(() => setError('Failed to load counselor information.'))
       .finally(() => setLoading(false));
   }, [code]);
 
@@ -98,9 +98,9 @@ export default function PublicBookingPage() {
     } catch (err) {
       const msg = err?.message || '';
       if (msg.includes('rate_limit_exceeded')) {
-        alert('Terlalu banyak tempahan dihantar. Sila cuba lagi selepas sejam.');
+        alert('Too many booking requests. Please try again after one hour.');
       } else {
-        alert('Gagal menghantar tempahan. Sila cuba lagi.');
+        alert('Failed to submit booking. Please try again.');
       }
     } finally {
       setSubmitting(false);
@@ -111,7 +111,7 @@ export default function PublicBookingPage() {
 
   if (loading) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="w-8 h-8 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
@@ -120,7 +120,7 @@ export default function PublicBookingPage() {
       <div className="bg-white rounded-2xl shadow p-8 max-w-md w-full text-center">
         <div className="text-4xl mb-4">⚠️</div>
         <h2 className="text-lg font-semibold text-gray-900">{error}</h2>
-        <p className="text-sm text-gray-500 mt-2">Sila hubungi kaunselor anda secara terus.</p>
+        <p className="text-sm text-gray-500 mt-2">Please contact your counselor directly.</p>
       </div>
     </div>
   );
@@ -129,12 +129,12 @@ export default function PublicBookingPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow p-8 max-w-md w-full text-center">
         <div className="text-5xl mb-4">✅</div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Tempahan Dihantar!</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Booking Submitted!</h2>
         <p className="text-gray-600 text-sm mb-4">
-          Tempahan anda dengan <strong>{counselor?.display_name}</strong> pada <strong>{format(parseISO(selectedDate), 'dd MMM yyyy')}</strong> pukul <strong>{selectedTime}</strong> telah dihantar.
+          Your appointment with <strong>{counselor?.display_name}</strong> on <strong>{format(parseISO(selectedDate), 'dd MMM yyyy')}</strong> at <strong>{selectedTime}</strong> has been submitted.
         </p>
         <div className="bg-blue-50 rounded-xl p-4 text-sm text-blue-800">
-          Kaunselor akan mengesahkan temujanji anda dalam masa terdekat. Anda akan menerima notifikasi melalui e-mel.
+          The counselor will confirm your appointment shortly. You will receive a notification via email.
         </div>
       </div>
     </div>
@@ -148,26 +148,26 @@ export default function PublicBookingPage() {
           <Logo />
           <div>
             <p className="text-xs text-gray-400">VeriRec</p>
-            <h1 className="font-bold text-gray-900">Tempahan Temujanji</h1>
+            <h1 className="font-bold text-gray-900">Appointment Booking</h1>
           </div>
         </div>
 
         {/* Counselor card */}
         <div className="bg-white rounded-2xl border p-5 mb-4">
           <div className="flex items-start gap-3 mb-3">
-            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xl flex-shrink-0">
-              {counselor?.display_name?.charAt(0) || 'K'}
+            <div className="w-12 h-12 rounded-full bg-violet-100 flex items-center justify-center text-violet-700 font-bold text-xl flex-shrink-0">
+              {counselor?.display_name?.charAt(0) || 'C'}
             </div>
             <div className="flex-1">
               <h2 className="font-bold text-gray-900 text-lg leading-tight">{counselor?.display_name}</h2>
-              {counselor?.klinik_name && <p className="text-sm text-blue-600">{counselor.klinik_name}</p>}
-              {counselor?.registration_number && <p className="text-xs text-gray-400">No. Pendaftaran: {counselor.registration_number}</p>}
+              {counselor?.klinik_name && <p className="text-sm text-violet-600">{counselor.klinik_name}</p>}
+              {counselor?.registration_number && <p className="text-xs text-gray-400">Registration No.: {counselor.registration_number}</p>}
             </div>
           </div>
           {counselor?.credentials?.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-2">
               {counselor.credentials.map(c => (
-                <span key={c} className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">{c}</span>
+                <span key={c} className="text-xs bg-violet-50 text-violet-700 px-2 py-0.5 rounded-full">{c}</span>
               ))}
             </div>
           )}
@@ -180,19 +180,19 @@ export default function PublicBookingPage() {
           )}
           {counselor?.bio && <p className="text-sm text-gray-600 mb-2">{counselor.bio}</p>}
           <div className="flex flex-wrap gap-3 text-xs text-gray-400 mt-1">
-            <span>⏱ {counselor?.duration || 60} minit/sesi</span>
+            <span>⏱ {counselor?.duration || 60} min/session</span>
             {counselor?.klinik_address && <span>📍 {counselor.klinik_address}</span>}
           </div>
         </div>
 
         {/* Progress */}
         <div className="flex items-center gap-2 mb-5">
-          {['Tarikh & Masa', 'Maklumat', 'Persetujuan'].map((s, i) => (
+          {['Date & Time', 'Details', 'Consent'].map((s, i) => (
             <div key={i} className="flex items-center gap-2 flex-1">
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${step > i + 1 ? 'bg-green-500 text-white' : step === i + 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${step > i + 1 ? 'bg-green-500 text-white' : step === i + 1 ? 'bg-violet-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
                 {step > i + 1 ? '✓' : i + 1}
               </div>
-              <span className={`text-xs hidden sm:block ${step === i + 1 ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>{s}</span>
+              <span className={`text-xs hidden sm:block ${step === i + 1 ? 'text-violet-600 font-medium' : 'text-gray-400'}`}>{s}</span>
               {i < 2 && <div className="flex-1 h-px bg-gray-200" />}
             </div>
           ))}
@@ -202,14 +202,14 @@ export default function PublicBookingPage() {
         {step === 1 && (
           <div className="space-y-4">
             <div className="bg-white rounded-2xl border p-5">
-              <h3 className="font-semibold text-gray-900 mb-3">Pilih Tarikh</h3>
+              <h3 className="font-semibold text-gray-900 mb-3">Select Date</h3>
               {next14Days.length === 0 ? (
-                <p className="text-gray-400 text-sm">Tiada slot tersedia buat masa ini.</p>
+                <p className="text-gray-400 text-sm">No slots available at this time.</p>
               ) : (
                 <div className="grid grid-cols-3 gap-2">
                   {next14Days.map(d => (
                     <button key={d.date} onClick={() => handleDateSelect(d.date, d.dayOfWeek)}
-                      className={`p-2.5 rounded-xl border text-center transition-all ${selectedDate === d.date ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                      className={`p-2.5 rounded-xl border text-center transition-all ${selectedDate === d.date ? 'border-violet-500 bg-violet-50' : 'border-gray-200 hover:border-gray-300'}`}>
                       <div className="text-xs text-gray-400">{d.dayLabel}</div>
                       <div className="text-sm font-semibold text-gray-900">{d.label}</div>
                     </button>
@@ -220,14 +220,14 @@ export default function PublicBookingPage() {
 
             {selectedDate && (
               <div className="bg-white rounded-2xl border p-5">
-                <h3 className="font-semibold text-gray-900 mb-3">Pilih Masa</h3>
+                <h3 className="font-semibold text-gray-900 mb-3">Select Time</h3>
                 {availableTimes.length === 0 ? (
-                  <p className="text-gray-400 text-sm">Tiada slot tersedia pada tarikh ini.</p>
+                  <p className="text-gray-400 text-sm">No slots available on this date.</p>
                 ) : (
                   <div className="grid grid-cols-4 gap-2">
                     {availableTimes.map(t => (
                       <button key={t} onClick={() => setSelectedTime(t)}
-                        className={`py-2 rounded-xl border text-sm font-medium transition-all ${selectedTime === t ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:border-gray-300 text-gray-700'}`}>
+                        className={`py-2 rounded-xl border text-sm font-medium transition-all ${selectedTime === t ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-gray-200 hover:border-gray-300 text-gray-700'}`}>
                         {t}
                       </button>
                     ))}
@@ -237,8 +237,8 @@ export default function PublicBookingPage() {
             )}
 
             <button onClick={() => setStep(2)} disabled={!selectedDate || !selectedTime}
-              className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors">
-              Teruskan →
+              className="w-full py-3 bg-violet-600 text-white rounded-xl font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-violet-700 transition-colors">
+              Continue →
             </button>
           </div>
         )}
@@ -247,121 +247,121 @@ export default function PublicBookingPage() {
         {step === 2 && (
           <div className="bg-white rounded-2xl border p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900">Maklumat Anda</h3>
-              <button onClick={() => setStep(1)} className="text-sm text-blue-600">← Ubah Tarikh</button>
+              <h3 className="font-semibold text-gray-900">Your Information</h3>
+              <button onClick={() => setStep(1)} className="text-sm text-violet-600">← Change Date</button>
             </div>
-            <div className="bg-blue-50 rounded-xl p-3 text-sm text-blue-800">
+            <div className="bg-violet-50 rounded-xl p-3 text-sm text-violet-800">
               📅 {format(parseISO(selectedDate), 'dd MMM yyyy')} · 🕐 {selectedTime}
             </div>
             {/* Basic info */}
             {[
-              { k: 'name',       label: 'Nama Penuh *',                              type: 'text',  placeholder: 'Nama seperti dalam IC', required: true },
-              { k: 'phone',      label: 'No. Telefon *',                             type: 'tel',   placeholder: '01X-XXXXXXX', required: true },
-              { k: 'email',      label: 'E-mel',                                     type: 'email', placeholder: 'email@contoh.com' },
-              { k: 'ic',         label: 'No. Kad Pengenalan',                        type: 'text',  placeholder: '000101-10-0000' },
-              { k: 'student_id', label: 'No. Matrik / ID Pelajar / ID Kakitangan',   type: 'text',  placeholder: 'cth. A12345 / EMP0012' },
-              { k: 'address',    label: 'Alamat',                                    type: 'text',  placeholder: 'Alamat anda' },
+              { k: 'name',       label: 'Full Name *',                              type: 'text',  placeholder: 'Name as in IC', required: true },
+              { k: 'phone',      label: 'Phone Number *',                           type: 'tel',   placeholder: '01X-XXXXXXX', required: true },
+              { k: 'email',      label: 'Email',                                    type: 'email', placeholder: 'email@example.com' },
+              { k: 'ic',         label: 'IC / Passport Number',                    type: 'text',  placeholder: '000101-10-0000' },
+              { k: 'student_id', label: 'Matric / Student ID / Staff ID',           type: 'text',  placeholder: 'e.g. A12345 / EMP0012' },
+              { k: 'address',    label: 'Address',                                  type: 'text',  placeholder: 'Your address' },
             ].map(f => (
               <div key={f.k}>
                 <label className="text-sm font-medium text-gray-700 mb-1 block">{f.label}</label>
                 <input type={f.type} value={form[f.k]} onChange={set(f.k)} placeholder={f.placeholder} required={f.required}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
               </div>
             ))}
 
             {/* DOB — 3 dropdowns */}
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Tarikh Lahir</label>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Date of Birth</label>
               <div className="grid grid-cols-3 gap-2">
-                <select value={form.dobDay} onChange={set('dobDay')} className="px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                  <option value="">Hari</option>
+                <select value={form.dobDay} onChange={set('dobDay')} className="px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white">
+                  <option value="">Day</option>
                   {Array.from({ length: 31 }, (_, i) => i + 1).map(d => <option key={d} value={String(d).padStart(2,'0')}>{d}</option>)}
                 </select>
-                <select value={form.dobMonth} onChange={set('dobMonth')} className="px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                  <option value="">Bulan</option>
-                  {['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogs','Sep','Okt','Nov','Dis'].map((m,i) => (
+                <select value={form.dobMonth} onChange={set('dobMonth')} className="px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white">
+                  <option value="">Month</option>
+                  {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map((m,i) => (
                     <option key={i} value={String(i+1).padStart(2,'0')}>{m}</option>
                   ))}
                 </select>
-                <select value={form.dobYear} onChange={set('dobYear')} className="px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                  <option value="">Tahun</option>
+                <select value={form.dobYear} onChange={set('dobYear')} className="px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white">
+                  <option value="">Year</option>
                   {Array.from({ length: 60 }, (_, i) => new Date().getFullYear() - 10 - i).map(y => <option key={y} value={y}>{y}</option>)}
                 </select>
               </div>
             </div>
 
-            {/* Jenis sesi */}
+            {/* Session type */}
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Jenis Sesi</label>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Session Type</label>
               <div className="grid grid-cols-2 gap-2">
-                {[['voluntary','Sukarela'],['referred','Dirujuk']].map(([v,l]) => (
+                {[['voluntary','Voluntary'],['referred','Referred']].map(([v,l]) => (
                   <button key={v} type="button" onClick={() => setForm(f => ({ ...f, session_type: v }))}
-                    className={`py-2 rounded-lg border text-sm font-medium transition-all ${form.session_type === v ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-600'}`}>
+                    className={`py-2 rounded-lg border text-sm font-medium transition-all ${form.session_type === v ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-gray-200 text-gray-600'}`}>
                     {l}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Kaunseling sebelum */}
+            {/* Previous counseling */}
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Pernahkah anda mendapat kaunseling sebelum ini?</label>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Have you received counseling before?</label>
               <div className="grid grid-cols-2 gap-2">
-                {[['ya','Ya'],['tidak','Tidak']].map(([v,l]) => (
+                {[['ya','Yes'],['tidak','No']].map(([v,l]) => (
                   <button key={v} type="button" onClick={() => setForm(f => ({ ...f, previous_counseling: v }))}
-                    className={`py-2 rounded-lg border text-sm font-medium transition-all ${form.previous_counseling === v ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-600'}`}>
+                    className={`py-2 rounded-lg border text-sm font-medium transition-all ${form.previous_counseling === v ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-gray-200 text-gray-600'}`}>
                     {l}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Sejarah psikiatri */}
+            {/* Psychiatric history */}
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Adakah anda mempunyai sejarah psikiatri?</label>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Do you have a psychiatric history?</label>
               <div className="grid grid-cols-2 gap-2 mb-2">
-                {[['ya','Ya'],['tidak','Tidak']].map(([v,l]) => (
-                  <button key={v} type="button" onClick={() => setForm(f => ({ ...f, psychiatric_history: v === 'tidak' ? 'Tiada' : '' }))}
-                    className={`py-2 rounded-lg border text-sm font-medium transition-all ${(form.psychiatric_history === 'Tiada' ? 'tidak' : form.psychiatric_history ? 'ya' : '') === v ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-600'}`}>
+                {[['ya','Yes'],['tidak','No']].map(([v,l]) => (
+                  <button key={v} type="button" onClick={() => setForm(f => ({ ...f, psychiatric_history: v === 'tidak' ? 'None' : '' }))}
+                    className={`py-2 rounded-lg border text-sm font-medium transition-all ${(form.psychiatric_history === 'None' ? 'tidak' : form.psychiatric_history ? 'ya' : '') === v ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-gray-200 text-gray-600'}`}>
                     {l}
                   </button>
                 ))}
               </div>
-              {form.psychiatric_history !== 'Tiada' && form.psychiatric_history !== '' && (
+              {form.psychiatric_history !== 'None' && form.psychiatric_history !== '' && (
                 <textarea value={form.psychiatric_history} onChange={set('psychiatric_history')} rows={2}
-                  placeholder="Nyatakan diagnosis / rawatan yang pernah diterima..."
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                  placeholder="State the diagnosis / treatment received..."
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
               )}
             </div>
 
-            {/* Ubat psikiatri */}
+            {/* Psychiatric medication */}
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Adakah anda sedang mengambil ubat psikiatri?</label>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Are you currently taking psychiatric medication?</label>
               <div className="grid grid-cols-2 gap-2 mb-2">
-                {[['ya','Ya'],['tidak','Tidak']].map(([v,l]) => (
-                  <button key={v} type="button" onClick={() => setForm(f => ({ ...f, psychiatric_medication: v === 'tidak' ? 'Tiada' : '' }))}
-                    className={`py-2 rounded-lg border text-sm font-medium transition-all ${(form.psychiatric_medication === 'Tiada' ? 'tidak' : form.psychiatric_medication ? 'ya' : '') === v ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-600'}`}>
+                {[['ya','Yes'],['tidak','No']].map(([v,l]) => (
+                  <button key={v} type="button" onClick={() => setForm(f => ({ ...f, psychiatric_medication: v === 'tidak' ? 'None' : '' }))}
+                    className={`py-2 rounded-lg border text-sm font-medium transition-all ${(form.psychiatric_medication === 'None' ? 'tidak' : form.psychiatric_medication ? 'ya' : '') === v ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-gray-200 text-gray-600'}`}>
                     {l}
                   </button>
                 ))}
               </div>
-              {form.psychiatric_medication !== 'Tiada' && form.psychiatric_medication !== '' && (
+              {form.psychiatric_medication !== 'None' && form.psychiatric_medication !== '' && (
                 <textarea value={form.psychiatric_medication} onChange={set('psychiatric_medication')} rows={2}
-                  placeholder="Nyatakan nama ubat dan dos..."
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                  placeholder="State the medication name and dosage..."
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
               )}
             </div>
 
-            {/* Isu utama */}
+            {/* Presenting issue */}
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Sebab / Isu Utama</label>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Reason / Presenting Issue</label>
               <textarea value={form.issue} onChange={set('issue')} rows={3}
-                placeholder="Nyatakan secara ringkas sebab anda ingin berjumpa kaunselor..."
-                className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                placeholder="Briefly state why you would like to see a counselor..."
+                className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
             </div>
-            <button onClick={() => { if (!form.name || !form.phone) { alert('Sila isi nama dan telefon.'); return; } setStep(3); }}
-              className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors">
-              Teruskan →
+            <button onClick={() => { if (!form.name || !form.phone) { alert('Please fill in your name and phone number.'); return; } setStep(3); }}
+              className="w-full py-3 bg-violet-600 text-white rounded-xl font-semibold hover:bg-violet-700 transition-colors">
+              Continue →
             </button>
           </div>
         )}
@@ -377,45 +377,45 @@ export default function PublicBookingPage() {
               aria-hidden="true"
             />
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900">Persetujuan Klien</h3>
-              <button type="button" onClick={() => setStep(2)} className="text-sm text-blue-600">← Kembali</button>
+              <h3 className="font-semibold text-gray-900">Client Consent</h3>
+              <button type="button" onClick={() => setStep(2)} className="text-sm text-violet-600">← Back</button>
             </div>
             <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 space-y-3 max-h-64 overflow-auto leading-relaxed">
-              <p className="font-bold text-gray-900">BORANG PERSETUJUAN MAKLUMAN (Informed Consent Form)</p>
-              <p className="text-xs text-gray-500 italic">Ini adalah dokumen undang-undang. Sila baca dengan teliti sebelum menandatangani.</p>
+              <p className="font-bold text-gray-900">INFORMED CONSENT FORM</p>
+              <p className="text-xs text-gray-500 italic">This is a legal document. Please read carefully before signing.</p>
 
-              <p><strong>Kaunseling</strong> adalah hubungan profesional antara anda dan kaunselor. Matlamat utama adalah untuk memudahkan perubahan tingkah laku, meningkatkan keupayaan membina hubungan, meningkatkan keberkesanan daya tindak, menggalakkan proses membuat keputusan, dan memudahkan potensi serta perkembangan peribadi.</p>
+              <p><strong>Counseling</strong> is a professional relationship between you and the counselor. The primary goal is to facilitate behavioral change, enhance relationship-building capacity, improve coping effectiveness, encourage decision-making processes, and facilitate personal potential and development.</p>
 
-              <p><strong>Tempoh Sesi:</strong> Tempoh sesi kaunseling individu adalah 45–60 minit. Walau bagaimanapun, sesi boleh dijalankan lebih atau kurang bergantung kepada perbincangan anda dengan kaunselor.</p>
+              <p><strong>Session Duration:</strong> Individual counseling sessions are 45–60 minutes. However, sessions may be longer or shorter depending on your discussion with the counselor.</p>
 
-              <p><strong>Kerahsiaan:</strong> Kaunselor bertanggungjawab menjaga maklumat yang diperoleh semasa sesi kaunseling. Semua maklumat pengenalan penilaian dan rawatan anda dirahsiakan, kecuali dalam situasi berikut:</p>
+              <p><strong>Confidentiality:</strong> The counselor is responsible for keeping all information obtained during counseling sessions confidential. All your identification, assessment, and treatment information is kept private, except in the following situations:</p>
               <ul className="list-disc list-inside space-y-1 text-gray-600 text-xs">
-                <li>Jika kaunselor mempunyai sebab yang kukuh untuk mempercayai anda akan menyakiti orang lain</li>
-                <li>Jika kaunselor mempunyai sebab yang kukuh untuk mempercayai anda menganiaya atau mengabaikan kanak-kanak atau orang dewasa yang lemah</li>
-                <li>Jika kaunselor percaya anda berada dalam bahaya segera untuk menyakiti diri sendiri</li>
-                <li>Jika dikehendaki oleh mahkamah untuk prosiding undang-undang</li>
-                <li>Untuk kes rujukan, laporan ringkas akan dikemukakan kepada perujuk jika diperlukan</li>
+                <li>If the counselor has reasonable grounds to believe you will harm others</li>
+                <li>If the counselor has reasonable grounds to believe you are abusing or neglecting a child or vulnerable adult</li>
+                <li>If the counselor believes you are in immediate danger of harming yourself</li>
+                <li>If required by a court for legal proceedings</li>
+                <li>For referred cases, a brief report may be provided to the referrer if required</li>
               </ul>
 
-              <p><strong>Ujian Psikologi:</strong> Jika ujian psikologi digunakan, sebarang keputusan penilaian ujian psikologi bukan untuk diagnosis dan tidak boleh digunakan untuk tujuan selain sesi kaunseling ini.</p>
+              <p><strong>Psychological Testing:</strong> If psychological testing is used, any psychological test assessment results are not for diagnosis and may not be used for purposes other than this counseling session.</p>
 
-              <p><strong>Hak Klien:</strong> Anda berhak bertanya tentang apa sahaja yang berlaku dalam sesi kaunseling. Anda boleh meminta kaunselor merujuk anda kepada kaunselor atau profesional lain. Anda juga bebas meninggalkan sesi kaunseling pada bila-bila masa.</p>
+              <p><strong>Client Rights:</strong> You have the right to ask about anything that happens in counseling sessions. You may request the counselor to refer you to another counselor or professional. You are also free to leave the counseling session at any time.</p>
 
-              <p className="text-xs text-gray-500">Sesi mungkin dirakam untuk tujuan dokumentasi dan laporan profesional dengan teknologi AI. Rakaman disimpan dengan selamat dan dilindungi berdasarkan Akta Perlindungan Data Peribadi 2010 (PDPA).</p>
+              <p className="text-xs text-gray-500">Sessions may be recorded for documentation and professional report purposes using AI technology. Recordings are stored securely and protected under the Personal Data Protection Act 2010 (PDPA).</p>
             </div>
             <div className="flex items-start gap-3">
               <input type="checkbox" id="consent" checked={consent} onChange={e => setConsent(e.target.checked)}
-                className="w-5 h-5 text-blue-600 rounded mt-0.5 flex-shrink-0" required />
+                className="w-5 h-5 text-violet-600 rounded mt-0.5 flex-shrink-0" required />
               <label htmlFor="consent" className="text-sm text-gray-700">
-                Saya telah membaca dan <strong>bersetuju</strong> dengan terma di atas. Saya memahami hak dan tanggungjawab saya sebagai klien.
+                I have read and <strong>agree</strong> to the terms above. I understand my rights and responsibilities as a client.
               </label>
             </div>
-            <div className="bg-blue-50 rounded-xl p-3 text-xs text-blue-700">
-              <strong>Ringkasan tempahan:</strong> {form.name} · {format(parseISO(selectedDate), 'dd MMM yyyy')} pukul {selectedTime}
+            <div className="bg-violet-50 rounded-xl p-3 text-xs text-violet-700">
+              <strong>Booking summary:</strong> {form.name} · {format(parseISO(selectedDate), 'dd MMM yyyy')} at {selectedTime}
             </div>
             <button type="submit" disabled={!consent || submitting}
-              className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors">
-              {submitting ? 'Menghantar...' : '✓ Hantar Tempahan'}
+              className="w-full py-3 bg-violet-600 text-white rounded-xl font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-violet-700 transition-colors">
+              {submitting ? 'Submitting...' : '✓ Submit Booking'}
             </button>
           </form>
         )}

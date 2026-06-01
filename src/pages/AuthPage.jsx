@@ -17,7 +17,7 @@ function detectRecoverySession() {
 }
 
 function Logo({ counselor, doctor }) {
-  const color = counselor ? '#10b981' : '#2563eb';
+  const color = counselor ? '#8b5cf6' : '#2563eb';
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-10 h-10 mx-auto mb-3">
       <rect width="32" height="32" rx="8" fill={color}/>
@@ -46,7 +46,7 @@ function PasswordField({ label, value, onChange, placeholder, minLength, show, o
           onClick={onToggle}
           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
           tabIndex={-1}
-          aria-label={show ? 'Sembunyikan kata laluan' : 'Tunjukkan kata laluan'}
+          aria-label={show ? 'Hide password' : 'Show password'}
         >
           {show ? (
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -106,21 +106,21 @@ export default function AuthPage() {
   const handlePasswordReset = async (e) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-      toast.error('Kata laluan tidak sepadan.');
+      toast.error('Passwords do not match.');
       return;
     }
     if (newPassword.length < 8) {
-      toast.error('Kata laluan mestilah sekurang-kurangnya 8 aksara.');
+      toast.error('Password must be at least 8 characters.');
       return;
     }
     setLoading(true);
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
-      toast.success('Kata laluan berjaya dikemas kini!');
+      toast.success('Password updated successfully!');
       navigate(postAuthRoute);
     } catch (err) {
-      toast.error(err.message || 'Gagal mengemas kini kata laluan. Cuba lagi.');
+      toast.error(err.message || 'Failed to update password. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -158,27 +158,27 @@ export default function AuthPage() {
             method: 'POST',
             headers: { Authorization: `Bearer ${signUpData.session.access_token}` },
           }).catch(() => {});
-          toast.success('Selamat datang ke VeriRec!');
+          toast.success('Welcome to VeriRec!');
           navigate(postAuthRoute);
         } else {
           // Email confirmation enabled — ask user to check inbox
-          toast.success('Akaun berjaya dibuat! Sila semak e-mel untuk pengesahan.');
+          toast.success('Account created! Please check your email for confirmation.');
         }
       } else {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/auth`,
         });
         if (error) throw error;
-        toast.success('Pautan reset kata laluan telah dihantar ke e-mel anda.');
+        toast.success('Password reset link sent to your email.');
         setMode('login');
       }
     } catch (err) {
       const msgs = {
-        'Invalid login credentials': 'E-mel atau kata laluan tidak sah.',
-        'Email not confirmed': 'Sila sahkan e-mel anda dahulu.',
-        'User already registered': 'E-mel ini sudah didaftarkan.',
+        'Invalid login credentials': 'Invalid email or password.',
+        'Email not confirmed': 'Please confirm your email first.',
+        'User already registered': 'This email is already registered.',
       };
-      toast.error(msgs[err.message] || err.message || 'Ralat berlaku. Cuba lagi.');
+      toast.error(msgs[err.message] || err.message || 'An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -195,7 +195,7 @@ export default function AuthPage() {
       if (ve) throw ve;
       navigate(postAuthRoute);
     } catch {
-      toast.error('Kod tidak sah. Cuba lagi.');
+      toast.error('Invalid code. Please try again.');
       setMfaCode('');
     } finally {
       setMfaLoading(false);
@@ -212,43 +212,43 @@ export default function AuthPage() {
       });
       if (error) throw error;
     } catch (err) {
-      toast.error(err.message || 'Gagal log masuk dengan Google. Cuba lagi.');
+      toast.error(err.message || 'Failed to sign in with Google. Please try again.');
       setLoading(false);
     }
   };
 
   if (mode === 'reset') {
     return (
-      <div className={`min-h-screen flex items-center justify-center p-4 ${counselorSubdomain ? 'bg-gradient-to-br from-emerald-900 to-teal-900' : 'bg-gradient-to-br from-blue-900 to-gray-900'}`}>
+      <div className={`min-h-screen flex items-center justify-center p-4 ${counselorSubdomain ? 'bg-gradient-to-br from-violet-900 to-purple-900' : 'bg-gradient-to-br from-blue-900 to-gray-900'}`}>
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
           <div className="text-center mb-8">
             <Logo counselor={counselorSubdomain} />
             <h1 className="text-2xl font-bold text-gray-900">VeriRec</h1>
-            <h2 className="text-lg font-semibold text-gray-900 mt-4">Tetapkan Kata Laluan Baru</h2>
-            <p className="text-sm text-gray-500 mt-1">Masukkan kata laluan baru anda di bawah.</p>
+            <h2 className="text-lg font-semibold text-gray-900 mt-4">Set New Password</h2>
+            <p className="text-sm text-gray-500 mt-1">Enter your new password below.</p>
           </div>
           <form onSubmit={handlePasswordReset} className="space-y-4">
             <PasswordField
-              label="Kata Laluan Baru"
+              label="New Password"
               value={newPassword}
               onChange={e => setNewPassword(e.target.value)}
-              placeholder="Minimum 8 aksara"
+              placeholder="Minimum 8 characters"
               minLength={8}
               show={showNewPassword}
               onToggle={() => setShowNewPassword(v => !v)}
               required
             />
             <PasswordField
-              label="Sahkan Kata Laluan"
+              label="Confirm Password"
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
-              placeholder="Ulang kata laluan baru"
+              placeholder="Repeat new password"
               show={showConfirmPassword}
               onToggle={() => setShowConfirmPassword(v => !v)}
               required
             />
             <Button type="submit" className="w-full" size="lg" loading={loading}>
-              Kemas Kini Kata Laluan
+              Update Password
             </Button>
           </form>
         </div>
@@ -258,12 +258,12 @@ export default function AuthPage() {
 
   if (mfaState) {
     return (
-      <div className={`min-h-screen flex items-center justify-center p-4 ${counselorSubdomain ? 'bg-gradient-to-br from-emerald-900 to-teal-900' : 'bg-gradient-to-br from-blue-900 to-gray-900'}`}>
+      <div className={`min-h-screen flex items-center justify-center p-4 ${counselorSubdomain ? 'bg-gradient-to-br from-violet-900 to-purple-900' : 'bg-gradient-to-br from-blue-900 to-gray-900'}`}>
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
           <Logo counselor={counselorSubdomain} />
           <h1 className="text-2xl font-bold text-gray-900 mb-1">VeriRec</h1>
-          <h2 className="text-lg font-semibold text-gray-900 mt-4 mb-2">Pengesahan Dua Faktor</h2>
-          <p className="text-sm text-gray-500 mb-6">Masukkan kod 6-digit dari aplikasi pengesah anda.</p>
+          <h2 className="text-lg font-semibold text-gray-900 mt-4 mb-2">Two-Factor Verification</h2>
+          <p className="text-sm text-gray-500 mb-6">Enter the 6-digit code from your authenticator app.</p>
           <form onSubmit={handleMfaSubmit} className="space-y-4">
             <input
               type="text"
@@ -276,10 +276,10 @@ export default function AuthPage() {
               autoFocus
             />
             <Button type="submit" className="w-full" size="lg" loading={mfaLoading} disabled={mfaCode.length !== 6}>
-              Sahkan
+              Verify
             </Button>
             <button type="button" onClick={() => { supabase.auth.signOut(); setMfaState(null); }} className="text-sm text-gray-400 hover:text-gray-600">
-              ← Kembali ke Log Masuk
+              ← Back to Sign In
             </button>
           </form>
         </div>
@@ -288,20 +288,20 @@ export default function AuthPage() {
   }
 
   return (
-    <div className={`min-h-screen flex items-center justify-center p-4 ${counselorSubdomain ? 'bg-gradient-to-br from-emerald-900 to-teal-900' : 'bg-gradient-to-br from-blue-900 to-gray-900'}`}>
+    <div className={`min-h-screen flex items-center justify-center p-4 ${counselorSubdomain ? 'bg-gradient-to-br from-violet-900 to-purple-900' : 'bg-gradient-to-br from-blue-900 to-gray-900'}`}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
         <div className="text-center mb-8">
           <Logo counselor={counselorSubdomain} />
           <h1 className="text-2xl font-bold text-gray-900">VeriRec</h1>
           <p className="text-gray-500 mt-1 text-sm">
-            {counselorSubdomain ? 'Portal Kaunselor' : 'Platform Rakaman Sesi Profesional'}
+            {counselorSubdomain ? 'Counselor Portal' : 'Professional Session Recording Platform'}
           </p>
           {professionLabel && mode === 'register' && (
             <div className="mt-3 inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 text-xs font-medium px-3 py-1.5 rounded-full">
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
-              Akaun untuk {professionLabel}
+              Account for {professionLabel}
             </div>
           )}
         </div>
@@ -312,21 +312,21 @@ export default function AuthPage() {
               className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${mode === 'login' ? 'bg-white shadow text-gray-900' : 'text-gray-500'}`}
               onClick={() => setMode('login')}
             >
-              Log Masuk
+              Sign In
             </button>
             <button
               className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${mode === 'register' ? 'bg-white shadow text-gray-900' : 'text-gray-500'}`}
               onClick={() => setMode('register')}
             >
-              Daftar
+              Register
             </button>
           </div>
         )}
 
         {mode === 'forgot' && (
           <div className="mb-6">
-            <h2 className="font-semibold text-gray-900 text-center">Reset Kata Laluan</h2>
-            <p className="text-sm text-gray-500 text-center mt-1">Masukkan e-mel anda dan kami akan hantar pautan reset.</p>
+            <h2 className="font-semibold text-gray-900 text-center">Reset Password</h2>
+            <p className="text-sm text-gray-500 text-center mt-1">Enter your email and we will send you a reset link.</p>
           </div>
         )}
 
@@ -344,7 +344,7 @@ export default function AuthPage() {
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
               </svg>
-              Teruskan dengan Google
+              Continue with Google
             </button>
 
             <div className="relative my-2">
@@ -352,7 +352,7 @@ export default function AuthPage() {
                 <div className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-white px-3 text-gray-400">atau guna e-mel</span>
+                <span className="bg-white px-3 text-gray-400">or use email</span>
               </div>
             </div>
           </>
@@ -361,28 +361,28 @@ export default function AuthPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'register' && (
             <Input
-              label="Nama Penuh"
+              label="Full Name"
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="Masukkan nama penuh anda"
+              placeholder="Enter your full name"
               required
             />
           )}
           <Input
-            label="E-mel"
+            label="Email"
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            placeholder="contoh@email.com"
+            placeholder="example@email.com"
             required
           />
           {mode !== 'forgot' && (
             <PasswordField
-              label="Kata Laluan"
+              label="Password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              placeholder={mode === 'register' ? 'Minimum 8 aksara' : 'Kata laluan anda'}
+              placeholder={mode === 'register' ? 'Minimum 8 characters' : 'Your password'}
               minLength={mode === 'register' ? 8 : undefined}
               show={showPassword}
               onToggle={() => setShowPassword(v => !v)}
@@ -390,14 +390,14 @@ export default function AuthPage() {
             />
           )}
           <Button type="submit" className="w-full" size="lg" loading={loading}>
-            {mode === 'login' ? 'Log Masuk' : mode === 'register' ? 'Buat Akaun' : 'Hantar Pautan Reset'}
+            {mode === 'login' ? 'Sign In' : mode === 'register' ? 'Create Account' : 'Send Reset Link'}
           </Button>
         </form>
 
         {mode === 'login' && (
           <div className="text-center mt-4">
             <button onClick={() => setMode('forgot')} className="text-sm text-blue-600 hover:underline">
-              Lupa kata laluan?
+              Forgot password?
             </button>
           </div>
         )}
@@ -405,17 +405,17 @@ export default function AuthPage() {
         {mode === 'forgot' && (
           <div className="text-center mt-4">
             <button onClick={() => setMode('login')} className="text-sm text-gray-500 hover:text-gray-700">
-              ← Kembali ke Log Masuk
+              ← Back to Sign In
             </button>
           </div>
         )}
 
         <p className="text-center text-xs text-gray-400 mt-6">
-          Dengan mendaftar, anda bersetuju dengan{' '}
-          <button className="underline">Dasar Privasi</button>{' '}
-          dan{' '}
-          <button className="underline">Terma Penggunaan</button>{' '}
-          VeriRec
+          By registering, you agree to the{' '}
+          <button className="underline">Privacy Policy</button>{' '}
+          and{' '}
+          <button className="underline">Terms of Use</button>{' '}
+          of VeriRec
         </p>
 
         <div className="text-center mt-4">
@@ -423,7 +423,7 @@ export default function AuthPage() {
             onClick={() => window.location.href = '/'}
             className="text-xs text-gray-400 hover:text-gray-600"
           >
-            ← Kembali ke laman utama
+            ← Back to home page
           </button>
         </div>
       </div>

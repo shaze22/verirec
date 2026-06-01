@@ -24,22 +24,22 @@ export class ErrorBoundary extends Component {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
               </svg>
             </div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Ralat Tidak Dijangka</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Unexpected Error</h2>
             <p className="text-sm text-gray-500 mb-6">
-              Sesuatu yang tidak dijangka berlaku. Data sesi anda selamat. Sila muat semula halaman.
+              Something unexpected occurred. Your session data is safe. Please reload the page.
             </p>
             <div className="flex gap-3 justify-center">
               <button
                 onClick={() => window.location.reload()}
                 className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Muat Semula
+                Reload
               </button>
               <button
                 onClick={() => { this.setState({ error: null }); window.location.href = '/dashboard'; }}
                 className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
               >
-                Ke Dashboard
+                Go to Dashboard
               </button>
             </div>
             {import.meta.env.DEV && (

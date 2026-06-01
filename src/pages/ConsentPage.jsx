@@ -10,10 +10,10 @@ import toast from 'react-hot-toast';
 const CONSENT_VERSION = 'VERIREC-CONSENT-v1.0';
 
 const CONSENT_ITEMS = [
-  'Saya memahami bahawa sesi rakaman ini akan dirakam (audio) dan ditranskripsikan.',
-  'Saya bersetuju bahawa rakaman dan transkrip akan digunakan untuk tujuan profesional yang dinyatakan.',
-  'Saya faham bahawa maklumat peribadi saya dilindungi di bawah Akta Perlindungan Data Peribadi 2010 (PDPA).',
-  'Saya bersetuju untuk meneruskan sesi ini dengan sukarela dan boleh berhenti pada bila-bila masa.',
+  'I understand that this recording session will be audio-recorded and transcribed.',
+  'I agree that the recording and transcript will be used for the stated professional purposes.',
+  'I understand that my personal information is protected under the Personal Data Protection Act 2010 (PDPA).',
+  'I agree to proceed with this session voluntarily and may stop at any time.',
 ];
 
 export default function ConsentPage() {
@@ -124,7 +124,7 @@ export default function ConsentPage() {
       navigate('/session/active');
     } catch (err) {
       console.error('consent error:', err);
-      toast.error(err.message || 'Gagal menyimpan persetujuan. Cuba lagi.');
+      toast.error(err.message || 'Failed to save consent. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -134,7 +134,7 @@ export default function ConsentPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="text-center">
         <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-sm text-gray-500">Menyemak maklumat klien...</p>
+        <p className="text-sm text-gray-500">Checking client information...</p>
       </div>
     </div>
   );
@@ -144,16 +144,16 @@ export default function ConsentPage() {
       <div className="bg-white rounded-2xl shadow-lg max-w-2xl w-full p-8">
         <div className="text-center mb-8">
           <div className="text-5xl mb-4">📋</div>
-          <h1 className="text-2xl font-bold text-gray-900">Borang Persetujuan Maklum</h1>
-          <p className="text-gray-500 mt-2">Sila baca dan tandakan setiap perkara di bawah sebelum sesi bermula</p>
+          <h1 className="text-2xl font-bold text-gray-900">Informed Consent Form</h1>
+          <p className="text-gray-500 mt-2">Please read and check each item below before the session begins</p>
         </div>
 
         <div className="bg-blue-50 rounded-xl p-4 mb-6">
           <div className="grid grid-cols-2 gap-3 text-sm">
-            <div><span className="text-gray-500">Pengendali Sesi:</span> <span className="font-medium">{setup.interviewer}</span></div>
-            <div><span className="text-gray-500">Subjek:</span> <span className="font-medium">{setup.subject_name}</span></div>
-            <div><span className="text-gray-500">Sesi:</span> <span className="font-medium">{setup.title}</span></div>
-            <div><span className="text-gray-500">Tarikh:</span> <span className="font-medium">{new Date(consentTimestamp).toLocaleDateString('ms-MY')}</span></div>
+            <div><span className="text-gray-500">Session Handler:</span> <span className="font-medium">{setup.interviewer}</span></div>
+            <div><span className="text-gray-500">Subject:</span> <span className="font-medium">{setup.subject_name}</span></div>
+            <div><span className="text-gray-500">Session:</span> <span className="font-medium">{setup.title}</span></div>
+            <div><span className="text-gray-500">Date:</span> <span className="font-medium">{new Date(consentTimestamp).toLocaleDateString('en-MY')}</span></div>
           </div>
         </div>
 
@@ -175,20 +175,20 @@ export default function ConsentPage() {
         </div>
 
         <div className="flex gap-3">
-          <Button variant="secondary" onClick={() => navigate(-1)}>Kembali</Button>
+          <Button variant="secondary" onClick={() => navigate(-1)}>Back</Button>
           <Button
             className="flex-1"
             disabled={!allChecked}
             loading={loading}
             onClick={handleConsent}
           >
-            Saya Bersetuju — Mulakan Sesi
+            I Agree — Start Session
           </Button>
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-4">
           Versi persetujuan: {CONSENT_VERSION} •{' '}
-          {new Date(consentTimestamp).toLocaleString('ms-MY', {
+          {new Date(consentTimestamp).toLocaleString('en-MY', {
             day: 'numeric', month: 'long', year: 'numeric',
             hour: '2-digit', minute: '2-digit', second: '2-digit',
           })}

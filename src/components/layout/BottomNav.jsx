@@ -15,17 +15,17 @@ const I = {
 };
 
 const COUNSELOR_NAV = [
-  { to: '/analytics',               label: 'Dashboard',  icon: I.chart },
-  { to: '/kaunselor/clients',       label: 'Klien',      icon: I.users },
-  { to: '/kaunselor/appointments',  label: 'Temujanji',  icon: I.calendar },
-  { to: '/settings',                label: 'Tetapan',    icon: I.settings },
+  { to: '/analytics',               label: 'Dashboard',    icon: I.chart },
+  { to: '/kaunselor/clients',       label: 'Clients',      icon: I.users },
+  { to: '/kaunselor/appointments',  label: 'Appointments', icon: I.calendar },
+  { to: '/settings',                label: 'Settings',     icon: I.settings },
 ];
 
 const OTHER_NAV = [
-  { to: '/analytics',   label: 'Utama',     icon: I.home },
-  { to: '/session/new', label: 'Sesi Baru', icon: I.mic },
-  { to: '/cases',       label: 'Fail Kes',  icon: I.folder },
-  { to: '/settings',    label: 'Tetapan',   icon: I.settings },
+  { to: '/analytics',   label: 'Home',        icon: I.home },
+  { to: '/session/new', label: 'New Session', icon: I.mic },
+  { to: '/cases',       label: 'Case Files',  icon: I.folder },
+  { to: '/settings',    label: 'Settings',    icon: I.settings },
 ];
 
 export function BottomNav() {
@@ -61,7 +61,7 @@ export function BottomNav() {
           className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium text-red-400 hover:text-red-600 transition-colors"
         >
           {I.logout}
-          Keluar
+          Sign Out
         </button>
       )}
     </nav>

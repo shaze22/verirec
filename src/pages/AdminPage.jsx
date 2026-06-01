@@ -76,7 +76,7 @@ export default function AdminPage() {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) { navigate('/auth'); return; }
         const res = await fetch('/api/admin', { headers: { Authorization: `Bearer ${session.access_token}` } });
-        if (res.status === 403) { toast.error('Akses ditolak.'); navigate('/dashboard'); return; }
+        if (res.status === 403) { toast.error('Akses declined.'); navigate('/dashboard'); return; }
         if (!res.ok) throw new Error('Gagal memuatkan data admin');
         setData(await res.json());
       } catch (err) {
@@ -117,7 +117,7 @@ export default function AdminPage() {
     try {
       const { subscription } = await adminPost({ action: 'reset-sessions', userId });
       setData(p => ({ ...p, users: p.users.map(u => u.id === userId ? { ...u, subscription } : u) }));
-      toast.success('Sesi berjaya direset.');
+      toast.success('Sessions berjaya direset.');
     } catch (err) { toast.error(err.message); }
     finally { setActionLoading(null); }
   };
@@ -127,7 +127,7 @@ export default function AdminPage() {
     setEmailSending(true);
     try {
       await adminPost({ action: 'send-email', userId: emailModal.userId, subject: emailSubject, message: emailMessage });
-      toast.success('E-mel berjaya dihantar.');
+      toast.success('E-mel berjaya sent.');
       setEmailModal(null); setEmailSubject(''); setEmailMessage('');
     } catch (err) { toast.error(err.message); }
     finally { setEmailSending(false); }
@@ -155,14 +155,14 @@ export default function AdminPage() {
       const a = document.createElement('a'); a.href = url;
       a.download = `verirec-pdpa-${email}-${format(new Date(), 'yyyy-MM-dd')}.json`;
       a.click(); URL.revokeObjectURL(url);
-      toast.success('Data dieksport.');
+      toast.success('Data exported.');
     } catch (err) { toast.error(err.message); }
     finally { setActionLoading(null); }
   };
 
   const handleSuspend = async (userId, email) => {
     setKebabMenu(null);
-    if (!window.confirm(`Suspend akaun ${email}? Pengguna tidak akan dapat log masuk.`)) return;
+    if (!window.confirm(`Suspend akaun ${email}? Users tidak akan dapat log masuk.`)) return;
     setActionLoading(userId + '_suspend');
     try {
       const { banned_until } = await adminPost({ action: 'suspend-user', userId });
@@ -174,7 +174,7 @@ export default function AdminPage() {
 
   const handleUnsuspend = async (userId, email) => {
     setKebabMenu(null);
-    if (!window.confirm(`Aktifkan semula akaun ${email}?`)) return;
+    if (!window.confirm(`Activekan semula akaun ${email}?`)) return;
     setActionLoading(userId + '_suspend');
     try {
       await adminPost({ action: 'unsuspend-user', userId });
@@ -222,7 +222,7 @@ export default function AdminPage() {
   // ── render ─────────────────────────────────────────────────
   return (
     <div className="flex flex-col h-screen">
-      <TopBar title="Panel Admin" actions={
+      <TopBar title="Admin Panel" actions={
         <span className="text-xs bg-red-100 text-red-700 font-semibold px-2.5 py-1 rounded-full">Admin</span>
       } />
 
@@ -231,7 +231,7 @@ export default function AdminPage() {
         <div className="flex gap-1 mb-6 border-b">
           {[
             { key: 'overview', label: 'Ringkasan' },
-            { key: 'users',    label: `Pengguna${data ? ` (${data.users.length})` : ''}` },
+            { key: 'users',    label: `Users${data ? ` (${data.users.length})` : ''}` },
           ].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
               className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${tab === t.key ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-800'}`}>
@@ -249,17 +249,17 @@ export default function AdminPage() {
           <div className="space-y-6">
             {/* stat cards */}
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-              <StatCard label="Jumlah Pengguna"       value={stats.totalUsers}        sub="semua masa"                                color="blue" />
+              <StatCard label="Total Users"       value={stats.totalUsers}        sub="semua masa"                                color="blue" />
               <StatCard label="Pendaftaran Bulan Ini" value={stats.newThisMonth}      sub={format(new Date(), 'MMMM yyyy')}          color="green" />
               <StatCard label="MRR"                   value={`RM ${mrr.toLocaleString()}`} sub={`${stats.paidUsers} langganan berbayar`} color="purple" />
-              <StatCard label="Sesi Bulan Ini"        value={stats.sessionsThisMonth} sub={`${stats.totalSessions} keseluruhan`}     color="amber" />
-              <StatCard label="Langganan Berbayar"    value={stats.paidUsers}         sub={`daripada ${stats.totalUsers} pengguna`}  color="green" />
-              <StatCard label="Tidak Aktif (30 hari)" value={inactiveCount}           sub="log masuk terakhir > 30 hari"             color="red" />
+              <StatCard label="Sessions Bulan Ini"        value={stats.sessionsThisMonth} sub={`${stats.totalSessions} keseluruhan`}     color="amber" />
+              <StatCard label="Subscriptions Berbayar"    value={stats.paidUsers}         sub={`daripada ${stats.totalUsers} pengguna`}  color="green" />
+              <StatCard label="Tidak Active (30 hari)" value={inactiveCount}           sub="log masuk terakhir > 30 hari"             color="red" />
             </div>
 
             {/* growth chart */}
             <div className="bg-white rounded-xl border p-5">
-              <h3 className="text-sm font-semibold text-gray-700 mb-4">Pertumbuhan Pengguna (8 Minggu)</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-4">Pertumbuhan Users (8 Minggu)</h3>
               <div className="flex items-end gap-2 h-24">
                 {growthData.map((week, i) => (
                   <div key={i} className="flex-1 flex flex-col items-center gap-1">
@@ -339,7 +339,7 @@ export default function AdminPage() {
               <table className="w-full text-sm min-w-[900px]">
                 <thead>
                   <tr className="border-b bg-gray-50">
-                    {['Pengguna', 'Pelan', 'Sesi', 'Daftar', 'Aktif Terakhir', 'Tindakan'].map(h => (
+                    {['Users', 'Pelan', 'Sessions', 'Daftar', 'Active Terakhir', 'Tindakan'].map(h => (
                       <th key={h} className={`px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide ${h === 'Tindakan' ? 'text-right' : 'text-left'}`}>{h}</th>
                     ))}
                   </tr>
@@ -397,7 +397,7 @@ export default function AdminPage() {
                               )}
                             </div>
 
-                            {/* Reset Sesi */}
+                            {/* Reset Sessions */}
                             <button onClick={() => handleResetSessions(u.id, u.email)}
                               disabled={actionLoading === u.id + '_reset' || !sub || sub.sessions_used === 0}
                               className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
@@ -438,7 +438,7 @@ export default function AdminPage() {
                                       disabled={actionLoading === u.id + '_suspend'}
                                       className="w-full text-left px-3 py-2 text-xs text-green-700 hover:bg-green-50 flex items-center gap-2 disabled:opacity-50">
                                       {actionLoading === u.id + '_suspend' ? <Spinner className="w-3.5 h-3.5 border-green-600" /> : <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-                                      Aktifkan Semula
+                                      Activekan Semula
                                     </button>
                                   ) : (
                                     <button onClick={() => handleSuspend(u.id, u.email)}
@@ -522,7 +522,7 @@ export default function AdminPage() {
             {consentLoading ? (
               <div className="flex justify-center py-8"><Spinner className="w-6 h-6 border-blue-600" /></div>
             ) : consentLogs.length === 0 ? (
-              <p className="text-center text-gray-400 text-sm py-8">Tiada rekod consent untuk pengguna ini.</p>
+              <p className="text-center text-gray-400 text-sm py-8">No records consent untuk pengguna ini.</p>
             ) : (
               <div className="space-y-2 max-h-80 overflow-y-auto">
                 {consentLogs.map(log => (

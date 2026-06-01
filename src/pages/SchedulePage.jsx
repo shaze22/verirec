@@ -13,8 +13,8 @@ import { Badge } from '../components/ui/Badge.jsx';
 import toast from 'react-hot-toast';
 
 const STATUS_CONFIG = {
-  upcoming:  { label: 'Akan Datang', color: 'blue' },
-  completed: { label: 'Selesai',     color: 'green' },
+  upcoming:  { label: 'Upcoming', color: 'blue' },
+  completed: { label: 'Done',     color: 'green' },
   cancelled: { label: 'Dibatalkan',  color: 'gray' },
 };
 
@@ -109,7 +109,7 @@ export default function SchedulePage() {
           .single();
         if (error) throw error;
         setItems(prev => [...prev, data]);
-        toast.success('Sesi berjadual ditambah.');
+        toast.success('Sesi berjadual added.');
       }
       setModal(false);
     } catch {
@@ -120,7 +120,7 @@ export default function SchedulePage() {
   };
 
   const handleCancel = async (id) => {
-    if (!window.confirm('Batalkan sesi berjadual ini?')) return;
+    if (!window.confirm('Cancelkan sesi berjadual ini?')) return;
     try {
       await supabase.from('scheduled_sessions').update({ status: 'cancelled' }).eq('id', id).eq('user_id', user.id);
       setItems(prev => prev.map(i => i.id === id ? { ...i, status: 'cancelled' } : i));
@@ -189,7 +189,7 @@ export default function SchedulePage() {
                 <button
                   onClick={() => handleCancel(item.id)}
                   className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  title="Batalkan"
+                  title="Cancelkan"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -206,7 +206,7 @@ export default function SchedulePage() {
   return (
     <div className="flex flex-col h-screen">
       <TopBar
-        title="Jadual Sesi"
+        title="Session Schedule"
         actions={
           <Button onClick={openNew}>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -222,7 +222,7 @@ export default function SchedulePage() {
 
           {/* Tabs */}
           <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
-            {[{ id: 'upcoming', label: `Akan Datang (${upcoming.length + overdue.length})` }, { id: 'past', label: `Selesai / Batal (${past.length})` }].map(t => (
+            {[{ id: 'upcoming', label: `Upcoming (${upcoming.length + overdue.length})` }, { id: 'past', label: `Done / Cancel (${past.length})` }].map(t => (
               <button
                 key={t.id}
                 onClick={() => setTab(t.id)}
@@ -261,7 +261,7 @@ export default function SchedulePage() {
                 )}
                 {upcoming.length > 0 && (
                   <div>
-                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Akan Datang</h3>
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Upcoming</h3>
                     <div className="space-y-3">
                       {upcoming.map(i => <ScheduleCard key={i.id} item={i} showStart />)}
                     </div>
@@ -271,7 +271,7 @@ export default function SchedulePage() {
             )
           ) : (
             past.length === 0 ? (
-              <p className="text-center text-gray-400 text-sm py-16">Tiada rekod selesai atau dibatalkan lagi.</p>
+              <p className="text-center text-gray-400 text-sm py-16">No records selesai atau dibatalkan lagi.</p>
             ) : (
               <div className="space-y-3">
                 {past.map(i => <ScheduleCard key={i.id} item={i} />)}
@@ -287,14 +287,14 @@ export default function SchedulePage() {
         title={form.id ? 'Edit Jadual' : 'Jadualkan Sesi Baharu'}
         footer={
           <div className="flex gap-3 justify-end">
-            <Button variant="secondary" onClick={() => setModal(false)}>Batal</Button>
-            <Button onClick={handleSave} loading={saving}>Simpan</Button>
+            <Button variant="secondary" onClick={() => setModal(false)}>Cancel</Button>
+            <Button onClick={handleSave} loading={saving}>Save</Button>
           </div>
         }
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tajuk Sesi *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Session Title *</label>
             <input
               type="text"
               value={form.title}
@@ -324,7 +324,7 @@ export default function SchedulePage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tarikh & Masa *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Date & Time *</label>
             <input
               type="datetime-local"
               value={form.scheduled_at}
@@ -333,7 +333,7 @@ export default function SchedulePage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nota</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
             <textarea
               value={form.notes}
               onChange={e => setForm(p => ({ ...p, notes: e.target.value }))}

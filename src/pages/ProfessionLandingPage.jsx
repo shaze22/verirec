@@ -12,39 +12,39 @@ const Logo = () => (
 
 const PROFESSION_META = {
   counselor: {
-    title: 'VeriRec untuk Kaunselor — Nota SOAP & Pengesanan Krisis AI Masa Nyata',
+    title: 'VeriRec for Counselors — AI Real-Time SOAP Notes & Crisis Detection',
     desc:  'Rakam sesi kaunseling, kesan tanda bahaya bunuh diri secara automatik, dan jana nota klinikal dalam masa seminit. Cuba percuma — 2 sesi pertama.',
   },
   police: {
-    title: 'VeriRec untuk Polis — Rakaman Soal Siasat dengan Chain of Custody SHA-256',
+    title: 'VeriRec for Police — Interview Recording with SHA-256 Chain of Custody',
     desc:  'Rakam soal siasat saksi dan suspek mengikut PEACE Model. Jana laporan penyataan rasmi dan buktikan integriti rekod di mahkamah.',
   },
   sprm: {
-    title: 'VeriRec untuk SPRM/MACC — Dokumentasi Siasatan Anti-Rasuah',
+    title: 'VeriRec for SPRM/MACC — Anti-Corruption Investigation Documentation',
     desc:  'Platform rakaman soal siasat kes rasuah dengan chain of custody sah di sisi UNCAC dan Seksyen 17 SPRM 2009. Hubungi kami untuk demo.',
   },
   doctor: {
-    title: 'VeriRec untuk Doktor — Nota SOAP Automatik dalam 60 Saat',
+    title: 'VeriRec for Doctors — Automatic SOAP Notes in 60 Seconds',
     desc:  'Rakam anamnesis pesakit, jana nota SOAP secara automatik, dan kesan tanda krisis psikiatri masa nyata. Cuba percuma — 2 konsultasi pertama.',
   },
   iso: {
-    title: 'VeriRec untuk Juruaudit ISO — NCR dan CAR Automatik mengikut ISO 9001:2015',
+    title: 'VeriRec for ISO Auditors — Automatic NCR and CAR per ISO 9001:2015',
     desc:  'Rakam sesi audit, jana Nonconformance Report dan Corrective Action Report automatik. Jimat 2-3 jam dokumentasi setiap sesi audit.',
   },
   hr: {
-    title: 'VeriRec untuk HR — Inkuiri Domestik yang Telus dan Sah Undang-undang',
+    title: 'VeriRec for HR — Transparent and Legally Valid Domestic Inquiry',
     desc:  'Rakam sesi Inkuiri Domestik dengan chain of custody SHA-256. Jana laporan siasatan mengikut Akta Kerja 1955. Cuba percuma.',
   },
   court: {
-    title: 'VeriRec untuk Mahkamah — Analisa Keterangan Saksi Masa Nyata',
+    title: 'VeriRec for Court — Real-Time Witness Testimony Analysis',
     desc:  'Kesan percanggahan keterangan saksi, dapatkan cadangan soalan pemeriksaan balas dari AI, dan dokumentasikan prosiding dengan SHA-256.',
   },
   peguam: {
-    title: 'VeriRec untuk Peguam — Dokumentasi Perundingan & Analisa Jurang Kes AI',
+    title: 'VeriRec for Lawyers — Consultation Documentation & AI Case Gap Analysis',
     desc:  'Rakam perundingan klien, analisa jurang fakta kes secara realtime, dan jana laporan perundingan berstruktur. Legal Professional Privilege terjaga.',
   },
   jkm: {
-    title: 'VeriRec untuk Pegawai JKM — Penilaian Risiko Kanak-kanak dengan AI',
+    title: 'VeriRec for JKM Officers — Child Risk Assessment with AI',
     desc:  'Rakam temubual kebajikan, kesan petanda bahaya kanak-kanak berisiko secara realtime, dan jana laporan kes kukuh untuk tindakan mahkamah.',
   },
 };
@@ -53,13 +53,13 @@ const BASE_URL = 'https://www.verirec.app';
 
 const PROFESSIONS = {
   counselor: {
-    label: 'Kaunselor',
-    hex: '#10b981',
+    label: 'Counselor',
+    hex: '#8b5cf6',
     badge: 'LKM · PDPA 2010 · Crisis Detection',
-    headline: 'Fokus pada Klien.',
-    headlineAccent: 'VeriRec Uruskan Dokumentasi.',
+    headline: 'Focus on Clients.',
+    headlineAccent: 'VeriRec Handles Documentation.',
     sub: 'Rakam sesi kaunseling, kesan tanda bahaya bunuh diri secara automatik, dan jana nota klinikal dalam masa seminit.',
-    ctaText: 'Cuba Percuma — 2 Sesi Kaunseling',
+    ctaText: 'Try Free — 2 Counseling Sessions',
     enterpriseCta: false,
     painPoints: [
       { icon: '⏱', title: 'Nota manual makan 2 jam sehari', desc: 'Setiap sesi makan 30-60 minit untuk ditulis semula. VeriRec jana laporan AI dalam masa seminit.' },
@@ -67,22 +67,22 @@ const PROFESSIONS = {
       { icon: '📋', title: 'PDPA sukar dipatuhi secara manual', desc: 'Rekod persetujuan klien yang tidak konsisten mendedahkan anda kepada risiko undang-undang.' },
     ],
     features: [
-      { title: 'Pengesan Krisis Masa Nyata', desc: 'Kata kunci bahaya dikesan semasa sesi. Banner amaran merah muncul serta-merta dengan nombor Talian Kasih 15999 dan MIASA.' },
-      { title: 'Nota SOAP Automatik', desc: 'Laporan mengandungi nota klinikal format SOAP (Subjective, Objective, Assessment, Plan) — siap untuk fail klien.' },
-      { title: 'Rekod Persetujuan PDPA Kekal', desc: 'Borang persetujuan digital dengan timestamp untuk setiap klien. Audit trail yang tidak boleh dipadam.' },
+      { title: 'Real-Time Crisis Detector', desc: 'Kata kunci bahaya dikesan semasa sesi. Banner amaran merah muncul serta-merta dengan nombor Talian Kasih 15999 dan MIASA.' },
+      { title: 'Automatic SOAP Notes', desc: 'Laporan mengandungi nota klinikal format SOAP (Subjective, Objective, Assessment, Plan) — siap untuk fail klien.' },
+      { title: 'Permanent PDPA Consent Records', desc: 'Borang persetujuan digital dengan timestamp untuk setiap klien. Audit trail yang tidak boleh deleted.' },
       { title: 'Follow-up Tracker', desc: 'Senarai tindakan susulan yang dijana AI. Track kemajuan klien merentasi sesi dengan checklist interaktif.' },
-      { title: 'Rekod Cepat', desc: 'Mulakan rakaman serta-merta tanpa isi borang — sesuai untuk keadaan mendesak. Butiran klien boleh dilengkapkan selepas sesi tamat.' },
-      { title: 'Perpustakaan Audio', desc: 'Semua rakaman sesi disimpan selamat dalam perpustakaan peribadi. Putar semula, namakan semula, dan kaitkan audio dengan fail klien untuk rujukan masa hadapan.' },
+      { title: 'Quick Record', desc: 'Mulakan rakaman serta-merta tanpa isi borang — sesuai untuk keadaan mendesak. Butiran klien boleh dilengkapkan selepas sesi tamat.' },
+      { title: 'Audio Library', desc: 'Semua rakaman sesi disimpan selamat dalam perpustakaan peribadi. Putar semula, namakan semula, dan kaitkan audio dengan fail klien untuk rujukan masa hadapan.' },
     ],
   },
   police: {
-    label: 'Polis',
+    label: 'Police',
     hex: '#3b82f6',
     badge: 'PEACE Model · Cognitive Interview · SHA-256',
-    headline: 'Rakaman Soal Siasat',
+    headline: 'Interview Recording',
     headlineAccent: 'Yang Tidak Boleh Dicabar di Mahkamah.',
     sub: 'Rakam soal siasat saksi dan suspek dengan chain of custody SHA-256. Jana laporan format penyataan rasmi secara automatik.',
-    ctaText: 'Cuba Percuma — 2 Sesi Soal Siasat',
+    ctaText: 'Try Free — 2 Interview Sessions',
     enterpriseCta: false,
     painPoints: [
       { icon: '⚖️', title: 'Peguam boleh persoalkan ketulenan penyataan', desc: 'Penyataan manual tidak ada bukti integriti. Hash SHA-256 VeriRec buktikan laporan tidak diubah.' },
@@ -90,22 +90,22 @@ const PROFESSIONS = {
       { icon: '📄', title: 'Format penyataan tidak konsisten', desc: 'Format berbeza antara pegawai. VeriRec standardkan output penyataan untuk semua kes.' },
     ],
     features: [
-      { title: 'Chain of Custody SHA-256', desc: 'Setiap laporan disahkan dengan hash kriptografi. Buktikan laporan tidak diubah — penting untuk prosiding mahkamah.' },
-      { title: 'Format Penyataan Rasmi', desc: 'Fakta utama, ketidakkonsistenan yang dikenal pasti, dan nota bukti dijana dalam format berstruktur.' },
-      { title: 'Nombor Kes & Pegawai Saksi', desc: 'Nombor laporan polis dan pegawai saksi direkod dalam setiap sesi dan terpapar dalam laporan rasmi.' },
+      { title: 'SHA-256 Chain of Custody', desc: 'Setiap laporan disahkan dengan hash kriptografi. Buktikan laporan tidak diubah — penting untuk prosiding mahkamah.' },
+      { title: 'Official Statement Format', desc: 'Fakta utama, ketidakkonsistenan yang dikenal pasti, dan nota bukti dijana dalam format berstruktur.' },
+      { title: 'Case Number & Witness Officer', desc: 'Nombor laporan polis dan pegawai saksi direkod dalam setiap sesi dan terpapar dalam laporan rasmi.' },
       { title: 'PEACE Model & Cognitive Interview', desc: 'Soalan cadangan AI ikut rangka kerja PEACE Model dan Cognitive Interview yang diiktiraf antarabangsa.' },
-      { title: 'Rekod Cepat', desc: 'Mulakan sesi siasatan serta-merta tanpa borang — berguna dalam situasi masa kritikal. Butiran kes boleh ditambah selepas sesi.' },
-      { title: 'Perpustakaan Audio', desc: 'Semua rakaman soal siasat disimpan selamat. Putar semula dan kaitkan audio dengan nombor kes untuk dokumentasi kes yang lengkap.' },
+      { title: 'Quick Record', desc: 'Mulakan sesi siasatan serta-merta tanpa borang — berguna dalam situasi masa kritikal. Butiran kes boleh ditambah selepas sesi.' },
+      { title: 'Audio Library', desc: 'Semua rakaman soal siasat disimpan selamat. Putar semula dan kaitkan audio dengan nombor kes untuk dokumentasi kes yang lengkap.' },
     ],
   },
   sprm: {
     label: 'SPRM / MACC',
     hex: '#8b5cf6',
     badge: 'UNCAC · Seksyen 17 SPRM 2009 · SHA-256',
-    headline: 'Dokumentasi Siasatan',
+    headline: 'Investigation Documentation',
     headlineAccent: 'Yang Tidak Boleh Diganggu-gugat.',
     sub: 'Rakam soal siasat kes rasuah dengan chain of custody sah di sisi UNCAC dan Seksyen 17 SPRM 2009.',
-    ctaText: 'Hubungi Kami untuk Demo',
+    ctaText: 'Contact Us for Demo',
     enterpriseCta: true,
     painPoints: [
       { icon: '⚖️', title: 'Bukti perbualan boleh dipersoalkan', desc: 'Tanpa rekod digital kukuh, peguam boleh persoalkan ketepatan dan ketulenan penyataan dalam mahkamah.' },
@@ -113,22 +113,22 @@ const PROFESSIONS = {
       { icon: '📋', title: 'Pematuhan UNCAC memerlukan rekod tepat', desc: 'Piawaian antarabangsa memerlukan dokumentasi siasatan yang boleh diaudit dan disahkan secara bebas.' },
     ],
     features: [
-      { title: 'Chain of Custody SHA-256', desc: 'Hash kriptografi yang boleh disahkan semula dari data tersimpan. Selamat untuk prosiding undang-undang.' },
-      { title: 'Pemberitahuan Hak Automatik', desc: 'Rangka kerja soalan mengikut prosedur Seksyen 17 SPRM 2009 termasuk pemberitahuan hak pihak yang disiasat.' },
-      { title: 'Ringkasan Penyataan Berstruktur', desc: 'Fakta utama, ketidakkonsistenan, dan nota bukti dalam format sesuai untuk pendakwa raya.' },
-      { title: 'Nombor Kes & Pegawai Pendakwa', desc: 'Nombor kes SPRM dan pegawai pendakwa direkod dalam setiap sesi untuk rujukan silang yang mudah.' },
-      { title: 'Rekod Cepat', desc: 'Mulakan siasatan serta-merta tanpa isi borang. Sesuai untuk situasi masa kritikal — butiran kes boleh ditambah selepas sesi.' },
-      { title: 'Perpustakaan Audio', desc: 'Rakaman siasatan disimpan selamat dengan chain of custody SHA-256. Kaitkan audio dengan nombor kes untuk audit trail yang lengkap.' },
+      { title: 'SHA-256 Chain of Custody', desc: 'Hash kriptografi yang boleh disahkan semula dari data tersimpan. Selamat untuk prosiding undang-undang.' },
+      { title: 'Automatic Rights Notification', desc: 'Rangka kerja soalan mengikut prosedur Seksyen 17 SPRM 2009 termasuk pemberitahuan hak pihak yang disiasat.' },
+      { title: 'Structured Statement Summary', desc: 'Fakta utama, ketidakkonsistenan, dan nota bukti dalam format sesuai untuk pendakwa raya.' },
+      { title: 'Case Number & Prosecuting Officer', desc: 'Nombor kes SPRM dan pegawai pendakwa direkod dalam setiap sesi untuk rujukan silang yang mudah.' },
+      { title: 'Quick Record', desc: 'Mulakan siasatan serta-merta tanpa isi borang. Sesuai untuk situasi masa kritikal — butiran kes boleh ditambah selepas sesi.' },
+      { title: 'Audio Library', desc: 'Rakaman siasatan disimpan selamat dengan chain of custody SHA-256. Kaitkan audio dengan nombor kes untuk audit trail yang lengkap.' },
     ],
   },
   doctor: {
-    label: 'Doktor',
+    label: 'Doctor',
     hex: '#ef4444',
     badge: 'SOAP Note · Calgary-Cambridge · PDPA 2010',
-    headline: 'Nota SOAP Automatik.',
-    headlineAccent: 'Lebih Masa untuk Pesakit.',
+    headline: 'Automatic SOAP Notes.',
+    headlineAccent: 'More Time for Patients.',
     sub: 'Rakam anamnesis pesakit, jana nota SOAP dalam 60 saat, dan simpan rekod dengan selamat mengikut keperluan klinikal.',
-    ctaText: 'Cuba Percuma — 2 Konsultasi',
+    ctaText: 'Try Free — 2 Consultations',
     enterpriseCta: false,
     painPoints: [
       { icon: '⏱', title: 'Nota makan 30-40% masa kerja doktor', desc: 'Menulis nota selepas setiap pesakit mengurangkan bilangan pesakit yang boleh dilihat setiap hari.' },
@@ -136,22 +136,22 @@ const PROFESSIONS = {
       { icon: '⚠️', title: 'Tanda krisis psikiatri boleh terlepas', desc: 'Kata kunci seperti "bunuh diri" memerlukan perhatian segera yang mungkin sukar semasa konsultasi sibuk.' },
     ],
     features: [
-      { title: 'Nota SOAP Automatik', desc: 'Subjective, Objective, Assessment, Plan dijana daripada perbualan pesakit. Tiada lagi tulis nota dari awal.' },
-      { title: 'Pengesan Krisis Psikiatri', desc: 'Tanda bahaya psikiatri dikesan masa nyata semasa konsultasi dengan rujukan sumber kecemasan.' },
-      { title: 'Transkripsi Bahasa Malaysia', desc: 'Whisper AI sokong Bahasa Malaysia termasuk istilah perubatan dan campuran bahasa dalam konteks klinikal.' },
-      { title: 'Rekod Pesakit Selamat', desc: 'Semua rekod disulitkan. Hanya anda yang boleh akses rekod pesakit anda — pematuhan penuh PDPA 2010.' },
-      { title: 'Rekod Cepat', desc: 'Mulakan konsultasi serta-merta tanpa isi borang. Sesuai untuk klinik sibuk — butiran pesakit boleh dikemaskini selepas konsultasi.' },
-      { title: 'Perpustakaan Audio', desc: 'Rakaman anamnesis disimpan selamat dalam perpustakaan. Kaitkan audio dengan rekod pesakit untuk rujukan klinikal masa hadapan.' },
+      { title: 'Automatic SOAP Notes', desc: 'Subjective, Objective, Assessment, Plan dijana daripada perbualan pesakit. Tiada lagi tulis nota dari awal.' },
+      { title: 'Psychiatric Crisis Detector', desc: 'Tanda bahaya psikiatri dikesan masa nyata semasa konsultasi dengan rujukan sumber kecemasan.' },
+      { title: 'Malay Language Transcription', desc: 'Whisper AI sokong Bahasa Malaysia termasuk istilah perubatan dan campuran bahasa dalam konteks klinikal.' },
+      { title: 'Secure Patient Records', desc: 'Semua rekod disulitkan. Hanya anda yang boleh akses rekod pesakit anda — pematuhan penuh PDPA 2010.' },
+      { title: 'Quick Record', desc: 'Mulakan konsultasi serta-merta tanpa isi borang. Sesuai untuk klinik sibuk — butiran pesakit boleh dikemaskini selepas konsultasi.' },
+      { title: 'Audio Library', desc: 'Rakaman anamnesis disimpan selamat dalam perpustakaan. Kaitkan audio dengan rekod pesakit untuk rujukan klinikal masa hadapan.' },
     ],
   },
   iso: {
-    label: 'Juruaudit ISO',
+    label: 'ISO Auditor',
     hex: '#f59e0b',
     badge: 'ISO 9001:2015 · ISO 19011:2018 · PDCA',
-    headline: 'NCR dan CAR Automatik.',
-    headlineAccent: 'Audit Lebih Efisien.',
+    headline: 'Automatic NCR and CAR.',
+    headlineAccent: 'More Efficient Audits.',
     sub: 'Rakam sesi audit, jana Nonconformance Report (NCR) dan Corrective Action Report (CAR) mengikut ISO 9001:2015 secara automatik.',
-    ctaText: 'Cuba Percuma — 2 Sesi Audit',
+    ctaText: 'Try Free — 2 Audit Sessions',
     enterpriseCta: false,
     painPoints: [
       { icon: '⏱', title: 'Tulis NCR/CAR manual makan 2-3 jam', desc: 'Selepas setiap sesi audit, auditor terpaksa tulis laporan panjang dari nota tangan. VeriRec jana automatik.' },
@@ -159,22 +159,22 @@ const PROFESSIONS = {
       { icon: '🔍', title: 'Sukar track tindakan pembetulan', desc: 'Tindakan pembetulan dari audit lepas mudah terlupa tanpa sistem tracking yang teratur.' },
     ],
     features: [
-      { title: 'NCR/CAR Automatik', desc: 'Nonconformance, klausa ISO berkaitan, punca akar, dan tindakan pembetulan dijana daripada transkrip audit.' },
+      { title: 'Automatic NCR/CAR', desc: 'Nonconformance, klausa ISO berkaitan, punca akar, dan tindakan pembetulan dijana daripada transkrip audit.' },
       { title: 'Follow-up Tracker', desc: 'Semua tindakan pembetulan dalam senarai interaktif dengan tarikh sasaran. Track hingga closure.' },
-      { title: 'Nombor Audit & Wakil Auditee', desc: 'Nombor audit dan wakil auditee direkod dalam setiap sesi untuk dokumentasi audit trail yang lengkap.' },
-      { title: 'Chain of Custody SHA-256', desc: 'Rekod audit tidak boleh diubah selepas dijana — penting untuk akreditasi badan pensijilan.' },
-      { title: 'Rekod Cepat', desc: 'Mulakan sesi audit serta-merta tanpa isi borang. Butiran auditee boleh ditambah selepas sesi — tanpa ganggu aliran audit.' },
-      { title: 'Perpustakaan Audio', desc: 'Rakaman sesi audit disimpan selamat. Kaitkan audio dengan nombor audit untuk dokumentasi audit trail yang lengkap dan boleh dirujuk semula.' },
+      { title: 'Audit Number & Auditee Representative', desc: 'Nombor audit dan wakil auditee direkod dalam setiap sesi untuk dokumentasi audit trail yang lengkap.' },
+      { title: 'SHA-256 Chain of Custody', desc: 'Rekod audit tidak boleh diubah selepas dijana — penting untuk akreditasi badan pensijilan.' },
+      { title: 'Quick Record', desc: 'Mulakan sesi audit serta-merta tanpa isi borang. Butiran auditee boleh ditambah selepas sesi — tanpa ganggu aliran audit.' },
+      { title: 'Audio Library', desc: 'Rakaman sesi audit disimpan selamat. Kaitkan audio dengan nombor audit untuk dokumentasi audit trail yang lengkap dan boleh dirujuk semula.' },
     ],
   },
   hr: {
-    label: 'Penyiasat HR',
+    label: 'HR Investigator',
     hex: '#6366f1',
     badge: 'EA 1955 · PDPA 2010 · SHA-256 Chain of Custody',
-    headline: 'Inkuiri Domestik',
-    headlineAccent: 'Yang Telus dan Sah Undang-Undang.',
+    headline: 'Domestic Inquiry',
+    headlineAccent: 'Transparent and Legally Valid.',
     sub: 'Rakam sesi Inkuiri Domestik (ID) dengan chain of custody yang tidak boleh dimanipulasi. Jana laporan siasatan mengikut Akta Kerja 1955.',
-    ctaText: 'Cuba Percuma — 2 Sesi Siasatan',
+    ctaText: 'Try Free — 2 Investigation Sessions',
     enterpriseCta: false,
     painPoints: [
       { icon: '⚖️', title: 'Pekerja boleh cabar proses siasatan', desc: 'Proses inkuiri domestik yang tidak berdokumen mendedahkan syarikat kepada risiko tuntutan mahkamah perusahaan.' },
@@ -182,22 +182,22 @@ const PROFESSIONS = {
       { icon: '📋', title: 'Rekod PDPA pekerja sukar diurus', desc: 'Maklumat pekerja dalam siasatan tertakluk PDPA 2010. Dokumentasi manual tidak mencukupi untuk audit.' },
     ],
     features: [
-      { title: 'Laporan Inkuiri Domestik Berstruktur', desc: 'Tuduhan, penemuan siasatan, cadangan, dan hukuman yang dicadangkan dijana mengikut format Inkuiri Domestik (ID) standard.' },
-      { title: 'Chain of Custody SHA-256', desc: 'Rekod siasatan tidak boleh dimanipulasi — sempurna sebagai bukti dalam prosiding IR/mahkamah buruh.' },
-      { title: 'Nombor Kes & Pegawai Saksi', desc: 'Nombor kes tatatertib, pegawai HR, dan saksi periksa direkod dalam setiap sesi secara formal.' },
-      { title: 'Rekod Persetujuan PDPA Kekal', desc: 'Rekod persetujuan pekerja disimpan kekal. Pematuhan penuh PDPA 2010 untuk data pekerja yang sensitif.' },
-      { title: 'Rekod Cepat', desc: 'Mulakan inkuiri domestik serta-merta tanpa isi borang. Butiran kes tatatertib boleh ditambah selepas sesi tamat.' },
-      { title: 'Perpustakaan Audio', desc: 'Rakaman inkuiri disimpan selamat sebagai bukti tambahan. Kaitkan audio dengan nombor kes tatatertib untuk dokumentasi yang kukuh di Tribunal Perusahaan.' },
+      { title: 'Structured Domestic Inquiry Report', desc: 'Tuduhan, penemuan siasatan, cadangan, dan hukuman yang dicadangkan dijana mengikut format Inkuiri Domestik (ID) standard.' },
+      { title: 'SHA-256 Chain of Custody', desc: 'Rekod siasatan tidak boleh dimanipulasi — sempurna sebagai bukti dalam prosiding IR/mahkamah buruh.' },
+      { title: 'Case Number & Witness Officer', desc: 'Nombor kes tatatertib, pegawai HR, dan saksi periksa direkod dalam setiap sesi secara formal.' },
+      { title: 'Permanent PDPA Consent Records', desc: 'Rekod persetujuan pekerja disimpan kekal. Pematuhan penuh PDPA 2010 untuk data pekerja yang sensitif.' },
+      { title: 'Quick Record', desc: 'Mulakan inkuiri domestik serta-merta tanpa isi borang. Butiran kes tatatertib boleh ditambah selepas sesi tamat.' },
+      { title: 'Audio Library', desc: 'Rakaman inkuiri disimpan selamat sebagai bukti tambahan. Kaitkan audio dengan nombor kes tatatertib untuk dokumentasi yang kukuh di Tribunal Perusahaan.' },
     ],
   },
   jkm: {
-    label: 'Pegawai JKM',
+    label: 'JKM Officer',
     hex: '#0d9488',
     badge: 'Akta Kanak-kanak 2001 · Akta Keganasan Rumah Tangga 1994 · JKM',
-    headline: 'Lindungi. Dokumen.',
-    headlineAccent: 'Selamatkan Nyawa dengan Data.',
+    headline: 'Protect. Document.',
+    headlineAccent: 'Save Lives with Data.',
     sub: 'Rakam temubual kebajikan, kesan petanda bahaya kanak-kanak berisiko secara realtime, dan jana laporan kes yang kukuh untuk tindakan mahkamah.',
-    ctaText: 'Cuba Percuma — 2 Sesi Kebajikan',
+    ctaText: 'Try Free — 2 Welfare Sessions',
     enterpriseCta: false,
     painPoints: [
       { icon: '🚨', title: 'Petanda bahaya kanak-kanak boleh terlepas pandang', desc: 'Dalam temubual yang sensitif, tanda-tanda penderaan atau pengabaian mungkin tidak diperasan. AI VeriRec kesan secara automatik semasa sesi.' },
@@ -205,22 +205,22 @@ const PROFESSIONS = {
       { icon: '📂', title: 'Beban kerja kes yang tinggi mengurangkan kualiti dokumentasi', desc: 'Pegawai JKM menguruskan puluhan kes serentak. Transkripsi automatik VeriRec jimat masa dan tingkatkan kualiti rekod.' },
     ],
     features: [
-      { title: 'Pengesanan Petanda Bahaya AI Masa Nyata', desc: 'Kata kunci risiko seperti "penderaan", "takut", "bekas luka" dikesan semasa sesi. Banner amaran merah muncul serta-merta untuk tindakan segera.' },
-      { title: 'Laporan Penilaian Risiko Berstruktur', desc: 'Laporan mengandungi petanda risiko, faktor pelindung, tahap bahaya (Rendah/Sederhana/Tinggi), dan cadangan intervensi — siap untuk mahkamah.' },
-      { title: 'Sokongan Temubual Trauma-Informed', desc: 'AI cadangkan soalan susulan yang sesuai untuk temubual kanak-kanak dan keluarga berisiko mengikut garis panduan trauma-informed care.' },
-      { title: 'Chain of Custody SHA-256', desc: 'Setiap rekod temubual disahkan dengan hash kriptografi. Laporan tidak boleh dimanipulasi — penting untuk prosiding mahkamah kebajikan.' },
-      { title: 'Rekod Cepat', desc: 'Mulakan temubual serta-merta dalam situasi kecemasan kebajikan. Tiada borang diperlukan — fokus pada keselamatan individu terlebih dahulu.' },
-      { title: 'Perpustakaan Audio', desc: 'Rakaman temubual disimpan selamat. Kaitkan audio dengan fail kes kebajikan untuk dokumentasi lengkap yang boleh dikemukakan ke mahkamah.' },
+      { title: 'Real-Time AI Red Flag Detection', desc: 'Kata kunci risiko seperti "penderaan", "takut", "bekas luka" dikesan semasa sesi. Banner amaran merah muncul serta-merta untuk tindakan segera.' },
+      { title: 'Structured Risk Assessment Report', desc: 'Laporan mengandungi petanda risiko, faktor pelindung, tahap bahaya (Rendah/Sederhana/Tinggi), dan cadangan intervensi — siap untuk mahkamah.' },
+      { title: 'Trauma-Informed Interview Support', desc: 'AI cadangkan soalan susulan yang sesuai untuk temubual kanak-kanak dan keluarga berisiko mengikut garis panduan trauma-informed care.' },
+      { title: 'SHA-256 Chain of Custody', desc: 'Setiap rekod temubual disahkan dengan hash kriptografi. Laporan tidak boleh dimanipulasi — penting untuk prosiding mahkamah kebajikan.' },
+      { title: 'Quick Record', desc: 'Mulakan temubual serta-merta dalam situasi kecemasan kebajikan. Tiada borang diperlukan — fokus pada keselamatan individu terlebih dahulu.' },
+      { title: 'Audio Library', desc: 'Rakaman temubual disimpan selamat. Kaitkan audio dengan fail kes kebajikan untuk dokumentasi lengkap yang boleh dikemukakan ke mahkamah.' },
     ],
   },
   peguam: {
-    label: 'Peguam',
+    label: 'Lawyer',
     hex: '#0891b2',
     badge: 'Legal Professional Privilege · Akta Profesion Undang-Undang 1976 · Bar Council',
-    headline: 'Fokus pada Strategi.',
-    headlineAccent: 'VeriRec Uruskan Dokumentasi Kes.',
+    headline: 'Focus on Strategy.',
+    headlineAccent: 'VeriRec Handles Case Documentation.',
     sub: 'Rakam perundingan klien dan temubual saksi, analisa jurang fakta secara realtime, dan jana laporan kes berstruktur dalam masa seminit.',
-    ctaText: 'Cuba Percuma — 2 Sesi Guaman',
+    ctaText: 'Try Free — 2 Legal Sessions',
     enterpriseCta: false,
     painPoints: [
       { icon: '📝', title: 'Nota perundingan klien makan masa berjam-jam', desc: 'Setiap perundingan memerlukan transkripsi manual yang mengambil masa. VeriRec jana laporan berstruktur dalam masa seminit.' },
@@ -228,22 +228,22 @@ const PROFESSIONS = {
       { icon: '📂', title: 'Pengurusan fail kes yang tidak efisien', desc: 'Rekod perundingan dalam pelbagai format menyukarkan rujukan silang. VeriRec standardkan dokumentasi semua kes.' },
     ],
     features: [
-      { title: 'Analisa Jurang Kes AI Masa Nyata', desc: 'AI analisa perbualan semasa perundingan — kesan jurang fakta, risiko undang-undang, dan cadang soalan susulan yang tepat tanpa perlu klik.' },
-      { title: 'Laporan Perundingan Berstruktur', desc: 'Fakta kes, isu undang-undang, risiko, dan strategi yang disyorkan dijana automatik mengikut format fail guaman yang profesional.' },
-      { title: 'Legal Professional Privilege Terjaga', desc: 'Semua rekod disimpan dengan enkripsi penuh. Chain of custody SHA-256 membuktikan integriti dokumen perundingan sulit.' },
-      { title: 'Rekod Persetujuan PDPA Kekal', desc: 'Persetujuan klien untuk rakaman direkod digital dengan timestamp. Audit trail kekal untuk pematuhan PDPA 2010.' },
-      { title: 'Rekod Cepat', desc: 'Mulakan perundingan serta-merta tanpa setup panjang. Butiran klien boleh ditambah selepas sesi — sesuai untuk perundingan mendesak.' },
-      { title: 'Perpustakaan Audio', desc: 'Rakaman perundingan disimpan selamat di bawah Legal Professional Privilege. Kaitkan audio dengan fail klien untuk rujukan strategi kes.' },
+      { title: 'Real-Time AI Case Gap Analysis', desc: 'AI analisa perbualan semasa perundingan — kesan jurang fakta, risiko undang-undang, dan cadang soalan susulan yang tepat tanpa perlu klik.' },
+      { title: 'Structured Consultation Report', desc: 'Fakta kes, isu undang-undang, risiko, dan strategi yang disyorkan dijana automatik mengikut format fail guaman yang profesional.' },
+      { title: 'Legal Professional Privilege Protected', desc: 'Semua rekod disimpan dengan enkripsi penuh. Chain of custody SHA-256 membuktikan integriti dokumen perundingan sulit.' },
+      { title: 'Permanent PDPA Consent Records', desc: 'Persetujuan klien untuk rakaman direkod digital dengan timestamp. Audit trail kekal untuk pematuhan PDPA 2010.' },
+      { title: 'Quick Record', desc: 'Mulakan perundingan serta-merta tanpa setup panjang. Butiran klien boleh ditambah selepas sesi — sesuai untuk perundingan mendesak.' },
+      { title: 'Audio Library', desc: 'Rakaman perundingan disimpan selamat di bawah Legal Professional Privilege. Kaitkan audio dengan fail klien untuk rujukan strategi kes.' },
     ],
   },
   court: {
-    label: 'Peguam & Mahkamah',
+    label: 'Lawyer & Court',
     hex: '#1e40af',
     badge: 'Akta Keterangan 1950 · KPJ · Kaedah Mahkamah 2012',
-    headline: 'Analisa Keterangan Saksi',
+    headline: 'Witness Testimony Analysis',
     headlineAccent: 'Masa Nyata. Semasa Prosiding.',
     sub: 'Kesan percanggahan dalam keterangan saksi, dapatkan cadangan soalan pemeriksaan balas dari AI, dan dokumentasikan setiap prosiding dengan chain of custody SHA-256.',
-    ctaText: 'Cuba Percuma — 2 Sesi Mahkamah',
+    ctaText: 'Try Free — 2 Court Sessions',
     enterpriseCta: false,
     painPoints: [
       { icon: '🔍', title: 'Percanggahan keterangan sukar dikesan dalam masa nyata', desc: 'Semasa pemeriksaan balas yang pantas, percanggahan dengan keterangan terdahulu mudah terlepas pandang. VeriRec kesan automatik.' },
@@ -253,18 +253,18 @@ const PROFESSIONS = {
     features: [
       { title: 'Analisa Keterangan AI Masa Nyata', desc: 'AI analisa keterangan saksi setiap beberapa ayat — kesan percanggahan, kelemahan keterangan, dan cadang soalan pemeriksaan balas yang berkesan.' },
       { title: 'Cadangan Soalan Pemeriksaan Balas', desc: 'Berdasarkan konteks keterangan semasa, AI cadangkan soalan susulan yang boleh diklik terus untuk guna dalam prosiding.' },
-      { title: 'Chain of Custody SHA-256', desc: 'Setiap rekod prosiding disahkan dengan hash kriptografi. Buktikan transkrip tidak diubah — sah sebagai rujukan dokumentasi.' },
+      { title: 'SHA-256 Chain of Custody', desc: 'Setiap rekod prosiding disahkan dengan hash kriptografi. Buktikan transkrip tidak diubah — sah sebagai rujukan dokumentasi.' },
       { title: 'Nombor Kes & Peguam Bertentangan', desc: 'Nombor kes mahkamah, peguam bertentangan, dan hakim direkod dalam setiap sesi untuk dokumentasi yang lengkap dan formal.' },
-      { title: 'Rekod Cepat', desc: 'Mulakan rakaman prosiding serta-merta tanpa isi borang. Butiran mahkamah boleh ditambah selepas prosiding tamat.' },
-      { title: 'Perpustakaan Audio', desc: 'Rakaman prosiding disimpan selamat. Kaitkan audio dengan nombor kes mahkamah untuk dokumentasi lengkap yang boleh dirujuk semasa rayuan.' },
+      { title: 'Quick Record', desc: 'Mulakan rakaman prosiding serta-merta tanpa isi borang. Butiran mahkamah boleh ditambah selepas prosiding tamat.' },
+      { title: 'Audio Library', desc: 'Rakaman prosiding disimpan selamat. Kaitkan audio dengan nombor kes mahkamah untuk dokumentasi lengkap yang boleh dirujuk semasa rayuan.' },
     ],
   },
 };
 
 const STEPS = [
-  { num: '01', title: 'Isi Butiran atau Rekod Terus', desc: 'Isi nama subjek dan nombor kes (2 minit), atau guna Rekod Cepat — terus rakam tanpa borang. Butiran boleh dilengkap selepas sesi.' },
-  { num: '02', title: 'Dapatkan Persetujuan & Rekod', desc: 'Subjek tandatangani borang persetujuan digital. Mulakan rakaman dengan satu klik. Audio disimpan automatik ke Perpustakaan.' },
-  { num: '03', title: 'Jana Laporan AI', desc: 'Tamatkan sesi. Laporan lengkap dengan chain of custody SHA-256 dijana dalam masa 60 saat. Audio tersimpan dalam perpustakaan untuk rujukan masa hadapan.' },
+  { num: '01', title: 'Fill Details or Record Directly', desc: 'Fill in subject name and case number (2 minutes), or use Quick Record — record directly without forms. Details can be completed after the session.' },
+  { num: '02', title: 'Get Consent & Record', desc: 'Subject signs digital consent form. Start recording with one click. Audio is automatically saved to Library.' },
+  { num: '03', title: 'Generate AI Report', desc: 'End session. Complete report with SHA-256 chain of custody generated in 60 seconds. Audio stored in library for future reference.' },
 ];
 
 const TESTIMONIALS = {
@@ -317,23 +317,23 @@ const TESTIMONIALS = {
 
 const PLANS = [
   {
-    key: 'free', label: 'Percuma', price: 0, sessions: 2, popular: false, trial: false,
-    features: ['2 sesi/bulan', '1 pengguna', 'Transkripsi automatik', 'Laporan asas'],
-    notIncluded: ['Analisa AI Realtime', 'Laporan PDF', 'Sokongan keutamaan'],
+    key: 'free', label: 'Free', price: 0, sessions: 2, popular: false, trial: false,
+    features: ['2 sessions/month', '1 user', 'Automatic transcription', 'Basic report'],
+    notIncluded: ['Real-time AI analysis', 'PDF report', 'Priority support'],
   },
   {
-    key: 'starter', label: 'Profesional', price: 100, sessions: 10, popular: true, trial: false,
-    features: ['10 sesi/bulan', 'AI analisis realtime', 'Panduan PEACE Model', 'Laporan SOP PDF', 'Diarisasi speaker', 'Top-up sesi bila perlu'],
-    notIncluded: ['Pengguna tidak terhad', 'SLA 99.9%'],
+    key: 'starter', label: 'Professional', price: 100, sessions: 10, popular: true, trial: false,
+    features: ['10 sessions/month', 'Real-time AI analysis', 'PEACE Model guide', 'SOP PDF report', 'Speaker diarization', 'Top-up sessions when needed'],
+    notIncluded: ['Unlimited users', 'SLA 99.9%'],
   },
   {
     key: 'pro', label: 'Pro', price: 999, sessions: 100, popular: true, trial: false,
-    features: ['100 sesi/bulan', '10 pengguna', 'Semua ciri Starter', 'Analisa AI 7 Profesion', 'Keutamaan sokongan', 'Akses API'],
-    notIncluded: ['200+ sesi/bulan'],
+    features: ['100 sessions/month', '10 users', 'All Starter features', 'AI analysis 7 Professions', 'Priority support', 'API access'],
+    notIncluded: ['200+ sessions/month'],
   },
   {
-    key: 'biz', label: 'Perniagaan', price: 2499, sessions: 200, popular: false, trial: false,
-    features: ['200 sesi/bulan', 'Pengguna tidak terhad', 'Semua ciri Pro', 'Akaun terurus', 'SLA 99.9%', 'Onboarding khusus'],
+    key: 'biz', label: 'Business', price: 2499, sessions: 200, popular: false, trial: false,
+    features: ['200 sessions/month', 'Unlimited users', 'All Pro features', 'Managed account', 'SLA 99.9%', 'Dedicated onboarding'],
     notIncluded: [],
   },
 ];
@@ -387,20 +387,20 @@ export default function ProfessionLandingPage({ professionSlug }) {
             <span className="font-bold text-gray-900 text-lg">VeriRec</span>
           </button>
           <div className="hidden sm:flex items-center gap-5 text-sm text-gray-600">
-            <button onClick={() => navigate('/home')} className="hover:text-gray-900 transition-colors">← Semua Profesion</button>
-            <a href="#masalah" className="hover:text-gray-900 transition-colors">Masalah</a>
-            <a href="#ciri" className="hover:text-gray-900 transition-colors">Ciri-ciri</a>
-            <a href="#harga" className="hover:text-gray-900 transition-colors">Harga</a>
+            <button onClick={() => navigate('/home')} className="hover:text-gray-900 transition-colors">← All Professions</button>
+            <a href="#masalah" className="hover:text-gray-900 transition-colors">Problems</a>
+            <a href="#ciri" className="hover:text-gray-900 transition-colors">Features</a>
+            <a href="#harga" className="hover:text-gray-900 transition-colors">Pricing</a>
             <a href="/faq" className="hover:text-gray-900 transition-colors">FAQ</a>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={handleLogin} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Log Masuk</button>
+            <button onClick={handleLogin} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Sign In</button>
             <button
               onClick={handleCta}
               className="text-sm font-semibold text-white px-4 py-2 rounded-lg transition-colors"
               style={{ backgroundColor: data.hex }}
             >
-              {data.enterpriseCta ? 'Hubungi Kami' : 'Cuba Percuma'}
+              {data.enterpriseCta ? 'Contact Us' : 'Try Free'}
             </button>
           </div>
         </div>
@@ -433,11 +433,11 @@ export default function ProfessionLandingPage({ professionSlug }) {
               onClick={handleLogin}
               className="inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-medium text-gray-700 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
             >
-              Log Masuk
+              Sign In
             </button>
           </div>
           {!data.enterpriseCta && (
-            <p className="text-xs text-gray-400 mt-4">Tanpa kad kredit · Batalkan bila-bila masa</p>
+            <p className="text-xs text-gray-400 mt-4">No credit card · Cancel anytime</p>
           )}
         </div>
 
@@ -446,7 +446,7 @@ export default function ProfessionLandingPage({ professionSlug }) {
           {[
             { label: 'PDPA 2010', sub: 'Consent audit trail' },
             { label: 'SHA-256', sub: 'Chain of custody' },
-            { label: 'Whisper AI', sub: 'Transkripsi tepat' },
+            { label: 'Whisper AI', sub: 'Accurate transcription' },
             { label: 'Made in Malaysia', sub: 'Data stored locally' },
           ].map(b => (
             <div key={b.label} className="bg-white rounded-xl border p-4 text-center shadow-sm">
@@ -461,8 +461,8 @@ export default function ProfessionLandingPage({ professionSlug }) {
       <section id="masalah" className="py-20 px-6 bg-gray-50">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">Masalah yang Kami Faham</h2>
-            <p className="text-gray-500 mt-3">Sebagai {data.label}, anda hadapi cabaran unik yang alat biasa tidak dapat selesaikan.</p>
+            <h2 className="text-3xl font-bold text-gray-900">Problems We Understand</h2>
+            <p className="text-gray-500 mt-3">As a {data.label}, you face unique challenges that ordinary tools cannot solve.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {data.painPoints.map((p, i) => (
@@ -480,8 +480,8 @@ export default function ProfessionLandingPage({ professionSlug }) {
       <section id="ciri" className="py-20 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">Direka Khusus untuk {data.label}</h2>
-            <p className="text-gray-500 mt-3">Bukan sekadar alat rakaman biasa — platform yang memahami kerja anda.</p>
+            <h2 className="text-3xl font-bold text-gray-900">Built Specifically for {data.label}</h2>
+            <p className="text-gray-500 mt-3">Not just an ordinary recording tool — a platform that understands your work.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {data.features.map((f, i) => (
@@ -505,8 +505,8 @@ export default function ProfessionLandingPage({ professionSlug }) {
         <section className="py-20 px-6 bg-gray-50">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900">Kata Mereka</h2>
-              <p className="text-gray-500 mt-3">Pengamal {data.label} yang telah menggunakan VeriRec.</p>
+              <h2 className="text-3xl font-bold text-gray-900">What They Say</h2>
+              <p className="text-gray-500 mt-3">Practitioners who {data.label} have used VeriRec.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {TESTIMONIALS[professionSlug].map((t, i) => (
@@ -540,7 +540,7 @@ export default function ProfessionLandingPage({ professionSlug }) {
       <section className="py-20 px-6 bg-gray-50">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">Mulakan dalam 3 Langkah</h2>
+            <h2 className="text-3xl font-bold text-gray-900">Get Started in 3 Steps</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {STEPS.map((s, i) => (
@@ -561,12 +561,12 @@ export default function ProfessionLandingPage({ professionSlug }) {
       <section id="harga" className="py-20 px-6 bg-gray-50">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900">Harga Mudah, Tiada Kejutan</h2>
-            <p className="text-gray-500 mt-3">Mulakan percuma. Naik taraf bila anda bersedia.</p>
+            <h2 className="text-3xl font-bold text-gray-900">Simple Pricing, No Surprises</h2>
+            <p className="text-gray-500 mt-3">Start free. Upgrade when you're ready.</p>
 
             {!data.enterpriseCta && (
               <div className="flex items-center justify-center gap-4 mt-6">
-                <span className={`text-sm font-medium ${!annual ? 'text-gray-900' : 'text-gray-400'}`}>Bulanan</span>
+                <span className={`text-sm font-medium ${!annual ? 'text-gray-900' : 'text-gray-400'}`}>Monthly</span>
                 <button
                   onClick={() => setAnnual(!annual)}
                   className={`relative w-12 h-6 rounded-full transition-colors ${annual ? 'bg-blue-600' : 'bg-gray-300'}`}
@@ -575,7 +575,7 @@ export default function ProfessionLandingPage({ professionSlug }) {
                   <span className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${annual ? 'translate-x-6' : ''}`} />
                 </button>
                 <span className={`text-sm font-medium ${annual ? 'text-gray-900' : 'text-gray-400'}`}>
-                  Tahunan <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full ml-1">Jimat 17%</span>
+                  Annual <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full ml-1">Save 17%</span>
                 </span>
               </div>
             )}
@@ -583,10 +583,10 @@ export default function ProfessionLandingPage({ professionSlug }) {
 
           {data.enterpriseCta ? (
             <div className="text-center bg-white rounded-2xl border p-10 max-w-lg mx-auto">
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Harga Khas untuk Institusi</h3>
-              <p className="text-gray-500 mb-6">Kami menyediakan pakej khas untuk agensi kerajaan termasuk onboarding, latihan, dan sokongan SLA.</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Special Pricing for Institutions</h3>
+              <p className="text-gray-500 mb-6">We provide special packages for government agencies including onboarding, training, and SLA support.</p>
               <button
-                onClick={() => { window.location.href = 'mailto:hello@verirec.app?subject=Pertanyaan%20Harga%20Institusi'; }}
+                onClick={() => { window.location.href = 'mailto:hello@verirec.app?subject=Pertanyaan%20Pricing%20Institusi'; }}
                 className="px-8 py-3 font-semibold text-white rounded-xl hover:opacity-90 transition-opacity"
                 style={{ backgroundColor: data.hex }}
               >
@@ -608,24 +608,24 @@ export default function ProfessionLandingPage({ professionSlug }) {
                         className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-white text-xs font-bold px-4 py-1.5 rounded-full whitespace-nowrap shadow"
                         style={{ backgroundColor: data.hex }}
                       >
-                        Paling Popular
+                        Most Popular
                       </div>
                     )}
 
                     <h3 className="text-lg font-bold text-gray-900">{plan.label}</h3>
-                    <p className="text-xs text-gray-500 mt-0.5 mb-4">{plan.sessions} sesi/bulan</p>
+                    <p className="text-xs text-gray-500 mt-0.5 mb-4">{plan.sessions} sesi/month</p>
 
                     <div className="mb-5">
                       {plan.price === 0 ? (
-                        <p className="text-3xl font-bold text-gray-900">Percuma</p>
+                        <p className="text-3xl font-bold text-gray-900">Free</p>
                       ) : (
                         <>
                           <div className="flex items-baseline gap-1">
                             <span className="text-3xl font-bold text-gray-900">RM{monthlyPrice}</span>
-                            <span className="text-gray-500 text-sm">/bulan</span>
+                            <span className="text-gray-500 text-sm">/month</span>
                           </div>
                           {annual && (
-                            <p className="text-xs text-gray-400 mt-0.5">Dibil RM{getAnnualTotal(plan)}/tahun</p>
+                            <p className="text-xs text-gray-400 mt-0.5">Billed RM{getAnnualTotal(plan)}/year</p>
                           )}
                         </>
                       )}
@@ -662,7 +662,7 @@ export default function ProfessionLandingPage({ professionSlug }) {
                         : { backgroundColor: 'transparent', color: data.hex, border: `1.5px solid ${data.hex}` }
                       }
                     >
-                      {plan.key === 'free' ? 'Cuba Percuma' : plan.key === 'biz' ? 'Hubungi Kami' : 'Langgan Sekarang'}
+                      {plan.key === 'free' ? 'Try Free' : plan.key === 'biz' ? 'Contact Us' : 'Subscribe Now'}
                     </button>
                   </div>
                 );
@@ -676,12 +676,12 @@ export default function ProfessionLandingPage({ professionSlug }) {
       <section className="py-20 px-6" style={{ backgroundColor: data.hex }}>
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
-            {data.enterpriseCta ? `Demo Percuma untuk ${data.label}` : `Mulakan Hari Ini — Percuma`}
+            {data.enterpriseCta ? `Free Demo for ${data.label}` : `Mulakan Hari Ini — Percuma`}
           </h2>
           <p className="mb-8" style={{ color: 'rgba(255,255,255,0.8)' }}>
             {data.enterpriseCta
-              ? 'Hubungi kami untuk demo langsung dan perbincangan keperluan institusi anda.'
-              : '2 sesi percuma. Tiada kad kredit diperlukan. Batal bila-bila masa.'}
+              ? 'Contact us for a live demo and discussion of your institution needs.'
+              : '2 free sessions. No credit card required. Cancel anytime.'}
           </p>
           <button
             onClick={handleCta}
@@ -699,19 +699,19 @@ export default function ProfessionLandingPage({ professionSlug }) {
           <button onClick={() => navigate('/home')} className="flex items-center gap-2">
             <Logo />
             <span className="font-bold text-white">VeriRec</span>
-            <span className="text-xs text-gray-500 ml-2">Platform Rakaman Sesi Profesional</span>
+            <span className="text-xs text-gray-500 ml-2">Professional Session Recording Platform</span>
           </button>
           <div className="flex items-center gap-6 text-sm">
-            <button onClick={() => navigate('/home')} className="hover:text-white transition-colors">Laman Utama</button>
+            <button onClick={() => navigate('/home')} className="hover:text-white transition-colors">Home</button>
             <button onClick={() => navigate('/faq')} className="hover:text-white transition-colors">FAQ</button>
-            <button onClick={() => navigate('/pricing')} className="hover:text-white transition-colors">Harga</button>
-            <button onClick={() => navigate('/terms')} className="hover:text-white transition-colors">Terma</button>
-            <button onClick={() => navigate('/privacy')} className="hover:text-white transition-colors">Privasi</button>
-            <a href="mailto:hello@verirec.app" className="hover:text-white transition-colors">Hubungi Kami</a>
+            <button onClick={() => navigate('/pricing')} className="hover:text-white transition-colors">Pricing</button>
+            <button onClick={() => navigate('/terms')} className="hover:text-white transition-colors">Terms</button>
+            <button onClick={() => navigate('/privacy')} className="hover:text-white transition-colors">Privacy</button>
+            <a href="mailto:hello@verirec.app" className="hover:text-white transition-colors">Contact Us</a>
           </div>
         </div>
         <div className="max-w-6xl mx-auto mt-8 pt-6 border-t border-gray-800 text-center text-xs text-gray-600">
-          © {new Date().getFullYear()} VeriRec. Dibina di Malaysia. Mematuhi PDPA 2010.
+          © {new Date().getFullYear()} VeriRec. Built in Malaysia. PDPA 2010 Compliant.
         </div>
       </footer>
     </div>
