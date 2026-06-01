@@ -99,7 +99,20 @@ const isInvestigationProf = ['police','sprm','sispa','skmm','hr','jtk','peguam']
 Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 
 
-## Features Baru (2026-06-01 — sesi terbaru)
+## Features Baru (2026-06-01 — sesi terkini)
+**AssemblyAI Speaker Identification:**
+- `api/transcribe.js` GET: selepas diarization selesai, call `llm-gateway.assemblyai.com/v1/understanding`
+  - Pass `interviewer` + `subject_name` sebagai speakers dengan description
+  - Mapping: `{ A: 'Ahmad Faris', B: 'Mohd Farid' }` → `identified_name` per utterance
+  - Failure non-fatal — fallback ke diarization biasa (heuristic first speaker = interviewer)
+- `src/api/whisper.js`: `pollDiarization()` terima `{ interviewer, subject_name }` → pass ke query params
+- `src/pages/SessionPage.jsx`: pass `setup.interviewer` + `setup.subject_name` ke pollDiarization
+  - Jika `hasIdentified`: map via name matching (bukan heuristic)
+  - Simpan `identified_name` dalam transcript entries
+- `TranscriptPanel.jsx`: tunjuk nama sebenar + badge "✓ ID" (hijau) bila disahkan
+- `ReportView.jsx`: tunjuk nama sebenar dalam transkrip UI dan PDF export
+
+## Features Baru (2026-06-01 — sesi sebelumnya)
 **#13 Multi-language transcription:**
 - `api/transcribe.js`: language-aware Whisper — 'auto'=no lang (BM+EN mix detect), 'ms'/'en' → explicit
 - Prompt context Malaysia untuk setiap mod bahasa
@@ -248,7 +261,7 @@ vercel deploy --prod --force --scope syedshazni-7682s-projects
 - www.verirec.app + counselor.verirec.app (doctor/jkm redirect ke www)
 - Project ID: `prj_EwnDU0nKMOn56auUR1WZF1GeNI3f`
 - GitHub: `https://github.com/shaze22/verirec` (branch: main)
-- Last deployed: 2026-06-01 (commit `1bd73ba` — multilang, deadline notif, case mgmt 2.0, PEACE auto-phase)
+- Last deployed: 2026-06-01 (commit `bd9ecda` — AssemblyAI Speaker Identification)
 - Supabase project ID: `sbakkkxuhkxfofpfhdtn`
 
 **Supabase Auth URL Configuration (dashboard):**
