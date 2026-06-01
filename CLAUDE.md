@@ -41,6 +41,13 @@ Pengesan subdomain via `src/lib/subdomain.js` — hanya `isCounselorSubdomain()`
 - `www.verirec.app`: sesi counselor ditapis keluar, profesi counselor tidak muncul, tab kaunseling tersembunyi
 - `/dashboard` redirect ke `/analytics` pada www — Sidebar "Papan Pemuka" link ke `/analytics`
 
+**Sesi Baru dari Fail Kes (commit 229c7de, 2026-06-01):**
+- `CaseDetailPage`: button "🎙 Sesi Baru" dalam header sesi + empty state
+- `startNewSession()`: simpan `case_prefill` ke sessionStorage → navigate ke `/session/setup/{profession}`
+- Rename "+ Tambah Sesi" → "+ Sesi Sedia Ada" (untuk link sesi sedia ada ke kes)
+- `SessionSetupPage`: baca `case_prefill` on mount → auto-isi `case_number`, `case_id`, `selectedCaseId`
+- Banner biru "Diteruskan dari Fail Kes" tunjuk nama + no. kes, sessionStorage dibersihkan selepas dibaca
+
 **Nav Structure — www.verirec.app (commit 5882f8e, 2026-06-01):**
 - Sidebar `OTHER_ITEMS`: Sesi Baru (CTA biru) | Fail Kes | Jadual Sesi | Templat Soalan | Log Audit | Pasukan | Tetapan
 - "Sesi Terkini" dan "Subjek" **dibuang dari nav utama** — sesi diakses melalui Fail Kes; Subjek via link sekunder bawah separator
