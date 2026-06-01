@@ -5,12 +5,162 @@ import {
   getCase, getCaseSessions, getUnassignedSessions,
   updateCase, assignSessionToCase, removeSessionFromCase,
 } from '../api/cases.js';
+import { supabase } from '../lib/supabase.js';
+import { useAuthStore } from '../store/authStore.js';
 import { TopBar } from '../components/layout/TopBar.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { Modal } from '../components/ui/Modal.jsx';
 import { Badge } from '../components/ui/Badge.jsx';
 import { professionLabel } from '../data/professions.js';
 import toast from 'react-hot-toast';
+
+const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'video/mp4'];
+const MAX_SIZE_BYTES = 52428800; // 50MB
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1048576).toFixed(1)} MB`;
+}
+
+function EvidenceAttachments({ caseId, userId }) {
+  const [files, setFiles] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [deletingFile, setDeletingFile] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const loadFiles = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.storage.from('evidence').list(`${userId}/${caseId}`, { sortBy: { column: 'created_at', order: 'desc' } });
+      if (error) throw error;
+      setFiles(data || []);
+    } catch {
+      /* silent — bucket may be empty */
+    }
+  }, [caseId, userId]);
+
+  useEffect(() => { loadFiles(); }, [loadFiles]);
+
+  const handleUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      toast.error('Jenis fail tidak dibenarkan. Guna PDF, JPG, PNG, DOCX, atau MP4.');
+      return;
+    }
+    if (file.size > MAX_SIZE_BYTES) {
+      toast.error('Saiz fail melebihi 50MB.');
+      return;
+    }
+    setUploading(true);
+    try {
+      const path = `${userId}/${caseId}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+      const { error } = await supabase.storage.from('evidence').upload(path, file);
+      if (error) throw error;
+      toast.success('Fail berjaya dimuat naik.');
+      loadFiles();
+    } catch (err) {
+      toast.error(err.message || 'Gagal memuat naik fail.');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDownload = async (fileName) => {
+    try {
+      const { data, error } = await supabase.storage.from('evidence').createSignedUrl(`${userId}/${caseId}/${fileName}`, 300);
+      if (error) throw error;
+      window.open(data.signedUrl, '_blank');
+    } catch {
+      toast.error('Gagal menjana pautan muat turun.');
+    }
+  };
+
+  const handleDelete = async (fileName) => {
+    if (!window.confirm(`Padam fail "${fileName}"?`)) return;
+    setDeletingFile(fileName);
+    try {
+      const { error } = await supabase.storage.from('evidence').remove([`${userId}/${caseId}/${fileName}`]);
+      if (error) throw error;
+      toast.success('Fail dipadamkan.');
+      setFiles(prev => prev.filter(f => f.name !== fileName));
+    } catch {
+      toast.error('Gagal memadam fail.');
+    } finally {
+      setDeletingFile(null);
+    }
+  };
+
+  const extIcon = (name) => {
+    const ext = name.split('.').pop()?.toLowerCase();
+    if (ext === 'pdf') return '📄';
+    if (['jpg', 'jpeg', 'png'].includes(ext)) return '🖼️';
+    if (['doc', 'docx'].includes(ext)) return '📝';
+    if (ext === 'mp4') return '🎬';
+    return '📎';
+  };
+
+  return (
+    <div className="bg-white border rounded-xl p-5 mt-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Lampiran Bukti</h3>
+        <div>
+          <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.docx,.mp4" onChange={handleUpload} className="hidden" id="evidence-upload" />
+          <label htmlFor="evidence-upload">
+            <Button
+              size="sm"
+              as="span"
+              loading={uploading}
+              className="cursor-pointer"
+              onClick={() => !uploading && fileInputRef.current?.click()}
+            >
+              {uploading ? 'Memuat naik...' : '+ Tambah Fail'}
+            </Button>
+          </label>
+        </div>
+      </div>
+      <p className="text-xs text-gray-400 mb-3">PDF, JPG, PNG, DOCX, MP4 — maksimum 50MB setiap fail</p>
+      {files.length === 0 ? (
+        <div className="text-center py-8 text-gray-300">
+          <p className="text-2xl mb-1">📎</p>
+          <p className="text-sm">Belum ada lampiran bukti.</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {files.map(f => (
+            <div key={f.name} className="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="text-lg flex-shrink-0">{extIcon(f.name)}</span>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-800 truncate">{f.name.replace(/^\d+_/, '')}</p>
+                  <p className="text-xs text-gray-400">
+                    {f.metadata?.size ? formatBytes(f.metadata.size) : '—'} · {f.created_at ? format(new Date(f.created_at), 'dd MMM yyyy') : '—'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-1 flex-shrink-0">
+                <button
+                  onClick={() => handleDownload(f.name)}
+                  className="text-xs text-blue-600 hover:text-blue-800 px-2.5 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+                >
+                  Muat Turun
+                </button>
+                <button
+                  onClick={() => handleDelete(f.name)}
+                  disabled={deletingFile === f.name}
+                  className="text-xs text-red-500 hover:text-red-700 px-2.5 py-1.5 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+                >
+                  {deletingFile === f.name ? '...' : 'Padam'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 async function exportCasePDF(caseData, sessions) {
   const { default: jsPDF } = await import('jspdf');
@@ -97,6 +247,7 @@ const riskLabels = { low: 'Rendah', medium: 'Sederhana', high: 'Tinggi' };
 export default function CaseDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [caseData, setCaseData] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -376,6 +527,9 @@ export default function CaseDetailPage() {
             />
             <p className="text-xs text-gray-400 mt-1">Nota ini disimpan dalam fail kes. Tidak dikira dalam hash sesi.</p>
           </div>
+
+          {/* Lampiran Bukti */}
+          {user && <EvidenceAttachments caseId={id} userId={user.id} />}
 
           {/* Timeline Kes */}
           <div className="bg-white border rounded-xl overflow-hidden mt-4">
