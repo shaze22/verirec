@@ -202,7 +202,7 @@ export function Sidebar() {
             className={({ isActive }) => clsx(
               'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors',
               item.cta
-                ? 'bg-blue-600 text-white hover:bg-blue-700 font-medium'
+                ? 'bg-blue-600/15 text-blue-400 border border-blue-500/25 hover:bg-blue-600 hover:text-white hover:border-transparent font-medium'
                 : isActive ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
             )}
           >
