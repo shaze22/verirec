@@ -597,12 +597,13 @@ export function ReportView({ session }) {
   const [orgName, setOrgName]             = useState(session.org_name || '');
   const [caseNumber, setCaseNumber]       = useState(session.case_number || '');
   const [witnessOfficer, setWitnessOfficer] = useState(session.witness_officer || '');
+  const [otherOfficers, setOtherOfficers] = useState(session.other_officers || '');
   const [savingHeader, setSavingHeader]   = useState(false);
 
   const saveHeader = async () => {
     setSavingHeader(true);
     try {
-      await supabase.from('sessions').update({ org_name: orgName, case_number: caseNumber, witness_officer: witnessOfficer }).eq('id', id);
+      await supabase.from('sessions').update({ org_name: orgName, case_number: caseNumber, witness_officer: witnessOfficer, other_officers: otherOfficers }).eq('id', id);
       setHeaderEdit(false);
       toast.success('Maklumat laporan dikemas kini.');
     } catch { toast.error('Gagal menyimpan.'); }
@@ -665,7 +666,7 @@ export function ReportView({ session }) {
       };
 
       // ── Header ──
-      const headerHeight = (orgName || caseNumber || witnessOfficer) ? 38 : 32;
+      const headerHeight = (orgName || caseNumber || witnessOfficer || otherOfficers) ? 44 : 32;
       pdf.setFillColor(245, 247, 250);
       pdf.rect(0, 0, W, headerHeight, 'F');
       pdf.setFontSize(13); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(10, 10, 10);
@@ -680,6 +681,7 @@ export function ReportView({ session }) {
       pdf.text(dateStr, W - M, 13, { align: 'right' });
       pdf.text(interviewer || '', W - M, 21, { align: 'right' });
       if (witnessOfficer) { pdf.setFontSize(8); pdf.text(witnessOfficer, W - M, 28, { align: 'right' }); }
+      if (otherOfficers) { pdf.setFontSize(7.5); pdf.setTextColor(100, 100, 100); pdf.text(`Pegawai Hadir: ${otherOfficers}`, W - M, 35, { align: 'right' }); }
       y = headerHeight + 6;
 
       // ── Risk / Sentiment / Duration ──
@@ -1170,7 +1172,7 @@ export function ReportView({ session }) {
           )}
         </div>
         {headerEdit ? (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-gray-500 mb-1 block">Nama Organisasi</label>
               <input value={orgName} onChange={e => setOrgName(e.target.value)} placeholder="cth. Klinik Kesihatan Bestari"
@@ -1186,12 +1188,18 @@ export function ReportView({ session }) {
               <input value={witnessOfficer} onChange={e => setWitnessOfficer(e.target.value)} placeholder="Nama saksi atau pegawai"
                 className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">Pegawai Hadir Lain</label>
+              <input value={otherOfficers} onChange={e => setOtherOfficers(e.target.value)} placeholder="cth. Insp. Ahmad, Sgt. Razak"
+                className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
           </div>
         ) : (
           <div className="flex flex-wrap gap-4 text-sm text-gray-600">
             <span><span className="text-gray-400">Organisasi:</span> {orgName || <em className="text-gray-300">—</em>}</span>
             <span><span className="text-gray-400">No. Kes:</span> {caseNumber || <em className="text-gray-300">—</em>}</span>
             <span><span className="text-gray-400">Saksi:</span> {witnessOfficer || <em className="text-gray-300">—</em>}</span>
+            {otherOfficers && <span><span className="text-gray-400">Pegawai Hadir:</span> {otherOfficers}</span>}
           </div>
         )}
       </div>
@@ -1220,6 +1228,12 @@ export function ReportView({ session }) {
               <>
                 <p className="text-sm text-gray-500 mt-1">Saksi / Pegawai</p>
                 <p className="font-medium">{witnessOfficer}</p>
+              </>
+            )}
+            {otherOfficers && (
+              <>
+                <p className="text-sm text-gray-500 mt-1">Pegawai Hadir Lain</p>
+                <p className="font-medium text-sm">{otherOfficers}</p>
               </>
             )}
           </div>

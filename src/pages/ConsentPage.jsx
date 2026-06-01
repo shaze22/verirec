@@ -58,7 +58,9 @@ export default function ConsentPage() {
               user_id: user.id, title: setup.title, profession: setup.profession,
               interviewer: setup.interviewer, subject_name: setup.subject_name,
               subject_role: setup.subject_role, case_number: setup.case_number || null,
-              witness_officer: setup.witness_officer || null, context_notes: setup.context_notes,
+              witness_officer: setup.witness_officer || null,
+              other_officers: setup.other_officers || null,
+              context_notes: setup.context_notes,
               consent_signed: true, consent_data: consentData,
               ...(setup.case_id ? { case_id: setup.case_id } : {}),
             })
@@ -106,6 +108,7 @@ export default function ConsentPage() {
           subject_role: setup.subject_role,
           case_number: setup.case_number || null,
           witness_officer: setup.witness_officer || null,
+          other_officers: setup.other_officers || null,
           context_notes: setup.context_notes,
           consent_signed: true,
           consent_data: consentData,

@@ -11,7 +11,7 @@ import { Input, Textarea } from '../components/ui/Input.jsx';
 import { SubjectPicker } from '../components/session/SubjectPicker.jsx';
 
 const hasData = (form) =>
-  form.title || form.subject_name || form.subject_role || form.context_notes || form.case_number || form.witness_officer || form.subject_id;
+  form.title || form.subject_name || form.subject_role || form.context_notes || form.case_number || form.witness_officer || form.other_officers || form.subject_id;
 
 function Tooltip({ text }) {
   return (
@@ -90,6 +90,7 @@ export default function SessionSetupPage() {
           subject_role: saved.subject_role || '',
           case_number: saved.case_number || '',
           witness_officer: saved.witness_officer || '',
+          other_officers: saved.other_officers || '',
           context_notes: saved.context_notes || '',
           assignee_id: saved.assignee_id || '',
         };
@@ -103,6 +104,7 @@ export default function SessionSetupPage() {
       subject_role: '',
       case_number: '',
       witness_officer: '',
+      other_officers: '',
       context_notes: '',
       assignee_id: '',
       custom_fields: {},
@@ -227,6 +229,18 @@ export default function SessionSetupPage() {
               <div>
                 <LabelWithTooltip label={caseFields.witnessLabel} tooltip="Pegawai atau individu lain yang hadir sebagai saksi atau pemerhati dalam sesi ini." />
                 <Input value={form.witness_officer} onChange={set('witness_officer')} placeholder="Nama pegawai saksi (jika ada)" />
+              </div>
+            )}
+
+            {!isCounselorSubdomain() && (
+              <div>
+                <LabelWithTooltip label="Pegawai Hadir Lain" tooltip="Pegawai-pegawai lain yang turut hadir dalam sesi ini selain saksi utama. Pisahkan nama dengan koma." />
+                <Textarea
+                  value={form.other_officers}
+                  onChange={set('other_officers')}
+                  rows={2}
+                  placeholder="cth. Insp. Ahmad, Sgt. Razak, DSP Halim (pisahkan dengan koma)"
+                />
               </div>
             )}
 

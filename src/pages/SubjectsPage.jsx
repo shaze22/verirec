@@ -1,11 +1,100 @@
 import { useState, useEffect, useCallback } from 'react';
+import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore.js';
 import { getSubjects, createSubject, updateSubject, deleteSubject } from '../api/subjects.js';
+import { supabase } from '../lib/supabase.js';
+import { isCounselorSubdomain } from '../lib/subdomain.js';
 import { TopBar } from '../components/layout/TopBar.jsx';
 import { Button } from '../components/ui/Button.jsx';
+import { Badge } from '../components/ui/Badge.jsx';
 import { Input, Textarea } from '../components/ui/Input.jsx';
 import { Modal } from '../components/ui/Modal.jsx';
 import toast from 'react-hot-toast';
+
+const riskColors = { low: 'green', medium: 'yellow', high: 'red' };
+const riskLabels = { low: 'Rendah', medium: 'Sederhana', high: 'Tinggi' };
+const riskOrder  = { low: 0, medium: 1, high: 2 };
+
+function RiskTrend({ sessions }) {
+  if (sessions.length < 2) return null;
+  const withRisk = sessions.filter(s => s.report?.riskLevel);
+  if (withRisk.length < 2) return null;
+  const first = riskOrder[withRisk[0].report.riskLevel] ?? 0;
+  const last  = riskOrder[withRisk[withRisk.length - 1].report.riskLevel] ?? 0;
+  if (last > first) return <span className="text-red-500 font-bold text-base" title="Risiko meningkat">↑</span>;
+  if (last < first) return <span className="text-green-500 font-bold text-base" title="Risiko menurun">↓</span>;
+  return <span className="text-amber-400 font-bold text-base" title="Risiko stabil">→</span>;
+}
+
+function SubjectHistoryModal({ subject, onClose }) {
+  const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!subject) return;
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('sessions')
+          .select('id, title, created_at, duration, report, status, profession')
+          .or(`subject_id.eq.${subject.id},subject_name.ilike.${subject.name}`)
+          .neq('profession', 'counselor')
+          .order('created_at', { ascending: true });
+        setSessions(data || []);
+      } catch {
+        toast.error('Gagal memuatkan sejarah sesi.');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [subject]);
+
+  return (
+    <Modal open={!!subject} onClose={onClose} title={`Sejarah Sesi — ${subject?.name}`}>
+      {loading ? (
+        <div className="flex justify-center py-8"><div className="w-6 h-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>
+      ) : sessions.length === 0 ? (
+        <p className="text-sm text-gray-400 text-center py-8">Tiada sesi rekod untuk subjek ini.</p>
+      ) : (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs text-gray-500">{sessions.length} sesi dijumpai</p>
+            <div className="flex items-center gap-1.5 text-sm">
+              <span className="text-xs text-gray-500">Trend risiko:</span>
+              <RiskTrend sessions={sessions} />
+            </div>
+          </div>
+          {sessions.map(s => (
+            <button
+              key={s.id}
+              onClick={() => { navigate(`/session/${s.id}`); onClose(); }}
+              className="w-full text-left p-3 bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-xl transition-colors"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{s.title}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {format(new Date(s.created_at), 'dd MMM yyyy')} · {Math.round((s.duration || 0) / 60)} min
+                  </p>
+                </div>
+                <div className="flex-shrink-0 flex flex-col items-end gap-1">
+                  {s.report?.riskLevel ? (
+                    <Badge color={riskColors[s.report.riskLevel]}>{riskLabels[s.report.riskLevel]}</Badge>
+                  ) : (
+                    <Badge color="gray">Tiada laporan</Badge>
+                  )}
+                  {s.status === 'closed' && <Badge color="gray">Ditutup</Badge>}
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </Modal>
+  );
+}
 
 const emptyForm = { name: '', ic_number: '', phone: '', email: '', address: '', notes: '' };
 
@@ -34,6 +123,8 @@ export default function SubjectsPage() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(null);
+  const [historySubject, setHistorySubject] = useState(null);
+  const showHistory = !isCounselorSubdomain();
 
   const load = useCallback(async () => {
     try {
@@ -168,6 +259,14 @@ export default function SubjectsPage() {
                     </div>
                   </div>
                   <div className="flex gap-1 flex-shrink-0">
+                    {showHistory && (
+                      <button
+                        onClick={() => setHistorySubject(s)}
+                        className="text-xs text-gray-500 hover:text-blue-600 transition-colors px-2.5 py-1.5 rounded-lg hover:bg-blue-50"
+                      >
+                        Sejarah
+                      </button>
+                    )}
                     <button
                       onClick={() => openEdit(s)}
                       className="text-xs text-gray-500 hover:text-blue-600 transition-colors px-2.5 py-1.5 rounded-lg hover:bg-blue-50"
@@ -188,6 +287,13 @@ export default function SubjectsPage() {
           )}
         </div>
       </div>
+
+      {showHistory && (
+        <SubjectHistoryModal
+          subject={historySubject}
+          onClose={() => setHistorySubject(null)}
+        />
+      )}
 
       <Modal
         open={!!modal}
