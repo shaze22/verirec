@@ -9,6 +9,162 @@ import { Button } from '../components/ui/Button.jsx';
 import { isCounselorSubdomain } from '../lib/subdomain.js';
 import toast from 'react-hot-toast';
 
+async function printMonthlyReport(user, sessions, reportMonth) {
+  const { default: jsPDF } = await import('jspdf');
+  const [yr, mo] = reportMonth.split('-').map(Number);
+  const monthStart = new Date(yr, mo - 1, 1);
+  const monthEnd   = new Date(yr, mo, 0, 23, 59, 59);
+  const monthLabel = format(monthStart, 'MMMM yyyy');
+
+  const monthSessions = sessions.filter(s => {
+    const d = new Date(s.created_at);
+    return d >= monthStart && d <= monthEnd;
+  });
+
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const W = 210, M = 18;
+  let y = M;
+
+  const addLine = (text, size = 10, bold = false, color = [30, 30, 30]) => {
+    doc.setFontSize(size);
+    doc.setFont('helvetica', bold ? 'bold' : 'normal');
+    doc.setTextColor(...color);
+    doc.splitTextToSize(String(text || ''), W - M * 2).forEach(l => {
+      if (y > 270) { doc.addPage(); y = M; }
+      doc.text(l, M, y);
+      y += size * 0.52;
+    });
+  };
+
+  const rule = () => {
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.2);
+    doc.line(M, y, W - M, y);
+    y += 4;
+  };
+
+  const section = (title) => {
+    y += 3;
+    doc.setFillColor(37, 99, 235);
+    doc.rect(M, y, W - M * 2, 7, 'F');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text(title.toUpperCase(), M + 3, y + 5);
+    y += 11;
+    doc.setTextColor(30, 30, 30);
+  };
+
+  const row = (label, value) => {
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(80, 80, 80);
+    doc.text(label, M, y);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 30, 30);
+    doc.text(String(value), W - M, y, { align: 'right' });
+    y += 5.5;
+  };
+
+  // Header
+  doc.setFillColor(37, 99, 235);
+  doc.rect(0, 0, W, 28, 'F');
+  doc.setFontSize(15);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(255, 255, 255);
+  doc.text('LAPORAN BULANAN SIASATAN', M, 13);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text(monthLabel.toUpperCase(), M, 21);
+  doc.setFontSize(9);
+  doc.text(`Dijana: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, W - M, 21, { align: 'right' });
+  y = 36;
+
+  addLine(user?.user_metadata?.full_name || user?.email || 'Pegawai VeriRec', 11, true);
+  y += 1;
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(80, 80, 80);
+  doc.text('Platform: VeriRec Profesional (www.verirec.app)', M, y);
+  y += 5;
+  rule();
+
+  section('Ringkasan Bulan Ini');
+  const withReport   = monthSessions.filter(s => s.report).length;
+  const totalDur     = monthSessions.reduce((acc, s) => acc + (s.duration || 0), 0);
+  const avgMin       = monthSessions.length > 0 ? Math.round(totalDur / monthSessions.length / 60) : 0;
+  const activeSess   = monthSessions.filter(s => (s.status || 'active') === 'active').length;
+  const closedSess   = monthSessions.filter(s => s.status === 'closed').length;
+  row('Jumlah Sesi Dijalankan', monthSessions.length);
+  row('Laporan AI Dijana', withReport);
+  row('Purata Tempoh Sesi', `${avgMin} minit`);
+  row('Kes Aktif (Bulan Ini)', activeSess);
+  row('Kes Ditutup (Bulan Ini)', closedSess);
+
+  section('Taburan Tahap Risiko');
+  const sessWithRisk = monthSessions.filter(s => s.report?.riskLevel);
+  if (sessWithRisk.length === 0) {
+    doc.setFontSize(9);
+    doc.setTextColor(150, 150, 150);
+    doc.text('Tiada data risiko — jana laporan AI untuk sesi tersebut.', M, y);
+    y += 6;
+  } else {
+    const rCounts = { high: 0, medium: 0, low: 0 };
+    sessWithRisk.forEach(s => { if (rCounts[s.report.riskLevel] !== undefined) rCounts[s.report.riskLevel]++; });
+    row('Tinggi', rCounts.high);
+    row('Sederhana', rCounts.medium);
+    row('Rendah', rCounts.low);
+  }
+
+  if (monthSessions.length > 0) {
+    section('Senarai Sesi Bulan Ini');
+    const rl = { high: 'Tinggi', medium: 'Sederhana', low: 'Rendah' };
+    monthSessions.forEach((s, i) => {
+      if (y > 260) { doc.addPage(); y = M; }
+      doc.setFontSize(8.5);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 30, 30);
+      doc.text(`${i + 1}. ${s.title || 'Tanpa Tajuk'}`, M, y);
+      y += 4.5;
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(80, 80, 80);
+      doc.setFontSize(8);
+      const details = [
+        `Subjek: ${s.subject_name || '-'}`,
+        `Tarikh: ${format(new Date(s.created_at), 'dd/MM/yyyy')}`,
+        `Tempoh: ${Math.round((s.duration || 0) / 60)} min`,
+        s.report?.riskLevel ? `Risiko: ${rl[s.report.riskLevel] || s.report.riskLevel}` : 'Tiada laporan',
+      ].join('   ');
+      doc.text(details, M + 4, y);
+      y += 5;
+    });
+  }
+
+  // SHA-256 ringkasan
+  const payload = JSON.stringify({ month: reportMonth, sessions: monthSessions.map(s => s.id) });
+  const hashBuf = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(payload));
+  const hashHex = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+  // Footer
+  y = Math.max(y + 10, 262);
+  if (y > 278) { doc.addPage(); y = M + 5; }
+  doc.setDrawColor(200, 200, 200);
+  doc.line(M, y, W - M, y);
+  y += 5;
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(150, 50, 50);
+  doc.text('SULIT — UNTUK KEGUNAAN RASMI SAHAJA', M, y);
+  y += 4.5;
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(130, 130, 130);
+  doc.text(`Tarikh Jana: ${format(new Date(), 'dd MMMM yyyy, HH:mm')}`, M, y);
+  y += 4;
+  doc.text(`SHA-256: ${hashHex.slice(0, 40)}...`, M, y);
+
+  doc.save(`verirec-laporan-bulanan-${reportMonth}.pdf`);
+}
+
 const CounselorDashboard = lazy(() => import('./kaunselor/CounselorDashboard.jsx'));
 
 const riskColors = { high: 'bg-red-500', medium: 'bg-amber-400', low: 'bg-green-500' };
@@ -97,6 +253,8 @@ export default function AnalyticsPage() {
   const navigate = useNavigate();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [reportMonth, setReportMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -177,10 +335,33 @@ export default function AnalyticsPage() {
     <div className="flex flex-col h-screen">
       <TopBar
         title={useCase === 'soal-siasat' ? 'Analitik Siasatan' : useCase === 'audit' ? 'Analitik Audit' : 'Analitik'}
-        action={sessions.length > 0 && !loading && (
-          <Button variant="secondary" size="sm" onClick={() => { exportCSV(sessions); toast.success('CSV berjaya dieksport.'); }}>
-            Eksport CSV
-          </Button>
+        action={!loading && sessions.length > 0 && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 bg-gray-100 rounded-lg px-2.5 py-1">
+              <input
+                type="month"
+                value={reportMonth}
+                onChange={e => setReportMonth(e.target.value)}
+                className="text-xs border-0 bg-transparent focus:outline-none text-gray-700"
+              />
+              <Button
+                variant="secondary"
+                size="sm"
+                loading={exporting}
+                onClick={async () => {
+                  setExporting(true);
+                  try { await printMonthlyReport(user, sessions, reportMonth); toast.success('Laporan bulanan berjaya dieksport.'); }
+                  catch { toast.error('Gagal menjana laporan.'); }
+                  finally { setExporting(false); }
+                }}
+              >
+                Laporan Bulanan
+              </Button>
+            </div>
+            <Button variant="secondary" size="sm" onClick={() => { exportCSV(sessions); toast.success('CSV berjaya dieksport.'); }}>
+              Eksport CSV
+            </Button>
+          </div>
         )}
       />
       <div className="flex-1 overflow-auto p-6 pb-20 md:pb-6">

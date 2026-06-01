@@ -1,9 +1,11 @@
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { useAuthStore } from '../../store/authStore.js';
 import { useBillingStore } from '../../store/billingStore.js';
 import { usePwaInstall } from '../../hooks/usePwaInstall.js';
 import { isCounselorSubdomain } from '../../lib/subdomain.js';
+import { supabase } from '../../lib/supabase.js';
 
 const planLabels = { free: 'Percuma', counselor: 'Kaunselor', starter: 'Starter', pro: 'Pro', biz: 'Perniagaan' };
 const ADMIN_EMAILS = ['syedshazni@todak.com', 'syedshazni@gmail.com'];
@@ -70,6 +72,59 @@ export function Sidebar() {
     navigate('/logout');
   };
 
+  // Global search — www only
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchRef = useRef(null);
+  const searchTimer = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) setSearchOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const runSearch = useCallback(async (q) => {
+    if (!q.trim() || !user) { setSearchResults(null); return; }
+    const pattern = `%${q}%`;
+    try {
+      const [{ data: sessions }, { data: cases }, { data: subjects }] = await Promise.all([
+        supabase.from('sessions').select('id, title, subject_name, case_number').eq('user_id', user.id).or(`title.ilike.${pattern},subject_name.ilike.${pattern},case_number.ilike.${pattern}`).neq('profession', 'counselor').limit(5),
+        supabase.from('cases').select('id, title, case_number').eq('user_id', user.id).or(`title.ilike.${pattern},case_number.ilike.${pattern}`).limit(5),
+        supabase.from('subjects').select('id, name').eq('user_id', user.id).ilike('name', pattern).limit(5),
+      ]);
+      setSearchResults({ sessions: sessions || [], cases: cases || [], subjects: subjects || [] });
+    } catch { /* silent */ }
+  }, [user]);
+
+  useEffect(() => {
+    clearTimeout(searchTimer.current);
+    if (!searchQuery.trim()) { setSearchResults(null); return; }
+    searchTimer.current = setTimeout(() => runSearch(searchQuery), 280);
+    return () => clearTimeout(searchTimer.current);
+  }, [searchQuery, runSearch]);
+
+  const allResults = searchResults ? [
+    ...(searchResults.sessions || []).map(s => ({ type: 'session', id: s.id, label: s.title, sub: s.subject_name || s.case_number, path: `/session/${s.id}` })),
+    ...(searchResults.cases || []).map(c => ({ type: 'case', id: c.id, label: c.title, sub: c.case_number, path: `/cases/${c.id}` })),
+    ...(searchResults.subjects || []).map(s => ({ type: 'subject', id: s.id, label: s.name, path: '/subjects' })),
+  ] : [];
+
+  const typeLabel = { session: 'Sesi', case: 'Kes', subject: 'Subjek' };
+  const typeColor = { session: 'text-blue-400', case: 'text-purple-400', subject: 'text-emerald-400' };
+
+  const handleSearchKey = (e) => {
+    if (e.key === 'Escape') { setSearchOpen(false); setSearchQuery(''); }
+    if (e.key === 'Enter' && allResults.length > 0) {
+      navigate(allResults[0].path);
+      setSearchOpen(false);
+      setSearchQuery('');
+    }
+  };
+
   const usagePct = subscription && subscription.sessions_limit !== -1
     ? Math.min(100, Math.round((subscription.sessions_used / subscription.sessions_limit) * 100))
     : null;
@@ -85,6 +140,60 @@ export function Sidebar() {
           </div>
         </div>
       </div>
+
+      {/* Global Search — www only */}
+      {!isCounselor && (
+        <div ref={searchRef} className="px-4 pt-3 pb-1 relative">
+          <div className="relative">
+            <svg className="w-3.5 h-3.5 text-gray-500 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => { setSearchQuery(e.target.value); setSearchOpen(true); }}
+              onFocus={() => setSearchOpen(true)}
+              onKeyDown={handleSearchKey}
+              placeholder="Cari sesi, kes, subjek..."
+              className="w-full pl-8 pr-3 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+            />
+            {searchQuery && (
+              <button onClick={() => { setSearchQuery(''); setSearchResults(null); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+          {searchOpen && searchQuery.trim() && searchResults && (
+            <div className="absolute left-4 right-4 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-2xl z-50 overflow-hidden">
+              {allResults.length === 0 ? (
+                <p className="text-xs text-gray-400 text-center py-3">Tiada hasil dijumpai</p>
+              ) : (
+                ['session', 'case', 'subject'].map(type => {
+                  const items = allResults.filter(r => r.type === type);
+                  if (!items.length) return null;
+                  return (
+                    <div key={type}>
+                      <p className={`text-xs font-semibold ${typeColor[type]} px-3 py-1.5 bg-gray-900/60`}>{typeLabel[type]}</p>
+                      {items.map(item => (
+                        <button
+                          key={item.id}
+                          onClick={() => { navigate(item.path); setSearchOpen(false); setSearchQuery(''); }}
+                          className="w-full text-left px-3 py-2 hover:bg-gray-700 transition-colors border-b border-gray-700/40 last:border-0"
+                        >
+                          <p className="text-xs text-white truncate">{item.label}</p>
+                          {item.sub && <p className="text-xs text-gray-400 truncate">{item.sub}</p>}
+                        </button>
+                      ))}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       <nav className="flex-1 p-4 space-y-1">
         {navItems.map(item => (
