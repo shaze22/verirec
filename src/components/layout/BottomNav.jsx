@@ -23,8 +23,7 @@ const COUNSELOR_NAV = [
 
 const OTHER_NAV = [
   { to: '/analytics',   label: 'Utama',     icon: I.home },
-  { to: '/session/new', label: 'Sesi',      icon: I.mic },
-  { to: '/subjects',    label: 'Subjek',    icon: I.users },
+  { to: '/session/new', label: 'Sesi Baru', icon: I.mic },
   { to: '/cases',       label: 'Fail Kes',  icon: I.folder },
   { to: '/settings',    label: 'Tetapan',   icon: I.settings },
 ];

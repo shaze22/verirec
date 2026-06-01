@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore.js';
 import { getSubjects, createSubject, updateSubject, deleteSubject } from '../api/subjects.js';
 import { supabase } from '../lib/supabase.js';
@@ -116,6 +116,7 @@ function SubjectForm({ value, onChange }) {
 
 export default function SubjectsPage() {
   const { user } = useAuthStore();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -138,6 +139,17 @@ export default function SubjectsPage() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  // Auto-open SubjectHistoryModal bila navigate dari global search (?id=xxx)
+  useEffect(() => {
+    const targetId = searchParams.get('id');
+    if (!targetId || loading || subjects.length === 0) return;
+    const found = subjects.find(s => s.id === targetId);
+    if (found) {
+      setHistorySubject(found);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, subjects, loading, setSearchParams]);
 
   const openCreate = () => { setForm(emptyForm); setModal({ mode: 'create' }); };
 

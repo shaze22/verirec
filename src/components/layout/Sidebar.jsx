@@ -34,11 +34,10 @@ const COUNSELOR_ITEMS = [
   { to: '/settings',                 label: 'Tetapan',    icon: ICONS.settings },
 ];
 
-// Other professions tabs
+// Other professions tabs — Sesi Terkini & Subjek removed from primary nav.
+// Sessions are accessed through Fail Kes. Subjects via Carian Subjek (secondary link) or global search.
 const OTHER_ITEMS = [
-  { to: '/sessions',    label: 'Sesi Terkini',     icon: ICONS.mic },
-  { to: '/session/new', label: 'Sesi Baru',        icon: ICONS.mic },
-  { to: '/subjects',    label: 'Subjek',           icon: ICONS.users },
+  { to: '/session/new', label: 'Sesi Baru',        icon: ICONS.mic,      cta: true },
   { to: '/cases',       label: 'Fail Kes',         icon: ICONS.folder },
   { to: '/jadual',      label: 'Jadual Sesi',      icon: ICONS.calendar },
   { to: '/templat',     label: 'Templat Soalan',   icon: ICONS.doc },
@@ -110,7 +109,7 @@ export function Sidebar() {
   const allResults = searchResults ? [
     ...(searchResults.sessions || []).map(s => ({ type: 'session', id: s.id, label: s.title, sub: s.subject_name || s.case_number, path: `/session/${s.id}` })),
     ...(searchResults.cases || []).map(c => ({ type: 'case', id: c.id, label: c.title, sub: c.case_number, path: `/cases/${c.id}` })),
-    ...(searchResults.subjects || []).map(s => ({ type: 'subject', id: s.id, label: s.name, path: '/subjects' })),
+    ...(searchResults.subjects || []).map(s => ({ type: 'subject', id: s.id, label: s.name, path: `/subjects?id=${s.id}` })),
   ] : [];
 
   const typeLabel = { session: 'Sesi', case: 'Kes', subject: 'Subjek' };
@@ -202,13 +201,32 @@ export function Sidebar() {
             to={item.to}
             className={({ isActive }) => clsx(
               'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors',
-              isActive ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+              item.cta
+                ? 'bg-blue-600 text-white hover:bg-blue-700 font-medium'
+                : isActive ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
             )}
           >
             {item.icon}
             {item.label}
           </NavLink>
         ))}
+
+        {/* Carian Subjek — secondary access for cross-case subject history lookup */}
+        {!isCounselor && (
+          <div className="pt-2 mt-1 border-t border-gray-700/40">
+            <NavLink
+              to="/subjects"
+              className={({ isActive }) => clsx(
+                'flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-colors',
+                isActive ? 'text-blue-400 bg-gray-800' : 'text-gray-600 hover:text-gray-400 hover:bg-gray-800/50'
+              )}
+            >
+              {ICONS.users}
+              Carian Subjek
+            </NavLink>
+          </div>
+        )}
+
         {user && ADMIN_EMAILS.includes(user.email) && (
           <NavLink
             to="/admin"
