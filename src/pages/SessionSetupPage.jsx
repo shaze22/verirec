@@ -74,9 +74,18 @@ export default function SessionSetupPage() {
       .eq('user_id', user.id)
       .eq('status', 'active')
       .order('created_at', { ascending: false })
-      .then(({ data }) => setActiveCases(data || []))
+      .then(({ data }) => {
+        setActiveCases(data || []);
+        // Apply case_prefill selection once cases are loaded
+        if (casePrefill?.case_id && data?.length) {
+          const found = data.find(c => c.id === casePrefill.case_id);
+          if (found) setSelectedCaseId(found.id);
+        }
+      })
       .catch(() => {});
-  }, [user, showCasePicker]);
+  }, [user, showCasePicker, casePrefill]);
+
+  const [casePrefill, setCasePrefill] = useState(null);
 
   const [form, setForm] = useState(() => {
     try {
@@ -111,6 +120,22 @@ export default function SessionSetupPage() {
       case_id: null,
     };
   });
+
+  // Read case_prefill written by CaseDetailPage → startNewSession()
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('case_prefill');
+      if (!raw) return;
+      const prefill = JSON.parse(raw);
+      sessionStorage.removeItem('case_prefill');
+      setCasePrefill(prefill);
+      if (prefill.case_number) {
+        setForm(prev => ({ ...prev, case_number: prefill.case_number, case_id: prefill.case_id }));
+      } else {
+        setForm(prev => ({ ...prev, case_id: prefill.case_id }));
+      }
+    } catch { /* ignore */ }
+  }, []);
 
   const set = (field) => (e) => setForm(prev => ({ ...prev, [field]: e.target.value }));
 
@@ -162,6 +187,20 @@ export default function SessionSetupPage() {
               <p className="text-sm text-gray-500">{profession.frameworks.join(' • ')}</p>
             </div>
           </div>
+
+          {/* Banner: pre-filled from case file */}
+          {casePrefill && (
+            <div className="mb-4 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex items-center gap-3">
+              <span className="text-blue-600 text-lg">📁</span>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-blue-800">Diteruskan dari Fail Kes</p>
+                <p className="text-xs text-blue-600">{casePrefill.case_title}{casePrefill.case_number ? ` · ${casePrefill.case_number}` : ''} — Fail kes telah dipra-pilih.</p>
+              </div>
+              <button type="button" onClick={() => navigate(-1)} className="text-xs text-blue-600 hover:text-blue-800 font-medium underline">
+                Kembali
+              </button>
+            </div>
+          )}
 
           {/* Banner: pre-filled from client file */}
           {form.subject_id && professionId === 'counselor' && (

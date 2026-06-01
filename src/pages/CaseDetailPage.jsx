@@ -290,6 +290,17 @@ export default function CaseDetailPage() {
     }
   };
 
+  const startNewSession = () => {
+    sessionStorage.setItem('case_prefill', JSON.stringify({
+      case_id: caseData.id,
+      case_number: caseData.case_number || '',
+      case_title: caseData.title,
+      profession: caseData.profession || '',
+    }));
+    const prof = caseData.profession;
+    navigate(prof ? `/session/setup/${prof}` : '/session/new');
+  };
+
   const handleAdd = async (sessionId) => {
     setAdding(sessionId);
     try {
@@ -522,7 +533,8 @@ export default function CaseDetailPage() {
                   📦 Eksport Kes
                 </Button>
               )}
-              <Button size="sm" onClick={openAddModal}>+ Tambah Sesi</Button>
+              <Button size="sm" variant="secondary" onClick={openAddModal}>+ Sesi Sedia Ada</Button>
+              <Button size="sm" onClick={startNewSession}>🎙 Sesi Baru</Button>
             </div>
           </div>
 
@@ -532,8 +544,8 @@ export default function CaseDetailPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
               </svg>
               <p className="text-sm">Belum ada sesi dalam fail kes ini.</p>
-              <button onClick={openAddModal} className="mt-2 text-sm text-blue-600 hover:underline">
-                Tambah sesi →
+              <button onClick={startNewSession} className="mt-2 text-sm text-blue-600 hover:underline font-medium">
+                🎙 Mulakan sesi pertama →
               </button>
             </div>
           ) : (
