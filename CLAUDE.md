@@ -41,6 +41,10 @@ Pengesan subdomain via `src/lib/subdomain.js` — hanya `isCounselorSubdomain()`
 - `www.verirec.app`: sesi counselor ditapis keluar, profesi counselor tidak muncul, tab kaunseling tersembunyi
 - `/dashboard` redirect ke `/analytics` pada www — Sidebar "Papan Pemuka" link ke `/analytics`
 
+**Sesi Baru CTA styling fix (commit 67492a8, 2026-06-01):**
+- `Sidebar.jsx`: CTA item guna `bg-blue-600/15 text-blue-400 border border-blue-500/25` — subtle tint, bukan solid biru
+- Hover → solid biru. Jelas beza antara action button vs active page nav item.
+
 **Sesi Baru dari Fail Kes (commit 229c7de, 2026-06-01):**
 - `CaseDetailPage`: button "🎙 Sesi Baru" dalam header sesi + empty state
 - `startNewSession()`: simpan `case_prefill` ke sessionStorage → navigate ke `/session/setup/{profession}`
