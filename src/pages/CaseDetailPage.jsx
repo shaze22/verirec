@@ -260,6 +260,8 @@ export default function CaseDetailPage() {
   const [showTimeline, setShowTimeline] = useState(false);
   const [evidenceNote, setEvidenceNote] = useState('');
   const [evidenceSaving, setEvidenceSaving] = useState(false);
+  const [aiSummary, setAiSummary] = useState('');
+  const [generatingAI, setGeneratingAI] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -267,6 +269,7 @@ export default function CaseDetailPage() {
       setCaseData(c);
       setSessions(s);
       setEvidenceNote(localStorage.getItem(`case_evidence_${id}`) || c.description || '');
+      setAiSummary(c.ai_summary || localStorage.getItem(`case_ai_summary_${id}`) || '');
     } catch {
       toast.error('Fail kes tidak dijumpai.');
       navigate('/cases');
@@ -325,6 +328,41 @@ export default function CaseDetailPage() {
       toast.error('Gagal mengemas kini status.');
     } finally {
       setStatusSaving(false);
+    }
+  };
+
+  const generateAISummary = async () => {
+    const sessionsWithReport = sessions.filter(s => s.report);
+    if (sessionsWithReport.length < 2) return;
+    setGeneratingAI(true);
+    try {
+      const { data: { session: authSession } } = await supabase.auth.getSession();
+      const case_summaries = sessionsWithReport.map(s => ({
+        date: format(new Date(s.created_at), 'dd/MM/yyyy'),
+        subject: s.subject_name || '—',
+        riskLevel: s.report.riskLevel === 'high' ? 'Tinggi' : s.report.riskLevel === 'medium' ? 'Sederhana' : s.report.riskLevel === 'low' ? 'Rendah' : '—',
+        summary: s.report.summary || '',
+        findings: s.report.keyFindings || [],
+      }));
+      const res = await fetch('/api/suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authSession?.access_token}` },
+        body: JSON.stringify({ mode: 'case_summary', case_title: caseData?.title, case_summaries }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Gagal jana ringkasan');
+      }
+      const data = await res.json();
+      const summaryText = data.summary || '';
+      setAiSummary(summaryText);
+      localStorage.setItem(`case_ai_summary_${id}`, summaryText);
+      try { await updateCase(id, { ai_summary: summaryText }); } catch { /* fallback ke localStorage OK */ }
+      toast.success('Ringkasan AI berjaya dijana.');
+    } catch (err) {
+      toast.error(err.message || 'Gagal menjana ringkasan AI.');
+    } finally {
+      setGeneratingAI(false);
     }
   };
 
@@ -412,6 +450,50 @@ export default function CaseDetailPage() {
                 <p className="text-xs text-gray-500">Laporan dijana</p>
               </div>
             </div>
+          </div>
+
+          {/* AI Case Summary */}
+          <div className="mb-4">
+            {aiSummary ? (
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🤖</span>
+                    <h3 className="text-sm font-semibold text-blue-800">Ringkasan AI Keseluruhan Kes</h3>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    loading={generatingAI}
+                    onClick={generateAISummary}
+                    disabled={sessions.filter(s => s.report).length < 2}
+                  >
+                    Jana Semula
+                  </Button>
+                </div>
+                <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{aiSummary}</p>
+                <p className="text-xs text-blue-400 mt-3">Dijana oleh AI berdasarkan {sessions.filter(s => s.report).length} laporan sesi</p>
+              </div>
+            ) : sessions.filter(s => s.report).length >= 2 ? (
+              <button
+                onClick={generateAISummary}
+                disabled={generatingAI}
+                className="w-full flex items-center justify-center gap-2.5 py-4 bg-blue-50 hover:bg-blue-100 border border-blue-200 border-dashed rounded-xl transition-colors disabled:opacity-60"
+              >
+                {generatingAI ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                    <span className="text-sm text-blue-700 font-medium">Menjana ringkasan kes...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-lg">🤖</span>
+                    <span className="text-sm text-blue-700 font-medium">Jana Ringkasan Kes (AI)</span>
+                    <span className="text-xs text-blue-400">berdasarkan {sessions.filter(s => s.report).length} laporan</span>
+                  </>
+                )}
+              </button>
+            ) : null}
           </div>
 
           {/* Sessions */}

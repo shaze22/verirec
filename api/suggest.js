@@ -253,9 +253,49 @@ export default async function handler(req, res) {
     }
 
     const body = await readBody(req);
-    const { mode, profession, phase, question, recent_transcript = [], transcript = [] } = body;
+    const { mode, profession, phase, question, recent_transcript = [], transcript = [], case_summaries = [], case_title = '' } = body;
 
     const isAutoMode = mode === 'auto_analysis';
+    const isCaseSummary = mode === 'case_summary';
+
+    if (isCaseSummary) {
+      if (!case_summaries.length) return res.status(400).json({ error: 'No session summaries provided' });
+      const sessionLines = case_summaries.map((s, i) =>
+        `Sesi ${i + 1}: [${s.date}] ${s.subject} — Risiko: ${s.riskLevel || 'Tidak dianalisis'}\nRingkasan: ${s.summary || 'Tiada ringkasan'}\n${s.findings ? 'Penemuan: ' + s.findings.join('; ') : ''}`
+      ).join('\n\n');
+      const casePrompt = `Anda adalah penganalisis kes profesional untuk platform VeriRec Malaysia.
+
+Kes: ${case_title}
+Bilangan sesi: ${case_summaries.length}
+
+Ringkasan setiap sesi:
+${sessionLines}
+
+Jana ringkasan keseluruhan kes dalam Bahasa Malaysia yang mencakupi:
+1. Tema utama dan corak yang dikesan merentas sesi
+2. Perkembangan kes dari masa ke masa
+3. Risiko kumulatif dan tahap risiko keseluruhan
+4. Cadangan tindakan susulan konkrit
+
+Format respons dalam 4 perenggan yang teratur dan jelas. Jangan guna bullet points. Tulis dalam nada profesional yang sesuai untuk laporan rasmi.`;
+
+      let summaryText;
+      let provider = 'claude';
+      try {
+        const message = await anthropic.messages.create({
+          model: 'claude-opus-4-7',
+          max_tokens: 800,
+          messages: [{ role: 'user', content: casePrompt }],
+        });
+        summaryText = message.content[0].text.trim();
+      } catch (claudeErr) {
+        const isRetryable = claudeErr?.status === 529 || claudeErr?.status >= 500;
+        if (!isRetryable) throw claudeErr;
+        summaryText = await callGeminiFallback(casePrompt);
+        provider = 'gemini';
+      }
+      return res.status(200).json({ summary: summaryText, mode: 'case_summary', provider });
+    }
 
     if (!isAutoMode && (!profession || !question)) {
       return res.status(400).json({ error: 'Missing required fields' });
