@@ -100,6 +100,61 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 
 
 ## Features Baru (2026-06-01 — sesi terkini)
+
+**Laporan Bulanan Professional (AnalyticsPage.jsx):**
+- Butang "Laporan Bulanan" + `<input type="month">` dalam TopBar AnalyticsPage (www sahaja)
+- `printMonthlyReport()` — jsPDF text-based, blue theme, SHA-256 ringkasan footer
+- Kandungan: header pegawai, ringkasan sesi/laporan/tempoh, taburan risiko, senarai sesi bulan
+- Footer: "SULIT — UNTUK KEGUNAAN RASMI SAHAJA" + tarikh + SHA-256
+
+**Global Search dalam Sidebar.jsx (www sahaja):**
+- Search box bawah logo — query sessions, cases, subjects via supabase langsung
+- Max 5 results per kategori, dropdown dengan tab Sesi|Kes|Subjek
+- Keyboard: Escape tutup, Enter navigate ke result pertama
+- Debounce 280ms, exclude counselor sessions
+
+**Subject Risk History (SubjectsPage.jsx, www sahaja):**
+- Butang "Sejarah" per subjek → `SubjectHistoryModal`
+- Fetch sesi via `subject_id` atau `subject_name`, tunjuk tarikh/tempoh/risiko badge
+- `RiskTrend` component: ↑ (risiko naik, merah) ↓ (turun, hijau) → (stabil, kuning)
+
+**Witness/Co-interviewer Tracking:**
+- `SessionSetupPage.jsx`: field "Pegawai Hadir Lain" (textarea, www sahaja)
+- `sessions.other_officers` column (text) — DB migration applied
+- `ConsentPage.jsx`: simpan ke sessions table
+- `ReportView.jsx`: tunjuk dalam header UI + PDF (baris Pegawai Hadir: ...)
+- `saveHeader()`: update DB dengan `other_officers`
+
+**Evidence File Attachments (CaseDetailPage.jsx):**
+- Section "Lampiran Bukti" — upload PDF/JPG/PNG/DOCX/MP4, max 50MB
+- `supabase.storage` bucket `evidence` — path `{user_id}/{case_id}/{filename}`
+- RLS: user hanya CRUD fail sendiri
+- Senarai fail: nama, saiz, tarikh, butang Muat Turun + Padam
+- Upload: validate MIME type + saiz sebelum upload
+
+**Session Comparison (DashboardPage.jsx):**
+- Butang "Bandingkan" muncul bila tepat 2 sesi dipilih dalam select mode
+- Modal 3-kolum side-by-side: Tarikh|Tempoh|Subjek|Risiko|Sentimen|Ringkasan|Penemuan|Cadangan
+- Highlight risiko (merah=naik, hijau=turun), banner bila subjek berbeza
+- `exportComparisonPDF()` — jsPDF landscape layout
+
+**AI Summary Keseluruhan Kes (CaseDetailPage.jsx):**
+- Butang "Jana Ringkasan Kes (AI)" — aktif bila ≥2 sesi ada laporan
+- `suggest.js`: mode `case_summary` — prompt 4-perenggan BM, Claude+Gemini fallback
+- Simpan ke `cases.ai_summary` DB column + localStorage fallback
+- Papar sebelum senarai sesi dalam gradient card biru
+- "Jana Semula" button bila summary sudah ada
+
+**DB Migrations (2026-06-01):**
+- `sessions.other_officers` text
+- `cases.ai_summary` text
+- `storage.buckets`: bucket `evidence` (50MB, PDF/JPG/PNG/DOCX/MP4)
+
+**Deployment:** Commit `a789d0a` — deployed 2026-06-01
+
+---
+
+## Features Baru (2026-06-01 — sesi terkini)
 **AssemblyAI Speaker Identification:**
 - `api/transcribe.js` GET: selepas diarization selesai, call `llm-gateway.assemblyai.com/v1/understanding`
   - Pass `interviewer` + `subject_name` sebagai speakers dengan description
