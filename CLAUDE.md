@@ -19,14 +19,14 @@ vercel env pull .env.local --environment production --scope syedshazni-7682s-pro
 
 ---
 
-## Apa itu VeriRec?
+## What is VeriRec?
 
-**Dua platform, satu codebase:**
+**Two platforms, one codebase:**
 
-| Platform | URL | Fokus |
+| Platform | URL | Focus |
 |----------|-----|-------|
-| VeriRec Profesional | www.verirec.app | Soal siasat + audit — Polis, MACC, HR, ISO, Halal JAKIM, Peguam, Doktor, JKM dll |
-| VeriRec Kaunselor | counselor.verirec.app | Pengurusan sesi kaunseling — fail klien, temujanji, assessment |
+| VeriRec Professional | www.verirec.app | Interview + audit — Police, MACC, HR, ISO, Halal JAKIM, Lawyers, Doctors, JKM etc |
+| VeriRec Counselor | counselor.verirec.app / kaunselor.app | Counseling session management — client files, appointments, assessment |
 
 Pengesan subdomain via `src/lib/subdomain.js` — hanya `isCounselorSubdomain()`.
 `doctor.verirec.app` dan `jkm.verirec.app` dah **ditarik balik** — redirect ke `www.verirec.app`.
