@@ -14,6 +14,75 @@ import { Badge } from '../components/ui/Badge.jsx';
 import { OnboardingModal } from '../components/onboarding/OnboardingModal.jsx';
 import toast from 'react-hot-toast';
 
+async function exportComparisonPDF(s1, s2) {
+  const { default: jsPDF } = await import('jspdf');
+  const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const W = 297, H = 210, M = 15;
+  const colW = (W - M * 3) / 2;
+  let y = M;
+
+  const addLine = (text, x, size = 9, bold = false, color = [30, 30, 30], maxW = colW - 4) => {
+    pdf.setFontSize(size); pdf.setFont('helvetica', bold ? 'bold' : 'normal'); pdf.setTextColor(...color);
+    pdf.splitTextToSize(String(text || '—'), maxW).slice(0, 3).forEach(l => {
+      if (y > H - 15) return;
+      pdf.text(l, x, y); y += size * 0.52;
+    });
+  };
+
+  // Header
+  pdf.setFillColor(37, 99, 235);
+  pdf.rect(0, 0, W, 22, 'F');
+  pdf.setFontSize(13); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(255, 255, 255);
+  pdf.text('PERBANDINGAN SESI — VeriRec', M, 13);
+  pdf.setFontSize(8); pdf.setFont('helvetica', 'normal');
+  pdf.text(`Dijana: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, W - M, 13, { align: 'right' });
+  y = 30;
+
+  const rl = { high: 'Tinggi', medium: 'Sederhana', low: 'Rendah' };
+  const sl = { positive: 'Positif', neutral: 'Neutral', negative: 'Negatif' };
+  const riskRgb = { high: [200, 30, 30], medium: [200, 140, 0], low: [30, 150, 60] };
+
+  const rows = [
+    ['Tajuk', s1.title, s2.title],
+    ['Tarikh', format(new Date(s1.created_at), 'dd MMM yyyy'), format(new Date(s2.created_at), 'dd MMM yyyy')],
+    ['Tempoh', `${Math.round((s1.duration || 0) / 60)} minit`, `${Math.round((s2.duration || 0) / 60)} minit`],
+    ['Subjek', s1.subject_name, s2.subject_name],
+    ['Tahap Risiko', rl[s1.report?.riskLevel] || '—', rl[s2.report?.riskLevel] || '—'],
+    ['Sentimen', sl[s1.report?.sentiment] || '—', sl[s2.report?.sentiment] || '—'],
+    ['Ringkasan AI', s1.report?.summary || '—', s2.report?.summary || '—'],
+  ];
+
+  rows.forEach(([label, v1, v2]) => {
+    if (y > H - 20) return;
+    // Label row
+    pdf.setFontSize(7.5); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(100, 100, 100);
+    pdf.text(label.toUpperCase(), M, y);
+    y += 4;
+    const saveY = y;
+    // Col 1
+    const isRisk = label === 'Tahap Risiko';
+    const rgb1 = isRisk ? (riskRgb[s1.report?.riskLevel] || [30, 30, 30]) : [30, 30, 30];
+    const rgb2 = isRisk ? (riskRgb[s2.report?.riskLevel] || [30, 30, 30]) : [30, 30, 30];
+    addLine(v1, M, 9, false, rgb1);
+    const afterCol1 = y;
+    y = saveY;
+    addLine(v2, M + colW + M, 9, false, rgb2);
+    y = Math.max(afterCol1, y) + 3;
+    pdf.setDrawColor(230, 230, 230); pdf.setLineWidth(0.15);
+    pdf.line(M, y, W - M, y); y += 4;
+  });
+
+  // Divider between columns
+  pdf.setDrawColor(37, 99, 235); pdf.setLineWidth(0.5);
+  pdf.line(M + colW + M / 2, 28, M + colW + M / 2, H - 15);
+
+  // Footer
+  pdf.setFontSize(7); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(150, 50, 50);
+  pdf.text('SULIT — UNTUK KEGUNAAN RASMI SAHAJA', M, H - 8);
+
+  pdf.save(`verirec-perbandingan-sesi-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+}
+
 async function exportBulkPDF(sessions) {
   const { default: jsPDF } = await import('jspdf');
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -130,6 +199,8 @@ export default function DashboardPage({ pageTitle }) {
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [bulkExporting, setBulkExporting] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
+  const [compareModal, setCompareModal] = useState(false);
+  const [comparingExport, setComparingExport] = useState(false);
   const [teamSessions, setTeamSessions] = useState([]);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showQuickRecord, setShowQuickRecord] = useState(false);
@@ -385,12 +456,106 @@ export default function DashboardPage({ pageTitle }) {
           </div>
         </div>
       )}
+      {/* Session Comparison Modal */}
+      {compareModal && selected.size === 2 && (() => {
+        const [id1, id2] = [...selected];
+        const s1 = filteredSessions.find(s => s.id === id1) || sessions.find(s => s.id === id1);
+        const s2 = filteredSessions.find(s => s.id === id2) || sessions.find(s => s.id === id2);
+        if (!s1 || !s2) return null;
+        const rl = { high: 'Tinggi', medium: 'Sederhana', low: 'Rendah' };
+        const sl = { positive: 'Positif', neutral: 'Neutral', negative: 'Negatif' };
+        const riskColor = { high: 'text-red-600 bg-red-50', medium: 'text-amber-600 bg-amber-50', low: 'text-green-600 bg-green-50' };
+        const riskOrder = { low: 0, medium: 1, high: 2 };
+        const riskDiff = (riskOrder[s2.report?.riskLevel] ?? -1) - (riskOrder[s1.report?.riskLevel] ?? -1);
+        const sameSub = s1.subject_name?.toLowerCase() === s2.subject_name?.toLowerCase();
+
+        const rows = [
+          { label: 'Tarikh', v1: format(new Date(s1.created_at), 'dd MMM yyyy'), v2: format(new Date(s2.created_at), 'dd MMM yyyy') },
+          { label: 'Tempoh', v1: `${Math.round((s1.duration || 0) / 60)} minit`, v2: `${Math.round((s2.duration || 0) / 60)} minit` },
+          { label: 'Subjek', v1: s1.subject_name || '—', v2: s2.subject_name || '—', highlight: !sameSub },
+          { label: 'Tahap Risiko', v1: rl[s1.report?.riskLevel] || '—', v2: rl[s2.report?.riskLevel] || '—', riskKey1: s1.report?.riskLevel, riskKey2: s2.report?.riskLevel },
+          { label: 'Sentimen', v1: sl[s1.report?.sentiment] || '—', v2: sl[s2.report?.sentiment] || '—' },
+          { label: 'Ringkasan AI', v1: s1.report?.summary, v2: s2.report?.summary, multiline: true },
+          { label: 'Penemuan Utama', v1: s1.report?.keyFindings?.slice(0, 2).join(' • '), v2: s2.report?.keyFindings?.slice(0, 2).join(' • '), multiline: true },
+          { label: 'Cadangan', v1: s1.report?.recommendations?.slice(0, 2).join(' • '), v2: s2.report?.recommendations?.slice(0, 2).join(' • '), multiline: true },
+        ];
+
+        return (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 overflow-auto">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+              <div className="flex items-center justify-between px-6 py-4 border-b">
+                <h2 className="text-lg font-bold text-gray-900">Perbandingan Sesi</h2>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    loading={comparingExport}
+                    onClick={async () => {
+                      setComparingExport(true);
+                      try { await exportComparisonPDF(s1, s2); toast.success('PDF perbandingan dieksport.'); }
+                      catch { toast.error('Gagal mengeksport PDF.'); }
+                      finally { setComparingExport(false); }
+                    }}
+                  >
+                    Eksport PDF
+                  </Button>
+                  <button onClick={() => setCompareModal(false)} className="text-gray-400 hover:text-gray-600 p-1">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div className="overflow-auto flex-1 p-6">
+                {riskDiff !== 0 && (
+                  <div className={`mb-4 rounded-xl px-4 py-2.5 text-sm font-medium ${riskDiff > 0 ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
+                    {riskDiff > 0 ? '⚠️ Risiko meningkat dari Sesi 1 ke Sesi 2' : '✅ Risiko menurun dari Sesi 1 ke Sesi 2'}
+                  </div>
+                )}
+                {!sameSub && (
+                  <div className="mb-4 rounded-xl px-4 py-2.5 text-sm font-medium bg-amber-50 text-amber-700">
+                    ℹ️ Dua sesi ini melibatkan subjek yang berbeza
+                  </div>
+                )}
+                <div className="grid grid-cols-3 gap-0 border rounded-xl overflow-hidden">
+                  <div className="bg-gray-50 p-3 text-xs font-semibold text-gray-400 uppercase" />
+                  <div className="bg-blue-50 p-3 text-center">
+                    <p className="text-xs font-semibold text-blue-600 uppercase">Sesi 1</p>
+                    <p className="text-sm font-medium text-gray-900 truncate">{s1.title}</p>
+                  </div>
+                  <div className="bg-indigo-50 p-3 text-center">
+                    <p className="text-xs font-semibold text-indigo-600 uppercase">Sesi 2</p>
+                    <p className="text-sm font-medium text-gray-900 truncate">{s2.title}</p>
+                  </div>
+                  {rows.map(({ label, v1, v2, riskKey1, riskKey2, multiline, highlight }) => (
+                    <div key={label} className="contents">
+                      <div className="bg-gray-50 px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase border-t">{label}</div>
+                      <div className={`px-3 py-2.5 border-t border-l ${riskKey1 ? riskColor[riskKey1] || '' : ''} ${multiline ? 'text-xs' : 'text-sm'} text-gray-700`}>
+                        {v1 || <em className="text-gray-300">—</em>}
+                      </div>
+                      <div className={`px-3 py-2.5 border-t border-l ${riskKey2 ? (riskDiff > 0 ? 'text-red-700 bg-red-50' : riskDiff < 0 ? 'text-green-700 bg-green-50' : riskColor[riskKey2] || '') : ''} ${highlight ? 'bg-amber-50' : ''} ${multiline ? 'text-xs' : 'text-sm'} text-gray-700`}>
+                        {v2 || <em className="text-gray-300">—</em>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       <TopBar
         title={pageTitle || "Papan Pemuka"}
         actions={
           selectMode ? (
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">{selected.size} dipilih</span>
+              {selected.size === 2 && (
+                <Button size="sm" variant="secondary" onClick={() => setCompareModal(true)}>
+                  Bandingkan
+                </Button>
+              )}
               <Button size="sm" variant="secondary" onClick={handleBulkExport} loading={bulkExporting} disabled={selected.size === 0}>
                 Eksport PDF
               </Button>
