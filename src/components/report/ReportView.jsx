@@ -508,7 +508,13 @@ function TranscriptScript({ transcript = [], forceExpand = false }) {
               <span className={`text-xs font-semibold w-24 flex-shrink-0 pt-0.5 ${
                 isInterviewer ? 'text-blue-600' : isNote ? 'text-amber-600' : isFlag ? 'text-red-600' : 'text-gray-500'
               }`}>
-                {isInterviewer ? (entry.speaker || 'Penemuduga') : isNote ? '[NOTA]' : isFlag ? '[BENDERA]' : 'Subjek'}
+                {isInterviewer
+                  ? (entry.identified_name || entry.speaker || 'Penemuduga')
+                  : isNote ? '[NOTA]' : isFlag ? '[BENDERA]'
+                  : (entry.identified_name || 'Subjek')}
+                {entry.identified_name && (
+                  <span className="ml-1 text-[9px] text-green-600">✓</span>
+                )}
               </span>
               <span className={`flex-1 leading-relaxed ${
                 isInterviewer ? 'text-blue-900' : isNote ? 'text-amber-900' : isFlag ? 'text-red-800' : 'text-gray-800'
@@ -792,8 +798,10 @@ export function ReportView({ session }) {
         transcript.forEach(entry => {
           checkPage(8);
           const time = entry.timestamp ? format(new Date(entry.timestamp), 'HH:mm:ss') : '';
-          const spk  = entry.type === 'INTERVIEWER' ? (entry.speaker || 'Penemuduga')
-            : entry.type === 'NOTE' ? '[NOTA]' : entry.type === 'FLAG' ? '[BENDERA]' : 'Subjek';
+          const spk  = entry.type === 'INTERVIEWER'
+            ? (entry.identified_name || entry.speaker || 'Penemuduga')
+            : entry.type === 'NOTE' ? '[NOTA]' : entry.type === 'FLAG' ? '[BENDERA]'
+            : (entry.identified_name || 'Subjek');
           const rgb  = entry.type === 'INTERVIEWER' ? [30, 60, 180]
             : entry.type === 'FLAG' ? [180, 30, 30] : entry.type === 'NOTE' ? [140, 90, 0] : [60, 60, 60];
           pdf.setFontSize(7.5); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(...rgb);

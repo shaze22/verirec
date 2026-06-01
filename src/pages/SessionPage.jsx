@@ -267,19 +267,35 @@ export default function SessionPage() {
           setGenerateStep('Memproses diarization speaker (ini mengambil masa ~30 saat)...');
           const utterances = await pollDiarization(jobId, {
             onProgress: (status) => {
-              if (status === 'processing') setGenerateStep('Memproses diarization speaker...');
+              if (status === 'processing') setGenerateStep('Memproses diarization & pengenalan speaker...');
             },
+            interviewer: setup.interviewer,
+            subject_name: setup.subject_name,
           });
           if (utterances.length > 0) {
-            // Map speaker 'A' → interviewer, 'B' → subject, others → label
-            const firstSpeaker = utterances[0]?.speaker;
+            // Build speaker map — use Speaker Identification if available, else heuristic
             const speakerMap = {};
             const uniqueSpeakers = [...new Set(utterances.map(u => u.speaker))];
-            uniqueSpeakers.forEach((s, i) => {
-              if (i === 0) speakerMap[s] = 'interviewer';
-              else if (i === 1) speakerMap[s] = 'subject';
-              else speakerMap[s] = `speaker_${s.toLowerCase()}`;
-            });
+            const hasIdentified = utterances.some(u => u.identified_name);
+
+            if (hasIdentified) {
+              // Speaker ID succeeded — map each label by matching identified name to role
+              const interviewerFirstWord = (setup.interviewer || '').toLowerCase().split(' ')[0];
+              uniqueSpeakers.forEach(s => {
+                const sample = utterances.find(u => u.speaker === s && u.identified_name);
+                const name = (sample?.identified_name || '').toLowerCase();
+                const isInterviewer = interviewerFirstWord && name.includes(interviewerFirstWord);
+                speakerMap[s] = isInterviewer ? 'interviewer' : 'subject';
+              });
+              setGenerateStep('Pengenalan speaker berjaya ✓');
+            } else {
+              // Fallback heuristic: first speaker = interviewer
+              uniqueSpeakers.forEach((s, i) => {
+                if (i === 0) speakerMap[s] = 'interviewer';
+                else if (i === 1) speakerMap[s] = 'subject';
+                else speakerMap[s] = `speaker_${s.toLowerCase()}`;
+              });
+            }
             // Keep SYSTEM/NOTE/FLAG entries, replace TRANSCRIPT with diarized
             const nonTranscript = entries.filter(e => e.type !== 'TRANSCRIPT');
             const diarized = utterances.map(u => ({
@@ -287,6 +303,7 @@ export default function SessionPage() {
               type: 'TRANSCRIPT',
               text: u.text,
               speaker: speakerMap[u.speaker],
+              identified_name: u.identified_name || null,
               timestamp: new Date(Date.now() - (utterances[utterances.length - 1].end - u.start)).toISOString(),
             }));
             diarizedEntries = [...nonTranscript, ...diarized].sort((a, b) =>

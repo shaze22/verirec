@@ -27,13 +27,19 @@ export async function diarizeAudio(blob) {
 }
 
 // Poll AssemblyAI job until completed or timeout. Returns utterances[].
-// utterances: [{ speaker: 'A'|'B'|..., text, start, end }]
-export async function pollDiarization(jobId, { onProgress, maxWaitMs = 180_000 } = {}) {
+// utterances: [{ speaker, text, start, end, identified_name? }]
+export async function pollDiarization(jobId, { onProgress, maxWaitMs = 180_000, interviewer, subject_name } = {}) {
   const token = await getToken();
   const started = Date.now();
+
+  // Build query params including optional speaker names for Speaker Identification
+  const params = new URLSearchParams({ job_id: jobId });
+  if (interviewer) params.set('interviewer', interviewer);
+  if (subject_name) params.set('subject_name', subject_name);
+
   while (Date.now() - started < maxWaitMs) {
     await new Promise(r => setTimeout(r, 3000));
-    const res = await fetch(`${CONFIG.api.transcribe}?job_id=${encodeURIComponent(jobId)}`, {
+    const res = await fetch(`${CONFIG.api.transcribe}?${params}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error('poll_failed');

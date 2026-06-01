@@ -81,7 +81,14 @@ export function TranscriptPanel({ entries = [], interim = '' }) {
                 </span>
                 {entry.type === 'TRANSCRIPT' && entry.speaker && (
                   <span className={clsx('text-xs font-medium', ss.label || 'text-gray-500')}>
-                    {entry.speaker === 'interviewer' ? '🎙️ Penemuduga' : entry.speaker === 'subject' ? '👤 Subjek' : entry.speaker}
+                    {entry.speaker === 'interviewer'
+                      ? `🎙️ ${entry.identified_name || 'Penemuduga'}`
+                      : entry.speaker === 'subject'
+                      ? `👤 ${entry.identified_name || 'Subjek'}`
+                      : entry.speaker}
+                    {entry.identified_name && (
+                      <span className="ml-1 text-[10px] text-green-600 font-normal">✓ ID</span>
+                    )}
                   </span>
                 )}
                 {entry.type === 'INTERVIEWER' && entry.speaker && (

@@ -36,12 +36,12 @@ async function authUser(req) {
   return user;
 }
 
-// GET /api/transcribe?job_id=xxx — poll AssemblyAI diarization job
+// GET /api/transcribe?job_id=xxx&interviewer=xxx&subject_name=xxx — poll diarization + speaker ID
 async function handlePoll(req, res) {
   const user = await authUser(req);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
-  const job_id = req.query?.job_id;
+  const { job_id, interviewer, subject_name } = req.query || {};
   if (!job_id) return res.status(400).json({ error: 'Missing job_id' });
 
   if (!process.env.ASSEMBLYAI_API_KEY) {
@@ -55,13 +55,54 @@ async function handlePoll(req, res) {
     const data = await r.json();
 
     if (data.status === 'completed') {
-      // Map AssemblyAI utterances to VeriRec format
-      const utterances = (data.utterances || []).map(u => ({
-        speaker: u.speaker,  // 'A', 'B', 'C'…
+      let utterances = (data.utterances || []).map(u => ({
+        speaker: u.speaker,
         text: u.text,
         start: u.start,
         end: u.end,
       }));
+
+      // ── Speaker Identification (if names provided) ──────────────────────────
+      if (interviewer && subject_name && utterances.length > 0) {
+        try {
+          const siRes = await fetch('https://llm-gateway.assemblyai.com/v1/understanding', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${process.env.ASSEMBLYAI_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              transcript_id: job_id,
+              speech_understanding: {
+                request: {
+                  speaker_identification: {
+                    speakers: [
+                      { name: interviewer,   description: 'Pengendali sesi / Pegawai Penyiasat' },
+                      { name: subject_name,  description: 'Individu yang Disiasat / Subjek' },
+                    ],
+                  },
+                },
+              },
+            }),
+          });
+
+          if (siRes.ok) {
+            const siData = await siRes.json();
+            const mapping = siData?.speech_understanding?.response?.speaker_identification?.speaker_mapping || {};
+            // mapping: { A: 'Ahmad Faris', B: 'Mohd Farid' }
+            if (Object.keys(mapping).length > 0) {
+              utterances = utterances.map(u => ({
+                ...u,
+                identified_name: mapping[u.speaker] || null,
+              }));
+            }
+          }
+        } catch (siErr) {
+          // Speaker ID failure is non-fatal — return plain diarized utterances
+          console.warn('Speaker ID failed (non-fatal):', siErr.message);
+        }
+      }
+
       return res.status(200).json({ status: 'completed', utterances });
     }
 
