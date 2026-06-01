@@ -34,12 +34,19 @@ Pengesan subdomain via `src/lib/subdomain.js` — hanya `isCounselorSubdomain()`
 **PENTING — Platform separation rules:**
 - `isCounselorSubdomain()` adalah **satu-satunya** penentu counselor UI — **BUKAN** `localStorage preferred_profession`
 - `AnalyticsPage`: guna `isCounselorSubdomain()` untuk render CounselorDashboard, default `useCase='soal-siasat'` untuk www
-- Route `/sessions` → DashboardPage dengan `pageTitle="Sesi Terkini"` (tanpa redirect ke /analytics)
+- Route `/sessions` → DashboardPage dengan `pageTitle="Sesi Terkini"` (route kekal, tapi tiada link dalam nav)
 - `SessionSetupPage`: dropdown "Fail Kes" hanya pada www.verirec.app (`!isCounselorSubdomain()`), simpan `case_id` ke sessionStorage
 - `ConsentPage`: masukkan `case_id` dari sessionStorage ke dalam session insert
 - `Sidebar`, `BottomNav`, `App.jsx`, `DashboardPage`, `ProfessionSelectPage`, `QuestionTemplatesPage` semua guna `isCounselorSubdomain()`
 - `www.verirec.app`: sesi counselor ditapis keluar, profesi counselor tidak muncul, tab kaunseling tersembunyi
 - `/dashboard` redirect ke `/analytics` pada www — Sidebar "Papan Pemuka" link ke `/analytics`
+
+**Nav Structure — www.verirec.app (commit 5882f8e, 2026-06-01):**
+- Sidebar `OTHER_ITEMS`: Sesi Baru (CTA biru) | Fail Kes | Jadual Sesi | Templat Soalan | Log Audit | Pasukan | Tetapan
+- "Sesi Terkini" dan "Subjek" **dibuang dari nav utama** — sesi diakses melalui Fail Kes; Subjek via link sekunder bawah separator
+- "Carian Subjek" — link sekunder kecil dalam Sidebar, bawah separator, untuk use case cross-case history lookup
+- BottomNav `OTHER_NAV`: Utama | Sesi Baru | Fail Kes | Tetapan (4 tab, Subjek dibuang)
+- SubjectsPage baca `?id=` URL param → auto-buka SubjectHistoryModal bila navigate dari global search result
 
 ## Tech Stack
 - React + Vite (JSX, bukan TypeScript)
@@ -210,7 +217,7 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 
 ## Features Baru (2026-05-31 — sesi sebelumnya)
 - `AnalyticsPage`: welcome state untuk professional user baru (0 sesi), 3 langkah onboarding
-- `Sidebar`: "Sesi Terkini" → `/sessions` (DashboardPage, sebelum "Sesi Baru")
+- `Sidebar`: nav distruktur semula — Sesi Terkini & Subjek dibuang dari utama (lihat "Nav Structure" di atas)
 - `professions.js`: SISPA (OSA 1972), SKMM (CMA 1998), JTK (Akta Kerja 1955) — lengkap dengan soalan BM
 - `SessionSetupPage`: dropdown "Fail Kes" — link sesi ke kes semasa setup (www.verirec.app sahaja)
 - `SessionReportPage`: butang "Semak Keaslian Dokumen" — verify SHA-256 hash server-side
