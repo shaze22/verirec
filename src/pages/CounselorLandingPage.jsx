@@ -634,6 +634,7 @@ export default function CounselorLandingPage() {
               <span className="text-gray-400 font-bold">Kaunselor</span>
             </div>
             <div className="flex items-center gap-5 text-xs">
+              <button onClick={() => navigate('/faq')} className="hover:text-gray-300 transition-colors">FAQ</button>
               <button onClick={() => navigate('/privacy')} className="hover:text-gray-300 transition-colors">Privacy</button>
               <button onClick={() => navigate('/terms')} className="hover:text-gray-300 transition-colors">Terms</button>
             </div>
