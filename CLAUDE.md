@@ -225,7 +225,18 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - Fix: removed `isOnline && wasOffline` condition, only `showRestored` (auto-dismiss 3s) shows green banner
 - BM strings translated to English
 
-**Latest deploy:** commit `8842bc4` — 2026-06-02
+**kaunselor.app Landing Page Redesign (commit 45cf253 — 2026-06-02):**
+- Brand: 'VeriRec for Counselors' → 'Kaunselor' (standalone, no VeriRec prefix)
+- Design: dark gray-950 hero, violet radial glow, Soro-inspired premium aesthetic
+- Headline: 'Less Admin. More Counseling.'
+- Interactive demo (4 tabs): Client Books → Session Runs → AI Report → Dashboard
+- Features: emoji icon cards with hover effects
+- Steps: 3-step numbered flow
+- Trust: PDPA + Counselors Act + SHA-256 section
+- Footer: 'Kaunselor' brand, dark black bg
+- SEO: canonical updated to kaunselor.app
+
+**Latest deploy:** commit `45cf253` — 2026-06-02
 
 ---
 
