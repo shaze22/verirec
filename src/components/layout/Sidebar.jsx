@@ -46,9 +46,9 @@ const OTHER_ITEMS = [
   { to: '/settings',    label: 'Settings',           icon: ICONS.settings },
 ];
 
-const Logo = () => (
+const Logo = ({ counselor }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-8 h-8 flex-shrink-0">
-    <rect width="32" height="32" rx="8" fill="#2563eb"/>
+    <rect width="32" height="32" rx="8" fill={counselor ? '#8b5cf6' : '#2563eb'}/>
     <polyline points="4,16 7,11 10,21 13,9 16,23 19,11 22,18 25,14 28,16"
       stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
   </svg>
@@ -130,12 +130,12 @@ export function Sidebar() {
 
   return (
     <aside className="hidden md:flex w-64 min-h-screen bg-gray-900 text-white flex-col">
-      <div className="p-6 border-b border-gray-700/60">
+      <div className={`p-6 border-b ${isCounselor ? 'border-violet-800/40 bg-violet-950/30' : 'border-gray-700/60'}`}>
         <div className="flex items-center gap-2.5">
-          <Logo />
+          <Logo counselor={isCounselor} />
           <div>
-            <h1 className="text-base font-bold text-white leading-none">VeriRec</h1>
-            <p className="text-xs text-gray-400 mt-0.5">{isCounselor ? 'Counselor Platform' : 'Professional Platform'}</p>
+            <h1 className="text-base font-bold text-white leading-none">{isCounselor ? 'Kaunselor' : 'VeriRec'}</h1>
+            <p className={`text-xs mt-0.5 ${isCounselor ? 'text-violet-400' : 'text-gray-400'}`}>{isCounselor ? 'Kaunselor Platform' : 'Professional Platform'}</p>
           </div>
         </div>
       </div>
