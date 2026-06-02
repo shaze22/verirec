@@ -14,6 +14,7 @@ import { TopBar } from '../components/layout/TopBar.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { Modal } from '../components/ui/Modal.jsx';
 import { BillingSettings } from '../components/billing/BillingSettings.jsx';
+import { isCounselorSubdomain } from '../lib/subdomain.js';
 import toast from 'react-hot-toast';
 
 export default function SettingsPage() {
@@ -40,7 +41,7 @@ export default function SettingsPage() {
   const [retentionDays, setRetentionDays] = useState(() => localStorage.getItem('retention_days') || '');
   const [referralCount, setReferralCount] = useState(null);
   const referralCode = user?.id?.replace(/-/g, '').slice(0, 10);
-  const isCounselor = localStorage.getItem('preferred_profession') === 'counselor';
+  const isCounselor = isCounselorSubdomain();
   const isOrgPlan = subscription?.plan === 'pro' || subscription?.plan === 'biz';
   const [orgName, setOrgName] = useState(() => localStorage.getItem(`org_name_${user?.id}`) || '');
   const [orgNameSaving, setOrgNameSaving] = useState(false);
@@ -64,7 +65,7 @@ export default function SettingsPage() {
   const [receiptLoading, setReceiptLoading] = useState(false);
 
   const TOPUP_LABELS = { topup_1: 'Top-up 1 Session', topup_5: 'Top-up 5 Sessions', topup_10: 'Top-up 10 Sessions' };
-  const TOPUP_AMOUNTS = { topup_1: 13, topup_5: 60, topup_10: 100 };
+  const TOPUP_AMOUNTS = { topup_1: 3, topup_5: 12, topup_10: 22 };
 
   useEffect(() => {
     const payment = searchParams.get('payment');

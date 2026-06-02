@@ -7,18 +7,18 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 const PLAN_CONFIG = {
-  free:      { label: 'Free',    bg: 'bg-gray-100',    text: 'text-gray-700', ring: 'ring-gray-200' },
-  counselor: { label: 'Counselor',  bg: 'bg-emerald-600', text: 'text-white',    ring: 'ring-emerald-300' },
-  starter:   { label: 'Starter',    bg: 'bg-blue-600',    text: 'text-white',    ring: 'ring-blue-300' },
-  pro:       { label: 'Pro',        bg: 'bg-violet-600',  text: 'text-white',    ring: 'ring-violet-300' },
-  biz:       { label: 'Perniagaan', bg: 'bg-emerald-600', text: 'text-white',    ring: 'ring-emerald-300' },
+  free:      { label: 'Free',         bg: 'bg-gray-100',    text: 'text-gray-700', ring: 'ring-gray-200' },
+  counselor: { label: 'Counselor',    bg: 'bg-violet-600',  text: 'text-white',    ring: 'ring-violet-300' },
+  starter:   { label: 'Professional', bg: 'bg-blue-600',    text: 'text-white',    ring: 'ring-blue-300' },
+  pro:       { label: 'Pro',          bg: 'bg-violet-600',  text: 'text-white',    ring: 'ring-violet-300' },
+  biz:       { label: 'Business',     bg: 'bg-violet-600',  text: 'text-white',    ring: 'ring-violet-300' },
 };
 
 const STATUS_CONFIG = {
-  active:   { label: 'Active',              dot: 'bg-green-500' },
-  trialing: { label: 'Tempoh Percubaan',   dot: 'bg-blue-500' },
-  past_due: { label: 'Pembayaran Tertunggak', dot: 'bg-red-500' },
-  canceled: { label: 'Dibatalkan',         dot: 'bg-gray-400' },
+  active:   { label: 'Active',           dot: 'bg-green-500' },
+  trialing: { label: 'Trial Period',     dot: 'bg-blue-500' },
+  past_due: { label: 'Payment Overdue',  dot: 'bg-red-500' },
+  canceled: { label: 'Cancelled',        dot: 'bg-gray-400' },
 };
 
 export function BillingSettings() {
@@ -57,19 +57,19 @@ export function BillingSettings() {
       const { url } = await createStripePortalSession();
       window.location.href = url;
     } catch {
-      toast.error('Tidak dapat membuka portal. Cuba lagi.');
+      toast.error('Unable to open portal. Please try again.');
     } finally {
       setPortalLoading(false);
     }
   };
 
   const downloadReceipt = async () => {
-    if (!isPaid) { toast.error('Tiada resit — anda menggunakan pelan percuma.'); return; }
+    if (!isPaid) { toast.error('No receipt — you are on the free plan.'); return; }
     const latest = charges?.[0];
     if (latest?.receipt_url) {
       window.open(latest.receipt_url, '_blank');
     } else {
-      toast.error('Tiada resit dijumpai. Cuba "Urus Subscription" untuk lihat semua invois.');
+      toast.error('No receipt found. Try "Manage Subscription" to view all invoices.');
     }
   };
 
@@ -88,7 +88,7 @@ export function BillingSettings() {
         </div>
         {subscription.next_billing_date && (
           <p className="text-xs text-gray-400">
-            {subscription.status === 'trialing' ? 'Percubaan tamat' : 'Bil seterusnya'}:&nbsp;
+            {subscription.status === 'trialing' ? 'Trial ends' : 'Next billing'}:&nbsp;
             <span className="font-medium text-gray-600">
               {format(new Date(subscription.next_billing_date), 'dd MMM yyyy')}
             </span>
@@ -99,16 +99,16 @@ export function BillingSettings() {
       {/* Alerts */}
       {subscription.status === 'past_due' && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700">
-          Pembayaran langganan anda gagal. Kemas kini kaedah pembayaran untuk elak gangguan perkhidmatan.
+          Your subscription payment failed. Update your payment method to avoid service interruption.
         </div>
       )}
       {subscription.status === 'trialing' && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-700">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <span>Anda dalam tempoh percubaan 14 hari. Tiada caj sehingga tempoh tamat.</span>
+            <span>You are in a 14-day trial period. No charge until the trial ends.</span>
             {trialDaysLeft !== null && (
               <span className={`font-bold whitespace-nowrap ${trialDaysLeft <= 3 ? 'text-red-600' : 'text-blue-800'}`}>
-                {trialDaysLeft === 0 ? 'Tamat hari ini' : `${trialDaysLeft} hari lagi`}
+                {trialDaysLeft === 0 ? 'Ends today' : `${trialDaysLeft} days left`}
               </span>
             )}
           </div>
@@ -119,7 +119,7 @@ export function BillingSettings() {
       <div className="bg-gray-50 rounded-xl p-4 space-y-3">
         <div>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium text-gray-700">Sesi Bulanan</p>
+            <p className="text-sm font-medium text-gray-700">Monthly Sessions</p>
             <p className={`text-sm font-bold ${nearLimit ? 'text-red-600' : 'text-gray-900'}`}>
               {unlimited ? '∞' : `${subscription.sessions_used} / ${subscription.sessions_limit}`}
             </p>
@@ -127,22 +127,22 @@ export function BillingSettings() {
           {!unlimited && (
             <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all ${nearLimit ? 'bg-red-500' : 'bg-blue-500'}`}
+                className={`h-full rounded-full transition-all ${nearLimit ? 'bg-red-500' : 'bg-violet-500'}`}
                 style={{ width: `${pct}%` }}
               />
             </div>
           )}
           {nearLimit && subscription.plan !== 'counselor' && (
-            <p className="text-xs text-red-600 mt-1.5">Had hampir dicapai — pertimbangkan untuk naik taraf.</p>
+            <p className="text-xs text-red-600 mt-1.5">Limit almost reached — consider upgrading.</p>
           )}
           {nearLimit && subscription.plan === 'counselor' && (
-            <p className="text-xs text-orange-600 mt-1.5">Sesi bulanan hampir habis — topup bila perlu.</p>
+            <p className="text-xs text-orange-600 mt-1.5">Monthly sessions almost used up — top up anytime.</p>
           )}
         </div>
         {(subscription.extra_sessions > 0) && (
           <div className="flex items-center justify-between pt-2 border-t border-gray-200">
-            <p className="text-sm text-gray-600">Sesi Top-up Baki</p>
-            <span className="text-sm font-bold text-emerald-600">{subscription.extra_sessions} sesi</span>
+            <p className="text-sm text-gray-600">Top-up Sessions Balance</p>
+            <span className="text-sm font-bold text-violet-600">{subscription.extra_sessions} sessions</span>
           </div>
         )}
       </div>
@@ -150,11 +150,11 @@ export function BillingSettings() {
       {/* Action buttons */}
       <div className="flex flex-wrap gap-2">
         <Button variant="outline" onClick={() => navigate(subscription.plan === 'counselor' ? '/pricing?tab=kaunselor' : '/pricing')}>
-          {subscription.plan === 'counselor' ? 'Top Up Sessions' : isPaid ? 'Tukar Plan' : 'Naik Taraf'}
+          {subscription.plan === 'counselor' ? 'Top Up Sessions' : isPaid ? 'Change Plan' : 'Upgrade'}
         </Button>
         {isPaid && (
           <Button variant="outline" loading={portalLoading} onClick={openPortal}>
-            Urus Subscription
+            Manage Subscription
           </Button>
         )}
         <Button
@@ -162,7 +162,7 @@ export function BillingSettings() {
           loading={receiptLoading}
           onClick={downloadReceipt}
           disabled={!isPaid}
-          title={!isPaid ? 'Tiada resit untuk pelan percuma' : 'Muat turun resit terkini'}
+          title={!isPaid ? 'No receipt for free plan' : 'Download latest receipt'}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -173,7 +173,7 @@ export function BillingSettings() {
 
       {isPaid && (
         <p className="text-xs text-gray-400">
-          "Urus Subscription" — batal, tukar kad, atau lihat semua invois melalui portal selamat Stripe.
+          "Manage Subscription" — cancel, change card, or view all invoices via the secure Stripe portal.
         </p>
       )}
 
@@ -187,18 +187,18 @@ export function BillingSettings() {
             <svg className={`w-4 h-4 transition-transform ${showHistory ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
-            Sejarah Pembayaran {charges.length > 0 && `(${charges.length})`}
+            Payment History {charges.length > 0 && `(${charges.length})`}
           </button>
 
           {showHistory && (
             <div className="mt-3 space-y-2">
               {charges.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-4">No records pembayaran.</p>
+                <p className="text-sm text-gray-400 text-center py-4">No payment records found.</p>
               ) : charges.map(c => (
                 <div key={c.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 gap-3">
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-gray-800 truncate">
-                      {c.description || 'Pembayaran VeriRec'}
+                      {c.description || 'VeriRec Payment'}
                     </p>
                     <p className="text-xs text-gray-400">
                       {format(new Date(c.created * 1000), 'dd MMM yyyy, HH:mm')}
@@ -206,16 +206,16 @@ export function BillingSettings() {
                   </div>
                   <div className="flex items-center gap-3 flex-shrink-0">
                     <span className="text-sm font-bold text-gray-900">
-                      RM{(c.amount / 100).toFixed(2)}
+                      ${(c.amount / 100).toFixed(2)}
                     </span>
                     {c.receipt_url && (
                       <a
                         href={c.receipt_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-emerald-600 hover:text-emerald-800 font-medium border border-emerald-200 px-2 py-1 rounded-lg hover:bg-emerald-50 transition-colors"
+                        className="text-xs text-violet-600 hover:text-violet-800 font-medium border border-violet-200 px-2 py-1 rounded-lg hover:bg-violet-50 transition-colors"
                       >
-                        Resit
+                        Receipt
                       </a>
                     )}
                   </div>
