@@ -162,12 +162,12 @@ export default function LandingPage() {
   return (
     <>
     <Helmet>
-      <title>VeriRec — Professional Interview & Audit Platform</title>
+      <title>VeriRec — Professional Investigation & Audit Platform</title>
       <meta name="description" content="AI transcription, SHA-256 chain of custody, and SOP reports for Police, MACC, HR, ISO, Halal JAKIM, Lawyers and more. Make every record unchallengeable." />
       <link rel="canonical" href="https://www.verirec.app/" />
       <meta property="og:type" content="website" />
       <meta property="og:url" content="https://www.verirec.app/" />
-      <meta property="og:title" content="VeriRec — Make Every Interview Record Unchallengeable" />
+      <meta property="og:title" content="VeriRec — Make Every Investigation Record Unchallengeable" />
       <meta property="og:description" content="AI transcription, SHA-256 chain of custody, and SOP reports for investigators, auditors, and officers." />
       <meta property="og:locale" content="en_MY" />
       <meta name="twitter:card" content="summary_large_image" />
@@ -203,7 +203,7 @@ export default function LandingPage() {
             SHA-256 · PDPA 2010 · 11+ Professions · Made in Malaysia
           </div>
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-black text-gray-900 leading-[1.05] tracking-tight mb-7">
-            Make every interview<br />record unchallengeable.
+            Make every investigation<br />record unchallengeable.
           </h1>
           <p className="text-xl text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed">
             AI transcription, SHA-256 chain of custody, and profession-specific SOP reports — built for investigators, auditors, and officers whose records must hold up in court.
@@ -518,7 +518,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-2.5">
               <Logo />
               <span className="font-bold text-white">VeriRec</span>
-              <span className="text-xs text-gray-600 ml-1">Professional Interview & Audit Platform</span>
+              <span className="text-xs text-gray-600 ml-1">Professional Investigation & Audit Platform</span>
             </div>
             <div className="flex items-center gap-6 text-sm">
               <button onClick={() => navigate('/faq')}     className="hover:text-white transition-colors">FAQ</button>
