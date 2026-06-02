@@ -127,10 +127,10 @@ export default function KaunslorClientsPage() {
         <div className="max-w-2xl mx-auto space-y-4">
           <input type="text" placeholder="Search name, phone, or IC..." value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
           <div className="flex gap-2">
             <select value={filterRisk} onChange={e => setFilterRisk(e.target.value)}
-              className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+              className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white">
               <option value="">All Risk Levels</option>
               <option value="suicidal">🔴 Critical</option>
               <option value="self_harm">🟠 High</option>
@@ -138,7 +138,7 @@ export default function KaunslorClientsPage() {
               <option value="none">🟢 Low</option>
             </select>
             <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-              className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+              className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white">
               <option value="newest">Newest</option>
               <option value="risk">Highest Risk</option>
               <option value="name">Name A–Z</option>
@@ -147,33 +147,53 @@ export default function KaunslorClientsPage() {
           </div>
 
           {loading ? (
-            <div className="space-y-3">{[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white rounded-xl border p-4 animate-pulse h-16" />
-            ))}</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="bg-white rounded-2xl border p-5 animate-pulse h-28" />
+              ))}
+            </div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-16 text-gray-400">
-              <div className="text-4xl mb-3">👥</div>
-              <p className="font-medium">{search ? 'No results' : 'No clients yet'}</p>
-              {!search && <p className="text-sm mt-1">Add a client or share your QR code for bookings.</p>}
+            <div className="text-center py-16">
+              <div className="w-16 h-16 bg-violet-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-violet-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <p className="font-semibold text-gray-700">{search ? 'No results found' : 'No clients yet'}</p>
+              {!search && <p className="text-sm text-gray-400 mt-1 max-w-xs mx-auto">Add a client manually or share your QR booking link.</p>}
             </div>
           ) : (
-            <div className="space-y-2">
-              {filtered.map(c => (
-                <button key={c.id} onClick={() => navigate(`/kaunselor/clients/${c.id}`)}
-                  className="w-full bg-white rounded-xl border p-4 flex items-center gap-4 hover:border-blue-300 hover:shadow-sm transition-all text-left">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm flex-shrink-0">
-                    {c.name?.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 truncate">{c.name}</p>
-                    <p className="text-xs text-gray-400">{c.phone || c.email || 'No contact'}</p>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-sm font-medium text-gray-600">{c.sessions?.[0]?.count || 0} sessions</p>
-                    <p className="text-xs text-gray-400">→</p>
-                  </div>
-                </button>
-              ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {filtered.map(c => {
+                const riskColor = {
+                  suicidal:     { avatar: 'bg-red-100 text-red-700',    badge: 'bg-red-100 text-red-700',    label: 'Critical' },
+                  self_harm:    { avatar: 'bg-orange-100 text-orange-700', badge: 'bg-orange-100 text-orange-700', label: 'High' },
+                  mental_health:{ avatar: 'bg-amber-100 text-amber-700', badge: 'bg-amber-100 text-amber-700', label: 'Moderate' },
+                  none:         { avatar: 'bg-violet-100 text-violet-700', badge: 'bg-green-100 text-green-700', label: 'Low' },
+                }[c.risk_level || 'none'];
+                return (
+                  <button key={c.id} onClick={() => navigate(`/kaunselor/clients/${c.id}`)}
+                    className="bg-white rounded-2xl border p-5 hover:border-violet-300 hover:shadow-md transition-all text-left group">
+                    <div className="flex items-start gap-3 mb-3">
+                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-base flex-shrink-0 ${riskColor.avatar}`}>
+                        {c.name?.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 truncate">{c.name}</p>
+                        <p className="text-xs text-gray-400 truncate">{c.phone || c.email || 'No contact'}</p>
+                      </div>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${riskColor.badge}`}>{riskColor.label}</span>
+                    </div>
+                    {c.presenting_issue && (
+                      <p className="text-xs text-gray-500 truncate mb-3 italic">"{c.presenting_issue}"</p>
+                    )}
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-400">{c.sessions?.[0]?.count || 0} sessions</span>
+                      <span className="text-xs text-violet-600 font-medium group-hover:text-violet-800">View File →</span>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -194,7 +214,7 @@ export default function KaunslorClientsPage() {
                   <label className="text-xs text-gray-500 mb-1 block">{f.label}</label>
                   <input type="text" value={addForm[f.k]} onChange={e => setAddForm(p => ({ ...p, [f.k]: e.target.value }))}
                     placeholder={f.placeholder} required={f.required}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
                 </div>
               ))}
               <div className="flex gap-3 pt-2">

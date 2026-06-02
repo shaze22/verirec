@@ -212,7 +212,7 @@ export default function CounselorDashboard() {
       doc.setFont('helvetica', 'normal');
       doc.text(monthLabel.toUpperCase(), MARGIN, 21);
       doc.setFontSize(9);
-      doc.text(`Dijana: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, W - MARGIN, 21, { align: 'right' });
+      doc.text(`Generated: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, W - MARGIN, 21, { align: 'right' });
       y = 36;
 
       // Unit info
@@ -407,18 +407,26 @@ export default function CounselorDashboard() {
                 <button onClick={() => navigate('/kaunselor/appointments')} className="text-xs text-violet-600 hover:text-violet-800 font-medium">View all →</button>
               </div>
               {stats.upcomingAppts.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-6">No upcoming appointments</p>
+                <div className="text-center py-8">
+                  <div className="text-2xl mb-2">📅</div>
+                  <p className="text-sm text-gray-400">No upcoming appointments</p>
+                </div>
               ) : (
                 <div className="space-y-2">
                   {stats.upcomingAppts.map(a => (
-                    <div key={a.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                      <div>
-                        <p className="text-sm font-medium text-gray-800">{a.client_name}</p>
-                        <p className="text-xs text-gray-400">{a.confirmed_date || a.requested_date} • {a.confirmed_time || '—'}</p>
+                    <button key={a.id} onClick={() => a.subject_id && navigate(`/kaunselor/clients/${a.subject_id}`)}
+                      className="w-full flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-violet-50 transition-colors text-left">
+                      <div className="w-9 h-9 bg-violet-100 rounded-xl flex items-center justify-center text-violet-700 font-bold text-sm flex-shrink-0">
+                        {a.client_name?.charAt(0).toUpperCase()}
                       </div>
-                      <button onClick={() => a.subject_id && navigate(`/kaunselor/clients/${a.subject_id}`)}
-                        className="text-xs text-violet-600 hover:text-violet-800 font-medium">Profile →</button>
-                    </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-800 truncate">{a.client_name}</p>
+                        <p className="text-xs text-gray-400">{a.confirmed_date || a.requested_date} · {a.confirmed_time || '—'}</p>
+                      </div>
+                      <svg className="w-4 h-4 text-violet-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
                   ))}
                 </div>
               )}
@@ -431,25 +439,29 @@ export default function CounselorDashboard() {
                 <button onClick={() => navigate('/kaunselor/clients')} className="text-xs text-violet-600 hover:text-violet-800 font-medium">All clients →</button>
               </div>
               {stats.recentSessions.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-6">No sessions yet</p>
+                <div className="text-center py-8">
+                  <div className="text-2xl mb-2">🎙️</div>
+                  <p className="text-sm text-gray-400">No sessions yet</p>
+                </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-1">
                   {stats.recentSessions.map(s => (
-                    <div key={s.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                      <div>
-                        <p className="text-sm font-medium text-gray-800">{s.subject_name || '—'}</p>
-                        <p className="text-xs text-gray-400">{format(new Date(s.created_at), 'dd MMM yyyy')} • {Math.round((s.duration || 0) / 60)} min</p>
+                    <div key={s.id} className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-gray-50 transition-colors">
+                      <div className="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center text-gray-500 font-bold text-sm flex-shrink-0">
+                        {s.subject_name?.charAt(0).toUpperCase() || '?'}
                       </div>
-                      <div className="flex items-center gap-2">
-                        {s.report?.riskLevel && (
-                          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
-                            s.report.riskLevel === 'high' ? 'bg-red-100 text-red-700' :
-                            s.report.riskLevel === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
-                          }`}>
-                            {s.report.riskLevel === 'high' ? 'High' : s.report.riskLevel === 'medium' ? 'Moderate' : 'Low'}
-                          </span>
-                        )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-800 truncate">{s.subject_name || '—'}</p>
+                        <p className="text-xs text-gray-400">{format(new Date(s.created_at), 'dd MMM yyyy')} · {Math.round((s.duration || 0) / 60)} min</p>
                       </div>
+                      {s.report?.riskLevel && (
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${
+                          s.report.riskLevel === 'high' ? 'bg-red-100 text-red-700' :
+                          s.report.riskLevel === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
+                        }`}>
+                          {s.report.riskLevel === 'high' ? 'High' : s.report.riskLevel === 'medium' ? 'Moderate' : 'Low'}
+                        </span>
+                      )}
                     </div>
                   ))}
                 </div>

@@ -110,50 +110,78 @@ export default function PublicBookingPage() {
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
   if (loading) return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center gap-3">
+      <div className="w-10 h-10 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" />
+      <p className="text-violet-400 text-sm">Loading...</p>
     </div>
   );
 
   if (error) return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow p-8 max-w-md w-full text-center">
-        <div className="text-4xl mb-4">⚠️</div>
-        <h2 className="text-lg font-semibold text-gray-900">{error}</h2>
-        <p className="text-sm text-gray-500 mt-2">Please contact your counselor directly.</p>
+    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+          </svg>
+        </div>
+        <h2 className="text-lg font-bold text-gray-900 mb-2">{error}</h2>
+        <p className="text-sm text-gray-500">Please contact your counselor directly.</p>
       </div>
     </div>
   );
 
   if (step === 4) return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow p-8 max-w-md w-full text-center">
-        <div className="text-5xl mb-4">✅</div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Booking Submitted!</h2>
-        <p className="text-gray-600 text-sm mb-4">
-          Your appointment with <strong>{counselor?.display_name}</strong> on <strong>{format(parseISO(selectedDate), 'dd MMM yyyy')}</strong> at <strong>{selectedTime}</strong> has been submitted.
-        </p>
-        <div className="bg-blue-50 rounded-xl p-4 text-sm text-blue-800">
-          The counselor will confirm your appointment shortly. You will receive a notification via email.
+    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+        <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-5">
+          <svg className="w-10 h-10 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
         </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Booking Submitted!</h2>
+        <p className="text-gray-500 text-sm mb-5">Your appointment request has been sent to <strong className="text-gray-800">{counselor?.display_name}</strong>.</p>
+        <div className="bg-violet-50 border border-violet-100 rounded-2xl p-5 text-left mb-5 space-y-2">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-violet-500">📅</span>
+            <span className="text-gray-700"><strong>{format(parseISO(selectedDate), 'EEEE, dd MMM yyyy')}</strong></span>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-violet-500">🕐</span>
+            <span className="text-gray-700"><strong>{selectedTime}</strong></span>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-violet-500">👤</span>
+            <span className="text-gray-700">{counselor?.display_name}</span>
+          </div>
+        </div>
+        <p className="text-xs text-gray-400">The counselor will confirm your appointment shortly. Check your email for updates.</p>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-lg mx-auto p-4 pb-12">
-        {/* Header */}
-        <div className="flex items-center gap-3 py-5">
-          <Logo />
+    <div className="min-h-screen bg-gray-950">
+      {/* Dark top header */}
+      <div className="bg-gray-950 px-4 pt-6 pb-4">
+        <div className="max-w-lg mx-auto flex items-center gap-2.5">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-8 h-8 flex-shrink-0">
+            <rect width="32" height="32" rx="8" fill="#8b5cf6"/>
+            <polyline points="4,16 7,11 10,21 13,9 16,23 19,11 22,18 25,14 28,16" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+          </svg>
           <div>
-            <p className="text-xs text-gray-400">VeriRec</p>
-            <h1 className="font-bold text-gray-900">Appointment Booking</h1>
+            <span className="font-bold text-white text-sm">Kaunselor</span>
+            <p className="text-xs text-violet-400 leading-none">Appointment Booking</p>
           </div>
         </div>
+      </div>
+
+      <div className="max-w-lg mx-auto px-4 pb-12">
+        {/* White card area */}
+        <div className="bg-white rounded-t-3xl -mt-2 pt-1 min-h-screen">
 
         {/* Counselor card */}
-        <div className="bg-white rounded-2xl border p-5 mb-4">
+        <div className="p-4 pt-5 mb-2">
+        <div className="bg-violet-50 border border-violet-100 rounded-2xl p-5 mb-4">
           <div className="flex items-start gap-3 mb-3">
             <div className="w-12 h-12 rounded-full bg-violet-100 flex items-center justify-center text-violet-700 font-bold text-xl flex-shrink-0">
               {counselor?.display_name?.charAt(0) || 'C'}
@@ -184,7 +212,9 @@ export default function PublicBookingPage() {
             {counselor?.klinik_address && <span>📍 {counselor.klinik_address}</span>}
           </div>
         </div>
+        </div>{/* end counselor card wrapper */}
 
+        <div className="px-4">
         {/* Progress */}
         <div className="flex items-center gap-2 mb-5">
           {['Date & Time', 'Details', 'Consent'].map((s, i) => (
@@ -419,7 +449,9 @@ export default function PublicBookingPage() {
             </button>
           </form>
         )}
-      </div>
+        </div>{/* end px-4 wrapper */}
+        </div>{/* end white card */}
+      </div>{/* end max-w-lg */}
     </div>
   );
 }
