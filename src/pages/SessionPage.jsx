@@ -489,8 +489,8 @@ export default function SessionPage() {
                 disabled={started}
                 className="text-xs border border-gray-200 rounded px-1.5 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50 ml-2 flex-shrink-0"
               >
-                <option value="auto">Auto BM+EN</option>
-                <option value="ms-MY">BM</option>
+                <option value="auto">Auto Malay+EN</option>
+                <option value="ms-MY">Malay</option>
                 <option value="en-MY">EN (MY)</option>
                 <option value="en-US">EN (US)</option>
               </select>
@@ -518,8 +518,8 @@ export default function SessionPage() {
                   disabled={started}
                   className="text-xs border border-gray-200 rounded px-1.5 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
                 >
-                  <option value="auto">Auto BM+EN (Campuran)</option>
-                  <option value="ms-MY">Language Malaysia</option>
+                  <option value="auto">Auto Malay+English (Mixed)</option>
+                  <option value="ms-MY">Malay</option>
                   <option value="en-MY">English (MY)</option>
                   <option value="en-US">English (US)</option>
                 </select>

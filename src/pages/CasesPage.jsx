@@ -160,7 +160,7 @@ export default function CasesPage() {
                 {loading ? 'Loading...' : `${cases.length} case files`}
               </p>
             </div>
-            <Button onClick={openCreate}>+ Buka Case Files</Button>
+            <Button onClick={openCreate}>+ Open Case File</Button>
           </div>
 
           {cases.length > 2 && (
@@ -243,7 +243,7 @@ export default function CasesPage() {
         </div>
       </div>
 
-      <Modal open={!!modal} onClose={() => setModal(null)} title={modal?.mode === 'create' ? 'Buka Case Files Baru' : 'Edit Case Files'}>
+      <Modal open={!!modal} onClose={() => setModal(null)} title={modal?.mode === 'create' ? 'Open New Case File' : 'Edit Case File'}>
         <form onSubmit={handleSave} className="space-y-4">
           <CaseForm value={form} onChange={setForm} />
           <div className="flex gap-3 pt-2">
