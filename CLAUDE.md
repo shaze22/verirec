@@ -213,7 +213,14 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - `formatDistanceToNow`: removed `ms` locale → English
 - STATUS_CONFIG: 'Dibatalkan' → 'Cancelled'
 
-**Latest deploy:** commit `4c17c23` — 2026-06-02
+**Quick fixes (commits 544991b + 28c2c2d — 2026-06-02):**
+- TermsPage.jsx: full English (all 12 sections)
+- PrivacyPage.jsx: verified English
+- AdminPage.jsx: removed `date-fns/locale ms`, all timestamps in English
+- sitemap.xml: added kaunselor.app URLs (/, /pricing, /auth)
+- SettingsPage.jsx: 'Langganan & Penggunaan'→'Subscription & Usage', 'Privasi & Data'→'Privacy & Data', 'Eksport JSON'→'Export JSON', 'Nyahaktifkan'→'Deactivate'
+
+**Latest deploy:** commit `28c2c2d` — 2026-06-02
 
 ---
 
