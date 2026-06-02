@@ -220,7 +220,12 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - sitemap.xml: added kaunselor.app URLs (/, /pricing, /auth)
 - SettingsPage.jsx: 'Langganan & Penggunaan'→'Subscription & Usage', 'Privasi & Data'→'Privacy & Data', 'Eksport JSON'→'Export JSON', 'Nyahaktifkan'→'Deactivate'
 
-**Latest deploy:** commit `28c2c2d` — 2026-06-02
+**OfflineBanner fix (commit 8842bc4 — 2026-06-02):**
+- Root cause: `wasOffline` stays `true` for entire session — banner never dismissed
+- Fix: removed `isOnline && wasOffline` condition, only `showRestored` (auto-dismiss 3s) shows green banner
+- BM strings translated to English
+
+**Latest deploy:** commit `8842bc4` — 2026-06-02
 
 ---
 
