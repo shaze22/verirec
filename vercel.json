@@ -20,6 +20,16 @@
       "has": [{ "type": "host", "value": "www.kaunselor.app" }],
       "destination": "/manifest-kaunselor.webmanifest"
     },
+    {
+      "source": "/favicon.svg",
+      "has": [{ "type": "host", "value": "kaunselor.app" }],
+      "destination": "/favicon-kaunselor.svg"
+    },
+    {
+      "source": "/favicon.svg",
+      "has": [{ "type": "host", "value": "www.kaunselor.app" }],
+      "destination": "/favicon-kaunselor.svg"
+    },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "headers": [

@@ -283,14 +283,14 @@ export default function CounselorLandingPage() {
   return (
     <>
       <Helmet>
-        <title>Kaunselor — Digital Counseling Platform for Malaysian Counselors</title>
+        <title>Kaunselor — Digital Counselling Platform</title>
         <meta name="description" content="Kaunselor is a digital counseling session management platform — QR booking, client files, AI session notes, red flag detection, MBTI & RIASEC. Built for Malaysian counselors." />
         <meta name="keywords" content="counseling platform Malaysia, kaunselor digital, counseling session management, SOP session notes, AI counseling report, PDPA counseling" />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://kaunselor.app" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://kaunselor.app" />
-        <meta property="og:title" content="Kaunselor — Digital Counseling Platform" />
+        <meta property="og:title" content="Kaunselor — Digital Counselling Platform" />
         <meta property="og:description" content="Manage counseling sessions smarter. QR booking, digital client files, AI SOP notes, red flag detection. PDPA compliant." />
         <meta property="og:image" content="https://kaunselor.app/og-counselor.svg" />
         <script type="application/ld+json">{JSON.stringify({
