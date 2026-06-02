@@ -323,6 +323,93 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── Mobile App ── */}
+      <section className="py-28 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center gap-16">
+
+            {/* Phone mockup */}
+            <div className="flex-shrink-0 flex items-center justify-center">
+              <div className="relative">
+                <div className="w-52 h-96 bg-gray-900 rounded-[2.8rem] border-4 border-gray-800 shadow-2xl flex flex-col overflow-hidden">
+                  <div className="h-7 bg-gray-800 flex items-center justify-center">
+                    <div className="w-20 h-1.5 bg-gray-700 rounded-full" />
+                  </div>
+                  <div className="flex-1 bg-gray-950 p-3 space-y-2.5">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-5 h-5 bg-blue-600 rounded-md flex items-center justify-center">
+                          <svg viewBox="0 0 32 32" className="w-3 h-3">
+                            <polyline points="4,16 7,11 10,21 13,9 16,23 19,11 22,18 25,14 28,16" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+                          </svg>
+                        </div>
+                        <span className="text-white text-[10px] font-bold">VeriRec</span>
+                      </div>
+                      <span className="text-[9px] text-red-400 font-semibold animate-pulse">● REC 04:12</span>
+                    </div>
+                    {[
+                      ['Case Files', '12', 'text-blue-400'],
+                      ['Sessions Used', '6/10', 'text-green-400'],
+                      ['Pending Reports', '2', 'text-amber-400'],
+                    ].map(([l, v, c]) => (
+                      <div key={l} className="bg-gray-800 rounded-xl p-2.5 flex justify-between items-center">
+                        <span className="text-[10px] text-gray-400">{l}</span>
+                        <span className={`text-xs font-bold ${c}`}>{v}</span>
+                      </div>
+                    ))}
+                    <div className="bg-blue-600 rounded-xl py-2.5 text-center">
+                      <span className="text-white text-[10px] font-bold">+ New Session</span>
+                    </div>
+                    <div className="bg-gray-800 rounded-xl p-2.5">
+                      <div className="text-[9px] text-gray-400 mb-1">Latest session</div>
+                      <div className="text-[10px] text-white font-medium">Ahmad Rosli · SPRM</div>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <span className="w-1.5 h-1.5 bg-green-400 rounded-full inline-block" />
+                        <span className="text-[9px] text-green-400">Report ready</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="absolute inset-0 rounded-[2.8rem] bg-blue-500/10 blur-2xl -z-10 scale-110" />
+              </div>
+            </div>
+
+            {/* Text */}
+            <div className="flex-1 text-center md:text-left">
+              <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-full px-4 py-1.5 text-sm font-semibold text-blue-600 mb-6">
+                📱 Mobile App
+              </div>
+              <h2 className="text-4xl sm:text-5xl font-black text-gray-900 mb-5 leading-tight">
+                Works on your phone.<br />No download needed.
+              </h2>
+              <p className="text-xl text-gray-500 mb-10 leading-relaxed">
+                VeriRec is a Progressive Web App — install it on any phone in seconds. Record sessions, view reports, and manage case files on the go. Works offline too.
+              </p>
+              <div className="space-y-5 mb-10">
+                {[
+                  { num: '1', os: '🤖 Android', step: 'Open www.verirec.app in Chrome → tap ⋮ menu → "Add to Home Screen"' },
+                  { num: '2', os: '🍎 iPhone / iPad', step: 'Open www.verirec.app in Safari → tap Share → "Add to Home Screen"' },
+                ].map(({ num, os, step }) => (
+                  <div key={num} className="flex items-start gap-4 text-left">
+                    <div className="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-black flex-shrink-0 mt-0.5">{num}</div>
+                    <div>
+                      <p className="font-bold text-gray-900">{os}</p>
+                      <p className="text-sm text-gray-500 mt-0.5">{step}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => navigate('/auth?mode=register')}
+                className="px-8 py-4 bg-blue-600 text-white font-black text-base rounded-full hover:bg-blue-700 transition-colors shadow-md"
+              >
+                Try Free — Install Later →
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── Who it's for ── */}
       <section id="profesion" className="py-28 px-6">
         <div className="max-w-5xl mx-auto">
