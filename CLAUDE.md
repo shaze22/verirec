@@ -280,7 +280,15 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - Vercel static file rewrites cannot override favicon — must use react-helmet-async
 - Also sets apple-touch-icon to pwa-192-kaunselor.svg for counselor
 
-**Latest deploy:** commit `245772f` — 2026-06-02
+**USD Pricing + Testimonials + Onboarding + Email Redesign (commit e6665cf — 2026-06-02):**
+- Pricing: RM100 → $25 USD/month. Top-up: $3/$12/$22. "Pay any currency via Stripe"
+- Testimonials: 3 counselor reviews with 5-star ratings on landing page
+- OnboardingModal: counselor-specific 4 steps (Welcome→Profile→Slots→Session), violet theme, English
+- _mailer.js: new kaunsBase() violet template, FROM_KAUNSELOR sender, all emails English
+- Appointment emails: sent from 'Kaunselor <noreply@verirec.app>' with violet header
+- ⚠️ MANUAL: Update Stripe products to USD in Stripe dashboard → update STRIPE_PRICE_* env vars in Vercel
+
+**Latest deploy:** commit `e6665cf` — 2026-06-02
 
 ---
 
