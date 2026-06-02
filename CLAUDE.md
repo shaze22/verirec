@@ -172,6 +172,44 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 
 ---
 
+## Features (2026-06-02)
+
+**Close Case Guided Flow (CaseDetailPage.jsx — commit f989dae):**
+- "🔒 Close Case" button replaces "Closed" option in status dropdown
+- 3-step modal: Step 1 Review (sessions, reports, AI summary) → Step 2 Export (one-click PDF) → Step 3 Closing remarks + confirm
+- Closing remarks saved to `cases.description` with `[Closing Remarks — date]` prefix
+- Status `closed` set on confirm. "Reopen Case" button shown when case is already closed
+
+**In-App Notification Centre (TopBar — commit 48fd042):**
+- `src/components/layout/NotificationBell.jsx` — bell icon with red badge in TopBar
+- Pulls follow-up deadline alerts (overdue + due ≤2 days) from localStorage session data
+- Pulls pending appointment requests from Supabase for counselor subdomain
+- Click notification → navigate to relevant page
+- Auto-refresh on open
+
+**kaunselor.app domain (2026-06-01):**
+- Added to Vercel project, A record `76.76.21.21` in Namecheap
+- `isCounselorSubdomain()` updated to recognise `kaunselor.app` + `www.kaunselor.app`
+
+**Full English UI + Violet Counselor Theme (2026-06-01 — commit b5e54a7):**
+- All 44 UI files translated BM → English
+- Counselor theme: emerald `#10b981` → violet `#8b5cf6`, all `emerald-` → `violet-`
+- Sidebar active item violet on counselor subdomain, subtitle "Counselor Platform"
+- CLAUDE.md rule: "All UI text in English"
+
+**Admin account kaunselor.app (2026-06-02):**
+- Email: `admin@kaunselor.app` / Password: `Kaunselor@Admin2026!`
+- Counselor plan (9999 session limit), counselor_profile created in Supabase
+
+**Telegram Bot Token (2026-06-02):**
+- `TELEGRAM_BOT_TOKEN` set in Vercel production
+- Token: via @BotFather (do NOT store token here — it's in Vercel env)
+- Setup in Settings → Telegram Notification → enter Chat ID (get from @userinfobot) → toggle ON
+
+**Latest deploy:** commit `48fd042` — 2026-06-02
+
+---
+
 ## Features Baru (2026-06-01 — sesi terkini)
 **AssemblyAI Speaker Identification:**
 - `api/transcribe.js` GET: selepas diarization selesai, call `llm-gateway.assemblyai.com/v1/understanding`
