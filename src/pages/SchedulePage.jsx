@@ -76,8 +76,8 @@ export default function SchedulePage() {
   };
 
   const handleSave = async () => {
-    if (!form.title.trim()) { toast.error('Tajuk diperlukan.'); return; }
-    if (!form.scheduled_at)  { toast.error('Tarikh & masa diperlukan.'); return; }
+    if (!form.title.trim()) { toast.error('Title is required.'); return; }
+    if (!form.scheduled_at)  { toast.error('Date & time required.'); return; }
 
     setSaving(true);
     try {
@@ -193,7 +193,7 @@ export default function SchedulePage() {
                 <button
                   onClick={() => handleCancel(item.id)}
                   className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  title="Cancelkan"
+                  title="Cancel"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />

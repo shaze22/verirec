@@ -86,16 +86,16 @@ export default function QuestionTemplatesPage() {
       setTemplates(tmpl);
       setAssessments(assess || []);
       setMyTeam(team);
-    }).catch(() => toast.error('Gagal memuatkan templat')).finally(() => setLoading(false));
+    }).catch(() => toast.error('Failed to load templates')).finally(() => setLoading(false));
   }, [user]);
 
   const handleSaveAssessment = async () => {
-    if (!assessForm.name.trim()) { toast.error('Nama assessment diperlukan.'); return; }
+    if (!assessForm.name.trim()) { toast.error('Assessment name is required.'); return; }
     const qs = assessForm.questions.filter(q => q.text.trim()).map((q, i) => ({
       id: `q${i+1}`, text: q.text.trim(),
       options: q.options.filter(o => o.trim()).map((o, j) => ({ value: `opt${j}`, label: o.trim() })),
     }));
-    if (!qs.length) { toast.error('Masukkan sekurang-kurangnya satu soalan.'); return; }
+    if (!qs.length) { toast.error('Enter at least one question.'); return; }
     setSavingAssess(true);
     try {
       const payload = { user_id: user.id, name: assessForm.name, type: 'custom', description: assessForm.description, is_default: false, questions: qs };
@@ -111,12 +111,12 @@ export default function QuestionTemplatesPage() {
       }
       setAssessModal(false);
       toast.success('Assessment saved.');
-    } catch { toast.error('Gagal menyimpan assessment.'); }
+    } catch { toast.error('Failed to save assessment.'); }
     finally { setSavingAssess(false); }
   };
 
   const handleDeleteAssessment = async (id) => {
-    if (!window.confirm('Delete assessment ini?')) return;
+    if (!window.confirm('Delete this assessment?')) return;
     await supabase.from('assessment_sets').delete().eq('id', id).eq('user_id', user.id);
     setAssessments(prev => prev.filter(a => a.id !== id));
     toast.success('Assessment deleted.');
@@ -161,23 +161,23 @@ export default function QuestionTemplatesPage() {
           questions = text.split('\n').map(l => l.replace(/^"(.+)"$/, '$1').trim()).filter(Boolean);
         }
 
-        if (!questions.length) return toast.error('Tiada soalan dijumpai dalam fail.');
+        if (!questions.length) return toast.error('No questions found in file.');
         setForm({ id: null, profession: isCounselor ? 'counselor' : 'police', name, questionsText: questions.join('\n'), use_case });
         setModal(true);
-        toast.success(`${questions.length} soalan diimport dari fail.`);
-      } catch { toast.error('Format fail tidak sah. Guna CSV atau JSON.'); }
+        toast.success(`${questions.length} questions imported from file.`);
+      } catch { toast.error('Invalid file format. Use CSV or JSON.'); }
     };
     reader.readAsText(file);
     e.target.value = '';
   };
 
   const handleSave = async () => {
-    if (!form.name.trim()) { toast.error('Nama templat diperlukan.'); return; }
+    if (!form.name.trim()) { toast.error('Template name is required.'); return; }
     const questions = form.questionsText
       .split('\n')
       .map(q => q.trim())
       .filter(Boolean);
-    if (!questions.length) { toast.error('Masukkan sekurang-kurangnya satu soalan.'); return; }
+    if (!questions.length) { toast.error('Enter at least one question.'); return; }
 
     setSaving(true);
     try {
@@ -188,29 +188,29 @@ export default function QuestionTemplatesPage() {
           : [...prev, saved]
       );
       setModal(false);
-      toast.success(form.id ? 'Templat dikemas kini.' : 'Templat baharu added.');
+      toast.success(form.id ? 'Template updated.' : 'New template added.');
     } catch {
-      toast.error('Gagal menyimpan templat.');
+      toast.error('Failed to save template.');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete templat ini?')) return;
+    if (!window.confirm('Delete this template?')) return;
     try {
       await deleteTemplate(id);
       setTemplates(prev => prev.filter(t => t.id !== id));
       toast.success('Template deleted.');
     } catch {
-      toast.error('Gagal memadam templat.');
+      toast.error('Failed to delete template.');
     }
   };
 
   const copyQuestions = (questions) => {
     navigator.clipboard.writeText(questions.join('\n'))
-      .then(() => toast.success('Questions disalin ke papan klip.'))
-      .catch(() => toast.error('Gagal menyalin.'));
+      .then(() => toast.success('Questions copied to clipboard.'))
+      .catch(() => toast.error('Failed to copy.'));
   };
 
   const filtered = templates.filter(t =>
@@ -240,7 +240,7 @@ export default function QuestionTemplatesPage() {
               <Button onClick={openNew} size="sm">+ New Template</Button>
             </div>
           ) : (
-            <Button onClick={() => { setAssessForm(BLANK_ASSESSMENT); setAssessModal(true); }} size="sm">+ Assessment Baru</Button>
+            <Button onClick={() => { setAssessForm(BLANK_ASSESSMENT); setAssessModal(true); }} size="sm">+ New Assessment</Button>
           )
         }
       />
@@ -265,7 +265,7 @@ export default function QuestionTemplatesPage() {
         {pageTab === 'assessment' && (
           <div className="space-y-4">
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
-              <strong>Custom Assessment</strong> — Buat ujian saringan atau soal selidik sendiri. Assessment ini boleh digunakan semasa sesi dalam panel Assessment.
+              <strong>Custom Assessment</strong> — Create your own screening test or questionnaire. These assessments can be used during sessions in the Assessment panel.
             </div>
 
             {assessments.map(a => (
@@ -278,7 +278,7 @@ export default function QuestionTemplatesPage() {
                       <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full capitalize">{a.type}</span>
                     </div>
                     {a.description && <p className="text-sm text-gray-500">{a.description}</p>}
-                    <p className="text-xs text-gray-400 mt-1">{a.questions?.length || 0} soalan</p>
+                    <p className="text-xs text-gray-400 mt-1">{a.questions?.length || 0} questions</p>
                   </div>
                   {!a.is_default && (
                     <div className="flex gap-2">
@@ -298,7 +298,7 @@ export default function QuestionTemplatesPage() {
                   {(a.questions || []).slice(0, 3).map((q, i) => (
                     <p key={i} className="text-xs text-gray-500">• {q.text}</p>
                   ))}
-                  {(a.questions || []).length > 3 && <p className="text-xs text-gray-400">+{a.questions.length - 3} soalan lagi...</p>}
+                  {(a.questions || []).length > 3 && <p className="text-xs text-gray-400">+{a.questions.length - 3} more questions...</p>}
                 </div>
               </div>
             ))}
@@ -306,7 +306,7 @@ export default function QuestionTemplatesPage() {
             {assessments.length === 0 && (
               <div className="text-center py-16 text-gray-400">
                 <div className="text-4xl mb-3">📋</div>
-                <p>Belum ada custom assessment.</p>
+                <p>No custom assessments yet.</p>
               </div>
             )}
           </div>
@@ -317,7 +317,7 @@ export default function QuestionTemplatesPage() {
           {/* Filter bar — use-case tabs untuk non-kaunselor sahaja */}
           {!isCounselor && (
             <div className="flex items-center gap-2 flex-wrap">
-              {[{ value: '', label: 'Semua' }, ...USE_CASE_OPTIONS].map(uc => {
+              {[{ value: '', label: 'All' }, ...USE_CASE_OPTIONS].map(uc => {
                 const count = uc.value === '' ? templates.length : templates.filter(t => t.use_case === uc.value).length;
                 const active = filterUseCase === uc.value;
                 return (
@@ -334,7 +334,7 @@ export default function QuestionTemplatesPage() {
               })}
               <select value={filterProfession} onChange={e => setFilterProfession(e.target.value)}
                 className="px-3 py-1.5 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-600">
-                <option value="">Semua Profesion</option>
+                <option value="">All Professions</option>
                 {PROFESSIONS.filter(p => isCounselor || p.id !== 'counselor').map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
               </select>
             </div>
@@ -345,7 +345,7 @@ export default function QuestionTemplatesPage() {
             <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span>Sokong import <strong>.csv</strong> (satu soalan per baris) dan <strong>.json</strong> — guna butang Import di atas kanan.</span>
+            <span>Supports import of <strong>.csv</strong> (one question per line) and <strong>.json</strong> — use the Import button at the top right.</span>
           </div>
 
           {loading ? (
@@ -361,11 +361,11 @@ export default function QuestionTemplatesPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Tiada Templat</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No Templates</h3>
               <p className="text-sm text-gray-500 mb-6 max-w-xs mx-auto">
-                Cipta bank soalan untuk setiap profesion supaya anda tidak perlu taip semula.
+                Create a question bank for each profession so you don't have to type them again.
               </p>
-              <Button onClick={openNew}>Cipta Templat Pertama</Button>
+              <Button onClick={openNew}>Create First Template</Button>
             </div>
           ) : (
             Object.entries(grouped).map(([profId, { label, items }]) => (
@@ -385,10 +385,10 @@ export default function QuestionTemplatesPage() {
                               const uc = USE_CASE_OPTIONS.find(u => u.value === t.use_case);
                               return uc ? <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${uc.color}`}>{uc.label}</span> : null;
                             })()}
-                            {t.is_team_template && <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-purple-100 text-purple-700">👥 Pasukan</span>}
-                            {t.user_id !== user?.id && <span className="text-xs text-gray-400 italic">Dikongsi</span>}
+                            {t.is_team_template && <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-purple-100 text-purple-700">👥 Team</span>}
+                            {t.user_id !== user?.id && <span className="text-xs text-gray-400 italic">Shared</span>}
                           </div>
-                          <p className="text-xs text-gray-500">{(t.questions || []).length} soalan</p>
+                          <p className="text-xs text-gray-500">{(t.questions || []).length} questions</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <button
@@ -452,21 +452,21 @@ export default function QuestionTemplatesPage() {
       {assessModal && (
         <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg my-4 p-6 space-y-4">
-            <h3 className="font-semibold text-lg">{assessForm.id ? 'Edit Assessment' : 'Assessment Baru'}</h3>
+            <h3 className="font-semibold text-lg">{assessForm.id ? 'Edit Assessment' : 'New Assessment'}</h3>
             <div className="space-y-3">
-              <div><label className="text-xs text-gray-500 mb-1 block">Nama Assessment *</label>
+              <div><label className="text-xs text-gray-500 mb-1 block">Assessment Name *</label>
                 <input type="text" value={assessForm.name} onChange={e => setAssessForm(f => ({ ...f, name: e.target.value }))} required
                   placeholder="cth. Saringan Kemurungan (PHQ-9), Ujian Kebimbangan..."
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" /></div>
-              <div><label className="text-xs text-gray-500 mb-1 block">Penerangan</label>
+              <div><label className="text-xs text-gray-500 mb-1 block">Description</label>
                 <input type="text" value={assessForm.description} onChange={e => setAssessForm(f => ({ ...f, description: e.target.value }))}
-                  placeholder="Ringkasan ujian ini..."
+                  placeholder="Summary of this test..."
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" /></div>
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs text-gray-500">Questions-soalan</label>
-                  <button type="button" onClick={addQuestion} className="text-xs text-blue-600 font-medium">+ Tambah Questions</button>
+                  <label className="text-xs text-gray-500">Questions</label>
+                  <button type="button" onClick={addQuestion} className="text-xs text-blue-600 font-medium">+ Add Questions</button>
                 </div>
                 <div className="space-y-3 max-h-64 overflow-y-auto">
                   {assessForm.questions.map((q, i) => (
@@ -479,7 +479,7 @@ export default function QuestionTemplatesPage() {
                         <button type="button" onClick={() => removeQuestion(i)} className="text-gray-400 hover:text-red-500 text-xs">✕</button>
                       </div>
                       <div className="flex items-center gap-2 ml-5">
-                        <span className="text-xs text-gray-400">Pilihan:</span>
+                        <span className="text-xs text-gray-400">Options:</span>
                         {q.options.map((opt, j) => (
                           <input key={j} type="text" value={opt}
                             onChange={e => { const opts = [...q.options]; opts[j] = e.target.value; updateQuestion(i, 'options', opts); }}
@@ -505,7 +505,7 @@ export default function QuestionTemplatesPage() {
       <Modal
         open={modal}
         onClose={() => setModal(false)}
-        title={form.id ? 'Edit Templat' : 'Question Templates Baharu'}
+        title={form.id ? 'Edit Template' : 'New Question Template'}
         footer={
           <div className="flex gap-3 justify-end">
             <Button variant="secondary" onClick={() => setModal(false)}>Cancel</Button>
@@ -515,7 +515,7 @@ export default function QuestionTemplatesPage() {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Kategori Penggunaan</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Use Case Category</label>
             <div className="flex gap-2">
               {USE_CASE_OPTIONS.map(uc => (
                 <button key={uc.value} type="button" onClick={() => setForm(p => ({ ...p, use_case: uc.value }))}
@@ -527,7 +527,7 @@ export default function QuestionTemplatesPage() {
           </div>
           {!isCounselor && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Profesion</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Profession</label>
               <select
                 value={form.profession}
                 onChange={e => setForm(p => ({ ...p, profession: e.target.value }))}
@@ -541,8 +541,8 @@ export default function QuestionTemplatesPage() {
           {myTeam && (
             <div className="flex items-center justify-between py-2 border border-gray-100 rounded-xl px-3">
               <div>
-                <p className="text-sm font-medium text-gray-800">Kongsi dengan Pasukan</p>
-                <p className="text-xs text-gray-400">Semua ahli pasukan "{myTeam.name}" boleh guna templat ini</p>
+                <p className="text-sm font-medium text-gray-800">Share with Team</p>
+                <p className="text-xs text-gray-400">All members of "{myTeam.name}" can use this template</p>
               </div>
               <button type="button"
                 onClick={() => setForm(p => ({ ...p, is_team_template: !p.is_team_template, team_id: myTeam.id }))}
@@ -562,7 +562,7 @@ export default function QuestionTemplatesPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Questions (satu per baris) *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Questions (one per line) *</label>
             <textarea
               value={form.questionsText}
               onChange={e => setForm(p => ({ ...p, questionsText: e.target.value }))}
@@ -571,7 +571,7 @@ export default function QuestionTemplatesPage() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-mono"
             />
             <p className="text-xs text-gray-400 mt-1">
-              {form.questionsText.split('\n').filter(Boolean).length} soalan
+              {form.questionsText.split('\n').filter(Boolean).length} questions
             </p>
           </div>
         </div>

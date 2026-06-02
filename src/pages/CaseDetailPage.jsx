@@ -45,11 +45,11 @@ function EvidenceAttachments({ caseId, userId }) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!ALLOWED_TYPES.includes(file.type)) {
-      toast.error('Jenis fail tidak dibenarkan. Guna PDF, JPG, PNG, DOCX, atau MP4.');
+      toast.error('File type not allowed. Use PDF, JPG, PNG, DOCX, or MP4.');
       return;
     }
     if (file.size > MAX_SIZE_BYTES) {
-      toast.error('Saiz fail melebihi 50MB.');
+      toast.error('File size exceeds 50MB.');
       return;
     }
     setUploading(true);
@@ -57,10 +57,10 @@ function EvidenceAttachments({ caseId, userId }) {
       const path = `${userId}/${caseId}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
       const { error } = await supabase.storage.from('evidence').upload(path, file);
       if (error) throw error;
-      toast.success('Fail berjaya dimuat naik.');
+      toast.success('File uploaded successfully.');
       loadFiles();
     } catch (err) {
-      toast.error(err.message || 'Gagal memuat naik fail.');
+      toast.error(err.message || 'Failed to upload file.');
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -73,7 +73,7 @@ function EvidenceAttachments({ caseId, userId }) {
       if (error) throw error;
       window.open(data.signedUrl, '_blank');
     } catch {
-      toast.error('Gagal menjana pautan muat turun.');
+      toast.error('Failed to generate download link.');
     }
   };
 
@@ -83,10 +83,10 @@ function EvidenceAttachments({ caseId, userId }) {
     try {
       const { error } = await supabase.storage.from('evidence').remove([`${userId}/${caseId}/${fileName}`]);
       if (error) throw error;
-      toast.success('Fail dipadamkan.');
+      toast.success('File deleted.');
       setFiles(prev => prev.filter(f => f.name !== fileName));
     } catch {
-      toast.error('Gagal memadam fail.');
+      toast.error('Failed to delete file.');
     } finally {
       setDeletingFile(null);
     }
@@ -115,16 +115,16 @@ function EvidenceAttachments({ caseId, userId }) {
               className="cursor-pointer"
               onClick={() => !uploading && fileInputRef.current?.click()}
             >
-              {uploading ? 'Memuat naik...' : '+ Tambah Fail'}
+              {uploading ? 'Uploading...' : '+ Add File'}
             </Button>
           </label>
         </div>
       </div>
-      <p className="text-xs text-gray-400 mb-3">PDF, JPG, PNG, DOCX, MP4 — maksimum 50MB setiap fail</p>
+      <p className="text-xs text-gray-400 mb-3">PDF, JPG, PNG, DOCX, MP4 — maximum 50MB per file</p>
       {files.length === 0 ? (
         <div className="text-center py-8 text-gray-300">
           <p className="text-2xl mb-1">📎</p>
-          <p className="text-sm">Belum ada lampiran bukti.</p>
+          <p className="text-sm">No evidence attachments yet.</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -183,22 +183,22 @@ async function exportCasePDF(caseData, sessions) {
   };
 
   // Header
-  addLine('VeriRec — Eksport Case File', 16, true, [37, 99, 235]);
-  addLine(`Sulit — Untuk Kegunaan Rasmi Sahaja`, 9, false, [150, 150, 150]);
+  addLine('VeriRec — Case File Export', 16, true, [37, 99, 235]);
+  addLine(`Confidential — For Official Use Only`, 9, false, [150, 150, 150]);
   y += 4;
 
   // Case details
-  addLine(`Tajuk Kes: ${caseData.title}`, 13, true);
-  if (caseData.case_number) addLine(`No. Kes: ${caseData.case_number}`);
-  addLine(`Profesion: ${professionLabel(caseData.profession)}`);
-  addLine(`Status: ${caseData.status === 'active' ? 'Aktif' : caseData.status === 'closed' ? 'Ditutup' : 'Ditangguhkan'}`);
-  if (caseData.description) addLine(`Keterangan: ${caseData.description}`);
-  addLine(`Jumlah Sesi: ${sessions.length}`);
-  addLine(`Laporan Dijana: ${sessions.filter(s => s.report).length}`);
+  addLine(`Case Title: ${caseData.title}`, 13, true);
+  if (caseData.case_number) addLine(`Case No.: ${caseData.case_number}`);
+  addLine(`Profession: ${professionLabel(caseData.profession)}`);
+  addLine(`Status: ${caseData.status === 'active' ? 'Active' : caseData.status === 'closed' ? 'Closed' : 'Pending'}`);
+  if (caseData.description) addLine(`Description: ${caseData.description}`);
+  addLine(`Total Sessions: ${sessions.length}`);
+  addLine(`Reports Generated: ${sessions.filter(s => s.report).length}`);
   y += 5;
 
   // Sessions list
-  addLine('Senarai Sesi', 12, true, [37, 99, 235]);
+  addLine('Session List', 12, true, [37, 99, 235]);
   pdf.setDrawColor(200, 200, 200);
   pdf.line(margin, y, W - margin, y);
   y += 5;
@@ -206,9 +206,9 @@ async function exportCasePDF(caseData, sessions) {
   sessions.forEach((s, i) => {
     if (y > 250) { pdf.addPage(); y = margin; }
     addLine(`${i + 1}. ${s.title}`, 11, true);
-    addLine(`   Subjek: ${s.subject_name} | Tarikh: ${format(new Date(s.created_at), 'dd/MM/yyyy')} | Tempoh: ${Math.round((s.duration || 0) / 60)} min`);
-    if (s.report?.riskLevel) addLine(`   Tahap Risiko: ${s.report.riskLevel === 'high' ? 'Tinggi' : s.report.riskLevel === 'medium' ? 'Sederhana' : 'Rendah'}`);
-    if (s.report?.summary) addLine(`   Ringkasan: ${s.report.summary}`, 10, false, [80, 80, 80]);
+    addLine(`   Subject: ${s.subject_name} | Date: ${format(new Date(s.created_at), 'dd/MM/yyyy')} | Duration: ${Math.round((s.duration || 0) / 60)} min`);
+    if (s.report?.riskLevel) addLine(`   Risk Level: ${s.report.riskLevel === 'high' ? 'High' : s.report.riskLevel === 'medium' ? 'Moderate' : 'Low'}`);
+    if (s.report?.summary) addLine(`   Summary: ${s.report.summary}`, 10, false, [80, 80, 80]);
     if (s.hash) addLine(`   Hash: ${s.hash.slice(0, 16)}…`, 9, false, [130, 130, 130]);
     y += 2;
   });
@@ -228,21 +228,21 @@ async function exportCasePDF(caseData, sessions) {
   pdf.setDrawColor(200, 200, 200);
   pdf.line(margin, y, W - margin, y);
   y += 5;
-  addLine('Sulit — Untuk Kegunaan Rasmi Sahaja', 9, true, [150, 50, 50]);
-  addLine(`Tarikh Eksport: ${format(new Date(), 'dd MMMM yyyy, HH:mm')}`, 9, false, [130, 130, 130]);
-  if (caseHash) addLine(`SHA-256 Kes: ${caseHash.slice(0, 32)}…`, 8, false, [130, 130, 130]);
+  addLine('Confidential — For Official Use Only', 9, true, [150, 50, 50]);
+  addLine(`Export Date: ${format(new Date(), 'dd MMMM yyyy, HH:mm')}`, 9, false, [130, 130, 130]);
+  if (caseHash) addLine(`SHA-256 Case: ${caseHash.slice(0, 32)}…`, 8, false, [130, 130, 130]);
 
   pdf.save(`verirec-kes-${(caseData.case_number || caseData.id).replace(/[^a-z0-9]/gi, '-')}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
 }
 
 const statusConfig = {
-  active:  { label: 'Aktif',        color: 'green' },
-  pending: { label: 'Ditangguhkan', color: 'yellow' },
-  closed:  { label: 'Ditutup',      color: 'gray' },
+  active:  { label: 'Active',   color: 'green' },
+  pending: { label: 'Pending',  color: 'yellow' },
+  closed:  { label: 'Closed',   color: 'gray' },
 };
 
 const riskColors = { low: 'green', medium: 'yellow', high: 'red' };
-const riskLabels = { low: 'Rendah', medium: 'Sederhana', high: 'Tinggi' };
+const riskLabels = { low: 'Low', medium: 'Moderate', high: 'High' };
 
 export default function CaseDetailPage() {
   const { id } = useParams();
@@ -275,7 +275,7 @@ export default function CaseDetailPage() {
       setEvidenceNote(localStorage.getItem(`case_evidence_${id}`) || c.description || '');
       setAiSummary(c.ai_summary || localStorage.getItem(`case_ai_summary_${id}`) || '');
     } catch {
-      toast.error('Fail kes tidak dijumpai.');
+      toast.error('Case file not found.');
       navigate('/cases');
     } finally {
       setLoading(false);
@@ -308,25 +308,25 @@ export default function CaseDetailPage() {
     setAdding(sessionId);
     try {
       await assignSessionToCase(sessionId, id);
-      toast.success('Sesi berjaya ditambah ke fail kes.');
+      toast.success('Session added to case file.');
       setAddModal(false);
       load();
     } catch {
-      toast.error('Gagal menambah sessions.');
+      toast.error('Failed to add session.');
     } finally {
       setAdding(null);
     }
   };
 
   const handleRemove = async (sessionId) => {
-    if (!window.confirm('Buang sessions ini dari fail kes?')) return;
+    if (!window.confirm('Remove this session from the case file?')) return;
     setRemoving(sessionId);
     try {
       await removeSessionFromCase(sessionId);
       setSessions(prev => prev.filter(s => s.id !== sessionId));
-      toast.success('Sesi dibuang dari fail kes.');
+      toast.success('Session removed from case file.');
     } catch {
-      toast.error('Gagal membuang sessions.');
+      toast.error('Failed to remove session.');
     } finally {
       setRemoving(null);
     }
@@ -389,14 +389,14 @@ export default function CaseDetailPage() {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'Gagal jana ringkasan');
+        throw new Error(err.error || 'Failed to generate summary');
       }
       const data = await res.json();
       const summaryText = data.summary || '';
       setAiSummary(summaryText);
       localStorage.setItem(`case_ai_summary_${id}`, summaryText);
       try { await updateCase(id, { ai_summary: summaryText }); } catch { /* fallback ke localStorage OK */ }
-      toast.success('Ringkasan AI berjaya dijana.');
+      toast.success('AI summary generated successfully.');
     } catch (err) {
       toast.error(err.message || 'Failed to generate summary AI.');
     } finally {
@@ -438,7 +438,7 @@ export default function CaseDetailPage() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            Semua Case File
+            All Case Files
           </button>
 
           {/* Case Header */}
@@ -451,7 +451,7 @@ export default function CaseDetailPage() {
                   {caseData.profession && <Badge color="blue">{professionLabel(caseData.profession)}</Badge>}
                 </div>
                 {caseData.case_number && (
-                  <p className="text-sm text-gray-500">No. Kes: {caseData.case_number}</p>
+                  <p className="text-sm text-gray-500">Case No.: {caseData.case_number}</p>
                 )}
                 {caseData.description && (
                   <p className="text-sm text-gray-600 mt-2">{caseData.description}</p>
@@ -496,13 +496,13 @@ export default function CaseDetailPage() {
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-gray-900">{Math.round(totalDuration / 60)}</p>
-                <p className="text-xs text-gray-500">Minit jumlah</p>
+                <p className="text-xs text-gray-500">Total minutes</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-gray-900">
                   {sessions.filter(s => s.report).length}
                 </p>
-                <p className="text-xs text-gray-500">Laporan dijana</p>
+                <p className="text-xs text-gray-500">Reports generated</p>
               </div>
             </div>
           </div>
@@ -514,7 +514,7 @@ export default function CaseDetailPage() {
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">🤖</span>
-                    <h3 className="text-sm font-semibold text-blue-800">Ringkasan AI Keseluruhan Kes</h3>
+                    <h3 className="text-sm font-semibold text-blue-800">AI Overall Case Summary</h3>
                   </div>
                   <Button
                     size="sm"
@@ -527,7 +527,7 @@ export default function CaseDetailPage() {
                   </Button>
                 </div>
                 <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{aiSummary}</p>
-                <p className="text-xs text-blue-400 mt-3">Dijana oleh AI berdasarkan {sessions.filter(s => s.report).length} laporan sessions</p>
+                <p className="text-xs text-blue-400 mt-3">Generated by AI based on {sessions.filter(s => s.report).length} session reports</p>
               </div>
             ) : sessions.filter(s => s.report).length >= 2 ? (
               <button
@@ -538,13 +538,13 @@ export default function CaseDetailPage() {
                 {generatingAI ? (
                   <>
                     <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                    <span className="text-sm text-blue-700 font-medium">Menjana ringkasan kes...</span>
+                    <span className="text-sm text-blue-700 font-medium">Generating case summary...</span>
                   </>
                 ) : (
                   <>
                     <span className="text-lg">🤖</span>
                     <span className="text-sm text-blue-700 font-medium">Generate Case Summary (AI)</span>
-                    <span className="text-xs text-blue-400">berdasarkan {sessions.filter(s => s.report).length} laporan</span>
+                    <span className="text-xs text-blue-400">based on {sessions.filter(s => s.report).length} reports</span>
                   </>
                 )}
               </button>
@@ -554,7 +554,7 @@ export default function CaseDetailPage() {
           {/* Sessions */}
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
-              Sesi dalam Case File ({sessions.length})
+              Sessions in Case File ({sessions.length})
             </h3>
             <div className="flex items-center gap-2">
               {sessions.length > 0 && (
@@ -566,9 +566,9 @@ export default function CaseDetailPage() {
                     setExporting(true);
                     try {
                       await exportCasePDF(caseData, sessions);
-                      toast.success('PDF kes berjaya exported.');
+                      toast.success('Case PDF exported successfully.');
                     } catch {
-                      toast.error('Gagal mengeksport PDF kes.');
+                      toast.error('Failed to export case PDF.');
                     } finally {
                       setExporting(false);
                     }
@@ -587,9 +587,9 @@ export default function CaseDetailPage() {
               <svg className="w-10 h-10 mx-auto mb-3 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
               </svg>
-              <p className="text-sm">Belum ada sessions dalam fail kes ini.</p>
+              <p className="text-sm">No sessions in this case file yet.</p>
               <button onClick={startNewSession} className="mt-2 text-sm text-blue-600 hover:underline font-medium">
-                🎙 Mulakan sessions pertama →
+                🎙 Start first session →
               </button>
             </div>
           ) : (
@@ -624,7 +624,7 @@ export default function CaseDetailPage() {
                     disabled={removing === s.id}
                     className="text-xs text-gray-400 hover:text-red-600 px-2 py-1 rounded hover:bg-red-50 transition-colors flex-shrink-0 disabled:opacity-50"
                   >
-                    {removing === s.id ? '...' : 'Buang'}
+                    {removing === s.id ? '...' : 'Remove'}
                   </button>
                 </div>
               ))}
@@ -647,7 +647,7 @@ export default function CaseDetailPage() {
                     toast.success('Nota saved.');
                   } catch {
                     localStorage.setItem(`case_evidence_${id}`, evidenceNote);
-                    toast.success('Nota disimpan secara tempatan.');
+                    toast.success('Note saved locally.');
                   } finally {
                     setEvidenceSaving(false);
                   }
@@ -663,7 +663,7 @@ export default function CaseDetailPage() {
               placeholder="Catatan bukti, nota siasatan, senarai dokumen, status tindakan polis/pendakwa raya..."
               className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             />
-            <p className="text-xs text-gray-400 mt-1">Nota ini disimpan dalam fail kes. Tidak dikira dalam hash sessions.</p>
+            <p className="text-xs text-gray-400 mt-1">This note is saved in the case file. Not counted in session hash.</p>
           </div>
 
           {/* Evidence Attachments */}
@@ -687,7 +687,7 @@ export default function CaseDetailPage() {
                   <div className="relative">
                     <span className="absolute -left-[21px] w-4 h-4 rounded-full bg-blue-500 border-2 border-white" />
                     <p className="text-xs text-gray-400">{format(new Date(caseData.created_at), 'dd MMM yyyy, HH:mm')}</p>
-                    <p className="text-sm font-medium text-gray-700">Fail kes dicipta</p>
+                    <p className="text-sm font-medium text-gray-700">Case file created</p>
                     <p className="text-xs text-gray-500">{caseData.title}</p>
                   </div>
                   {/* Sessions in chronological order */}
@@ -698,7 +698,7 @@ export default function CaseDetailPage() {
                       <p className="text-sm font-medium text-gray-700 cursor-pointer hover:text-blue-600" onClick={() => navigate(`/session/${s.id}`)}>
                         {s.title}
                       </p>
-                      <p className="text-xs text-gray-500">{s.subject_name} · {Math.round((s.duration || 0) / 60)} min · {s.report ? '✓ Laporan siap' : 'Not Generated'}</p>
+                      <p className="text-xs text-gray-500">{s.subject_name} · {Math.round((s.duration || 0) / 60)} min · {s.report ? '✓ Report Ready' : 'Not Generated'}</p>
                     </div>
                   ))}
                   {/* Status if closed */}
@@ -717,15 +717,15 @@ export default function CaseDetailPage() {
       </div>
 
       {/* Add Session Modal */}
-      <Modal open={addModal} onClose={() => setAddModal(false)} title="Tambah Sesi ke Case File">
+      <Modal open={addModal} onClose={() => setAddModal(false)} title="Add Session to Case File">
         {unassigned.length === 0 ? (
           <div className="text-center py-8 text-gray-400">
-            <p className="text-sm">Semua sessions sudah dikaitkan dengan fail kes.</p>
-            <p className="text-xs mt-1">Buat sessions baru terlebih dahulu.</p>
+            <p className="text-sm">All sessions are already linked to a case file.</p>
+            <p className="text-xs mt-1">Create a new session first.</p>
           </div>
         ) : (
           <div className="space-y-2">
-            <p className="text-sm text-gray-500 mb-3">Pilih sessions yang ingin ditambah ke fail kes ini:</p>
+            <p className="text-sm text-gray-500 mb-3">Select sessions to add to this case file:</p>
             {unassigned.map(s => (
               <div key={s.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
                 <div className="min-w-0">
@@ -740,7 +740,7 @@ export default function CaseDetailPage() {
                   loading={adding === s.id}
                   className="flex-shrink-0 ml-3"
                 >
-                  Tambah
+                  Add
                 </Button>
               </div>
             ))}

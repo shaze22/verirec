@@ -12,15 +12,15 @@ import { Badge } from '../components/ui/Badge.jsx';
 import toast from 'react-hot-toast';
 
 const ROLES = [
-  { value: 'admin',       label: 'Admin',       desc: 'Boleh urus semua ahli dan sesi',    color: 'red' },
-  { value: 'interviewer', label: 'Penemuduga',  desc: 'Boleh buat dan lihat sesi sendiri', color: 'blue' },
-  { value: 'viewer',      label: 'Penonton',    desc: 'Baca sahaja — tiada akses edit',    color: 'gray' },
+  { value: 'admin',       label: 'Admin',       desc: 'Can manage all members and sessions',    color: 'red' },
+  { value: 'interviewer', label: 'Interviewer',  desc: 'Can create and view own sessions', color: 'blue' },
+  { value: 'viewer',      label: 'Viewer',    desc: 'Read only — no edit access',    color: 'gray' },
 ];
 
 const roleColor = { admin: 'red', interviewer: 'blue', viewer: 'gray' };
-const roleLabel = { admin: 'Admin', interviewer: 'Penemuduga', viewer: 'Penonton' };
+const roleLabel = { admin: 'Admin', interviewer: 'Interviewer', viewer: 'Viewer' };
 const statusColor = { pending: 'yellow', active: 'green' };
-const statusLabel = { pending: 'Jemputan Dihantar', active: 'Active' };
+const statusLabel = { pending: 'Invitation Sent', active: 'Active' };
 
 export default function TeamPage() {
   const { user } = useAuthStore();
@@ -51,7 +51,7 @@ export default function TeamPage() {
         setMembers(m);
       }
     } catch {
-      toast.error('Gagal memuatkan maklumat pasukan.');
+      toast.error('Failed to load team information.');
     } finally {
       setLoading(false);
     }
@@ -67,9 +67,9 @@ export default function TeamPage() {
       const t = await createTeam(user.id, teamName.trim());
       setTeam(t);
       setMembers([]);
-      toast.success('Team berjaya dicipta!');
+      toast.success('Team created successfully!');
     } catch {
-      toast.error('Gagal mencipta pasukan.');
+      toast.error('Failed to create team.');
     } finally {
       setCreating(false);
     }
@@ -83,9 +83,9 @@ export default function TeamPage() {
       const updated = await updateTeamName(team.id, newName.trim());
       setTeam(updated);
       setEditingName(false);
-      toast.success('Nama pasukan dikemas kini.');
+      toast.success('Team name updated.');
     } catch {
-      toast.error('Gagal mengemas kini nama.');
+      toast.error('Failed to update name.');
     } finally {
       setSavingName(false);
     }
@@ -95,7 +95,7 @@ export default function TeamPage() {
     e.preventDefault();
     if (!inviteEmail.trim()) return;
     if (members.some(m => m.email === inviteEmail.trim())) {
-      toast.error('E-mel ini sudah dijemput.');
+      toast.error('This email has already been invited.');
       return;
     }
     setInviting(true);
@@ -114,23 +114,23 @@ export default function TeamPage() {
       setInviteModal(false);
       setInviteEmail('');
       setInviteRole('interviewer');
-      toast.success(`E-mel jemputan dihantar kepada ${inviteEmail}.`);
+      toast.success(`Invitation email sent to ${inviteEmail}.`);
     } catch {
-      toast.error('Failed to send jemputan.');
+      toast.error('Failed to send invitation.');
     } finally {
       setInviting(false);
     }
   };
 
   const handleRemove = async (id, email) => {
-    if (!window.confirm(`Buang ${email} dari pasukan?`)) return;
+    if (!window.confirm(`Remove ${email} from the team?`)) return;
     setRemoving(id);
     try {
       await removeMember(id);
       setMembers(prev => prev.filter(m => m.id !== id));
-      toast.success('Member dibuang dari pasukan.');
+      toast.success('Member removed from team.');
     } catch {
-      toast.error('Gagal membuang ahli.');
+      toast.error('Failed to remove member.');
     } finally {
       setRemoving(null);
     }
@@ -140,9 +140,9 @@ export default function TeamPage() {
     try {
       const updated = await updateMemberRole(memberId, newRole);
       setMembers(prev => prev.map(m => m.id === memberId ? updated : m));
-      toast.success('Peranan dikemas kini.');
+      toast.success('Role updated.');
     } catch {
-      toast.error('Gagal mengemas kini peranan.');
+      toast.error('Failed to update role.');
     }
   };
 
@@ -157,7 +157,7 @@ export default function TeamPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <TopBar title="Pengurusan Team" />
+      <TopBar title="Team Management" />
       <div className="flex-1 overflow-auto p-6 pb-20 md:pb-6">
         <div className="max-w-2xl mx-auto space-y-6">
 
@@ -165,14 +165,14 @@ export default function TeamPage() {
           {isOrgPlan && (
             <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 flex items-center justify-between">
               <div>
-                <p className="text-sm font-semibold text-blue-900">Plan Organisasi</p>
+                <p className="text-sm font-semibold text-blue-900">Organisation Plan</p>
                 <p className="text-xs text-blue-700 mt-0.5">
-                  {members.filter(m => m.status === 'accepted').length}/{ORG_SEAT_LIMIT} tempat ahli · 100 sesi/ahli/bulan
+                  {members.filter(m => m.status === 'accepted').length}/{ORG_SEAT_LIMIT} member seats · 100 sessions/member/month
                 </p>
               </div>
               {members.filter(m => m.status === 'accepted').length >= ORG_SEAT_LIMIT && (
                 <span className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg">
-                  Had Member Dicapai
+                  Member Limit Reached
                 </span>
               )}
             </div>
@@ -186,19 +186,19 @@ export default function TeamPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">Buat Team Anda</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">Create Your Team</h2>
               <p className="text-sm text-gray-500 mb-6 max-w-sm mx-auto">
-                Jemput rakan sekerja untuk bekerjasama. Urus peranan dan akses dari satu tempat.
+                Invite colleagues to collaborate. Manage roles and access from one place.
               </p>
               <form onSubmit={handleCreateTeam} className="flex gap-3 max-w-sm mx-auto">
                 <Input
                   value={teamName}
                   onChange={e => setTeamName(e.target.value)}
-                  placeholder="Nama pasukan / jabatan"
+                  placeholder="Team / department name"
                   required
                   className="flex-1"
                 />
-                <Button type="submit" loading={creating}>Buat</Button>
+                <Button type="submit" loading={creating}>Create</Button>
               </form>
             </div>
           ) : (
@@ -215,7 +215,7 @@ export default function TeamPage() {
                         className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         autoFocus
                       />
-                      <Button type="submit" size="sm" loading={savingName}>Simpan</Button>
+                      <Button type="submit" size="sm" loading={savingName}>Save</Button>
                       <Button type="button" size="sm" variant="secondary" onClick={() => setEditingName(false)}>Cancel</Button>
                     </form>
                   ) : (
@@ -227,7 +227,7 @@ export default function TeamPage() {
                       </div>
                       <div>
                         <h2 className="font-semibold text-gray-900">{team.name}</h2>
-                        <p className="text-xs text-gray-400">Dicipta {format(new Date(team.created_at), 'dd MMM yyyy')}</p>
+                        <p className="text-xs text-gray-400">Created {format(new Date(team.created_at), 'dd MMM yyyy')}</p>
                       </div>
                       <button onClick={() => { setNewName(team.name); setEditingName(true); }} className="text-xs text-gray-400 hover:text-blue-600 ml-2">Edit</button>
                     </div>
@@ -239,7 +239,7 @@ export default function TeamPage() {
                 <div className="grid grid-cols-3 gap-3 pt-4 border-t">
                   <div className="text-center">
                     <p className="text-xl font-bold text-gray-900">{members.length}</p>
-                    <p className="text-xs text-gray-500">Member dijemput</p>
+                    <p className="text-xs text-gray-500">Members invited</p>
                   </div>
                   <div className="text-center">
                     <p className="text-xl font-bold text-gray-900">{members.filter(m => m.status === 'active').length}</p>
@@ -247,14 +247,14 @@ export default function TeamPage() {
                   </div>
                   <div className="text-center">
                     <p className="text-xl font-bold text-gray-900">{members.filter(m => m.status === 'pending').length}</p>
-                    <p className="text-xs text-gray-500">Menunggu</p>
+                    <p className="text-xs text-gray-500">Pending</p>
                   </div>
                 </div>
               </div>
 
               {/* Role explanation */}
               <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-                <p className="text-xs font-semibold text-blue-700 mb-2">Peranan Member Team</p>
+                <p className="text-xs font-semibold text-blue-700 mb-2">Team Member Roles</p>
                 <div className="space-y-1.5">
                   {ROLES.map(r => (
                     <div key={r.value} className="flex items-center gap-2">
@@ -268,11 +268,11 @@ export default function TeamPage() {
               {/* Member list */}
               <div>
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-                  Member Team ({members.length})
+                  Team Members ({members.length})
                 </h3>
                 {members.length === 0 ? (
                   <div className="text-center py-10 bg-white border rounded-xl text-gray-400">
-                    <p className="text-sm">Belum ada ahli. Klik "Invite Member" untuk mula.</p>
+                    <p className="text-sm">No members yet. Click "Invite Member" to get started.</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -283,7 +283,7 @@ export default function TeamPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 truncate">{user?.email}</p>
-                        <p className="text-xs text-gray-400">Owner akaun</p>
+                        <p className="text-xs text-gray-400">Account owner</p>
                       </div>
                       <Badge color="red" className="text-xs">Admin</Badge>
                     </div>
@@ -311,7 +311,7 @@ export default function TeamPage() {
                             disabled={removing === m.id}
                             className="text-xs text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50 px-1.5 py-1 rounded hover:bg-red-50"
                           >
-                            {removing === m.id ? '...' : 'Buang'}
+                            {removing === m.id ? '...' : 'Remove'}
                           </button>
                         </div>
                       </div>
@@ -336,7 +336,7 @@ export default function TeamPage() {
             required
           />
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Peranan</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
             <div className="space-y-2">
               {ROLES.map(r => (
                 <label key={r.value} className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${inviteRole === r.value ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}>
@@ -350,7 +350,7 @@ export default function TeamPage() {
             </div>
           </div>
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">
-            Kongsi pautan <strong>verirec.app</strong> kepada ahli yang dijemput untuk mendaftar menggunakan e-mel yang sama.
+            Share the <strong>verirec.app</strong> link with the invited member to register using the same email.
           </div>
           <div className="flex gap-3">
             <Button type="button" variant="secondary" onClick={() => setInviteModal(false)}>Cancel</Button>

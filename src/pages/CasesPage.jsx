@@ -22,7 +22,7 @@ const professions = [
 
 const statusConfig = {
   active:  { label: 'Active',        color: 'green' },
-  pending: { label: 'Ditangguhkan', color: 'yellow' },
+  pending: { label: 'Pending', color: 'yellow' },
   closed:  { label: 'Closed',      color: 'gray' },
 };
 
@@ -57,11 +57,11 @@ function CaseForm({ value, onChange }) {
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="active">Active</option>
-          <option value="pending">Ditangguhkan</option>
+          <option value="pending">Pending</option>
           <option value="closed">Closed</option>
         </select>
       </div>
-      <Textarea label="Penerangan" value={value.description} onChange={set('description')} rows={3} placeholder="Penerangan ringkas tentang kes ini..." />
+      <Textarea label="Description" value={value.description} onChange={set('description')} rows={3} placeholder="Brief description of this case..." />
     </div>
   );
 }
@@ -82,7 +82,7 @@ export default function CasesPage() {
       const data = await getCases();
       setCases(data);
     } catch {
-      toast.error('Gagal memuatkan fail kes.');
+      toast.error('Failed to load case files.');
     } finally {
       setLoading(false);
     }
@@ -111,17 +111,17 @@ export default function CasesPage() {
     try {
       if (modal.mode === 'create') {
         const created = await createCase(user.id, form);
-        toast.success('Fail kes berjaya dicipta.');
+        toast.success('Case file created successfully.');
         setModal(null);
         navigate(`/cases/${created.id}`);
       } else {
         await updateCase(modal.case.id, form);
-        toast.success('Fail kes berjaya dikemas kini.');
+        toast.success('Case file updated successfully.');
         setModal(null);
         load();
       }
     } catch {
-      toast.error('Gagal menyimpan. Cuba lagi.');
+      toast.error('Failed to save. Try again.');
     } finally {
       setSaving(false);
     }
@@ -129,14 +129,14 @@ export default function CasesPage() {
 
   const handleDelete = async (id, e) => {
     e.stopPropagation();
-    if (!window.confirm('Delete fail kes ini? Sesi yang dikaitkan tidak akan terpadam.')) return;
+    if (!window.confirm('Delete this case file? Associated sessions will not be deleted.')) return;
     setDeleting(id);
     try {
       await deleteCase(id);
       setCases(prev => prev.filter(c => c.id !== id));
-      toast.success('Fail kes dipadamkan.');
+      toast.success('Case file deleted.');
     } catch {
-      toast.error('Failed to delete. Cuba lagi.');
+      toast.error('Failed to delete. Try again.');
     } finally {
       setDeleting(null);
     }
@@ -157,7 +157,7 @@ export default function CasesPage() {
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Case Files</h2>
               <p className="text-sm text-gray-500 mt-0.5">
-                {loading ? 'Memuatkan...' : `${cases.length} fail kes`}
+                {loading ? 'Loading...' : `${cases.length} case files`}
               </p>
             </div>
             <Button onClick={openCreate}>+ Buka Case Files</Button>
@@ -165,7 +165,7 @@ export default function CasesPage() {
 
           {cases.length > 2 && (
             <div className="mb-4">
-              <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari tajuk atau nombor kes..." />
+              <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search title or case number..." />
             </div>
           )}
 
@@ -178,10 +178,10 @@ export default function CasesPage() {
               <svg className="w-12 h-12 mx-auto mb-3 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
               </svg>
-              <p className="text-sm font-medium">{search ? 'No case files dijumpai.' : 'No case files lagi.'}</p>
+              <p className="text-sm font-medium">{search ? 'No case files found.' : 'No case files yet.'}</p>
               {!search && (
                 <button onClick={openCreate} className="mt-2 text-sm text-blue-600 hover:underline">
-                  Buka fail kes pertama →
+                  Open first case file →
                 </button>
               )}
             </div>
@@ -249,7 +249,7 @@ export default function CasesPage() {
           <div className="flex gap-3 pt-2">
             <Button type="button" variant="secondary" onClick={() => setModal(null)}>Cancel</Button>
             <Button type="submit" className="flex-1" loading={saving}>
-              {modal?.mode === 'create' ? 'Buka Case Files' : 'Kemas Kini'}
+              {modal?.mode === 'create' ? 'Open Case File' : 'Update'}
             </Button>
           </div>
         </form>

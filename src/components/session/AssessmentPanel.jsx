@@ -81,16 +81,16 @@ export function AssessmentPanel({ sessionId, subjectId, userId, onComplete }) {
 
   if (!selected) return (
     <div className="p-3 space-y-2">
-      <p className="text-xs font-medium text-gray-500 mb-3">ASSESSMENT / UJIAN</p>
+      <p className="text-xs font-medium text-gray-500 mb-3">ASSESSMENT / TEST</p>
       {sets.map(s => (
         <button key={s.id} onClick={() => { setSelected(s); setResponses({}); setResult(null); setSaved(false); }}
           className="w-full text-left p-3 rounded-xl border bg-white hover:border-blue-300 hover:bg-blue-50 transition-all">
           <p className="text-sm font-medium text-gray-800">{s.name}</p>
           <p className="text-xs text-gray-400 mt-0.5">{s.description}</p>
-          <p className="text-xs text-blue-500 mt-1">{s.questions?.length} soalan</p>
+          <p className="text-xs text-blue-500 mt-1">{s.questions?.length} questions</p>
         </button>
       ))}
-      {sets.length === 0 && <p className="text-gray-400 text-sm text-center py-8">Tiada assessment tersedia</p>}
+      {sets.length === 0 && <p className="text-gray-400 text-sm text-center py-8">No assessments available</p>}
     </div>
   );
 
@@ -98,7 +98,7 @@ export function AssessmentPanel({ sessionId, subjectId, userId, onComplete }) {
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-gray-800">{selected.name}</p>
-        <button onClick={reset} className="text-xs text-blue-600">← Kembali</button>
+        <button onClick={reset} className="text-xs text-blue-600">← Back</button>
       </div>
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
         {selected.type === 'mbti' && (
@@ -133,7 +133,7 @@ export function AssessmentPanel({ sessionId, subjectId, userId, onComplete }) {
           </>
         )}
       </div>
-      <p className="text-xs text-green-600 text-center">✓ Results disimpan dalam sesi ini</p>
+      <p className="text-xs text-green-600 text-center">✓ Results saved in this session</p>
     </div>
   );
 
@@ -142,9 +142,9 @@ export function AssessmentPanel({ sessionId, subjectId, userId, onComplete }) {
       <div className="p-3 border-b flex items-center justify-between">
         <div>
           <p className="text-xs font-medium text-gray-800">{selected.name}</p>
-          <p className="text-xs text-gray-400">{answered}/{total} dijawab ({pct}%)</p>
+          <p className="text-xs text-gray-400">{answered}/{total} answered ({pct}%)</p>
         </div>
-        <button onClick={reset} className="text-xs text-gray-400 hover:text-gray-600">← Tukar</button>
+        <button onClick={reset} className="text-xs text-gray-400 hover:text-gray-600">← Change</button>
       </div>
       <div className="w-full bg-gray-100 h-1">
         <div className="bg-blue-500 h-1 transition-all" style={{ width: `${pct}%` }} />
@@ -166,7 +166,7 @@ export function AssessmentPanel({ sessionId, subjectId, userId, onComplete }) {
         ))}
         {selected.type === 'riasec' && (
           <div className="space-y-2">
-            <p className="text-xs text-gray-500 mb-2">Tandakan aktiviti yang anda <strong>suka</strong> lakukan:</p>
+            <p className="text-xs text-gray-500 mb-2">Mark activities you <strong>enjoy</strong> doing:</p>
             {['R','I','A','S','E','C'].map(type => {
               const typeQuestions = questions.filter(q => q.type === type);
               const typeInfo = { R:'Realistik',I:'Investigatif',A:'Artistik',S:'Sosial',E:'Enterprising',C:'Konvensional' };
@@ -191,7 +191,7 @@ export function AssessmentPanel({ sessionId, subjectId, userId, onComplete }) {
       <div className="p-3 border-t">
         <button onClick={handleSave} disabled={answered < total || saving || saved}
           className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold disabled:opacity-40 hover:bg-blue-700 transition-colors">
-          {saving ? 'Menyimpan...' : saved ? '✓ Saved' : `Selesai & Simpan (${answered}/${total})`}
+          {saving ? 'Saving...' : saved ? '✓ Saved' : `Done & Save (${answered}/${total})`}
         </button>
       </div>
     </div>

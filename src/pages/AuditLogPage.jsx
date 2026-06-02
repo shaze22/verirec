@@ -5,23 +5,23 @@ import { TopBar } from '../components/layout/TopBar.jsx';
 import toast from 'react-hot-toast';
 
 const actionLabels = {
-  'session.view':       { label: 'Sesi Dilihat',       color: 'bg-blue-100 text-blue-700' },
-  'report.view':        { label: 'Laporan Dilihat',     color: 'bg-purple-100 text-purple-700' },
-  'report.generate':    { label: 'Laporan Dijana',      color: 'bg-green-100 text-green-700' },
-  'report.pin.set':     { label: 'PIN Ditetapkan',      color: 'bg-amber-100 text-amber-700' },
-  'report.pin.unlock':  { label: 'PIN Dibuka',          color: 'bg-amber-100 text-amber-700' },
-  'session.create':     { label: 'Sesi Dicipta',        color: 'bg-green-100 text-green-700' },
-  'session.delete':     { label: 'Sesi Dipadam',        color: 'bg-red-100 text-red-700' },
-  'subject.create':     { label: 'Profil Dicipta',      color: 'bg-teal-100 text-teal-700' },
-  'case.create':        { label: 'Fail Kes Dibuka',     color: 'bg-indigo-100 text-indigo-700' },
-  'signature.save':     { label: 'Tandatangan Disimpan',color: 'bg-green-100 text-green-700' },
-  'mfa.enroll':         { label: '2FA Diaktifkan',      color: 'bg-green-100 text-green-700' },
-  'mfa.unenroll':       { label: '2FA Dinyahaktifkan',  color: 'bg-red-100 text-red-700' },
-  'login':              { label: 'Log Masuk',           color: 'bg-gray-100 text-gray-700' },
-  'logout':             { label: 'Log Keluar',          color: 'bg-gray-100 text-gray-700' },
+  'session.view':       { label: 'Session Viewed',       color: 'bg-blue-100 text-blue-700' },
+  'report.view':        { label: 'Report Viewed',         color: 'bg-purple-100 text-purple-700' },
+  'report.generate':    { label: 'Report Generated',      color: 'bg-green-100 text-green-700' },
+  'report.pin.set':     { label: 'PIN Set',               color: 'bg-amber-100 text-amber-700' },
+  'report.pin.unlock':  { label: 'PIN Unlocked',          color: 'bg-amber-100 text-amber-700' },
+  'session.create':     { label: 'Session Created',       color: 'bg-green-100 text-green-700' },
+  'session.delete':     { label: 'Session Deleted',       color: 'bg-red-100 text-red-700' },
+  'subject.create':     { label: 'Profile Created',       color: 'bg-teal-100 text-teal-700' },
+  'case.create':        { label: 'Case File Opened',      color: 'bg-indigo-100 text-indigo-700' },
+  'signature.save':     { label: 'Signature Saved',       color: 'bg-green-100 text-green-700' },
+  'mfa.enroll':         { label: '2FA Enabled',           color: 'bg-green-100 text-green-700' },
+  'mfa.unenroll':       { label: '2FA Disabled',          color: 'bg-red-100 text-red-700' },
+  'login':              { label: 'Logged In',             color: 'bg-gray-100 text-gray-700' },
+  'logout':             { label: 'Logged Out',            color: 'bg-gray-100 text-gray-700' },
 };
 
-const ALL = 'semua';
+const ALL = 'all';
 
 export default function AuditLogPage() {
   const [logs, setLogs] = useState([]);
@@ -31,7 +31,7 @@ export default function AuditLogPage() {
   useEffect(() => {
     getAuditLogs()
       .then(setLogs)
-      .catch(() => toast.error('Gagal memuatkan log audit.'))
+      .catch(() => toast.error('Failed to load audit log.'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -47,9 +47,9 @@ export default function AuditLogPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Audit Log</h2>
-              <p className="text-sm text-gray-500 mt-0.5">Rekod semua aktiviti dalam akaun anda</p>
+              <p className="text-sm text-gray-500 mt-0.5">Record of all activity in your account</p>
             </div>
-            <span className="text-xs text-gray-400">{filtered.length} rekod</span>
+            <span className="text-xs text-gray-400">{filtered.length} records</span>
           </div>
 
           {/* Filter */}
@@ -58,48 +58,44 @@ export default function AuditLogPage() {
               <button
                 key={type}
                 onClick={() => setFilter(type)}
-                className={`text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                   filter === type
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                {type === ALL ? 'Semua' : (actionLabels[type]?.label || type)}
+                {type === ALL ? 'All' : (actionLabels[type]?.label || type)}
               </button>
             ))}
           </div>
 
           {loading ? (
-            <div className="space-y-2">
-              {[1,2,3,4,5].map(i => <div key={i} className="h-16 bg-gray-100 rounded-xl animate-pulse" />)}
+            <div className="flex items-center justify-center py-12">
+              <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-16 text-gray-400">
-              <svg className="w-10 h-10 mx-auto mb-3 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <p className="text-sm">No records aktiviti lagi.</p>
+            <div className="text-center py-12 text-gray-400">
+              <p>No activity recorded yet.</p>
             </div>
           ) : (
             <div className="space-y-2">
               {filtered.map(log => {
-                const ac = actionLabels[log.action] || { label: log.action, color: 'bg-gray-100 text-gray-700' };
+                const meta = actionLabels[log.action] || { label: log.action, color: 'bg-gray-100 text-gray-700' };
                 return (
-                  <div key={log.id} className="bg-white border rounded-xl px-4 py-3 flex items-center gap-4">
-                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full flex-shrink-0 ${ac.color}`}>
-                      {ac.label}
+                  <div key={log.id} className="bg-white border border-gray-100 rounded-xl p-4 flex items-start gap-3">
+                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 mt-0.5 ${meta.color}`}>
+                      {meta.label}
                     </span>
                     <div className="flex-1 min-w-0">
-                      {log.resource_name && (
-                        <p className="text-sm text-gray-800 truncate">{log.resource_name}</p>
-                      )}
-                      {log.metadata?.userAgent && (
-                        <p className="text-xs text-gray-400 truncate">{log.metadata.userAgent.split(' ')[0]}</p>
+                      {log.metadata && Object.keys(log.metadata).length > 0 && (
+                        <p className="text-xs text-gray-500 truncate">
+                          {Object.entries(log.metadata).map(([k, v]) => `${k}: ${v}`).join(' · ')}
+                        </p>
                       )}
                     </div>
-                    <p className="text-xs text-gray-400 flex-shrink-0 text-right">
-                      {format(new Date(log.created_at), 'dd MMM yy, HH:mm')}
-                    </p>
+                    <span className="text-xs text-gray-400 flex-shrink-0">
+                      {format(new Date(log.created_at), 'dd MMM yyyy, HH:mm')}
+                    </span>
                   </div>
                 );
               })}

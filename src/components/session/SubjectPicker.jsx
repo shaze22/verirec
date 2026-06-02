@@ -78,7 +78,7 @@ export function SubjectPicker({ value, onChangeName, onChangeId, userId, label, 
           value={query}
           onChange={handleInputChange}
           onFocus={() => results.length > 0 && setOpen(true)}
-          placeholder="Nama subjek atau cari profil sedia ada..."
+          placeholder="Subject name or search existing profile..."
           required={required}
           className="flex-1 bg-transparent text-sm outline-none"
         />
@@ -97,7 +97,7 @@ export function SubjectPicker({ value, onChangeName, onChangeId, userId, label, 
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
-            Profil dihubungkan
+            Profile linked
           </span>
           {linked.ic_number && <span className="text-gray-500">IC: {linked.ic_number}</span>}
           {linked.phone && <span className="text-gray-500">{linked.phone}</span>}
@@ -133,7 +133,7 @@ export function SubjectPicker({ value, onChangeName, onChangeId, userId, label, 
               <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
-              {creating ? 'Mencipta profil...' : `Simpan "${query}" sebagai profil baru`}
+              {creating ? 'Creating profile...' : `Save "${query}" as new profile`}
             </button>
           )}
         </div>

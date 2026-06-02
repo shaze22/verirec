@@ -73,7 +73,7 @@ export function SignaturePad({ onSave, saving }) {
         />
         {isEmpty && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <p className="text-sm text-gray-400 select-none">Lukis tandatangan di sini...</p>
+            <p className="text-sm text-gray-400 select-none">Draw signature here...</p>
           </div>
         )}
       </div>
@@ -84,10 +84,10 @@ export function SignaturePad({ onSave, saving }) {
           disabled={isEmpty || saving}
           className="text-sm text-gray-500 hover:text-gray-700 disabled:opacity-40 transition-colors underline-offset-2 hover:underline"
         >
-          Kosongkan
+          Clear
         </button>
         <Button type="button" onClick={handleSave} disabled={isEmpty} loading={saving} size="sm">
-          Simpan Tandatangan
+          Save Signature
         </Button>
       </div>
     </div>

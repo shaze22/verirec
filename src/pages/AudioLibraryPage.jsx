@@ -48,7 +48,7 @@ export default function AudioLibraryPage() {
     if (!user) return;
     getAudioLibrary(user.id)
       .then(data => { setRecordings(data); })
-      .catch(() => toast.error('Gagal memuatkan rakaman'))
+      .catch(() => toast.error('Failed to load recordings'))
       .finally(() => setLoading(false));
     getStorageUsage(user.id).then(setStorageUsed).catch(() => {});
   }, [user]);
@@ -64,7 +64,7 @@ export default function AudioLibraryPage() {
       const url = await getSignedUrl(rec.storage_path);
       setUrlCache(prev => ({ ...prev, [rec.id]: url }));
     } catch {
-      toast.error('Gagal memuatkan audio');
+      toast.error('Failed to load audio');
     } finally {
       setLoadingUrl(prev => { const n = new Set(prev); n.delete(rec.id); return n; });
     }
@@ -77,23 +77,23 @@ export default function AudioLibraryPage() {
       setRecordings(prev => prev.map(r => r.id === id ? { ...r, title: updated.title } : r));
       setEditingId(null);
     } catch {
-      toast.error('Gagal kemaskini tajuk');
+      toast.error('Failed to update title');
     }
   };
 
   const handleDelete = async (rec) => {
-    if (!window.confirm(`Delete "${rec.title || rec.file_name}"? Tindakan ini tidak boleh dibatalkan.`)) return;
+    if (!window.confirm(`Delete "${rec.title || rec.file_name}"? This action cannot be undone.`)) return;
     try {
       await deleteAudio(rec.id, rec.storage_path);
       setRecordings(prev => prev.filter(r => r.id !== rec.id));
       toast.success('Recording deleted');
     } catch {
-      toast.error('Failed to delete rakaman');
+      toast.error('Failed to delete recording');
     }
   };
 
   const handleDownload = (rec) => {
-    if (!urlCache[rec.id]) { toast('Mainkan rakaman dahulu untuk muat turun'); return; }
+    if (!urlCache[rec.id]) { toast('Play the recording first to download'); return; }
     const a = document.createElement('a');
     a.href = urlCache[rec.id];
     a.download = rec.file_name;
@@ -124,9 +124,9 @@ export default function AudioLibraryPage() {
       const updated = await getAudioLibrary(user.id);
       setRecordings(updated);
       setAssignModal(null);
-      toast.success('Rakaman berjaya ditetapkan');
+      toast.success('Recording assigned successfully');
     } catch {
-      toast.error('Gagal menetapkan rakaman');
+      toast.error('Failed to assign recording');
     } finally {
       setAssigning(false);
     }
@@ -136,7 +136,7 @@ export default function AudioLibraryPage() {
     if (!selected.size) return;
     const toDelete = recordings.filter(r => selected.has(r.id));
     const totalSz = toDelete.reduce((a, r) => a + (r.file_size || 0), 0);
-    if (!window.confirm(`Delete ${toDelete.length} rakaman (${formatBytes(totalSz)})? Tindakan ini tidak boleh dibatalkan.`)) return;
+    if (!window.confirm(`Delete ${toDelete.length} recordings (${formatBytes(totalSz)})? This action cannot be undone.`)) return;
     setBulkDeleting(true);
     let done = 0;
     for (const rec of toDelete) {
@@ -149,7 +149,7 @@ export default function AudioLibraryPage() {
     setSelected(new Set());
     setSelectMode(false);
     getStorageUsage(user.id).then(setStorageUsed).catch(() => {});
-    toast.success(`${done} rakaman deleted.`);
+    toast.success(`${done} recordings deleted.`);
     setBulkDeleting(false);
   };
 
@@ -187,9 +187,9 @@ export default function AudioLibraryPage() {
             {/* Stats */}
             <div className="grid grid-cols-3 gap-3 mb-4">
               {[
-                { label: 'Jumlah Rakaman', value: recordings.length },
-                { label: 'Jumlah Tempoh', value: fmtDur(totalDur) },
-                { label: 'Jumlah Saiz', value: fmtSize(totalSize) },
+                { label: 'Total Recordings', value: recordings.length },
+                { label: 'Total Duration', value: fmtDur(totalDur) },
+                { label: 'Total Size', value: fmtSize(totalSize) },
               ].map(s => (
                 <div key={s.label} className="bg-white rounded-xl border p-4">
                   <p className="text-2xl font-bold text-gray-900">{s.value}</p>
@@ -214,7 +214,7 @@ export default function AudioLibraryPage() {
                     <div className={`h-full ${barColor} rounded-full transition-all`} style={{ width: `${pct}%` }} />
                   </div>
                   {pct > 80 && (
-                    <p className="text-xs text-amber-600 mt-1.5">⚠️ {pct.toFixed(0)}% penuh — padam rakaman lama untuk jimat ruang.</p>
+                    <p className="text-xs text-amber-600 mt-1.5">⚠️ {pct.toFixed(0)}% full — delete old recordings to free up space.</p>
                   )}
                 </div>
               );
@@ -227,21 +227,21 @@ export default function AudioLibraryPage() {
                 onChange={e => { setFilterAge(e.target.value); setSelected(new Set()); }}
                 className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
               >
-                <option value="all">Semua Tarikh</option>
-                <option value="3">Lebih 3 Bulan</option>
-                <option value="6">Lebih 6 Bulan</option>
-                <option value="12">Lebih 1 Tahun</option>
+                <option value="all">All Dates</option>
+                <option value="3">Older than 3 Months</option>
+                <option value="6">Older than 6 Months</option>
+                <option value="12">Older than 1 Year</option>
               </select>
               <select
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value)}
                 className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
               >
-                <option value="newest">Terbaru Dulu</option>
-                <option value="oldest">Terlama Dulu</option>
-                <option value="largest">Terbesar Dulu</option>
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="largest">Largest First</option>
               </select>
-              <span className="text-xs text-gray-400">{filtered.length} rakaman</span>
+              <span className="text-xs text-gray-400">{filtered.length} recordings</span>
               <div className="ml-auto flex items-center gap-2">
                 {selectMode ? (
                   <>
@@ -252,7 +252,7 @@ export default function AudioLibraryPage() {
                       }}
                       className="text-xs text-blue-600 hover:underline"
                     >
-                      {selected.size === filtered.length ? 'Nyahpilih Semua' : 'Pilih Semua'}
+                      {selected.size === filtered.length ? 'Deselect All' : 'Select All'}
                     </button>
                     {selected.size > 0 && (
                       <Button
@@ -265,7 +265,7 @@ export default function AudioLibraryPage() {
                       </Button>
                     )}
                     <Button size="sm" variant="secondary" onClick={() => { setSelectMode(false); setSelected(new Set()); }}>
-                      Batal
+                      Cancel
                     </Button>
                   </>
                 ) : (
@@ -291,13 +291,13 @@ export default function AudioLibraryPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Tiada Rakaman Lagi</h3>
-            <p className="text-gray-500 text-sm mb-6 max-w-xs mx-auto">Audio sesi akan disimpan di sini secara automatik selepas setiap sesi direkod.</p>
-            <Button onClick={() => navigate('/dashboard')}>Mulakan Sesi</Button>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Recordings Yet</h3>
+            <p className="text-gray-500 text-sm mb-6 max-w-xs mx-auto">Session audio will be saved here automatically after each session is recorded.</p>
+            <Button onClick={() => navigate('/dashboard')}>Start Session</Button>
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-12 text-gray-400">
-            <p className="text-sm">No recordings dalam julat tarikh ini.</p>
+            <p className="text-sm">No recordings in this date range.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -335,8 +335,8 @@ export default function AudioLibraryPage() {
                           onKeyDown={e => { if (e.key === 'Enter') handleSaveTitle(rec.id); if (e.key === 'Escape') setEditingId(null); }}
                           className="flex-1 text-sm font-medium border border-blue-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
-                        <button onClick={() => handleSaveTitle(rec.id)} className="text-xs text-blue-600 font-medium hover:text-blue-800">Simpan</button>
-                        <button onClick={() => setEditingId(null)} className="text-xs text-gray-400 hover:text-gray-600">Batal</button>
+                        <button onClick={() => handleSaveTitle(rec.id)} className="text-xs text-blue-600 font-medium hover:text-blue-800">Save</button>
+                        <button onClick={() => setEditingId(null)} className="text-xs text-gray-400 hover:text-gray-600">Cancel</button>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 mb-1 group">
@@ -368,7 +368,7 @@ export default function AudioLibraryPage() {
                       ) : rec.subject ? (
                         <span className="text-teal-600 font-medium">{rec.subject.name}</span>
                       ) : (
-                        <span className="text-gray-300 italic">Belum ditetapkan</span>
+                        <span className="text-gray-300 italic">Not assigned</span>
                       )}
                     </div>
 
@@ -395,7 +395,7 @@ export default function AudioLibraryPage() {
                             <path d="M8 5v14l11-7z"/>
                           </svg>
                         )}
-                        {loadingUrl.has(rec.id) ? 'Memuatkan...' : 'Mainkan'}
+                        {loadingUrl.has(rec.id) ? 'Loading...' : 'Play'}
                       </button>
                     )}
                   </div>
@@ -403,7 +403,7 @@ export default function AudioLibraryPage() {
                   {!selectMode && <div className="flex items-center gap-1 flex-shrink-0">
                     <button
                       onClick={() => openAssign(rec)}
-                      title="Tetapkan kepada sesi / subjek"
+                      title="Assign to session / subject"
                       className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -412,7 +412,7 @@ export default function AudioLibraryPage() {
                     </button>
                     <button
                       onClick={() => handleDownload(rec)}
-                      title="Muat turun"
+                      title="Download"
                       className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -439,31 +439,31 @@ export default function AudioLibraryPage() {
       {assignModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-            <h2 className="text-base font-semibold text-gray-900 mb-1">Tetapkan Rakaman</h2>
+            <h2 className="text-base font-semibold text-gray-900 mb-1">Assign Recording</h2>
             <p className="text-xs text-gray-500 mb-4 truncate">{assignModal.title || assignModal.file_name}</p>
 
             <div className="space-y-3 mb-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Sesi</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Session</label>
                 <select
                   value={assignSessionId}
                   onChange={e => setAssignSessionId(e.target.value)}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">— Tiada —</option>
+                  <option value="">— None —</option>
                   {sessions.map(s => (
                     <option key={s.id} value={s.id}>{s.title} ({professionLabel(s.profession)})</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Subjek</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
                 <select
                   value={assignSubjectId}
                   onChange={e => setAssignSubjectId(e.target.value)}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">— Tiada —</option>
+                  <option value="">— None —</option>
                   {subjects.map(s => (
                     <option key={s.id} value={s.id}>{s.name}</option>
                   ))}
@@ -472,8 +472,8 @@ export default function AudioLibraryPage() {
             </div>
 
             <div className="flex gap-2">
-              <Button variant="secondary" className="flex-1" onClick={() => setAssignModal(null)} disabled={assigning}>Batal</Button>
-              <Button className="flex-1" onClick={handleAssign} loading={assigning}>Simpan</Button>
+              <Button variant="secondary" className="flex-1" onClick={() => setAssignModal(null)} disabled={assigning}>Cancel</Button>
+              <Button className="flex-1" onClick={handleAssign} loading={assigning}>Save</Button>
             </div>
           </div>
         </div>

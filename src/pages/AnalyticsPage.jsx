@@ -524,7 +524,7 @@ export default function AnalyticsPage() {
               <div className="bg-white rounded-xl border p-5">
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Risk Distribution Audit</h3>
                 {stats.withReport === 0
-                  ? <p className="text-sm text-gray-400 text-center py-6">Jana laporan AI untuk melihat taburan</p>
+                  ? <p className="text-sm text-gray-400 text-center py-6">Generate AI report to see distribution</p>
                   : <div className="space-y-3">{stats.riskData.map(({ key, label, count }) => (
                       <div key={key} className="flex items-center gap-3">
                         <span className="text-sm text-gray-600 w-28 flex-shrink-0">{label}</span>

@@ -11,17 +11,17 @@ import { logEvent, getSessionAuditLogs } from '../../api/auditLog.js';
 import toast from 'react-hot-toast';
 
 const ACTION_LABELS = {
-  'session.view':      'Laporan dibuka',
-  'report.view':       'Laporan dilihat (selepas PIN)',
-  'report.pin.unlock': 'PIN dibuka',
-  'report.pin.set':    'PIN ditetapkan',
+  'session.view':      'Report opened',
+  'report.view':       'Report viewed (after PIN)',
+  'report.pin.unlock': 'PIN unlocked',
+  'report.pin.set':    'PIN set',
   'report.export':     'PDF exported',
-  'report.share':      'Pautan dikongsi',
-  'report.share.revoke': 'Pautan kongsi dibatalkan',
-  'report.verify':     'Keaslian disahkan',
-  'audio.play':        'Audio dimainkan',
-  'session.edit':      'Butiran diedit',
-  'session.status':    'Status diubah',
+  'report.share':      'Link shared',
+  'report.share.revoke': 'Share link revoked',
+  'report.verify':     'Authenticity verified',
+  'audio.play':        'Audio played',
+  'session.edit':      'Details edited',
+  'session.status':    'Status changed',
 };
 
 const riskColors  = { low: 'green', medium: 'yellow', high: 'red' };
@@ -163,9 +163,9 @@ function AnnotationSection({ sessionId, initialNote }) {
       await supabase.from('sessions').update({ counselor_notes: draft }).eq('id', sessionId);
       setNote(draft);
       setEditing(false);
-      toast.success('Nota saved.');
+      toast.success('Note saved.');
     } catch {
-      toast.error('Gagal menyimpan nota.');
+      toast.error('Failed to save note.');
     } finally {
       setSaving(false);
     }
@@ -174,10 +174,10 @@ function AnnotationSection({ sessionId, initialNote }) {
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-blue-900 uppercase">Nota Kaunselor</h3>
+        <h3 className="text-sm font-semibold text-blue-900 uppercase">Counselor Note</h3>
         {!editing && (
           <button onClick={handleEdit} className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-            {note ? 'Edit' : '+ Tambah Nota'}
+            {note ? 'Edit' : '+ Add Note'}
           </button>
         )}
       </div>
@@ -187,23 +187,23 @@ function AnnotationSection({ sessionId, initialNote }) {
             value={draft}
             onChange={e => setDraft(e.target.value)}
             rows={4}
-            placeholder="Pemerhatian, penilaian tambahan, atau nota susulan untuk sesi ini..."
+            placeholder="Observations, additional assessment, or follow-up notes for this session..."
             className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             autoFocus
           />
           <div className="flex gap-2 justify-end">
-            <button onClick={() => setEditing(false)} className="text-xs text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded border border-gray-200">Batal</button>
+            <button onClick={() => setEditing(false)} className="text-xs text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded border border-gray-200">Cancel</button>
             <button onClick={handleSave} disabled={saving} className="text-xs text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded disabled:opacity-50">
-              {saving ? 'Menyimpan...' : 'Simpan'}
+              {saving ? 'Saving...' : 'Save'}
             </button>
           </div>
         </div>
       ) : note ? (
         <p className="text-sm text-blue-900 whitespace-pre-wrap leading-relaxed">{note}</p>
       ) : (
-        <p className="text-sm text-blue-400 italic">Tiada nota. Klik "+ Tambah Nota" untuk menambah pemerhatian.</p>
+        <p className="text-sm text-blue-400 italic">No note. Click &quot;+ Add Note&quot; to add observations.</p>
       )}
-      <p className="text-xs text-blue-400 mt-3">Nota ini disimpan dalam sistem dan hanya kelihatan kepada pengendali sesi.</p>
+      <p className="text-xs text-blue-400 mt-3">This note is saved in the system and only visible to the session operator.</p>
     </div>
   );
 }
@@ -605,12 +605,12 @@ export function ReportView({ session }) {
     try {
       await supabase.from('sessions').update({ org_name: orgName, case_number: caseNumber, witness_officer: witnessOfficer, other_officers: otherOfficers }).eq('id', id);
       setHeaderEdit(false);
-      toast.success('Maklumat laporan dikemas kini.');
-    } catch { toast.error('Gagal menyimpan.'); }
+      toast.success('Report information updated.');
+    } catch { toast.error('Failed to save.'); }
     finally { setSavingHeader(false); }
   };
 
-  if (!report) return <p className="text-gray-500 text-center py-12">Laporan belum dijana</p>;
+  if (!report) return <p className="text-gray-500 text-center py-12">Report not yet generated</p>;
 
   const exportPDF = async () => {
     setExporting(true);
@@ -670,7 +670,7 @@ export function ReportView({ session }) {
       pdf.setFillColor(245, 247, 250);
       pdf.rect(0, 0, W, headerHeight, 'F');
       pdf.setFontSize(13); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(10, 10, 10);
-      pdf.text(orgName || 'Laporan Sesi VeriRec', M, 13);
+      pdf.text(orgName || 'VeriRec Session Report', M, 13);
       pdf.setFontSize(9); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(80, 80, 80);
       const profLabel = profession ? profession.charAt(0).toUpperCase() + profession.slice(1) : '';
       pdf.text(`${profLabel} — ${subject_name || ''}`, M, 21);
@@ -712,7 +712,7 @@ export function ReportView({ session }) {
       // ── Custom org fields ──
       const customFields = session.custom_fields || {};
       if (Object.keys(customFields).length > 0) {
-        sectionTitle('Maklumat Tambahan Organisasi');
+        sectionTitle('Additional Organisation Information');
         Object.entries(customFields).filter(([, v]) => v).forEach(([k, v]) => field(k, v));
       }
 
@@ -726,7 +726,7 @@ export function ReportView({ session }) {
 
       // ── Red Flags ──
       if (sec.flags && report.redFlags?.length > 0) {
-        sectionTitle('Bendera Merah', [180, 30, 30]);
+        sectionTitle('Red Flags', [180, 30, 30]);
         bulletList(report.redFlags, '★', [160, 20, 20]);
       }
 
@@ -735,23 +735,23 @@ export function ReportView({ session }) {
         sectionTitle('Case Session Note', [30, 70, 180]);
         const csn = report.caseSessionNote;
         [
-          ['Isu yang Dibawa (Presented Issue)', csn.presentedIssue],
-          ['Isu yang Dikenal Pasti (Identified Issue)', csn.identifiedIssue],
-          ['Matlamat Bersama (Mutual Goal)', csn.mutualGoal],
-          ['Aktiviti / Intervensi', csn.activitiesInterventions],
-          ['Kemajuan / Pencapaian Matlamat', csn.progressGoalAchievement],
-          ['Rancangan Susulan', csn.followUpPlan],
-          ['Penamatan Sesi', csn.terminationNotes],
-          ['Dapatan Assessment (MBTI/RIASEC)', csn.assessmentFindings],
+          ['Presented Issue', csn.presentedIssue],
+          ['Identified Issue', csn.identifiedIssue],
+          ['Mutual Goal', csn.mutualGoal],
+          ['Activities / Interventions', csn.activitiesInterventions],
+          ['Progress / Goal Achievement', csn.progressGoalAchievement],
+          ['Follow-up Plan', csn.followUpPlan],
+          ['Session Termination', csn.terminationNotes],
+          ['Assessment Findings (MBTI/RIASEC)', csn.assessmentFindings],
         ].filter(([, v]) => v).forEach(([lbl, val]) => field(lbl, val));
-        if (report.problemTypes?.length > 0) field('Jenis Masalah', report.problemTypes.join(', '));
+        if (report.problemTypes?.length > 0) field('Problem Types', report.problemTypes.join(', '));
       }
 
       if (profession === 'counselor' && report.crisisIndicators?.detected) {
         const ci = report.crisisIndicators;
-        sectionTitle('Penunjuk Krisis', [180, 30, 30]);
-        const ciLbl = ci.level === 'critical' ? 'Critical' : ci.level === 'watch' ? 'Perlu Pemantauan' : (ci.level || '-');
-        bodyText(`Tahap: ${ciLbl}`, 9, 'bold', [180, 30, 30]);
+        sectionTitle('Crisis Indicators', [180, 30, 30]);
+        const ciLbl = ci.level === 'critical' ? 'Critical' : ci.level === 'watch' ? 'Needs Monitoring' : (ci.level || '-');
+        bodyText(`Level: ${ciLbl}`, 9, 'bold', [180, 30, 30]);
         if (ci.notes) bodyText(ci.notes, 9, 'normal', [160, 30, 30]);
         if (ci.resources?.length > 0) bulletList(ci.resources, '•', [160, 30, 30]);
       }
@@ -826,8 +826,8 @@ export function ReportView({ session }) {
         pdf.splitTextToSize(hash, W - M * 2).forEach(line => { checkPage(5); pdf.text(line, M, y); y += 4; });
         y += 4;
       }
-      bodyText(`Dicetak: ${format(new Date(), 'dd MMM yyyy, HH:mm')}`, 8, 'normal', [130, 130, 130]);
-      bodyText('VeriRec — Platform Rakaman Sesi Professional Malaysia', 7.5, 'normal', [130, 130, 130]);
+      bodyText(`Printed: ${format(new Date(), 'dd MMM yyyy, HH:mm')}`, 8, 'normal', [130, 130, 130]);
+      bodyText('VeriRec — Professional Session Recording Platform Malaysia', 7.5, 'normal', [130, 130, 130]);
 
       // ── Chain of Custody page ──
       pdf.addPage();
@@ -840,9 +840,9 @@ export function ReportView({ session }) {
       pdf.setFontSize(13); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(10, 10, 10);
       pdf.text('CHAIN OF CUSTODY', M, 14);
       pdf.setFontSize(9); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(80, 80, 80);
-      pdf.text('Rekod Kawalan Dokumen — VeriRec', M, 22);
+      pdf.text('Document Control Record — VeriRec', M, 22);
       pdf.setFontSize(7.5); pdf.setTextColor(120, 120, 120);
-      pdf.text('Dokumen ini dijana secara automatik dan dilindungi SHA-256. Sebarang pengubahan akan merosakkan hash.', M, 30);
+      pdf.text('This document is auto-generated and protected by SHA-256. Any modification will invalidate the hash.', M, 30);
       cy = 44;
 
       const cocField = (label, value, valueRgb = [20, 20, 20]) => {
@@ -857,24 +857,24 @@ export function ReportView({ session }) {
         cy += 2;
       };
 
-      cocField('ID Sesi', id || '—');
+      cocField('Session ID', id || '—');
       cocField('Case No.', session.case_number || '—');
       cocField('Profession', profession || '—');
       cocField('Subject', subject_name || '—');
       cocField('Session Handler', interviewer || '—');
-      cocField('Date Sesi', created_at ? format(new Date(created_at), 'dd MMMM yyyy, HH:mm') : '—');
-      cocField('Duration Rakaman', `${Math.round((duration || 0) / 60)} min`);
+      cocField('Session Date', created_at ? format(new Date(created_at), 'dd MMMM yyyy, HH:mm') : '—');
+      cocField('Recording Duration', `${Math.round((duration || 0) / 60)} min`);
       cy += 3;
 
       pdf.setFontSize(8); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(60, 60, 60);
-      pdf.text('SHA-256 HASH (INTEGRITI DOKUMEN)', M, cy); cy += 5;
+      pdf.text('SHA-256 HASH (DOCUMENT INTEGRITY)', M, cy); cy += 5;
       pdf.setFillColor(250, 250, 250); pdf.setDrawColor(200, 200, 200);
       pdf.roundedRect(M, cy, W - M * 2, 12, 2, 2, 'FD');
       pdf.setFontSize(7.5); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(30, 30, 30);
-      pdf.text(hash || 'Hash belum dijana', M + 4, cy + 7);
+      pdf.text(hash || 'Hash not yet generated', M + 4, cy + 7);
       cy += 18;
 
-      cocField('STATUS INTEGRITI', hash ? '✓ Hash dijana — dokumen boleh disahkan' : '⚠ Hash belum dijana', hash ? [0, 120, 0] : [180, 80, 0]);
+      cocField('INTEGRITY STATUS', hash ? '✓ Hash generated — document can be verified' : '⚠ Hash not yet generated', hash ? [0, 120, 0] : [180, 80, 0]);
       cy += 2;
 
       pdf.setFontSize(8); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(60, 60, 60);
@@ -1152,21 +1152,21 @@ export function ReportView({ session }) {
               </label>
             ))}
           </div>
-          <p className="text-xs text-gray-400 mt-2">Tetapan disimpan automatik ikut profesion.</p>
+          <p className="text-xs text-gray-400 mt-2">Settings saved automatically per profession.</p>
         </div>
       )}
 
       {/* Editable report header fields */}
       <div className="no-print mb-4 bg-gray-50 border border-gray-200 rounded-xl p-4">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-semibold text-gray-700">Maklumat Pengepala Laporan</p>
+          <p className="text-sm font-semibold text-gray-700">Report Header Information</p>
           {!headerEdit ? (
             <button onClick={() => setHeaderEdit(true)} className="text-xs text-blue-600 hover:underline">Edit</button>
           ) : (
             <div className="flex gap-2">
-              <button onClick={() => setHeaderEdit(false)} className="text-xs text-gray-400 hover:text-gray-600">Batal</button>
+              <button onClick={() => setHeaderEdit(false)} className="text-xs text-gray-400 hover:text-gray-600">Cancel</button>
               <button onClick={saveHeader} disabled={savingHeader} className="text-xs font-semibold text-blue-600 hover:underline disabled:opacity-50">
-                {savingHeader ? 'Menyimpan...' : 'Simpan'}
+                {savingHeader ? 'Saving...' : 'Save'}
               </button>
             </div>
           )}
@@ -1174,31 +1174,31 @@ export function ReportView({ session }) {
         {headerEdit ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">Nama Organisasi</label>
-              <input value={orgName} onChange={e => setOrgName(e.target.value)} placeholder="cth. Klinik Kesihatan Bestari"
+              <label className="text-xs text-gray-500 mb-1 block">Organisation Name</label>
+              <input value={orgName} onChange={e => setOrgName(e.target.value)} placeholder="e.g. Bestari Health Clinic"
                 className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">Case No. / Rujukan</label>
-              <input value={caseNumber} onChange={e => setCaseNumber(e.target.value)} placeholder="cth. KES/2026/001"
+              <label className="text-xs text-gray-500 mb-1 block">Case No. / Reference</label>
+              <input value={caseNumber} onChange={e => setCaseNumber(e.target.value)} placeholder="e.g. CASE/2026/001"
                 className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">Saksi / Pegawai</label>
-              <input value={witnessOfficer} onChange={e => setWitnessOfficer(e.target.value)} placeholder="Nama saksi atau pegawai"
+              <label className="text-xs text-gray-500 mb-1 block">Witness / Officer</label>
+              <input value={witnessOfficer} onChange={e => setWitnessOfficer(e.target.value)} placeholder="Witness or officer name"
                 className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">Officers Present Lain</label>
-              <input value={otherOfficers} onChange={e => setOtherOfficers(e.target.value)} placeholder="cth. Insp. Ahmad, Sgt. Razak"
+              <label className="text-xs text-gray-500 mb-1 block">Other Officers Present</label>
+              <input value={otherOfficers} onChange={e => setOtherOfficers(e.target.value)} placeholder="e.g. Insp. Ahmad, Sgt. Razak"
                 className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
           </div>
         ) : (
           <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-            <span><span className="text-gray-400">Organisasi:</span> {orgName || <em className="text-gray-300">—</em>}</span>
+            <span><span className="text-gray-400">Organisation:</span> {orgName || <em className="text-gray-300">—</em>}</span>
             <span><span className="text-gray-400">Case No.:</span> {caseNumber || <em className="text-gray-300">—</em>}</span>
-            <span><span className="text-gray-400">Saksi:</span> {witnessOfficer || <em className="text-gray-300">—</em>}</span>
+            <span><span className="text-gray-400">Witness:</span> {witnessOfficer || <em className="text-gray-300">—</em>}</span>
             {otherOfficers && <span><span className="text-gray-400">Officers Present:</span> {otherOfficers}</span>}
           </div>
         )}
@@ -1310,14 +1310,14 @@ export function ReportView({ session }) {
           <div className="bg-white border-2 border-blue-200 rounded-xl p-5 space-y-4">
             <h3 className="text-sm font-bold text-blue-800 uppercase tracking-wide">Case Session Note</h3>
             {[
-              ['Isu yang Dibawa (Presented Issue)', report.caseSessionNote.presentedIssue],
-              ['Isu yang Dikenal Pasti (Identified Issue)', report.caseSessionNote.identifiedIssue],
-              ['Matlamat Bersama (Mutual Goal)', report.caseSessionNote.mutualGoal],
-              ['Aktiviti / Intervensi', report.caseSessionNote.activitiesInterventions],
-              ['Kemajuan / Pencapaian Matlamat', report.caseSessionNote.progressGoalAchievement],
-              ['Rancangan Susulan', report.caseSessionNote.followUpPlan],
-              ['Penamatan Sesi', report.caseSessionNote.terminationNotes],
-              ['Dapatan Assessment (MBTI/RIASEC)', report.caseSessionNote.assessmentFindings],
+              ['Presented Issue', report.caseSessionNote.presentedIssue],
+              ['Identified Issue', report.caseSessionNote.identifiedIssue],
+              ['Mutual Goal', report.caseSessionNote.mutualGoal],
+              ['Activities / Interventions', report.caseSessionNote.activitiesInterventions],
+              ['Progress / Goal Achievement', report.caseSessionNote.progressGoalAchievement],
+              ['Follow-up Plan', report.caseSessionNote.followUpPlan],
+              ['Session Termination', report.caseSessionNote.terminationNotes],
+              ['Assessment Findings (MBTI/RIASEC)', report.caseSessionNote.assessmentFindings],
             ].filter(([, v]) => v).map(([label, value]) => (
               <div key={label}>
                 <p className="text-xs font-semibold text-gray-500 uppercase mb-1">{label}</p>
@@ -1326,7 +1326,7 @@ export function ReportView({ session }) {
             ))}
             {report.problemTypes?.length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Jenis Masalah</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Problem Types</p>
                 <div className="flex flex-wrap gap-2">
                   {report.problemTypes.map(t => (
                     <span key={t} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full border border-blue-200">{t}</span>
@@ -1398,16 +1398,16 @@ export function ReportView({ session }) {
               <p className="text-xs text-gray-400 mt-0.5">Rekod integriti dan akses dokumen ini</p>
             </div>
             <Button size="sm" variant="outline" onClick={verifyHash} loading={verifying}>
-              Sahkan Hash
+              Verify Hash
             </Button>
           </div>
 
           {/* Document identity */}
           <div className="grid sm:grid-cols-2 gap-3 mb-4">
             {[
-              { label: 'ID Sesi', value: id ? `${id.slice(0,8)}…` : '—', mono: true },
-              { label: 'Dicipta', value: created_at ? format(new Date(created_at), 'dd MMM yyyy, HH:mm') : '—' },
-              { label: 'Pengendali', value: interviewer || '—' },
+              { label: 'Session ID', value: id ? `${id.slice(0,8)}…` : '—', mono: true },
+              { label: 'Created', value: created_at ? format(new Date(created_at), 'dd MMM yyyy, HH:mm') : '—' },
+              { label: 'Handler', value: interviewer || '—' },
               { label: 'Platform', value: 'VeriRec (SHA-256 PDPA-Compliant)' },
             ].map(({ label, value, mono }) => (
               <div key={label} className="bg-gray-50 rounded-lg px-3 py-2">

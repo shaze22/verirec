@@ -53,7 +53,7 @@ export function TranscriptPanel({ entries = [], interim = '' }) {
       <div className="flex items-center gap-2 p-3 border-b">
         <input
           type="text"
-          placeholder="Cari dalam transkrip..."
+          placeholder="Search in transcript..."
           value={search}
           onChange={e => setSearch(e.target.value)}
           className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -68,7 +68,7 @@ export function TranscriptPanel({ entries = [], interim = '' }) {
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
         {filtered.length === 0 && (
           <p className="text-center text-gray-400 text-sm py-8">
-            {search ? 'Tiada hasil' : 'Transkrip akan muncul di sini...'}
+            {search ? 'No results' : 'Transcript will appear here...'}
           </p>
         )}
         {filtered.map(entry => {
@@ -82,9 +82,9 @@ export function TranscriptPanel({ entries = [], interim = '' }) {
                 {entry.type === 'TRANSCRIPT' && entry.speaker && (
                   <span className={clsx('text-xs font-medium', ss.label || 'text-gray-500')}>
                     {entry.speaker === 'interviewer'
-                      ? `🎙️ ${entry.identified_name || 'Penemuduga'}`
+                      ? `🎙️ ${entry.identified_name || 'Interviewer'}`
                       : entry.speaker === 'subject'
-                      ? `👤 ${entry.identified_name || 'Subjek'}`
+                      ? `👤 ${entry.identified_name || 'Subject'}`
                       : entry.speaker}
                     {entry.identified_name && (
                       <span className="ml-1 text-[10px] text-green-600 font-normal">✓ ID</span>

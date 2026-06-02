@@ -18,9 +18,9 @@ async function hashPin(pin) {
 }
 
 const STATUS_OPTIONS = [
-  { value: 'active',  label: 'Aktif',        dot: 'bg-green-500' },
-  { value: 'pending', label: 'Ditangguhkan',  dot: 'bg-amber-400' },
-  { value: 'closed',  label: 'Ditutup',       dot: 'bg-gray-400' },
+  { value: 'active',  label: 'Active',      dot: 'bg-green-500' },
+  { value: 'pending', label: 'Pending',     dot: 'bg-amber-400' },
+  { value: 'closed',  label: 'Closed',      dot: 'bg-gray-400' },
 ];
 
 export default function SessionReportPage() {
@@ -34,7 +34,7 @@ export default function SessionReportPage() {
 
   const handleReGenerateReport = async () => {
     if (!session?.transcript?.length) {
-      toast.error('Tiada transkrip untuk dijana laporan.');
+      toast.error('No transcript available to generate report.');
       return;
     }
     setReGenerating(true);
@@ -52,11 +52,11 @@ export default function SessionReportPage() {
           duration: session.duration,
         },
       });
-      toast.success('Laporan berjaya dijana!');
+      toast.success('Report generated successfully!');
       const updated = await getSessionById(id);
       setSession(updated);
     } catch {
-      toast.error('Gagal menjana laporan. Cuba lagi.');
+      toast.error('Failed to generate report. Please try again.');
     } finally {
       setReGenerating(false);
     }
@@ -92,7 +92,7 @@ export default function SessionReportPage() {
         if (s.share_token) setShareToken(s.share_token);
         if (user) logEvent(user.id, 'session.view', 'session', s.id, s.title);
       })
-      .catch(() => toast.error('Sesi tidak dijumpai'))
+      .catch(() => toast.error('Session not found'))
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -109,7 +109,7 @@ export default function SessionReportPage() {
         logEvent(user.id, 'report.pin.unlock', 'session', session.id, session.title);
         logEvent(user.id, 'report.view', 'session', session.id, session.title);
       } else {
-        setPinError('PIN salah. Cuba lagi.');
+        setPinError('Incorrect PIN. Please try again.');
       }
     } finally {
       setPinChecking(false);
@@ -118,7 +118,7 @@ export default function SessionReportPage() {
 
   const handleSetPin = async (e) => {
     e.preventDefault();
-    if (newPin.length < 4) { toast.error('PIN mestilah sekurang-kurangnya 4 digit.'); return; }
+    if (newPin.length < 4) { toast.error('PIN must be at least 4 digits.'); return; }
     setPinSaving(true);
     try {
       const h = newPin ? await hashPin(newPin) : null;
@@ -126,24 +126,24 @@ export default function SessionReportPage() {
       setSession(prev => ({ ...prev, report_pin: h }));
       setPinModal(false);
       setNewPin('');
-      toast.success(h ? 'PIN laporan ditetapkan.' : 'PIN laporan dibuang.');
+      toast.success(h ? 'Report PIN set.' : 'Report PIN removed.');
       if (h) logEvent(user.id, 'report.pin.set', 'session', session.id, session.title);
     } catch {
-      toast.error('Gagal menetapkan PIN.');
+      toast.error('Failed to set PIN.');
     } finally {
       setPinSaving(false);
     }
   };
 
   const handleRemovePin = async () => {
-    if (!window.confirm('Buang PIN perlindungan laporan ini?')) return;
+    if (!window.confirm('Remove PIN protection for this report?')) return;
     setPinSaving(true);
     try {
       await supabase.from('sessions').update({ report_pin: null }).eq('id', id);
       setSession(prev => ({ ...prev, report_pin: null }));
-      toast.success('PIN laporan dibuang.');
+      toast.success('Report PIN removed.');
     } catch {
-      toast.error('Gagal membuang PIN.');
+      toast.error('Failed to remove PIN.');
     } finally {
       setPinSaving(false);
     }
@@ -159,7 +159,7 @@ export default function SessionReportPage() {
       toast.success(`Status: ${opt?.label}`);
       if (user) logEvent(user.id, 'session.status', 'session', id, session.title, { from: session.status || 'active', to: newStatus });
     } catch {
-      toast.error('Gagal mengemas kini status');
+      toast.error('Failed to update status');
     } finally {
       setStatusUpdating(false);
     }
@@ -173,7 +173,7 @@ export default function SessionReportPage() {
       if (token_existing) {
         const url = `${window.location.origin}/laporan/${token_existing}`;
         await navigator.clipboard.writeText(url);
-        toast.success('Link copied ke papan klip!');
+        toast.success('Link copied to clipboard!');
         return;
       }
       const res = await fetch('/api/share-session', {
@@ -186,17 +186,17 @@ export default function SessionReportPage() {
       setShareToken(token);
       const url = `${window.location.origin}/laporan/${token}`;
       await navigator.clipboard.writeText(url);
-      toast.success('Pautan dikongsi berjaya disalin!');
+      toast.success('Share link copied successfully!');
       if (user) logEvent(user.id, 'report.share', 'session', id, session?.title);
     } catch {
-      toast.error('Gagal menjana pautan kongsi.');
+      toast.error('Failed to generate share link.');
     } finally {
       setShareLoading(false);
     }
   };
 
   const handleRevokeShare = async () => {
-    if (!window.confirm('Cancelkan pautan kongsi? Sesiapa yang ada pautan lama tidak akan dapat akses lagi.')) return;
+    if (!window.confirm('Cancel share link? Anyone with the old link will no longer have access.')) return;
     try {
       const { data: { session: authSession } } = await supabase.auth.getSession();
       await fetch('/api/share-session', {
@@ -205,10 +205,10 @@ export default function SessionReportPage() {
         body: JSON.stringify({ session_id: id }),
       });
       setShareToken(null);
-      toast.success('Pautan kongsi dibatalkan.');
+      toast.success('Share link revoked.');
       if (user) logEvent(user.id, 'report.share.revoke', 'session', id, session?.title);
     } catch {
-      toast.error('Gagal membatalkan pautan.');
+      toast.error('Failed to revoke link.');
     }
   };
 
@@ -227,7 +227,7 @@ export default function SessionReportPage() {
         token = data.token;
         if (token) setShareToken(token);
       } catch {
-        toast.error('Gagal menjana pautan.');
+        toast.error('Failed to generate link.');
         setShareLoading(false);
         return;
       } finally {
@@ -272,14 +272,14 @@ export default function SessionReportPage() {
       sessionStorage.setItem('resuming', 'true');
       navigate('/session/active');
     } catch {
-      toast.error('Gagal menyambung sesi.');
+      toast.error('Failed to resume session.');
       setResuming(false);
     }
   };
 
   const handleEditSave = async () => {
     if (!editForm.title?.trim() || !editForm.subject_name?.trim()) {
-      toast.error('Tajuk dan nama subjek diperlukan.');
+      toast.error('Session title and subject name are required.');
       return;
     }
     setEditSaving(true);
@@ -292,10 +292,10 @@ export default function SessionReportPage() {
       });
       setSession(prev => ({ ...prev, ...updated }));
       setEditModal(false);
-      toast.success('Butiran sesi dikemas kini.');
+      toast.success('Session details updated.');
       if (user) logEvent(user.id, 'session.edit', 'session', id, session?.title);
     } catch {
-      toast.error('Gagal menyimpan perubahan.');
+      toast.error('Failed to save changes.');
     } finally {
       setEditSaving(false);
     }
@@ -318,7 +318,7 @@ export default function SessionReportPage() {
                     onClick={handleWhatsApp}
                     disabled={shareLoading}
                     className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
-                    title="Hantar via WhatsApp"
+                    title="Send via WhatsApp"
                   >
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
@@ -332,7 +332,7 @@ export default function SessionReportPage() {
                     onClick={shareToken ? handleRevokeShare : handleShare}
                     disabled={shareLoading}
                     className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 ${shareToken ? 'text-blue-600 hover:text-red-600 hover:bg-red-50' : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'}`}
-                    title={shareToken ? 'Pautan aktif — klik untuk batalkan' : 'Share laporan'}
+                    title={shareToken ? 'Link active — click to revoke' : 'Share report'}
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
@@ -344,7 +344,7 @@ export default function SessionReportPage() {
                 <button
                   onClick={() => session?.report_pin ? handleRemovePin() : setPinModal(true)}
                   className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                  title={session?.report_pin ? 'Buang PIN laporan' : 'Tetapkan PIN laporan'}
+                  title={session?.report_pin ? 'Remove report PIN' : 'Set report PIN'}
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d={session?.report_pin ? "M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" : "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zM10 9a2 2 0 114 0v1H10V9z"} />
@@ -355,8 +355,8 @@ export default function SessionReportPage() {
                 <button
                   onClick={() => setEditModal(true)}
                   className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                  title="Edit butiran sesi"
-                  aria-label="Edit butiran sesi"
+                  title="Edit session details"
+                  aria-label="Edit session details"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -371,7 +371,7 @@ export default function SessionReportPage() {
                     onChange={e => handleStatusChange(e.target.value)}
                     disabled={statusUpdating}
                     className="text-xs text-gray-700 border-0 bg-transparent focus:outline-none focus:ring-0 cursor-pointer disabled:opacity-60 pr-1"
-                    aria-label="Status kes"
+                    aria-label="Case status"
                   >
                     {STATUS_OPTIONS.map(o => (
                       <option key={o.value} value={o.value}>{o.label}</option>
@@ -380,7 +380,7 @@ export default function SessionReportPage() {
                 </div>
               </>
             )}
-            <Button variant="secondary" size="sm" onClick={() => navigate('/dashboard')}>← Kembali</Button>
+            <Button variant="secondary" size="sm" onClick={() => navigate('/dashboard')}>← Back</Button>
           </div>
         }
       />
@@ -399,8 +399,8 @@ export default function SessionReportPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zM10 9a2 2 0 114 0v1H10V9z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">Laporan Dilindungi PIN</h3>
-                <p className="text-sm text-gray-500 mb-6">Masukkan PIN untuk membuka laporan sesi <strong>{session.title}</strong>.</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">PIN-Protected Report</h3>
+                <p className="text-sm text-gray-500 mb-6">Enter PIN to open session report <strong>{session.title}</strong>.</p>
                 <form onSubmit={handlePinUnlock} className="space-y-3">
                   <input
                     type="password"
@@ -408,12 +408,12 @@ export default function SessionReportPage() {
                     maxLength={8}
                     value={pinInput}
                     onChange={e => { setPinInput(e.target.value); setPinError(''); }}
-                    placeholder="Masukkan PIN"
+                    placeholder="Enter PIN"
                     className="w-full text-center text-xl tracking-widest px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                     autoFocus
                   />
                   {pinError && <p className="text-sm text-red-600">{pinError}</p>}
-                  <Button type="submit" className="w-full" loading={pinChecking}>Buka Laporan</Button>
+                  <Button type="submit" className="w-full" loading={pinChecking}>Open Report</Button>
                 </form>
               </div>
             </div>
@@ -444,7 +444,7 @@ export default function SessionReportPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
                     )}
-                    {reGenerating ? 'Menjana...' : 'Jana Laporan'}
+                    {reGenerating ? 'Generating...' : 'Generate Report'}
                   </button>
                 </div>
               )}
@@ -465,12 +465,12 @@ export default function SessionReportPage() {
                     </div>
                     <div>
                       <p className={`font-semibold text-sm ${session.recording_status === 'in_progress' ? 'text-amber-900' : 'text-blue-900'}`}>
-                        {session.recording_status === 'in_progress' ? 'Rakaman Belum Selesai' : 'Sesi Belum Dirakam'}
+                        {session.recording_status === 'in_progress' ? 'Recording Incomplete' : 'Session Not Yet Recorded'}
                       </p>
                       <p className={`text-xs mt-0.5 ${session.recording_status === 'in_progress' ? 'text-amber-700' : 'text-blue-700'}`}>
                         {session.recording_status === 'in_progress'
-                          ? 'Sesi ini tergendala. Transkrip sebelum ini telah disimpan — sambung semula untuk teruskan rakaman.'
-                          : 'Sesi ini belum dimulakan. Klik untuk mula merakam.'}
+                          ? 'Session was interrupted. Previous transcript has been saved — resume to continue recording.'
+                          : 'This session has not been started. Click to start recording.'}
                       </p>
                     </div>
                   </div>
@@ -486,7 +486,7 @@ export default function SessionReportPage() {
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                     </svg>
-                    {resuming ? 'Memuatkan...' : session.recording_status === 'in_progress' ? 'Sambung Rakaman' : 'Mula Rakaman'}
+                    {resuming ? 'Loading...' : session.recording_status === 'in_progress' ? 'Resume Recording' : 'Start Recording'}
                   </button>
                 </div>
               )}
@@ -497,20 +497,20 @@ export default function SessionReportPage() {
                 <div className="mt-6 bg-gray-50 border rounded-xl p-5">
                   <div className="flex items-center justify-between flex-wrap gap-3">
                     <div>
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Integriti Dokumen</p>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Document Integrity</p>
                       <p className="text-sm text-gray-600 font-mono">SHA-256: <span className="font-semibold text-gray-800">{session.hash.slice(0, 8)}…</span></p>
                     </div>
                     <div className="flex items-center gap-3">
                       {verifyResult === 'authentic' && (
                         <span className="flex items-center gap-1.5 text-sm font-semibold text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                          Dokumen Asal — Tidak Diubah
+                          Original Document — Not Modified
                         </span>
                       )}
                       {verifyResult === 'tampered' && (
                         <span className="flex items-center gap-1.5 text-sm font-semibold text-red-700 bg-red-50 border border-red-200 px-3 py-1.5 rounded-full">
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></svg>
-                          Dokumen Telah Diubah
+                          Document Has Been Modified
                         </span>
                       )}
                       <button
@@ -523,7 +523,7 @@ export default function SessionReportPage() {
                         ) : (
                           <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                         )}
-                        {verifying ? 'Menyemak...' : 'Verify Authenticity Dokumen'}
+                        {verifying ? 'Verifying...' : 'Verify Document Authenticity'}
                       </button>
                     </div>
                   </div>
@@ -532,21 +532,21 @@ export default function SessionReportPage() {
             </div>
           )
         ) : (
-          <p className="text-center text-gray-500 py-20">Laporan tidak dijumpai</p>
+          <p className="text-center text-gray-500 py-20">Report not found</p>
         )}
       </div>
 
       {/* Set PIN modal */}
-      <Modal open={pinModal} onClose={() => setPinModal(false)} title="Tetapkan PIN Laporan">
+      <Modal open={pinModal} onClose={() => setPinModal(false)} title="Set Report PIN">
         <form onSubmit={handleSetPin} className="space-y-4">
-          <p className="text-sm text-gray-600">PIN ini akan dikehendaki setiap kali laporan ini dibuka. Gunakan 4–8 digit angka.</p>
+          <p className="text-sm text-gray-600">This PIN will be required every time this report is opened. Use 4–8 numeric digits.</p>
           <input
             type="password"
             inputMode="numeric"
             maxLength={8}
             value={newPin}
             onChange={e => setNewPin(e.target.value.replace(/\D/g, ''))}
-            placeholder="Masukkan PIN (4–8 digit)"
+            placeholder="Enter PIN (4–8 digits)"
             className="w-full text-center text-xl tracking-widest px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
             autoFocus
           />
@@ -563,51 +563,51 @@ export default function SessionReportPage() {
       <Modal
         open={editModal}
         onClose={() => setEditModal(false)}
-        title="Edit Butiran Sesi"
+        title="Edit Session Details"
         footer={
           <div className="flex gap-3 justify-end">
             <Button variant="secondary" onClick={() => setEditModal(false)}>Cancel</Button>
-            <Button onClick={handleEditSave} loading={editSaving}>Save Perubahan</Button>
+            <Button onClick={handleEditSave} loading={editSaving}>Save Changes</Button>
           </div>
         }
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tajuk Sesi *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Session Title *</label>
             <Input
               value={editForm.title || ''}
               onChange={e => setEditForm(p => ({ ...p, title: e.target.value }))}
-              placeholder="Tajuk sesi"
+              placeholder="Session title"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nama Subjek *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Subject Name *</label>
             <Input
               value={editForm.subject_name || ''}
               onChange={e => setEditForm(p => ({ ...p, subject_name: e.target.value }))}
-              placeholder="Nama subjek"
+              placeholder="Subject name"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Peranan / Jawatan Subjek</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Subject Role / Position</label>
             <Input
               value={editForm.subject_role || ''}
               onChange={e => setEditForm(p => ({ ...p, subject_role: e.target.value }))}
-              placeholder="cth. Saksi, Pesakit, Pekerja"
+              placeholder="e.g. Witness, Patient, Employee"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nota Konteks</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Context Notes</label>
             <Textarea
               value={editForm.context_notes || ''}
               onChange={e => setEditForm(p => ({ ...p, context_notes: e.target.value }))}
               rows={3}
-              placeholder="Latar belakang kes..."
+              placeholder="Case background..."
             />
           </div>
-          <p className="text-xs text-gray-400">Nota: Transkrip, laporan AI, dan hash chain of custody tidak boleh diubah selepas dijana.</p>
+          <p className="text-xs text-gray-400">Note: Transcripts, AI reports, and chain of custody hash cannot be changed after generation.</p>
         </div>
       </Modal>
     </div>

@@ -319,35 +319,35 @@ export default function KaunslorClientFilePage() {
                             <h2>(Counseling Intake Form — CIF)</h2>
                             <div class="sec-title">A. Personal Information</div>
                             <div class="grid">
-                              <div class="field"><div class="label">Nama Penuh</div><div class="value">${client.name||''}</div></div>
-                              <div class="field"><div class="label">No. IC / Passport</div><div class="value">${client.ic_number||''}</div></div>
-                              <div class="field"><div class="label">No. Matrik / Kakitangan</div><div class="value">${client.student_id||''}</div></div>
-                              <div class="field"><div class="label">Tarikh Lahir</div><div class="value">${dobFmt}</div></div>
-                              <div class="field"><div class="label">Jantina</div><div class="value">${client.gender||''}</div></div>
-                              <div class="field"><div class="label">Bangsa</div><div class="value">${client.race||''}</div></div>
-                              <div class="field"><div class="label">Agama</div><div class="value">${client.religion||''}</div></div>
-                              <div class="field"><div class="label">Status Perkahwinan</div><div class="value">${maritalMap[client.marital_status]||''}</div></div>
-                              <div class="field"><div class="label">Tahun Pengajian</div><div class="value">${client.year_of_study||''}</div></div>
-                              <div class="field"><div class="label">Pekerjaan / Program</div><div class="value">${client.occupation||''}</div></div>
-                              <div class="field"><div class="label">No. Telefon</div><div class="value">${client.phone||''}</div></div>
-                              <div class="field"><div class="label">E-mel</div><div class="value">${client.email||''}</div></div>
+                              <div class="field"><div class="label">Full Name</div><div class="value">${client.name||''}</div></div>
+                              <div class="field"><div class="label">IC / Passport No.</div><div class="value">${client.ic_number||''}</div></div>
+                              <div class="field"><div class="label">Matric / Staff No.</div><div class="value">${client.student_id||''}</div></div>
+                              <div class="field"><div class="label">Date of Birth</div><div class="value">${dobFmt}</div></div>
+                              <div class="field"><div class="label">Gender</div><div class="value">${client.gender||''}</div></div>
+                              <div class="field"><div class="label">Ethnicity</div><div class="value">${client.race||''}</div></div>
+                              <div class="field"><div class="label">Religion</div><div class="value">${client.religion||''}</div></div>
+                              <div class="field"><div class="label">Marital Status</div><div class="value">${maritalMap[client.marital_status]||''}</div></div>
+                              <div class="field"><div class="label">Year of Study</div><div class="value">${client.year_of_study||''}</div></div>
+                              <div class="field"><div class="label">Occupation / Programme</div><div class="value">${client.occupation||''}</div></div>
+                              <div class="field"><div class="label">Phone No.</div><div class="value">${client.phone||''}</div></div>
+                              <div class="field"><div class="label">Email</div><div class="value">${client.email||''}</div></div>
                             </div>
-                            <div class="field"><div class="label">Alamat</div><div class="value">${client.address||''}</div></div>
-                            <div class="field"><div class="label">Kontak Kecemasan (Nama / Tel.)</div><div class="value">${client.emergency_contact_name||''} ${client.emergency_contact_phone ? '/ '+client.emergency_contact_phone : ''}</div></div>
+                            <div class="field"><div class="label">Address</div><div class="value">${client.address||''}</div></div>
+                            <div class="field"><div class="label">Emergency Contact (Name / Tel.)</div><div class="value">${client.emergency_contact_name||''} ${client.emergency_contact_phone ? '/ '+client.emergency_contact_phone : ''}</div></div>
                             <div class="sec-title" style="margin-top:10px">B. Session Information</div>
                             <div class="grid">
-                              <div class="field"><div class="label">Jenis Sesi</div><div class="value">${client.session_type==='referred'?'Rujukan':'Sukarela'}</div></div>
-                              <div class="field"><div class="label">Sumber Rujukan</div><div class="value">${client.referral_source||''}</div></div>
+                              <div class="field"><div class="label">Session Type</div><div class="value">${client.session_type==='referred'?'Referred':'Voluntary'}</div></div>
+                              <div class="field"><div class="label">Referral Source</div><div class="value">${client.referral_source||''}</div></div>
                             </div>
-                            <div class="field"><div class="label">Isu yang Dibawa (Presenting Issue)</div><div class="value" style="min-height:30px">${client.presenting_issue||''}</div></div>
+                            <div class="field"><div class="label">Presenting Issue</div><div class="value" style="min-height:30px">${client.presenting_issue||''}</div></div>
                             <div class="sec-title" style="margin-top:10px">C. Clinical History</div>
-                            <div class="checkbox-row"><span class="${client.previous_counseling?'cb checked':'cb'}"></span>Pernah menerima kaunseling sebelum ini</div>
-                            <div class="checkbox-row"><span class="${client.psychiatric_history?'cb checked':'cb'}"></span>Ada sejarah psikiatri</div>
-                            <div class="checkbox-row"><span class="${client.psychiatric_medication?'cb checked':'cb'}"></span>Sedang mengambil ubat psikiatri</div>
-                            <div class="checkbox-row"><span class="${client.hostel_resident?'cb checked':'cb'}"></span>Penghuni asrama</div>
+                            <div class="checkbox-row"><span class="${client.previous_counseling?'cb checked':'cb'}"></span>Previously received counseling</div>
+                            <div class="checkbox-row"><span class="${client.psychiatric_history?'cb checked':'cb'}"></span>Has psychiatric history</div>
+                            <div class="checkbox-row"><span class="${client.psychiatric_medication?'cb checked':'cb'}"></span>Currently taking psychiatric medication</div>
+                            <div class="checkbox-row"><span class="${client.hostel_resident?'cb checked':'cb'}"></span>Hostel resident</div>
                             <div style="margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:40px">
                               <div><div style="border-top:1px solid #333;padding-top:4px;margin-top:40px"><strong>${client.name||'___________________'}</strong><br/>Client Signature<br/><span style="font-size:9px">Date: ${format(new Date(),'dd/MM/yyyy')}</span></div></div>
-                              <div><div style="border-top:1px solid #333;padding-top:4px;margin-top:40px"><strong>${counselorName}</strong><br/>Counselor Signature<br/><span style="font-size:9px">Tarikh: ${format(new Date(),'dd/MM/yyyy')}</span></div></div>
+                              <div><div style="border-top:1px solid #333;padding-top:4px;margin-top:40px"><strong>${counselorName}</strong><br/>Counselor Signature<br/><span style="font-size:9px">Date: ${format(new Date(),'dd/MM/yyyy')}</span></div></div>
                             </div>
                             <div class="footer">SULIT — Unit Kaunseling — Kaunselor Platform — kaunselor.app</div>
                             <script>window.onload=function(){window.print()}</script>
@@ -742,12 +742,12 @@ export default function KaunslorClientFilePage() {
                     <h1>BORANG PERSETUJUAN MAKLUMAN</h1>
                     <h2>(Informed Consent Form)</h2>
                     <div class="grid">
-                      <div><div class="label">Nama Klien</div><div class="value">${a.client_name || '—'}</div></div>
-                      <div><div class="label">No. IC / Passport</div><div class="value">${a.client_ic || '—'}</div></div>
-                      <div><div class="label">No. Matrik / Kakitangan</div><div class="value">${a.client_student_id || '—'}</div></div>
-                      <div><div class="label">Jantina</div><div class="value">${a.client_gender || '—'}</div></div>
-                      <div><div class="label">Tarikh Sesi</div><div class="value">${format(parseISO(sessionDate), 'dd MMMM yyyy')}</div></div>
-                      <div><div class="label">Masa Sesi</div><div class="value">${sessionTime?.slice(0,5) || '—'}</div></div>
+                      <div><div class="label">Client Name</div><div class="value">${a.client_name || '—'}</div></div>
+                      <div><div class="label">IC / Passport No.</div><div class="value">${a.client_ic || '—'}</div></div>
+                      <div><div class="label">Matric / Staff No.</div><div class="value">${a.client_student_id || '—'}</div></div>
+                      <div><div class="label">Gender</div><div class="value">${a.client_gender || '—'}</div></div>
+                      <div><div class="label">Session Date</div><div class="value">${format(parseISO(sessionDate), 'dd MMMM yyyy')}</div></div>
+                      <div><div class="label">Session Time</div><div class="value">${sessionTime?.slice(0,5) || '—'}</div></div>
                     </div>
                     <div class="section">
                       <p class="body-text"><strong>1. Perkhidmatan Kaunseling.</strong> Kaunseling adalah hubungan profesional antara anda dan kaunselor bertauliah. Matlamat utama adalah untuk memudahkan perubahan tingkah laku, meningkatkan keupayaan membina hubungan, menggalakkan proses membuat keputusan, dan memudahkan potensi serta perkembangan peribadi klien.</p>
@@ -762,14 +762,14 @@ export default function KaunslorClientFilePage() {
                         <div class="sig-line">
                           <strong>${a.client_name || '___________________'}</strong><br/>
                           Client Signature / Consent<br/>
-                          Tarikh: ${a.consent_at ? format(new Date(a.consent_at), 'dd/MM/yyyy HH:mm') : '___________'}
+                          Date: ${a.consent_at ? format(new Date(a.consent_at), 'dd/MM/yyyy HH:mm') : '___________'}
                         </div>
                       </div>
                       <div>
                         <div class="sig-line">
                           <strong>${counselorName}</strong><br/>
-                          Tandatangan Kaunselor<br/>
-                          Tarikh: ${format(new Date(), 'dd/MM/yyyy')}
+                          Counselor Signature<br/>
+                          Date: ${format(new Date(), 'dd/MM/yyyy')}
                         </div>
                       </div>
                     </div>
@@ -798,12 +798,12 @@ export default function KaunslorClientFilePage() {
                     {/* Client details */}
                     <div className="grid grid-cols-2 gap-3 text-sm bg-gray-50 rounded-xl p-4">
                       {[
-                        ['Nama', a.client_name],
-                        ['No. IC / Passport', a.client_ic],
-                        ['No. Matrik / Kakitangan', a.client_student_id],
-                        ['Jantina', a.client_gender],
-                        ['Tarikh Sesi', format(parseISO(sessionDate), 'dd MMM yyyy')],
-                        ['Masa Sesi', sessionTime?.slice(0, 5)],
+                        ['Name', a.client_name],
+                        ['IC / Passport No.', a.client_ic],
+                        ['Matric / Staff No.', a.client_student_id],
+                        ['Gender', a.client_gender],
+                        ['Session Date', format(parseISO(sessionDate), 'dd MMM yyyy')],
+                        ['Session Time', sessionTime?.slice(0, 5)],
                       ].map(([label, val]) => val ? (
                         <div key={label}>
                           <p className="text-xs text-gray-400">{label}</p>
@@ -964,33 +964,33 @@ export default function KaunslorClientFilePage() {
                       <span style="font-size:10px;color:#555">(Memo for Extra Professional Assistance)</span>
                     </div>
                     <div class="memo-block">
-                      <div class="memo-row"><span class="memo-label">KEPADA</span><span class="memo-value">: ${r.referred_to}</span></div>
-                      <div class="memo-row"><span class="memo-label">DARIPADA</span><span class="memo-value">: ${counselorName}, Unit Kaunseling UTM</span></div>
-                      <div class="memo-row"><span class="memo-label">TARIKH</span><span class="memo-value">: ${refDate}</span></div>
-                      <div class="memo-row"><span class="memo-label">JENIS RUJUKAN</span><span class="memo-value">: ${REFERRAL_LABELS[r.referral_type]||r.referral_type}</span></div>
+                      <div class="memo-row"><span class="memo-label">TO</span><span class="memo-value">: ${r.referred_to}</span></div>
+                      <div class="memo-row"><span class="memo-label">FROM</span><span class="memo-value">: ${counselorName}, Counseling Unit UTM</span></div>
+                      <div class="memo-row"><span class="memo-label">DATE</span><span class="memo-value">: ${refDate}</span></div>
+                      <div class="memo-row"><span class="memo-label">REFERRAL TYPE</span><span class="memo-value">: ${REFERRAL_LABELS[r.referral_type]||r.referral_type}</span></div>
                     </div>
                     <div class="subject-box">
-                      <strong style="font-size:10px;text-transform:uppercase">Maklumat Klien</strong>
+                      <strong style="font-size:10px;text-transform:uppercase">Client Information</strong>
                       <div style="margin-top:6px">
-                        <div class="subject-row"><span>Nama</span><span>: ${client.name||'—'}</span></div>
-                        <div class="subject-row"><span>No. IC / Passport</span><span>: ${client.ic_number||'—'}</span></div>
-                        <div class="subject-row"><span>No. Matrik / ID</span><span>: ${client.student_id||'—'}</span></div>
-                        <div class="subject-row"><span>Program / Tahun</span><span>: ${client.occupation||'—'} ${client.year_of_study?'/ '+client.year_of_study:''}</span></div>
-                        <div class="subject-row"><span>No. Telefon</span><span>: ${client.phone||'—'}</span></div>
+                        <div class="subject-row"><span>Name</span><span>: ${client.name||'—'}</span></div>
+                        <div class="subject-row"><span>IC / Passport No.</span><span>: ${client.ic_number||'—'}</span></div>
+                        <div class="subject-row"><span>Matric / ID No.</span><span>: ${client.student_id||'—'}</span></div>
+                        <div class="subject-row"><span>Programme / Year</span><span>: ${client.occupation||'—'} ${client.year_of_study?'/ '+client.year_of_study:''}</span></div>
+                        <div class="subject-row"><span>Phone No.</span><span>: ${client.phone||'—'}</span></div>
                       </div>
                     </div>
-                    <p class="body-text"><strong>1. Tujuan Memo</strong><br/>
-                    Memo ini adalah untuk merujuk klien di atas kepada ${r.referred_to} bagi mendapatkan bantuan profesional tambahan dalam menangani isu yang dibincangkan dalam sesi kaunseling.</p>
-                    <p class="body-text"><strong>2. Sebab Rujukan</strong><br/>
-                    ${r.reason||'Klien memerlukan penilaian dan sokongan profesional tambahan yang di luar skop kaunseling.'}</p>
-                    <p class="body-text"><strong>3. Maklumat Isu</strong><br/>
-                    ${client.presenting_issue||'Rujuk rekod kaunseling untuk maklumat lanjut.'}</p>
-                    <p class="body-text"><strong>4. Tindakan Diperlukan</strong><br/>
-                    Pihak ${r.referred_to} dimohon untuk memberikan penilaian dan rawatan yang sesuai. Sebarang maklumbalas boleh dihantar kepada Unit Kaunseling UTM.</p>
-                    <p class="body-text" style="font-size:10px;color:#555">* Maklumat dalam memo ini adalah SULIT dan hanya untuk kegunaan pihak yang berkenaan sahaja.</p>
+                    <p class="body-text"><strong>1. Purpose of Memo</strong><br/>
+                    This memo is to refer the above client to ${r.referred_to} for additional professional assistance in addressing issues discussed during the counseling session.</p>
+                    <p class="body-text"><strong>2. Reason for Referral</strong><br/>
+                    ${r.reason||'Client requires additional professional assessment and support beyond the scope of counseling.'}</p>
+                    <p class="body-text"><strong>3. Issue Information</strong><br/>
+                    ${client.presenting_issue||'Refer to counseling records for further information.'}</p>
+                    <p class="body-text"><strong>4. Action Required</strong><br/>
+                    ${r.referred_to} is requested to provide appropriate assessment and treatment. Any feedback may be directed to the Counseling Unit UTM.</p>
+                    <p class="body-text" style="font-size:10px;color:#555">* Information in this memo is CONFIDENTIAL and for authorized use only.</p>
                     <div class="sig-block">
-                      <div><div class="sig-line"><strong>${counselorName}</strong><br/>Registered Counselor<br/>Unit Kaunseling UTM<br/>Tarikh: ${format(new Date(),'dd/MM/yyyy')}</div></div>
-                      <div><div class="sig-line">___________________<br/>Pengesahan Penerima<br/>Tarikh: ___________</div></div>
+                      <div><div class="sig-line"><strong>${counselorName}</strong><br/>Registered Counselor<br/>Counseling Unit UTM<br/>Date: ${format(new Date(),'dd/MM/yyyy')}</div></div>
+                      <div><div class="sig-line">___________________<br/>Recipient Acknowledgment<br/>Date: ___________</div></div>
                     </div>
                     <div class="footer">SULIT — Unit Kaunseling — Kaunselor Platform — kaunselor.app</div>
                     <script>window.onload=function(){window.print()}</script>

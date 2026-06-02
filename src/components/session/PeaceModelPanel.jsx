@@ -3,83 +3,83 @@ import { useState } from 'react';
 const PEACE_PHASES = [
   {
     key: 'P',
-    name: 'Perancangan',
+    name: 'Planning',
     full: 'Planning',
     color: 'blue',
     icon: '📋',
-    desc: 'Kumpul maklumat latar belakang. Tetapkan objektif soal siasat. Kenalpasti isu utama.',
+    desc: 'Gather background information. Set interview objectives. Identify key issues.',
     checklist: [
-      'Semak rekod latar belakang subjek',
-      'Tetapkan 3 objektif utama sesi',
-      'Sediakan soalan terbuka per isu',
-      'Kenal pasti saksi lain jika ada',
-      'Pastikan rakaman dan dokumentasi sedia',
+      'Review subject background records',
+      'Set 3 main session objectives',
+      'Prepare open-ended questions per issue',
+      'Identify other witnesses if any',
+      'Ensure recording and documentation are ready',
     ],
-    tips: 'Jangan masuk sesi tanpa mengetahui fakta asas. Objektif yang jelas bantu fokus soalan.',
+    tips: "Don't enter the session without knowing the basic facts. Clear objectives help focus your questions.",
   },
   {
     key: 'E',
-    name: 'Hubung & Terang',
+    name: 'Engage & Explain',
     full: 'Engage & Explain',
     color: 'emerald',
     icon: '🤝',
-    desc: 'Bina hubungan. Terangkan tujuan, prosedur dan hak subjek. Dapatkan persetujuan rakaman.',
+    desc: "Build rapport. Explain the purpose, procedure and subject's rights. Obtain recording consent.",
     checklist: [
-      'Perkenalkan diri dan jawatan',
-      'Terangkan tujuan soal siasat',
-      'Maklumkan hak subjek (peguam, diam)',
-      'Dapatkan persetujuan untuk dirakam',
-      'Tanya soalan bina keyakinan neutral',
+      'Introduce yourself and your role',
+      'Explain the purpose of the interview',
+      "Inform subject of their rights (lawyer, right to silence)",
+      'Obtain consent to be recorded',
+      'Ask neutral rapport-building questions',
     ],
-    tips: 'Nada mesra tapi profesional. Subjek yang selesa memberikan keterangan lebih lengkap.',
+    tips: 'Tone friendly but professional. A comfortable subject provides a more complete statement.',
   },
   {
     key: 'A',
-    name: 'Keterangan',
+    name: 'Account',
     full: 'Account',
     color: 'violet',
     icon: '🗣️',
-    desc: 'Dapatkan keterangan penuh. Naratif bebas dahulu — biarkan subjek bercakap tanpa gangguan.',
+    desc: 'Obtain full account. Free narrative first — let the subject speak without interruption.',
     checklist: [
-      'Minta naratif bebas: "Ceritakan dari awal"',
-      'Dengar tanpa gangguan — rekod sahaja',
-      'Gunakan soalan terbuka (Apa, Siapa, Di mana, Bila, Bagaimana)',
-      'Ikuti dengan probing: "Terangkan lanjut..."',
-      'Kenal pasti dan tandakan kenyataan penting',
+      'Request free narrative: "Tell me from the beginning"',
+      'Listen without interruption — just record',
+      'Use open-ended questions (What, Who, Where, When, How)',
+      'Follow up with probing: "Explain further..."',
+      'Identify and mark key statements',
     ],
-    tips: 'Hindari soalan bimbing. Biarkan subjek isi kekosongan sendiri — ini mendedahkan maklumat sebenar.',
+    tips: "Avoid leading questions. Let the subject fill the gaps themselves — this reveals the true information.",
   },
   {
     key: 'C',
-    name: 'Penutup',
+    name: 'Closure',
     full: 'Closure',
     color: 'amber',
     icon: '✅',
-    desc: 'Rumuskan keterangan. Beri peluang subjek tambah atau perbetulkan. Jelaskan langkah seterusnya.',
+    desc: 'Summarise the account. Give the subject a chance to add or correct. Clarify next steps.',
     checklist: [
-      'Baca semula ringkasan keterangan subjek',
-      'Tanya: "Ada sebarang kesilapan atau tambahan?"',
-      'Tanya soalan yang masih belum terjawab',
-      'Maklumkan proses seterusnya kepada subjek',
-      'Ucapkan terima kasih atas kerjasama',
+      "Re-read a summary of the subject's account",
+      'Ask: "Are there any errors or additions?"',
+      'Ask questions that remain unanswered',
+      'Inform the subject of the next process',
+      'Thank the subject for their cooperation',
     ],
-    tips: 'Penutup yang baik menutup jurang maklumat dan memberi keadilan kepada subjek untuk membetulkan salah faham.',
+    tips: 'A good closure closes information gaps and gives the subject a fair chance to correct misunderstandings.',
   },
   {
     key: 'E2',
-    name: 'Penilaian',
+    name: 'Evaluate',
     full: 'Evaluate',
     color: 'rose',
     icon: '🔍',
-    desc: 'Selepas sesi: nilai ketekalan keterangan. Bandingkan dengan bukti. Kenalpasti tindakan seterusnya.',
+    desc: 'After the session: assess account consistency. Compare with evidence. Identify next actions.',
     checklist: [
-      'Bandingkan keterangan dengan fakta yang ada',
-      'Kenalpasti percanggahan atau jurang',
-      'Nilaikan kredibiliti keterangan',
-      'Senaraikan tindakan susulan yang perlu',
-      'Jana laporan AI untuk analisis mendalam',
+      'Compare the account with existing facts',
+      'Identify contradictions or gaps',
+      'Assess credibility of the account',
+      'List follow-up actions required',
+      'Generate AI report for in-depth analysis',
     ],
-    tips: 'Penilaian objektif selepas sesi lebih akurat dari semasa tekanan wawancara.',
+    tips: 'Objective evaluation after a session is more accurate than during the pressure of the interview.',
   },
 ];
 
@@ -112,7 +112,7 @@ export function PeaceModelPanel({ currentPhase, onPhaseChange }) {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">PEACE Model</p>
-            <p className="text-xs text-gray-400 mt-0.5">Panduan Soal Siasat Berstruktur</p>
+            <p className="text-xs text-gray-400 mt-0.5">Structured Interview Guide</p>
           </div>
           <div className="flex items-center gap-0.5">
             {PEACE_PHASES.map((p, i) => {
@@ -152,7 +152,7 @@ export function PeaceModelPanel({ currentPhase, onPhaseChange }) {
                   <div className="flex items-center gap-2">
                     <span className={`text-sm font-semibold ${isActive ? c.text : 'text-gray-700'}`}>{phase.name}</span>
                     {isActive && (
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${c.bg} ${c.text} border ${c.border} font-medium`}>Aktif</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${c.bg} ${c.text} border ${c.border} font-medium`}>Active</span>
                     )}
                   </div>
                   <p className="text-xs text-gray-400 truncate">{phase.full}</p>
@@ -175,7 +175,7 @@ export function PeaceModelPanel({ currentPhase, onPhaseChange }) {
 
                   {/* Checklist */}
                   <div className={`rounded-lg border ${c.border} ${c.bg} p-3 space-y-2`}>
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Senarai Semak</p>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Checklist</p>
                     {phase.checklist.map((item, i) => {
                       const k = `${phase.key}_${i}`;
                       return (
@@ -204,7 +204,7 @@ export function PeaceModelPanel({ currentPhase, onPhaseChange }) {
                       onClick={() => onPhaseChange(phase.name)}
                       className={`w-full py-2 rounded-lg text-xs font-semibold border transition-colors ${isActive ? `${c.bg} ${c.text} ${c.border}` : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}
                     >
-                      {isActive ? '✓ Fasa Semasa' : `Tetapkan sebagai Fasa Semasa`}
+                      {isActive ? '✓ Current Phase' : `Set as Current Phase`}
                     </button>
                   )}
                 </div>
@@ -217,7 +217,7 @@ export function PeaceModelPanel({ currentPhase, onPhaseChange }) {
       {/* Footer note */}
       <div className="px-4 py-2.5 border-t bg-gray-50 flex-shrink-0">
         <p className="text-xs text-gray-400 text-center">
-          PEACE Model — Panduan Majlis Timbalan Ketua Polis Negara
+          PEACE Model — Deputy Inspector-General of Police Guidelines
         </p>
       </div>
     </div>

@@ -285,7 +285,7 @@ export default function KaunslorAppointmentsPage() {
                     {upcoming.map(a => {
                       const isRescheduled = a.status === 'rescheduled';
                       const rescheduleReason = isRescheduled && a.counselor_notes
-                        ? a.counselor_notes.replace('[Jadual Semula] ', '')
+                        ? a.counselor_notes.replace('[Rescheduled] ', '')
                         : null;
                       return (
                         <div key={a.id} className={`border rounded-2xl p-4 ${isRescheduled ? 'bg-violet-50 border-violet-200' : 'bg-white border-gray-100'}`}>
@@ -533,7 +533,7 @@ export default function KaunslorAppointmentsPage() {
                     <div className="flex gap-3 justify-center mt-4">
                       <Button variant="secondary" onClick={() => {
                         const win = window.open('', '_blank', 'width=480,height=600');
-                        win.document.write(`<!DOCTYPE html><html><head><title>Booking QR - Kaunselor</title>
+                        win.document.write(`<!DOCTYPE html><html><head><title>Booking QR - Counselor</title>
                           <style>
                             @page{size:A4;margin:1.5cm}
                             *{box-sizing:border-box}
@@ -706,7 +706,7 @@ export default function KaunslorAppointmentsPage() {
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
-                <label className="text-xs text-gray-500 mb-1 block">Masa</label>
+                <label className="text-xs text-gray-500 mb-1 block">Time</label>
                 <input type="time" value={confirmForm.confirmed_time}
                   onChange={e => setConfirmForm(f => ({ ...f, confirmed_time: e.target.value }))}
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />

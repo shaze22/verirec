@@ -114,7 +114,7 @@ export default function SessionPage() {
         const newOnes = transcript.filter(e => !ids.has(e.id));
         const combined = [...prev, ...newOnes];
         if (combined.length >= 490 && prev.length < 490) {
-          toast('Transcript menghampiri had 500 entri.', { icon: '⚠️' });
+          toast('Transcript approaching 500-entry limit.', { icon: '⚠️' });
         }
         return combined.length > 500 ? combined.slice(combined.length - 500) : combined;
       });
@@ -133,14 +133,14 @@ export default function SessionPage() {
         const isCrisis = setup.profession === 'counselor' || setup.profession === 'doctor';
         if (isCrisis) {
           setCrisisAlert(matched);
-          toast.error(`Pengesan Risiko: "${matched}" dikesan dalam transkrip.`, { duration: 8000, id: 'crisis' });
+          toast.error(`Risk Detector: "${matched}" detected in transcript.`, { duration: 8000, id: 'crisis' });
         } else {
-          toast(`Kata kunci bendera: "${matched}" dikesan.`, { icon: '🚩', duration: 6000, id: `flag-${matched}` });
+          toast(`Flag keyword: "${matched}" detected.`, { icon: '🚩', duration: 6000, id: `flag-${matched}` });
         }
         setFlags(prev => {
           const alreadyFlagged = prev.some(f => f.text.includes(matched));
           if (alreadyFlagged) return prev;
-          return [...prev, { id: crypto.randomUUID(), text: `[AUTO] Kata kunci risiko dikesan: "${matched}"`, timestamp: new Date().toISOString() }];
+          return [...prev, { id: crypto.randomUUID(), text: `[AUTO] Risk keyword detected: "${matched}"`, timestamp: new Date().toISOString() }];
         });
       }
     }
@@ -160,8 +160,8 @@ export default function SessionPage() {
 
   useEffect(() => {
     if (micError) {
-      const msgs = { no_mic: 'Tiada mikrofon dijumpai.', permission_denied: 'Kebenaran mikrofon declined.', not_supported: 'Perakam audio tidak disokong.' };
-      toast.error(msgs[micError] || 'Ralat mikrofon.');
+      const msgs = { no_mic: 'No microphone found.', permission_denied: 'Microphone permission denied.', not_supported: 'Audio recorder not supported.' };
+      toast.error(msgs[micError] || 'Microphone error.');
     }
   }, [micError]);
 
@@ -191,7 +191,7 @@ export default function SessionPage() {
     if (isSpeechRecognitionSupported) startRealtime();
     timer.start();
     setStarted(true);
-    addEntry({ type: 'SYSTEM', text: `Sesi dimulakan — ${new Date().toLocaleTimeString('ms-MY')}` });
+    addEntry({ type: 'SYSTEM', text: `Session started — ${new Date().toLocaleTimeString('en-MY')}` });
     if (sessionId) updateSession(sessionId, { recording_status: 'in_progress' }).catch(() => {});
   };
 
@@ -236,7 +236,7 @@ export default function SessionPage() {
   const handleEnd = async () => {
     const lockKey = `report_generating_${sessionId}`;
     if (localStorage.getItem(lockKey)) {
-      toast('Laporan sedang dijana di tab lain.');
+      toast('Report is being generated in another tab.');
       setEndModal(false);
       return;
     }
@@ -250,7 +250,7 @@ export default function SessionPage() {
     clearInterval(autoSaveRef.current);
     setGenerating(true);
     setEndError(false);
-    setGenerateStep('Menyimpan data sesi...');
+    setGenerateStep('Saving session data...');
 
     // Capture full audio blob synchronously before state updates
     const fullAudioBlob = fullAudioChunksRef.current.length > 0
@@ -262,12 +262,12 @@ export default function SessionPage() {
       let diarizedEntries = entries;
       if (fullAudioBlob && fullAudioBlob.size > 10_000) {
         try {
-          setGenerateStep('Menghantar audio untuk diarization speaker...');
+          setGenerateStep('Sending audio for speaker diarization...');
           const jobId = await diarizeAudio(fullAudioBlob);
-          setGenerateStep('Memproses diarization speaker (ini mengambil masa ~30 saat)...');
+          setGenerateStep('Processing speaker diarization (this takes ~30 seconds)...');
           const utterances = await pollDiarization(jobId, {
             onProgress: (status) => {
-              if (status === 'processing') setGenerateStep('Memproses diarization & pengenalan speaker...');
+              if (status === 'processing') setGenerateStep('Processing diarization & speaker identification...');
             },
             interviewer: setup.interviewer,
             subject_name: setup.subject_name,
@@ -287,7 +287,7 @@ export default function SessionPage() {
                 const isInterviewer = interviewerFirstWord && name.includes(interviewerFirstWord);
                 speakerMap[s] = isInterviewer ? 'interviewer' : 'subject';
               });
-              setGenerateStep('Pengenalan speaker berjaya ✓');
+              setGenerateStep('Speaker identification successful ✓');
             } else {
               // Fallback heuristic: first speaker = interviewer
               uniqueSpeakers.forEach((s, i) => {
@@ -316,7 +316,7 @@ export default function SessionPage() {
         }
       }
 
-      setGenerateStep('Menyimpan data sesi...');
+      setGenerateStep('Saving session data...');
       await updateSession(sessionId, {
         transcript: diarizedEntries,
         flags,
@@ -325,7 +325,7 @@ export default function SessionPage() {
         synced: true,
       });
 
-      setGenerateStep('Menganalisis transkrip dengan AI...');
+      setGenerateStep('Analysing transcript with AI...');
       // Fetch subject info for counselor sessions
       let subject_info = null;
       if (setup.subject_id) {
@@ -343,7 +343,7 @@ export default function SessionPage() {
         subject_info,
       });
 
-      setGenerateStep('Laporan siap!');
+      setGenerateStep('Report ready!');
       // Mark the most recent confirmed appointment as completed (only past/today, not future)
       if (setup.subject_id) {
         const { supabase: _sb } = await import('../lib/supabase.js');
@@ -356,7 +356,7 @@ export default function SessionPage() {
       }
       sessionStorage.removeItem('session_setup');
       sessionStorage.removeItem('active_session_id');
-      toast.success('Laporan berjaya dijana!');
+      toast.success('Report generated successfully!');
       navigate(`/session/${sessionId}`);
     } catch {
       setEndError(true);
@@ -370,7 +370,7 @@ export default function SessionPage() {
   const handleRetryReport = async () => {
     setEndError(false);
     setGenerating(true);
-    setGenerateStep('Menganalisis transkrip dengan AI...');
+    setGenerateStep('Analysing transcript with AI...');
     try {
       await generateReport({
         session_id: sessionId,
@@ -378,7 +378,7 @@ export default function SessionPage() {
         flags,
         session_info: { ...setup, duration: timer.elapsed },
       });
-      setGenerateStep('Laporan siap!');
+      setGenerateStep('Report ready!');
       if (setup.subject_id) {
         const { supabase: _sb } = await import('../lib/supabase.js');
         const today = new Date().toISOString().split('T')[0];
@@ -390,7 +390,7 @@ export default function SessionPage() {
       }
       sessionStorage.removeItem('session_setup');
       sessionStorage.removeItem('active_session_id');
-      toast.success('Laporan berjaya dijana!');
+      toast.success('Report generated successfully!');
       navigate(`/session/${sessionId}`);
     } catch {
       setEndError(true);
@@ -402,12 +402,12 @@ export default function SessionPage() {
 
   const recentTranscript = entries.filter(e => e.type === 'TRANSCRIPT').slice(-5).map(e => e.text);
   const tabs = ['transcript', 'questions', 'assessment', 'ai', 'flags'];
-  const tabLabels = { transcript: 'Transcript', questions: 'Soalan', assessment: 'Assessment', ai: 'AI Suggestions', flags: `Bendera${flags.length ? ` (${flags.length})` : ''}` };
+  const tabLabels = { transcript: 'Transcript', questions: 'Questions', assessment: 'Assessment', ai: 'AI Suggestions', flags: `Flags${flags.length ? ` (${flags.length})` : ''}` };
   const mobileTabs = [
     { key: 'transcript', icon: '📝', label: 'Transcript' },
-    { key: 'questions',  icon: '❓', label: 'Soalan' },
+    { key: 'questions',  icon: '❓', label: 'Questions' },
     { key: 'ai',        icon: '🤖', label: 'AI' },
-    { key: 'flags',     icon: '🚩', label: 'Bendera' },
+    { key: 'flags',     icon: '🚩', label: 'Flags' },
   ];
 
   return (
@@ -416,9 +416,9 @@ export default function SessionPage() {
       {crisisAlert && (
         <div className="bg-red-600 text-white px-4 py-2 flex items-start justify-between gap-4 z-40">
           <div className="flex-1">
-            <p className="font-semibold text-sm">Amaran Risiko: Kata kunci "{crisisAlert}" dikesan</p>
+            <p className="font-semibold text-sm">Risk Warning: Keyword "{crisisAlert}" detected</p>
             <p className="text-xs text-red-100 mt-0.5">
-              Sumber kecemasan — {CRISIS_RESOURCES.map(r => `${r.name}: ${r.number}`).join(' | ')}
+              Emergency resources — {CRISIS_RESOURCES.map(r => `${r.name}: ${r.number}`).join(' | ')}
             </p>
           </div>
           <button onClick={() => setCrisisAlert(null)} className="text-red-200 hover:text-white flex-shrink-0 text-lg leading-none">×</button>
@@ -433,17 +433,17 @@ export default function SessionPage() {
             <span className="text-xl font-mono font-semibold text-gray-900">{timer.formatted}</span>
             {!started && (
               <span className="text-xs text-amber-600 font-medium bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full animate-pulse">
-                Sedia untuk dirakam
+                Ready to record
               </span>
             )}
             {isRecording && !isPaused && (
               <span className="flex items-center gap-1 text-xs text-red-600 font-medium">
                 <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                Merakam
+                Recording
               </span>
             )}
             {isPaused && (
-              <span className="text-xs text-gray-500 font-medium bg-gray-100 px-2 py-0.5 rounded-full">Dijeda</span>
+              <span className="text-xs text-gray-500 font-medium bg-gray-100 px-2 py-0.5 rounded-full">Paused</span>
             )}
           </div>
 
@@ -453,7 +453,7 @@ export default function SessionPage() {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                 </svg>
-                {isMobile ? 'Mula' : 'Mula Rakaman'}
+                {isMobile ? 'Start' : 'Start Recording'}
               </Button>
             ) : isPaused ? (
               <Button onClick={handleResume} variant="secondary">
@@ -472,7 +472,7 @@ export default function SessionPage() {
             )}
             {started && (
               <Button onClick={() => setEndModal(true)} variant="danger" className={isMobile ? '' : 'ml-4'}>
-                {isMobile ? 'Tamat' : 'Tamat Sesi'}
+                {isMobile ? 'End' : 'End Session'}
               </Button>
             )}
           </div>
@@ -481,7 +481,7 @@ export default function SessionPage() {
         {/* Session context bar */}
         {isMobile ? (
           <div className="px-4 py-1.5 bg-gray-50 border-t flex items-center justify-between text-xs text-gray-500 min-w-0">
-            <span className="font-medium text-gray-700 truncate">{setup.subject_name || setup.title || 'Sesi'}</span>
+            <span className="font-medium text-gray-700 truncate">{setup.subject_name || setup.title || 'Session'}</span>
             {isSpeechRecognitionSupported && (
               <select
                 value={transcriptLang}
@@ -498,9 +498,9 @@ export default function SessionPage() {
           </div>
         ) : (
           <div className="px-4 py-1.5 bg-gray-50 border-t flex items-center gap-4 text-xs text-gray-500 overflow-x-auto">
-            <span className="font-medium text-gray-700 truncate max-w-[200px]">{setup.title || 'Sesi tanpa tajuk'}</span>
+            <span className="font-medium text-gray-700 truncate max-w-[200px]">{setup.title || 'Untitled Session'}</span>
             <span className="text-gray-300">|</span>
-            <span>{profession?.sessionType || 'Sesi'}</span>
+            <span>{profession?.sessionType || 'Session'}</span>
             <span className="text-gray-300">|</span>
             <span>Subjek: <strong className="text-gray-700">{setup.subject_name || '—'}</strong></span>
             {setup.case_number && (
@@ -537,7 +537,7 @@ export default function SessionPage() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <p className="text-sm text-green-800">
-            Tekan <strong>Mula Rakaman</strong> di atas untuk memulakan transkripsi automatik. Pastikan mikrofon dibenarkan oleh pelayar.
+            Press <strong>Start Recording</strong> above to begin automatic transcription. Make sure microphone is allowed by the browser.
           </p>
         </div>
       )}
@@ -678,13 +678,13 @@ export default function SessionPage() {
       <Modal
         open={endModal}
         onClose={() => !generating && setEndModal(false)}
-        title="Tamat Sesi"
+        title="End Session"
         footer={
           !generating && !endError && (
             <div className="flex gap-3 justify-end">
-              <Button variant="secondary" onClick={() => setEndModal(false)}>Batal</Button>
+              <Button variant="secondary" onClick={() => setEndModal(false)}>Cancel</Button>
               <Button variant="danger" onClick={handleEnd}>
-                Ya, Tamat &amp; Generate Report
+                Yes, End &amp; Generate Report
               </Button>
             </div>
           )
@@ -694,9 +694,9 @@ export default function SessionPage() {
           {generating ? (
             <>
               <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Sedang Memproses...</h3>
+              <h3 className="text-lg font-semibold mb-2">Processing...</h3>
               <p className="text-blue-600 text-sm font-medium">{generateStep}</p>
-              <p className="text-gray-400 text-xs mt-2">Ini mungkin mengambil masa 30–60 saat</p>
+              <p className="text-gray-400 text-xs mt-2">This may take 30–60 seconds</p>
             </>
           ) : endError ? (
             <>
@@ -705,19 +705,19 @@ export default function SessionPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold mb-2 text-gray-900">Analisis AI Gagal</h3>
-              <p className="text-gray-600 text-sm mb-1">Data sesi telah berjaya saved.</p>
-              <p className="text-gray-500 text-xs mb-5">Laporan boleh dijana semula dari halaman laporan sesi.</p>
+              <h3 className="text-lg font-semibold mb-2 text-gray-900">AI Analysis Failed</h3>
+              <p className="text-gray-600 text-sm mb-1">Session data has been saved successfully.</p>
+              <p className="text-gray-500 text-xs mb-5">The report can be regenerated from the session report page.</p>
               <div className="flex flex-col gap-2">
                 <Button onClick={handleRetryReport} className="w-full">
-                  Cuba Semula Generate Report
+                  Retry Generate Report
                 </Button>
                 <Button variant="secondary" className="w-full" onClick={() => {
                   sessionStorage.removeItem('session_setup');
                   sessionStorage.removeItem('active_session_id');
                   navigate(`/session/${sessionId}`);
                 }}>
-                  Buka Halaman Laporan
+                  Open Report Page
                 </Button>
               </div>
             </>
@@ -729,18 +729,18 @@ export default function SessionPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Tamat Sesi Rakaman?</h3>
+              <h3 className="text-lg font-semibold mb-2">End Session Recording?</h3>
               <p className="text-gray-600 text-sm">
-                Rakaman akan dihenti dan laporan AI akan dijana secara automatik.
+                Recording will stop and the AI report will be generated automatically.
               </p>
               <div className="flex justify-center gap-6 mt-3 text-sm">
-                <span className="text-gray-500">Tempoh: <strong className="text-gray-800">{timer.formatted}</strong></span>
+                <span className="text-gray-500">Duration: <strong className="text-gray-800">{timer.formatted}</strong></span>
                 <span className="text-gray-500">Entri: <strong className="text-gray-800">{entries.length}</strong></span>
               </div>
               {flags.some(f => f.text.startsWith('[AUTO]')) && (
                 <div className="mt-3 p-3 bg-red-50 rounded-lg text-left">
-                  <p className="text-xs font-semibold text-red-700 mb-1">Amaran: Kata kunci risiko dikesan dalam sesi ini</p>
-                  <p className="text-xs text-red-600">Sila semak bendera merah dalam laporan.</p>
+                  <p className="text-xs font-semibold text-red-700 mb-1">Warning: Risk keywords detected in this session</p>
+                  <p className="text-xs text-red-600">Please review red flags in the report.</p>
                 </div>
               )}
             </>

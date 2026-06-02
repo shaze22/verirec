@@ -3,30 +3,30 @@ import { useState } from 'react';
 const steps = [
   {
     num: 1,
-    label: 'Dashboard Klien',
-    short: 'Semua klien dalam satu pandangan',
-    desc: 'Lihat senarai klien, temujanji akan datang, dan tahap risiko setiap klien — sekilas pandang dari dashboard utama.',
+    label: 'Client Dashboard',
+    short: 'All clients in one view',
+    desc: 'See the client list, upcoming appointments, and risk level of each client — at a glance from the main dashboard.',
     screen: <DashboardMockup />,
   },
   {
     num: 2,
     label: 'Booking QR',
-    short: 'Klien buat temujanji sendiri',
-    desc: 'Kongsikan kod QR atau pautan unik anda. Klien isi borang intake, tandatangani kebenaran digital, dan pilih tarikh — semua tanpa campur tangan anda.',
+    short: 'Clients book their own appointments',
+    desc: 'Share your QR code or unique link. Clients fill in the intake form, sign digital consent, and choose a date — all without your involvement.',
     screen: <BookingMockup />,
   },
   {
     num: 3,
-    label: 'Sesi Aktif',
-    short: 'Rakaman + AI masa nyata',
-    desc: 'Rakam sesi dengan satu klik. AI transkrip perbualan secara masa nyata, kenal pasti speaker, dan cadangkan teknik CBT/DBT. Red flag dikesan automatik.',
+    label: 'Active Session',
+    short: 'Recording + real-time AI',
+    desc: 'Record sessions with one click. AI transcribes the conversation in real time, identifies speakers, and suggests CBT/DBT techniques. Red flags detected automatically.',
     screen: <SessionMockup />,
   },
   {
     num: 4,
-    label: 'Laporan AI',
-    short: 'Case Session Note auto-jana',
-    desc: 'Selepas sesi tamat, AI jana Case Session Note format SOP — isu dikemukakan, matlamat bersama, intervensi, pelan susulan, dan dapatan MBTI/RIASEC. PDF sedia cetak.',
+    label: 'AI Report',
+    short: 'Case Session Note auto-generated',
+    desc: 'After the session ends, AI generates a Case Session Note in SOP format — presenting issues, shared goals, interventions, follow-up plan, and MBTI/RIASEC findings. PDF ready to print.',
     screen: <ReportMockup />,
   },
 ];
@@ -46,16 +46,16 @@ function DashboardMockup() {
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-[10px]">K</div>
-          <span className="text-gray-600">Kaunselor</span>
+          <span className="text-gray-600">Counselor</span>
         </div>
       </div>
       <div className="flex">
         {/* sidebar */}
         <div className="w-28 bg-white border-r border-gray-100 p-3 space-y-1 shrink-0">
           {[
-            { icon: '👥', label: 'Klien', active: true },
-            { icon: '📅', label: 'Temujanji', active: false },
-            { icon: '⚙️', label: 'Tetapan', active: false },
+            { icon: '👥', label: 'Clients', active: true },
+            { icon: '📅', label: 'Appointments', active: false },
+            { icon: '⚙️', label: 'Settings', active: false },
           ].map((item) => (
             <div
               key={item.label}
@@ -73,9 +73,9 @@ function DashboardMockup() {
           {/* stats */}
           <div className="grid grid-cols-3 gap-2">
             {[
-              { label: 'Klien Aktif', val: '12', color: 'text-emerald-600' },
-              { label: 'Sesi Bulan Ini', val: '8', color: 'text-blue-600' },
-              { label: 'Temujanji', val: '3', color: 'text-amber-600' },
+              { label: 'Active Clients', val: '12', color: 'text-emerald-600' },
+              { label: 'Sessions This Month', val: '8', color: 'text-blue-600' },
+              { label: 'Appointments', val: '3', color: 'text-amber-600' },
             ].map((s) => (
               <div key={s.label} className="bg-white rounded-lg p-2 border border-gray-100">
                 <div className={`text-base font-bold ${s.color}`}>{s.val}</div>
@@ -85,11 +85,11 @@ function DashboardMockup() {
           </div>
           {/* client list */}
           <div className="bg-white rounded-lg border border-gray-100 overflow-hidden">
-            <div className="px-3 py-2 border-b border-gray-50 font-semibold text-gray-700 text-[11px]">Senarai Klien</div>
+            <div className="px-3 py-2 border-b border-gray-50 font-semibold text-gray-700 text-[11px]">Client List</div>
             {[
-              { name: 'Ahmad Faris', issue: 'Tekanan Akademik', risk: 'mental_health', sesi: 3 },
-              { name: 'Nurul Ain', issue: 'Kecemasan Sosial', risk: 'self_harm', sesi: 2 },
-              { name: 'Muhammad Hafiz', issue: 'Bimbingan Kerjaya', risk: 'none', sesi: 1 },
+              { name: 'Ahmad Faris', issue: 'Academic Stress', risk: 'mental_health', sesi: 3 },
+              { name: 'Nurul Ain', issue: 'Social Anxiety', risk: 'self_harm', sesi: 2 },
+              { name: 'Muhammad Hafiz', issue: 'Career Guidance', risk: 'none', sesi: 1 },
             ].map((c) => (
               <div key={c.name} className="flex items-center justify-between px-3 py-2 border-b border-gray-50 last:border-0">
                 <div className="flex items-center gap-2 min-w-0">
@@ -107,9 +107,9 @@ function DashboardMockup() {
                     c.risk === 'mental_health' ? 'bg-yellow-100 text-yellow-700' :
                     'bg-red-100 text-red-600'
                   }`}>
-                    {c.risk === 'none' ? 'Rendah' : c.risk === 'mental_health' ? 'Sederhana' : 'Tinggi'}
+                    {c.risk === 'none' ? 'Low' : c.risk === 'mental_health' ? 'Moderate' : 'High'}
                   </span>
-                  <span className="text-gray-400 text-[10px]">{c.sesi} sesi</span>
+                  <span className="text-gray-400 text-[10px]">{c.sesi} sessions</span>
                 </div>
               </div>
             ))}
@@ -125,12 +125,12 @@ function BookingMockup() {
     <div className="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden text-xs font-sans">
       <div className="bg-white border-b border-gray-100 px-4 py-2.5 flex items-center gap-2">
         <div className="w-5 h-5 rounded bg-emerald-500" />
-        <span className="font-semibold text-gray-800 text-xs">Temujanji — QR & Pautan</span>
+        <span className="font-semibold text-gray-800 text-xs">Appointments — QR & Link</span>
       </div>
       <div className="p-3 grid grid-cols-2 gap-3">
         {/* QR card */}
         <div className="bg-white rounded-xl border border-emerald-200 p-3 flex flex-col items-center gap-2">
-          <div className="text-[11px] font-semibold text-gray-700">Kod QR Anda</div>
+          <div className="text-[11px] font-semibold text-gray-700">Your QR Code</div>
           {/* QR placeholder */}
           <div className="w-20 h-20 border-2 border-gray-200 rounded-lg relative overflow-hidden bg-white p-1">
             <svg viewBox="0 0 21 21" className="w-full h-full">
@@ -156,29 +156,29 @@ function BookingMockup() {
             {window.location.hostname}/book/<br /><span className="font-bold">fmw7y2qc</span>
           </div>
           <button className="w-full bg-emerald-600 text-white text-[10px] font-semibold py-1.5 rounded-lg">
-            🖨 Cetak QR
+            🖨 Print QR
           </button>
         </div>
         {/* requests */}
         <div className="space-y-2">
-          <div className="text-[11px] font-semibold text-gray-700 mb-1">Permintaan Baru</div>
+          <div className="text-[11px] font-semibold text-gray-700 mb-1">New Requests</div>
           {[
-            { name: 'Siti Hajar', time: '10:00', date: 'Isnin, 2 Jun', status: 'pending' },
-            { name: 'Hazwan Fikri', time: '14:00', date: 'Selasa, 3 Jun', status: 'pending' },
+            { name: 'Siti Hajar', time: '10:00', date: 'Monday, 2 Jun', status: 'pending' },
+            { name: 'Hazwan Fikri', time: '14:00', date: 'Tuesday, 3 Jun', status: 'pending' },
           ].map((r) => (
             <div key={r.name} className="bg-white border border-amber-100 rounded-lg p-2">
               <div className="font-medium text-gray-800 text-[11px]">{r.name}</div>
               <div className="text-gray-400 text-[10px]">{r.date} • {r.time}</div>
               <div className="flex gap-1 mt-1.5">
-                <button className="flex-1 bg-emerald-600 text-white text-[9px] font-semibold py-1 rounded-md">✓ Sahkan</button>
-                <button className="flex-1 bg-gray-100 text-gray-500 text-[9px] font-semibold py-1 rounded-md">✗ Tolak</button>
+                <button className="flex-1 bg-emerald-600 text-white text-[9px] font-semibold py-1 rounded-md">✓ Confirm</button>
+                <button className="flex-1 bg-gray-100 text-gray-500 text-[9px] font-semibold py-1 rounded-md">✗ Reject</button>
               </div>
             </div>
           ))}
           <div className="bg-white border border-gray-100 rounded-lg p-2 text-center">
             <div className="text-[10px] text-emerald-600 font-medium">✅ Sahid Arslan</div>
-            <div className="text-[10px] text-gray-400">Jumaat, 30 Mei • 09:00</div>
-            <span className="text-[9px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full font-medium">Disahkan</span>
+            <div className="text-[10px] text-gray-400">Friday, 30 May • 09:00</div>
+            <span className="text-[9px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full font-medium">Confirmed</span>
           </div>
         </div>
       </div>
@@ -190,7 +190,7 @@ function SessionMockup() {
   return (
     <div className="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden text-xs font-sans">
       <div className="bg-white border-b border-gray-100 px-4 py-2.5 flex items-center justify-between">
-        <span className="font-semibold text-gray-800 text-xs">Sesi Aktif — Ahmad Faris</span>
+        <span className="font-semibold text-gray-800 text-xs">Active Session — Ahmad Faris</span>
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse inline-block"></span>
           <span className="text-red-500 font-semibold text-[11px]">02:34</span>
@@ -199,12 +199,12 @@ function SessionMockup() {
       <div className="p-3 grid grid-cols-5 gap-3">
         {/* transcript */}
         <div className="col-span-3 space-y-2">
-          <div className="text-[11px] font-semibold text-gray-700">Transkrip Masa Nyata</div>
+          <div className="text-[11px] font-semibold text-gray-700">Real-time Transcript</div>
           <div className="space-y-1.5">
             {[
-              { speaker: 'Kaunselor', text: 'Boleh ceritakan lebih lanjut tentang perasaan tekanan itu?', color: 'bg-blue-50 text-blue-800 border-blue-100' },
-              { speaker: 'Klien', text: 'Saya rasa macam tak mampu nak cope dengan semua tugasan ni...', color: 'bg-gray-50 text-gray-700 border-gray-100' },
-              { speaker: 'Klien', text: 'Kadang-kadang saya fikir nak berhenti je semua ni.', color: 'bg-red-50 text-red-700 border-red-200' },
+              { speaker: 'Counselor', text: 'Can you tell me more about that feeling of pressure?', color: 'bg-blue-50 text-blue-800 border-blue-100' },
+              { speaker: 'Client', text: "I feel like I can't cope with all these assignments...", color: 'bg-gray-50 text-gray-700 border-gray-100' },
+              { speaker: 'Client', text: 'Sometimes I think about just giving up on everything.', color: 'bg-red-50 text-red-700 border-red-200' },
             ].map((t, i) => (
               <div key={i} className={`rounded-lg border px-2 py-1.5 ${t.color}`}>
                 <div className="text-[9px] font-bold uppercase tracking-wide opacity-60 mb-0.5">{t.speaker}</div>
@@ -213,19 +213,19 @@ function SessionMockup() {
             ))}
             <div className="flex items-center gap-1 text-[10px] text-gray-400">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block"></span>
-              Mendengar...
+              Listening...
             </div>
           </div>
         </div>
         {/* AI panel */}
         <div className="col-span-2 space-y-2">
-          <div className="text-[11px] font-semibold text-gray-700">Cadangan AI</div>
+          <div className="text-[11px] font-semibold text-gray-700">AI Suggestions</div>
           <div className="bg-red-50 border border-red-200 rounded-lg p-2">
             <div className="text-[10px] font-bold text-red-700 flex items-center gap-1">⚠️ Red Flag</div>
-            <div className="text-[10px] text-red-600 mt-0.5">Kemungkinan tekanan tinggi. Semak risiko bunuh diri.</div>
+            <div className="text-[10px] text-red-600 mt-0.5">Possible high stress. Check suicide risk.</div>
           </div>
           <div className="bg-white border border-gray-100 rounded-lg p-2 space-y-1">
-            <div className="text-[10px] font-semibold text-gray-600">Teknik Dicadangkan:</div>
+            <div className="text-[10px] font-semibold text-gray-600">Suggested Techniques:</div>
             {['CBT — Cognitive Restructuring', 'Validation teknik DBT', 'Behavioral Activation'].map((t) => (
               <div key={t} className="flex items-start gap-1 text-[10px] text-gray-600">
                 <span className="text-emerald-500 mt-0.5 shrink-0">→</span>
@@ -235,7 +235,7 @@ function SessionMockup() {
           </div>
           <button className="w-full bg-emerald-600 text-white text-[10px] font-semibold py-1.5 rounded-lg flex items-center justify-center gap-1">
             <span className="w-2 h-2 rounded-full bg-red-300 inline-block"></span>
-            Rakam Aktif
+            Recording Active
           </button>
         </div>
       </div>
@@ -247,24 +247,24 @@ function ReportMockup() {
   return (
     <div className="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden text-xs font-sans">
       <div className="bg-white border-b border-gray-100 px-4 py-2.5 flex items-center justify-between">
-        <span className="font-semibold text-gray-800 text-xs">Laporan AI — Ahmad Faris</span>
+        <span className="font-semibold text-gray-800 text-xs">AI Report — Ahmad Faris</span>
         <button className="bg-emerald-600 text-white text-[10px] font-semibold px-3 py-1.5 rounded-lg">
-          ↓ Eksport PDF
+          ↓ Export PDF
         </button>
       </div>
       <div className="p-3 space-y-2">
         {/* case session note */}
         <div className="bg-white border border-gray-100 rounded-lg overflow-hidden">
           <div className="px-3 py-2 bg-emerald-50 border-b border-emerald-100">
-            <div className="font-bold text-emerald-800 text-[11px]">CASE SESSION NOTE — SOP UNIT KAUNSELING</div>
-            <div className="text-[10px] text-emerald-600">Sesi ke-3 • 31 Mei 2026 • 45 minit</div>
+            <div className="font-bold text-emerald-800 text-[11px]">CASE SESSION NOTE — SOP COUNSELING UNIT</div>
+            <div className="text-[10px] text-emerald-600">Session 3 • 31 May 2026 • 45 minutes</div>
           </div>
           <div className="p-3 grid grid-cols-2 gap-x-4 gap-y-1.5">
             {[
-              { label: 'Isu Dikemukakan', val: 'Tekanan akademik, perasaan tidak berkemampuan, sukar menumpukan perhatian.' },
-              { label: 'Isu Dikenal Pasti', val: 'Simptom kecemasan situasi berkaitan prestasi akademik. Tiada gangguan klinikal.' },
-              { label: 'Matlamat Bersama', val: 'Klien akan mengamalkan teknik relaksasi 10 minit setiap malam.' },
-              { label: 'Intervensi', val: 'CBT Cognitive Restructuring — kenal pasti pemikiran negatif automatik.' },
+              { label: 'Presenting Issue', val: 'Academic stress, feelings of inadequacy, difficulty concentrating.' },
+              { label: 'Identified Issue', val: 'Situational anxiety symptoms related to academic performance. No clinical disorder.' },
+              { label: 'Shared Goal', val: 'Client will practice 10-minute relaxation techniques every night.' },
+              { label: 'Intervention', val: 'CBT Cognitive Restructuring — identify automatic negative thoughts.' },
             ].map((item) => (
               <div key={item.label}>
                 <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">{item.label}</div>
@@ -275,12 +275,12 @@ function ReportMockup() {
         </div>
         {/* assessment */}
         <div className="bg-white border border-gray-100 rounded-lg p-3">
-          <div className="text-[11px] font-semibold text-gray-700 mb-1.5">Dapatan Penilaian</div>
+          <div className="text-[11px] font-semibold text-gray-700 mb-1.5">Assessment Findings</div>
           <div className="flex gap-3">
             <div className="flex-1 bg-blue-50 border border-blue-100 rounded-lg p-2 text-center">
               <div className="text-[10px] text-blue-500 font-medium">MBTI</div>
               <div className="text-base font-bold text-blue-700">INTJ</div>
-              <div className="text-[9px] text-blue-500">Perancang Strategik</div>
+              <div className="text-[9px] text-blue-500">Strategic Planner</div>
             </div>
             <div className="flex-1 bg-purple-50 border border-purple-100 rounded-lg p-2 text-center">
               <div className="text-[10px] text-purple-500 font-medium">RIASEC</div>
@@ -288,9 +288,9 @@ function ReportMockup() {
               <div className="text-[9px] text-purple-500">Holland Code</div>
             </div>
             <div className="flex-1 bg-amber-50 border border-amber-100 rounded-lg p-2 text-center">
-              <div className="text-[10px] text-amber-500 font-medium">Risiko</div>
-              <div className="text-sm font-bold text-amber-700">Sederhana</div>
-              <div className="text-[9px] text-amber-500">Perlu susulan</div>
+              <div className="text-[10px] text-amber-500 font-medium">Risk</div>
+              <div className="text-sm font-bold text-amber-700">Moderate</div>
+              <div className="text-[9px] text-amber-500">Needs follow-up</div>
             </div>
           </div>
         </div>
@@ -311,13 +311,13 @@ export default function DemoWalkthrough() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Demo Interaktif
+            Interactive Demo
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-            Lihat VeriRec Beraksi
+            See VeriRec in Action
           </h2>
           <p className="text-gray-500 text-lg max-w-xl mx-auto">
-            Dari tempahan hingga laporan — inilah aliran kerja sebenar kaunselor menggunakan VeriRec.
+            From booking to report — this is the real workflow of a counselor using VeriRec.
           </p>
         </div>
 
@@ -399,19 +399,19 @@ export default function DemoWalkthrough() {
 
         {/* bottom CTA */}
         <div className="mt-14 text-center">
-          <p className="text-gray-500 text-sm mb-4">Mahu lihat sendiri? Cuba akaun demo kami secara percuma.</p>
+          <p className="text-gray-500 text-sm mb-4">Want to see for yourself? Try our demo account for free.</p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <a
               href="/auth?mode=register&profession=counselor"
               className="inline-flex items-center gap-2 bg-emerald-600 text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-emerald-700 transition-colors shadow-md"
             >
-              Cuba 14 Hari Percuma →
+              Try Free for 14 Days →
             </a>
             <a
               href="/auth?profession=counselor"
               className="inline-flex items-center gap-2 border border-gray-200 text-gray-600 font-medium text-sm px-6 py-3 rounded-xl hover:border-emerald-300 hover:text-emerald-700 transition-colors"
             >
-              Log masuk dengan akaun demo
+              Log in with demo account
             </a>
           </div>
           <p className="text-xs text-gray-400 mt-2">

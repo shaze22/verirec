@@ -440,7 +440,7 @@ export default function DashboardPage({ pageTitle }) {
                 onClick={() => setShowQuickRecord(false)}
                 disabled={quickRecording}
               >
-                Batal
+                Cancel
               </Button>
               <Button
                 className="flex-1"
@@ -450,7 +450,7 @@ export default function DashboardPage({ pageTitle }) {
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                 </svg>
-                Mula Rakaman
+                Start Recording
               </Button>
             </div>
           </div>
@@ -471,7 +471,7 @@ export default function DashboardPage({ pageTitle }) {
 
         const rows = [
           { label: 'Date', v1: format(new Date(s1.created_at), 'dd MMM yyyy'), v2: format(new Date(s2.created_at), 'dd MMM yyyy') },
-          { label: 'Duration', v1: `${Math.round((s1.duration || 0) / 60)} minit`, v2: `${Math.round((s2.duration || 0) / 60)} minit` },
+          { label: 'Duration', v1: `${Math.round((s1.duration || 0) / 60)} min`, v2: `${Math.round((s2.duration || 0) / 60)} min` },
           { label: 'Subject', v1: s1.subject_name || '—', v2: s2.subject_name || '—', highlight: !sameSub },
           { label: 'Risk Level', v1: rl[s1.report?.riskLevel] || '—', v2: rl[s2.report?.riskLevel] || '—', riskKey1: s1.report?.riskLevel, riskKey2: s2.report?.riskLevel },
           { label: 'Sentiment', v1: sl[s1.report?.sentiment] || '—', v2: sl[s2.report?.sentiment] || '—' },
@@ -497,7 +497,7 @@ export default function DashboardPage({ pageTitle }) {
                       finally { setComparingExport(false); }
                     }}
                   >
-                    Eksport PDF
+                    Export PDF
                   </Button>
                   <button onClick={() => setCompareModal(false)} className="text-gray-400 hover:text-gray-600 p-1">
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -550,19 +550,19 @@ export default function DashboardPage({ pageTitle }) {
         actions={
           selectMode ? (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">{selected.size} dipilih</span>
+              <span className="text-sm text-gray-500">{selected.size} selected</span>
               {selected.size === 2 && (
                 <Button size="sm" variant="secondary" onClick={() => setCompareModal(true)}>
-                  Bandingkan
+                  Compare
                 </Button>
               )}
               <Button size="sm" variant="secondary" onClick={handleBulkExport} loading={bulkExporting} disabled={selected.size === 0}>
-                Eksport PDF
+                Export PDF
               </Button>
               <Button size="sm" variant="danger" onClick={handleBulkDelete} loading={bulkDeleting} disabled={selected.size === 0}>
-                Padam
+                Delete
               </Button>
-              <Button size="sm" variant="secondary" onClick={exitSelectMode}>Batal</Button>
+              <Button size="sm" variant="secondary" onClick={exitSelectMode}>Cancel</Button>
             </div>
           ) : (
             <div className="flex items-center gap-2">
@@ -601,7 +601,7 @@ export default function DashboardPage({ pageTitle }) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
             <p className="text-sm text-blue-800 flex-1">
-              <span className="font-semibold">{overdueCount} item susulan</span> belum diselesaikan merentas sesi anda.
+              <span className="font-semibold">{overdueCount} follow-up items</span> pending across your sessions.
             </p>
           </div>
         )}
@@ -670,7 +670,7 @@ export default function DashboardPage({ pageTitle }) {
                     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
-                    Pilih &amp; Padam
+                    Select &amp; Delete
                   </button>
                 )}
                 {selectMode && (
@@ -787,7 +787,7 @@ export default function DashboardPage({ pageTitle }) {
                       </div>
                       <div className="text-right flex-shrink-0 space-y-1">
                         <p className="text-xs text-gray-400">{format(new Date(s.created_at), 'dd MMM yyyy')}</p>
-                        <p className="text-xs text-gray-400">{Math.round((s.duration || 0) / 60)} minit</p>
+                        <p className="text-xs text-gray-400">{Math.round((s.duration || 0) / 60)} min</p>
                         {s.recording_status === 'draft' ? (
                           <Badge color="yellow" className="text-xs">Draft</Badge>
                         ) : s.recording_status === 'in_progress' ? (
@@ -817,7 +817,7 @@ export default function DashboardPage({ pageTitle }) {
                 Scheduled Sessions
               </h3>
               <button onClick={() => navigate('/jadual')} className="text-xs text-blue-600 hover:text-blue-700">
-                Lihat semua →
+                View all →
               </button>
             </div>
             <div className="grid gap-2">

@@ -259,7 +259,7 @@ export default function SettingsPage() {
   const handleRetentionSave = () => {
     if (retentionDays) {
       localStorage.setItem('retention_days', retentionDays);
-      toast.success(`Data retention setting updated: ${retentionDays} hari.`);
+      toast.success(`Data retention setting updated: ${retentionDays} days.`);
     } else {
       localStorage.removeItem('retention_days');
       toast.success('Data retention: Keep forever.');
@@ -352,7 +352,7 @@ export default function SettingsPage() {
                 <span className="font-medium">{user?.email}</span>
               </div>
               <div className="flex justify-between items-center gap-3">
-                <span className="text-gray-500 flex-shrink-0">Nama</span>
+                <span className="text-gray-500 flex-shrink-0">Name</span>
                 {editingName ? (
                   <div className="flex items-center gap-2 flex-1 justify-end">
                     <input
@@ -427,30 +427,30 @@ export default function SettingsPage() {
                     setEditingProfile(false);
                     toast.success('Profile updated.');
                   } catch (err) {
-                    toast.error(err.message || 'Gagal menyimpan.');
+                    toast.error(err.message || 'Failed to save.');
                   } finally {
                     setSavingProfile(false);
                   }
                 }} className="space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs text-gray-500 mb-1 block">Nama Paparan *</label>
+                      <label className="text-xs text-gray-500 mb-1 block">Display Name *</label>
                       <Input value={profileForm.display_name} onChange={e => setProfileForm(f => ({ ...f, display_name: e.target.value }))} placeholder="Your name" required />
                     </div>
                     <div>
-                      <label className="text-xs text-gray-500 mb-1 block">No. Telefon *</label>
+                      <label className="text-xs text-gray-500 mb-1 block">Phone Number *</label>
                       <Input value={profileForm.phone} onChange={e => setProfileForm(f => ({ ...f, phone: e.target.value }))} placeholder="01X-XXXXXXX" required />
                     </div>
                     <div>
-                      <label className="text-xs text-gray-500 mb-1 block">No. Pendaftaran</label>
+                      <label className="text-xs text-gray-500 mb-1 block">Registration No.</label>
                       <Input value={profileForm.registration_number} onChange={e => setProfileForm(f => ({ ...f, registration_number: e.target.value }))} placeholder="KB/00000/2020" />
                     </div>
                     <div>
-                      <label className="text-xs text-gray-500 mb-1 block">Nama Unit / Klinik</label>
+                      <label className="text-xs text-gray-500 mb-1 block">Unit / Clinic Name</label>
                       <Input value={profileForm.klinik_name} onChange={e => setProfileForm(f => ({ ...f, klinik_name: e.target.value }))} placeholder="UTM Counseling Unit" />
                     </div>
                     <div>
-                      <label className="text-xs text-gray-500 mb-1 block">Tempoh Sesi (minit)</label>
+                      <label className="text-xs text-gray-500 mb-1 block">Session Duration (minutes)</label>
                       <Input type="number" min="15" max="180" step="15" value={profileForm.session_duration_minutes} onChange={e => setProfileForm(f => ({ ...f, session_duration_minutes: parseInt(e.target.value) }))} />
                     </div>
                     <div className="flex items-center gap-3 pt-5">
@@ -459,11 +459,11 @@ export default function SettingsPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs text-gray-500 mb-1 block">Lokasi / Alamat</label>
+                    <label className="text-xs text-gray-500 mb-1 block">Location / Address</label>
                     <Input value={profileForm.klinik_address} onChange={e => setProfileForm(f => ({ ...f, klinik_address: e.target.value }))} placeholder="Block A, Administration Building..." />
                   </div>
                   <div>
-                    <label className="text-xs text-gray-500 mb-1 block">Bio Ringkas</label>
+                    <label className="text-xs text-gray-500 mb-1 block">Short Bio</label>
                     <Textarea value={profileForm.bio} onChange={e => setProfileForm(f => ({ ...f, bio: e.target.value }))} rows={2} placeholder="Your specialization and experience..." />
                   </div>
                   <div className="flex gap-2 pt-1">
@@ -493,7 +493,7 @@ export default function SettingsPage() {
                   <div className="flex justify-between">
                     <span className="text-gray-500">Booking Status</span>
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${counselorProfile.is_accepting_appointments ? 'bg-violet-100 text-violet-700' : 'bg-gray-100 text-gray-500'}`}>
-                      {counselorProfile.is_accepting_appointments ? 'Menerima Tempahan' : 'Tidak Menerima'}
+                      {counselorProfile.is_accepting_appointments ? 'Accepting Bookings' : 'Not Accepting'}
                     </span>
                   </div>
                   {counselorProfile.bio && (
@@ -506,7 +506,7 @@ export default function SettingsPage() {
                   {/* QR + Booking Link */}
                   {counselorProfile.booking_code && (
                     <div className="pt-3 border-t border-gray-100 space-y-3">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">QR & Pautan Tempahan</p>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">QR & Booking Link</p>
                       <div className="flex items-start gap-4">
                         {qrDataUrl && (
                           <img src={qrDataUrl} alt="Booking QR" className="w-20 h-20 rounded-lg border border-gray-200 flex-shrink-0" />
@@ -625,7 +625,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Sahkan New Password</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
                 <input
                   type="password"
                   value={pwForm.confirm}
@@ -697,7 +697,7 @@ export default function SettingsPage() {
                   <div className="flex gap-3">
                     <Button type="button" variant="secondary" onClick={() => setEnrollData(null)}>Cancel</Button>
                     <Button type="submit" className="flex-1" loading={enrollVerifying} disabled={enrollCode.length !== 6}>
-                      Aktifkan 2FA
+                      Enable 2FA
                     </Button>
                   </div>
                 </form>
@@ -750,7 +750,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between py-2">
                   <div>
                     <p className="text-sm font-medium text-gray-800">Enable Telegram notifications</p>
-                    <p className="text-xs text-gray-400">Temujanji baru & peringatan esok</p>
+                    <p className="text-xs text-gray-400">New appointments & tomorrow's reminders</p>
                   </div>
                   <button
                     onClick={async () => {
@@ -875,7 +875,7 @@ export default function SettingsPage() {
                     }}
                     className="px-3 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors flex-shrink-0"
                   >
-                    Salin
+                    Copy
                   </button>
                 </div>
               </div>
@@ -909,7 +909,7 @@ export default function SettingsPage() {
                     onClick={() => navigate('/team')}
                     className="text-xs font-semibold text-blue-600 hover:text-blue-800 bg-white border border-blue-200 px-3 py-1.5 rounded-lg transition-colors"
                   >
-                    Urus Pasukan →
+                    Manage Team →
                   </button>
                 </div>
 
@@ -936,7 +936,7 @@ export default function SettingsPage() {
                         }, 300);
                       }}
                     >
-                      Simpan
+                      Save
                     </Button>
                   </div>
                   <p className="text-xs text-gray-400 mt-1">Will appear in PDF reports as the organization name.</p>
@@ -960,7 +960,7 @@ export default function SettingsPage() {
                     </div>
                     {teamMembers.length > 5 && (
                       <button onClick={() => navigate('/team')} className="text-xs text-blue-600 hover:underline mt-2">
-                        View all {teamMembers.length} ahli →
+                        View all {teamMembers.length} members →
                       </button>
                     )}
                   </div>
@@ -1006,7 +1006,7 @@ export default function SettingsPage() {
                 onClick={handleDeleteAccount}
                 disabled={deleteConfirm !== user?.email}
               >
-                Padam Semua Data & Akaun
+                Delete All Data & Account
               </Button>
             </div>
           </section>
@@ -1022,10 +1022,10 @@ export default function SettingsPage() {
         footer={
           <div className="flex gap-3 justify-end">
             <Button variant="secondary" onClick={() => setDeleteModal(false)} disabled={deleteLoading}>
-              Batal
+              Cancel
             </Button>
             <Button variant="danger" onClick={confirmDeleteAccount} loading={deleteLoading}>
-              Ya, Padam Semua Data
+              Yes, Delete All Data
             </Button>
           </div>
         }

@@ -44,7 +44,7 @@ function SubjectHistoryModal({ subject, onClose }) {
           .order('created_at', { ascending: true });
         setSessions(data || []);
       } catch {
-        toast.error('Gagal memuatkan sejarah sesi.');
+        toast.error('Failed to load session history.');
       } finally {
         setLoading(false);
       }
@@ -52,17 +52,17 @@ function SubjectHistoryModal({ subject, onClose }) {
   }, [subject]);
 
   return (
-    <Modal open={!!subject} onClose={onClose} title={`History Sesi — ${subject?.name}`}>
+    <Modal open={!!subject} onClose={onClose} title={`Session History — ${subject?.name}`}>
       {loading ? (
         <div className="flex justify-center py-8"><div className="w-6 h-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>
       ) : sessions.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-8">Tiada sesi rekod untuk subjek ini.</p>
+        <p className="text-sm text-gray-400 text-center py-8">No recorded sessions for this subject.</p>
       ) : (
         <div className="space-y-3">
           <div className="flex items-center justify-between mb-1">
-            <p className="text-xs text-gray-500">{sessions.length} sesi dijumpai</p>
+            <p className="text-xs text-gray-500">{sessions.length} sessions found</p>
             <div className="flex items-center gap-1.5 text-sm">
-              <span className="text-xs text-gray-500">Trend risiko:</span>
+              <span className="text-xs text-gray-500">Risk trend:</span>
               <RiskTrend sessions={sessions} />
             </div>
           </div>
@@ -83,9 +83,9 @@ function SubjectHistoryModal({ subject, onClose }) {
                   {s.report?.riskLevel ? (
                     <Badge color={riskColors[s.report.riskLevel]}>{riskLabels[s.report.riskLevel]}</Badge>
                   ) : (
-                    <Badge color="gray">Tiada laporan</Badge>
+                    <Badge color="gray">No report</Badge>
                   )}
-                  {s.status === 'closed' && <Badge color="gray">Ditutup</Badge>}
+                  {s.status === 'closed' && <Badge color="gray">Closed</Badge>}
                 </div>
               </div>
             </button>
@@ -109,7 +109,7 @@ function SubjectForm({ value, onChange }) {
         <Input label="E-mel" type="email" value={value.email} onChange={set('email')} placeholder="emel@contoh.com" />
       </div>
       <Input label="Alamat" value={value.address} onChange={set('address')} placeholder="Alamat (jika perlu)" />
-      <Textarea label="Nota" value={value.notes} onChange={set('notes')} rows={3} placeholder="Maklumat tambahan tentang subjek..." />
+      <Textarea label="Note" value={value.notes} onChange={set('notes')} rows={3} placeholder="Additional information about subject..." />
     </div>
   );
 }
@@ -132,7 +132,7 @@ export default function SubjectsPage() {
       const data = await getSubjects();
       setSubjects(data);
     } catch {
-      toast.error('Gagal memuatkan profil subjek.');
+      toast.error('Failed to load subject profiles.');
     } finally {
       setLoading(false);
     }
@@ -172,29 +172,29 @@ export default function SubjectsPage() {
     try {
       if (modal.mode === 'create') {
         await createSubject(user.id, form);
-        toast.success('Profil subjek berjaya dicipta.');
+        toast.success('Subject profile created successfully.');
       } else {
         await updateSubject(modal.subject.id, form);
-        toast.success('Profil berjaya dikemas kini.');
+        toast.success('Profile updated successfully.');
       }
       setModal(null);
       load();
     } catch {
-      toast.error('Gagal menyimpan. Cuba lagi.');
+      toast.error('Failed to save. Try again.');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete profil ini? Sesi yang dikaitkan tidak akan terpadam.')) return;
+    if (!window.confirm('Delete this profile? Associated sessions will not be deleted.')) return;
     setDeleting(id);
     try {
       await deleteSubject(id);
       setSubjects(prev => prev.filter(s => s.id !== id));
-      toast.success('Profil dipadamkan.');
+      toast.success('Profile deleted.');
     } catch {
-      toast.error('Gagal memadam. Cuba lagi.');
+      toast.error('Failed to delete. Try again.');
     } finally {
       setDeleting(null);
     }
@@ -208,25 +208,25 @@ export default function SubjectsPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <TopBar title="Profil Subjek" />
+      <TopBar title="Subject Profiles" />
       <div className="flex-1 overflow-auto p-6 pb-20 md:pb-6">
         <div className="max-w-3xl mx-auto">
 
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Profil Subjek</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Subject Profiles</h2>
               <p className="text-sm text-gray-500 mt-0.5">
-                {loading ? 'Memuatkan...' : `${subjects.length} profil disimpan`}
+                {loading ? 'Loading...' : `${subjects.length} profiles saved`}
               </p>
             </div>
-            <Button onClick={openCreate}>+ Tambah Profil</Button>
+            <Button onClick={openCreate}>+ Add Profile</Button>
           </div>
 
           <div className="mb-4">
             <Input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Cari nama, nombor IC atau telefon..."
+              placeholder="Search name, IC number, or phone..."
             />
           </div>
 
@@ -242,11 +242,11 @@ export default function SubjectsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
               <p className="text-sm font-medium">
-                {search ? 'Tiada profil dijumpai.' : 'Tiada profil subjek lagi.'}
+                {search ? 'No profiles found.' : 'No subject profiles yet.'}
               </p>
               {!search && (
                 <button onClick={openCreate} className="mt-2 text-sm text-blue-600 hover:underline">
-                  Tambah profil pertama →
+                  Add first profile →
                 </button>
               )}
             </div>
@@ -310,14 +310,14 @@ export default function SubjectsPage() {
       <Modal
         open={!!modal}
         onClose={() => setModal(null)}
-        title={modal?.mode === 'create' ? 'Tambah Profil Subjek' : 'Edit Profil Subjek'}
+        title={modal?.mode === 'create' ? 'Add Subject Profile' : 'Edit Subject Profile'}
       >
         <form onSubmit={handleSave} className="space-y-4">
           <SubjectForm value={form} onChange={setForm} />
           <div className="flex gap-3 pt-2">
             <Button type="button" variant="secondary" onClick={() => setModal(null)}>Cancel</Button>
             <Button type="submit" className="flex-1" loading={saving}>
-              {modal?.mode === 'create' ? 'Save Profil' : 'Kemas Kini'}
+              {modal?.mode === 'create' ? 'Save Profile' : 'Update'}
             </Button>
           </div>
         </form>

@@ -34,12 +34,12 @@ export function BillingGate({ plan, children, sessionCheck = false }) {
       <Modal
         open={showUpgrade}
         onClose={() => setShowUpgrade(false)}
-        title="Naik Taraf Diperlukan"
+        title="Upgrade Required"
         footer={
           <div className="flex gap-3 justify-end">
-            <Button variant="secondary" onClick={() => setShowUpgrade(false)}>Batal</Button>
+            <Button variant="secondary" onClick={() => setShowUpgrade(false)}>Cancel</Button>
             <Button onClick={() => navigate(pricingUrl)}>
-              {isCounselor && !hasSessionsLeft ? 'Topup Sesi' : 'Lihat Pelan'}
+              {isCounselor && !hasSessionsLeft ? 'Top Up Sessions' : 'View Plans'}
             </Button>
           </div>
         }
@@ -48,19 +48,19 @@ export function BillingGate({ plan, children, sessionCheck = false }) {
           <div className="text-4xl mb-4">🔒</div>
           {!hasSessionsLeft ? (
             <>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Had Sesi Dicapai</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Session Limit Reached</h3>
               <p className="text-gray-600">
                 {isCounselor
-                  ? `Sesi bulanan dan top-up anda telah habis. Beli top-up sesi untuk teruskan.`
-                  : `Anda telah menggunakan ${subscription?.sessions_used} daripada ${subscription?.sessions_limit} sesi anda untuk bulan ini. Naik taraf untuk teruskan.`
+                  ? `Your monthly sessions and top-ups have been used up. Buy a session top-up to continue.`
+                  : `You have used ${subscription?.sessions_used} of ${subscription?.sessions_limit} sessions this month. Upgrade to continue.`
                 }
               </p>
             </>
           ) : (
             <>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Ciri Eksklusif</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Exclusive Feature</h3>
               <p className="text-gray-600">
-                Ciri ini memerlukan pelan <strong className="capitalize">{plan}</strong> atau lebih tinggi.
+                This feature requires the <strong className="capitalize">{plan}</strong> plan or higher.
               </p>
             </>
           )}

@@ -7,15 +7,15 @@ import { TopBar } from '../components/layout/TopBar.jsx';
 import { Badge } from '../components/ui/Badge.jsx';
 import toast from 'react-hot-toast';
 
-const PLAN_LABELS  = { free: 'Percuma', starter: 'Starter', pro: 'Pro', biz: 'Perniagaan' };
+const PLAN_LABELS  = { free: 'Free', starter: 'Starter', pro: 'Pro', biz: 'Business' };
 const PLAN_COLORS  = { free: 'gray', starter: 'blue', pro: 'purple', biz: 'green' };
 const PLAN_PRICES  = { starter: 100, pro: 999, biz: 2499 };
 const PLAN_OPTIONS = [
-  { value: 'free',      label: 'Percuma  (2 sesi)' },
-  { value: 'starter',   label: 'Profesional  (10 sesi)' },
-  { value: 'counselor', label: 'Kaunselor  (10 sesi)' },
-  { value: 'pro',       label: 'Pro  (100 sesi)' },
-  { value: 'biz',       label: 'Perniagaan  (200 sesi)' },
+  { value: 'free',      label: 'Free  (2 sessions)' },
+  { value: 'starter',   label: 'Professional  (10 sessions)' },
+  { value: 'counselor', label: 'Counselor  (10 sessions)' },
+  { value: 'pro',       label: 'Pro  (100 sessions)' },
+  { value: 'biz',       label: 'Business  (200 sessions)' },
 ];
 
 function StatCard({ label, value, sub, color = 'blue' }) {
@@ -77,7 +77,7 @@ export default function AdminPage() {
         if (!session) { navigate('/auth'); return; }
         const res = await fetch('/api/admin', { headers: { Authorization: `Bearer ${session.access_token}` } });
         if (res.status === 403) { toast.error('Akses declined.'); navigate('/dashboard'); return; }
-        if (!res.ok) throw new Error('Gagal memuatkan data admin');
+        if (!res.ok) throw new Error('Failed to load admin data');
         setData(await res.json());
       } catch (err) {
         toast.error(err.message);
@@ -95,7 +95,7 @@ export default function AdminPage() {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
       body: JSON.stringify(body),
     });
-    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Ralat'); }
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Error'); }
     return res.json();
   };
 
@@ -106,18 +106,18 @@ export default function AdminPage() {
     try {
       const { subscription } = await adminPost({ action: 'update-plan', userId, plan });
       setData(p => ({ ...p, users: p.users.map(u => u.id === userId ? { ...u, subscription } : u) }));
-      toast.success(`Plan ditukar ke ${PLAN_LABELS[plan]}`);
+      toast.success(`Plan changed to ${PLAN_LABELS[plan]}`);
     } catch (err) { toast.error(err.message); }
     finally { setActionLoading(null); }
   };
 
   const handleResetSessions = async (userId, email) => {
-    if (!window.confirm(`Reset sesi untuk ${email}? Kiraan akan kembali ke 0.`)) return;
+    if (!window.confirm(`Reset sessions for ${email}? Count will return to 0.`)) return;
     setActionLoading(userId + '_reset');
     try {
       const { subscription } = await adminPost({ action: 'reset-sessions', userId });
       setData(p => ({ ...p, users: p.users.map(u => u.id === userId ? { ...u, subscription } : u) }));
-      toast.success('Sessions berjaya direset.');
+      toast.success('Sessions reset successfully.');
     } catch (err) { toast.error(err.message); }
     finally { setActionLoading(null); }
   };
@@ -127,7 +127,7 @@ export default function AdminPage() {
     setEmailSending(true);
     try {
       await adminPost({ action: 'send-email', userId: emailModal.userId, subject: emailSubject, message: emailMessage });
-      toast.success('E-mel berjaya sent.');
+      toast.success('Email sent successfully.');
       setEmailModal(null); setEmailSubject(''); setEmailMessage('');
     } catch (err) { toast.error(err.message); }
     finally { setEmailSending(false); }
@@ -162,24 +162,24 @@ export default function AdminPage() {
 
   const handleSuspend = async (userId, email) => {
     setKebabMenu(null);
-    if (!window.confirm(`Suspend akaun ${email}? Users tidak akan dapat log masuk.`)) return;
+    if (!window.confirm(`Suspend account ${email}? Users will not be able to log in.`)) return;
     setActionLoading(userId + '_suspend');
     try {
       const { banned_until } = await adminPost({ action: 'suspend-user', userId });
       setData(p => ({ ...p, users: p.users.map(u => u.id === userId ? { ...u, banned_until } : u) }));
-      toast.success('Akaun pengguna digantung.');
+      toast.success('User account suspended.');
     } catch (err) { toast.error(err.message); }
     finally { setActionLoading(null); }
   };
 
   const handleUnsuspend = async (userId, email) => {
     setKebabMenu(null);
-    if (!window.confirm(`Activekan semula akaun ${email}?`)) return;
+    if (!window.confirm(`Reactivate account ${email}?`)) return;
     setActionLoading(userId + '_suspend');
     try {
       await adminPost({ action: 'unsuspend-user', userId });
       setData(p => ({ ...p, users: p.users.map(u => u.id === userId ? { ...u, banned_until: null } : u) }));
-      toast.success('Akaun pengguna diaktifkan semula.');
+      toast.success('User account reactivated.');
     } catch (err) { toast.error(err.message); }
     finally { setActionLoading(null); }
   };
@@ -230,7 +230,7 @@ export default function AdminPage() {
         {/* tabs */}
         <div className="flex gap-1 mb-6 border-b">
           {[
-            { key: 'overview', label: 'Ringkasan' },
+            { key: 'overview', label: 'Overview' },
             { key: 'users',    label: `Users${data ? ` (${data.users.length})` : ''}` },
           ].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
@@ -249,17 +249,17 @@ export default function AdminPage() {
           <div className="space-y-6">
             {/* stat cards */}
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-              <StatCard label="Total Users"       value={stats.totalUsers}        sub="semua masa"                                color="blue" />
-              <StatCard label="Pendaftaran Bulan Ini" value={stats.newThisMonth}      sub={format(new Date(), 'MMMM yyyy')}          color="green" />
-              <StatCard label="MRR"                   value={`RM ${mrr.toLocaleString()}`} sub={`${stats.paidUsers} langganan berbayar`} color="purple" />
-              <StatCard label="Sessions Bulan Ini"        value={stats.sessionsThisMonth} sub={`${stats.totalSessions} keseluruhan`}     color="amber" />
-              <StatCard label="Subscriptions Berbayar"    value={stats.paidUsers}         sub={`daripada ${stats.totalUsers} pengguna`}  color="green" />
-              <StatCard label="Tidak Active (30 hari)" value={inactiveCount}           sub="log masuk terakhir > 30 hari"             color="red" />
+              <StatCard label="Total Users"       value={stats.totalUsers}        sub="all time"                                color="blue" />
+              <StatCard label="New This Month" value={stats.newThisMonth}      sub={format(new Date(), 'MMMM yyyy')}          color="green" />
+              <StatCard label="MRR"                   value={`RM ${mrr.toLocaleString()}`} sub={`${stats.paidUsers} paid subscriptions`} color="purple" />
+              <StatCard label="Sessions This Month"        value={stats.sessionsThisMonth} sub={`${stats.totalSessions} total`}     color="amber" />
+              <StatCard label="Paid Subscriptions"    value={stats.paidUsers}         sub={`out of ${stats.totalUsers} users`}  color="green" />
+              <StatCard label="Inactive (30 days)" value={inactiveCount}           sub="last login > 30 days"             color="red" />
             </div>
 
             {/* growth chart */}
             <div className="bg-white rounded-xl border p-5">
-              <h3 className="text-sm font-semibold text-gray-700 mb-4">Pertumbuhan Users (8 Minggu)</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-4">User Growth (8 Weeks)</h3>
               <div className="flex items-end gap-2 h-24">
                 {growthData.map((week, i) => (
                   <div key={i} className="flex-1 flex flex-col items-center gap-1">
@@ -276,7 +276,7 @@ export default function AdminPage() {
 
             {/* plan distribution */}
             <div className="bg-white rounded-xl border p-5">
-              <h3 className="text-sm font-semibold text-gray-700 mb-4">Pecahan Pelan</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-4">Plan Breakdown</h3>
               <div className="space-y-3">
                 {Object.entries(stats.planCounts).map(([plan, count]) => {
                   const pct = stats.totalUsers > 0 ? Math.round((count / stats.totalUsers) * 100) : 0;
@@ -286,8 +286,8 @@ export default function AdminPage() {
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
                           <Badge color={PLAN_COLORS[plan] || 'gray'} className="text-xs">{PLAN_LABELS[plan] || plan}</Badge>
-                          <span className="text-sm text-gray-700">{count} pengguna</span>
-                          {plan !== 'free' && <span className="text-xs text-gray-400">· RM {((PLAN_PRICES[plan] || 0) * count).toLocaleString()}/bln</span>}
+                          <span className="text-sm text-gray-700">{count} users</span>
+                          {plan !== 'free' && <span className="text-xs text-gray-400">· RM {((PLAN_PRICES[plan] || 0) * count).toLocaleString()}/mo</span>}
                         </div>
                         <span className="text-xs text-gray-400">{pct}%</span>
                       </div>
@@ -302,7 +302,7 @@ export default function AdminPage() {
 
             {/* recent signups */}
             <div className="bg-white rounded-xl border p-5">
-              <h3 className="text-sm font-semibold text-gray-700 mb-4">Pendaftaran Terbaru</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-4">Recent Registrations</h3>
               <div className="space-y-2">
                 {[...data.users].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 8).map(u => (
                   <div key={u.id} className="flex items-center justify-between py-1">
@@ -316,7 +316,7 @@ export default function AdminPage() {
                       </div>
                     </div>
                     <Badge color={PLAN_COLORS[u.subscription?.plan] || 'gray'} className="text-xs">
-                      {PLAN_LABELS[u.subscription?.plan] || 'Percuma'}
+                      {PLAN_LABELS[u.subscription?.plan] || 'Free'}
                     </Badge>
                   </div>
                 ))}
@@ -331,7 +331,7 @@ export default function AdminPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-                placeholder="Cari e-mel atau pelan..."
+                placeholder="Search email or plan..."
                 className="pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
 
@@ -339,8 +339,8 @@ export default function AdminPage() {
               <table className="w-full text-sm min-w-[900px]">
                 <thead>
                   <tr className="border-b bg-gray-50">
-                    {['Users', 'Pelan', 'Sessions', 'Daftar', 'Active Terakhir', 'Tindakan'].map(h => (
-                      <th key={h} className={`px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide ${h === 'Tindakan' ? 'text-right' : 'text-left'}`}>{h}</th>
+                    {['Users', 'Plan', 'Sessions', 'Registered', 'Last Active', 'Actions'].map(h => (
+                      <th key={h} className={`px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide ${h === 'Actions' ? 'text-right' : 'text-left'}`}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -358,7 +358,7 @@ export default function AdminPage() {
                             </div>
                             <div>
                               <span className="text-gray-800 truncate max-w-[200px] block">{u.email}</span>
-                              {isSuspended && <span className="text-xs text-red-500 font-medium">Digantung</span>}
+                              {isSuspended && <span className="text-xs text-red-500 font-medium">Suspended</span>}
                             </div>
                           </div>
                         </td>
@@ -401,7 +401,7 @@ export default function AdminPage() {
                             <button onClick={() => handleResetSessions(u.id, u.email)}
                               disabled={actionLoading === u.id + '_reset' || !sub || sub.sessions_used === 0}
                               className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                              title="Reset kiraan sesi ke 0">
+                              title="Reset session count to 0">
                               {actionLoading === u.id + '_reset' ? <Spinner /> : <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>}
                               Reset
                             </button>
@@ -419,12 +419,12 @@ export default function AdminPage() {
                                   <button onClick={() => { setKebabMenu(null); setEmailModal({ userId: u.id, email: u.email }); }}
                                     className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
                                     <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                                    Hantar E-mel
+                                    Send Email
                                   </button>
                                   <button onClick={() => handleOpenConsent(u.id, u.email)}
                                     className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
                                     <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                                    Log Consent PDPA
+                                    PDPA Consent Log
                                   </button>
                                   <button onClick={() => handleExportUser(u.id, u.email)}
                                     disabled={actionLoading === u.id + '_export'}
@@ -438,14 +438,14 @@ export default function AdminPage() {
                                       disabled={actionLoading === u.id + '_suspend'}
                                       className="w-full text-left px-3 py-2 text-xs text-green-700 hover:bg-green-50 flex items-center gap-2 disabled:opacity-50">
                                       {actionLoading === u.id + '_suspend' ? <Spinner className="w-3.5 h-3.5 border-green-600" /> : <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-                                      Activekan Semula
+                                      Reactivate
                                     </button>
                                   ) : (
                                     <button onClick={() => handleSuspend(u.id, u.email)}
                                       disabled={actionLoading === u.id + '_suspend'}
                                       className="w-full text-left px-3 py-2 text-xs text-red-700 hover:bg-red-50 flex items-center gap-2 disabled:opacity-50">
                                       {actionLoading === u.id + '_suspend' ? <Spinner className="w-3.5 h-3.5 border-red-600" /> : <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>}
-                                      Suspend Akaun
+                                      Suspend Account
                                     </button>
                                   )}
                                 </div>
@@ -457,7 +457,7 @@ export default function AdminPage() {
                     );
                   })}
                   {filteredUsers.length === 0 && (
-                    <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400 text-sm">Tiada pengguna sepadan dengan carian.</td></tr>
+                    <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400 text-sm">No users match the search.</td></tr>
                   )}
                 </tbody>
               </table>
@@ -471,34 +471,34 @@ export default function AdminPage() {
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={e => { if (e.target === e.currentTarget) setEmailModal(null); }}>
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-900">Hantar E-mel</h3>
+              <h3 className="font-semibold text-gray-900">Send Email</h3>
               <button onClick={() => setEmailModal(null)} className="text-gray-400 hover:text-gray-600">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Kepada</label>
+                <label className="block text-xs font-medium text-gray-500 mb-1">To</label>
                 <input value={emailModal.email} readOnly className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-600" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">Subjek *</label>
                 <input value={emailSubject} onChange={e => setEmailSubject(e.target.value)}
-                  placeholder="Tajuk e-mel"
+                  placeholder="Email subject"
                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">Mesej *</label>
                 <textarea value={emailMessage} onChange={e => setEmailMessage(e.target.value)}
-                  rows={5} placeholder="Tulis mesej di sini..."
+                  rows={5} placeholder="Write message here..."
                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
               </div>
               <div className="flex gap-3 pt-1">
-                <button onClick={() => setEmailModal(null)} className="flex-1 px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">Batal</button>
+                <button onClick={() => setEmailModal(null)} className="flex-1 px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
                 <button onClick={handleSendEmail} disabled={emailSending || !emailSubject.trim() || !emailMessage.trim()}
                   className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2">
                   {emailSending && <Spinner />}
-                  Hantar
+                  Send
                 </button>
               </div>
             </div>
@@ -512,7 +512,7 @@ export default function AdminPage() {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="font-semibold text-gray-900">Log Consent PDPA</h3>
+                <h3 className="font-semibold text-gray-900">PDPA Consent Log</h3>
                 <p className="text-xs text-gray-500 mt-0.5">{consentModal.email}</p>
               </div>
               <button onClick={() => setConsentModal(null)} className="text-gray-400 hover:text-gray-600">
@@ -522,7 +522,7 @@ export default function AdminPage() {
             {consentLoading ? (
               <div className="flex justify-center py-8"><Spinner className="w-6 h-6 border-blue-600" /></div>
             ) : consentLogs.length === 0 ? (
-              <p className="text-center text-gray-400 text-sm py-8">No records consent untuk pengguna ini.</p>
+              <p className="text-center text-gray-400 text-sm py-8">No consent records for this user.</p>
             ) : (
               <div className="space-y-2 max-h-80 overflow-y-auto">
                 {consentLogs.map(log => (
@@ -530,7 +530,7 @@ export default function AdminPage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className={`text-xs font-semibold ${log.decision === 'accepted' ? 'text-green-700' : 'text-red-700'}`}>
-                          {log.decision === 'accepted' ? '✓ Terima' : '✗ Tolak'}
+                          {log.decision === 'accepted' ? '✓ Accepted' : '✗ Rejected'}
                         </span>
                         <span className="text-xs text-gray-400">{format(new Date(log.created_at), 'dd MMM yyyy, HH:mm')}</span>
                       </div>
@@ -542,7 +542,7 @@ export default function AdminPage() {
                 ))}
               </div>
             )}
-            <button onClick={() => setConsentModal(null)} className="mt-4 w-full px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">Tutup</button>
+            <button onClick={() => setConsentModal(null)} className="mt-4 w-full px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">Close</button>
           </div>
         </div>
       )}

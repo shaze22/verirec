@@ -12,73 +12,73 @@ const MIN_INTERVAL_MS = 15000;  // minimum gap between analyses (ms)
 const PROFESSION_CONFIG = {
   counselor: {
     disclaimer: true,
-    disclaimerText: 'Analisa AI ini adalah alat sokongan klinikal sahaja dan bukan diagnosis rasmi. Keputusan klinikal mestilah dibuat oleh kaunselor bertauliah berdasarkan penilaian menyeluruh.',
-    penemuanLabel: 'Simptom Mungkin Hadir',
-    tindakanLabel: 'Teknik Disyorkan',
+    disclaimerText: 'This AI analysis is a clinical support tool only and not an official diagnosis. Clinical decisions must be made by a qualified counselor based on a comprehensive assessment.',
+    penemuanLabel: 'Possible Symptoms Present',
+    tindakanLabel: 'Recommended Techniques',
     risikoLabel: true,
     penemuanColor: 'purple',
   },
   police: {
     disclaimer: false,
-    disclaimerText: 'Analisa AI adalah panduan sokongan penyiasatan sahaja. Keputusan muktamad adalah tanggungjawab pegawai penyiasat.',
-    penemuanLabel: 'Ketidakkonsistenan Dikesan',
-    tindakanLabel: 'Langkah Susulan',
+    disclaimerText: 'AI analysis is a support guide for investigation only. Final decisions are the responsibility of the investigating officer.',
+    penemuanLabel: 'Inconsistencies Detected',
+    tindakanLabel: 'Follow-up Steps',
     risikoLabel: true,
     penemuanColor: 'orange',
   },
   sprm: {
     disclaimer: false,
-    disclaimerText: 'Analisa AI adalah panduan penyiasatan sahaja. Sebarang tindakan undang-undang mestilah berdasarkan bukti yang telah disahkan.',
-    penemuanLabel: 'Tanda Penyelewengan',
-    tindakanLabel: 'Tindakan Penyiasatan',
+    disclaimerText: 'AI analysis is an investigation guide only. Any legal action must be based on verified evidence.',
+    penemuanLabel: 'Signs of Misconduct',
+    tindakanLabel: 'Investigation Actions',
     risikoLabel: true,
     penemuanColor: 'red',
   },
   doctor: {
     disclaimer: true,
-    disclaimerText: 'Analisa AI adalah panduan klinikal sokongan sahaja dan bukan diagnosis rasmi. Diagnosis mestilah dibuat oleh pengamal perubatan berdaftar melalui penilaian klinikal menyeluruh.',
-    penemuanLabel: 'Simptom Dikesan',
-    tindakanLabel: 'Kemungkinan Diagnosis',
+    disclaimerText: 'AI analysis is a clinical support guide only and not an official diagnosis. Diagnosis must be made by a registered medical practitioner through a comprehensive clinical assessment.',
+    penemuanLabel: 'Symptoms Detected',
+    tindakanLabel: 'Possible Diagnosis',
     risikoLabel: true,
     penemuanColor: 'red',
   },
   iso: {
     disclaimer: false,
-    disclaimerText: 'Analisa AI adalah panduan audit sokongan sahaja. Penemuan rasmi mestilah disahkan melalui semakan bukti objektif.',
-    penemuanLabel: 'Potensi Ketidakpatuhan',
-    tindakanLabel: 'Klausa / Tindakan Audit',
+    disclaimerText: 'AI analysis is an audit support guide only. Official findings must be verified through objective evidence review.',
+    penemuanLabel: 'Potential Non-Compliance',
+    tindakanLabel: 'Clause / Audit Actions',
     risikoLabel: true,
     penemuanColor: 'amber',
   },
   hr: {
     disclaimer: false,
-    disclaimerText: 'Analisa AI adalah panduan prosedur sokongan sahaja. Keputusan tatatertib mestilah dibuat mengikut prosedur inkuiri domestik yang sah.',
-    penemuanLabel: 'Fakta Perlu Disahkan',
-    tindakanLabel: 'Tindakan HR Disyorkan',
+    disclaimerText: 'AI analysis is a procedural support guide only. Disciplinary decisions must be made in accordance with valid domestic inquiry procedures.',
+    penemuanLabel: 'Facts to be Verified',
+    tindakanLabel: 'Recommended HR Actions',
     risikoLabel: true,
     penemuanColor: 'indigo',
   },
   court: {
     disclaimer: false,
-    disclaimerText: 'Analisa AI adalah panduan sokongan perundangan sahaja dan bukan nasihat guaman rasmi. Strategi undang-undang muktamad adalah tanggungjawab peguam atau hakim yang mengendalikan kes.',
-    penemuanLabel: 'Kelemahan Keterangan',
-    tindakanLabel: 'Strategi Soal / Hujahan',
+    disclaimerText: 'AI analysis is a legal support guide only and not official legal advice. Final legal strategy is the responsibility of the lawyer or judge handling the case.',
+    penemuanLabel: 'Evidence Weaknesses',
+    tindakanLabel: 'Examination Strategy / Argument',
     risikoLabel: true,
     penemuanColor: 'blue',
   },
   peguam: {
     disclaimer: false,
-    disclaimerText: 'Analisa AI adalah panduan sokongan guaman sahaja dan bukan nasihat undang-undang rasmi. Nasihat dan strategi muktamad adalah tanggungjawab peguam yang mengendalikan kes.',
-    penemuanLabel: 'Jurang Kes / Risiko Undang-undang',
-    tindakanLabel: 'Strategi & Tindakan Guaman',
+    disclaimerText: 'AI analysis is a legal support guide only and not official legal advice. Final advice and strategy is the responsibility of the lawyer handling the case.',
+    penemuanLabel: 'Case Gap / Legal Risk',
+    tindakanLabel: 'Legal Strategy & Actions',
     risikoLabel: true,
     penemuanColor: 'teal',
   },
   jkm: {
     disclaimer: true,
-    disclaimerText: 'Analisa AI adalah panduan penilaian sokongan sahaja. Keputusan penempatan, pengambilan, atau tindakan undang-undang mestilah dibuat oleh pegawai kebajikan bertauliah melalui penilaian menyeluruh.',
-    penemuanLabel: 'Petanda Risiko Dikesan',
-    tindakanLabel: 'Tindakan Kebajikan Disyorkan',
+    disclaimerText: 'AI analysis is an assessment support guide only. Placement, intake, or legal action decisions must be made by a qualified welfare officer through a comprehensive assessment.',
+    penemuanLabel: 'Risk Indicators Detected',
+    tindakanLabel: 'Recommended Welfare Actions',
     risikoLabel: true,
     penemuanColor: 'green',
   },
@@ -103,13 +103,13 @@ function DisclaimerModal({ text, onAccept }) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
         </svg>
       </div>
-      <h3 className="text-sm font-bold text-gray-900 mb-2 text-center">Perisytiharan Penting</h3>
+      <h3 className="text-sm font-bold text-gray-900 mb-2 text-center">Important Notice</h3>
       <p className="text-xs text-gray-600 mb-4 text-center leading-relaxed">{text}</p>
       <button
         onClick={onAccept}
         className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors"
       >
-        Saya Faham — Teruskan
+        I Understand — Proceed
       </button>
     </div>
   );
@@ -131,11 +131,16 @@ function RiskBadge({ level }) {
     'Rendah':    'bg-green-100 text-green-700 border-green-200',
     'Sederhana': 'bg-amber-100 text-amber-700 border-amber-200',
     'Tinggi':    'bg-red-100 text-red-700 border-red-200',
+    'Low':       'bg-green-100 text-green-700 border-green-200',
+    'Moderate':  'bg-amber-100 text-amber-700 border-amber-200',
+    'High':      'bg-red-100 text-red-700 border-red-200',
   };
+  const displayLabels = { 'Rendah': 'Low', 'Sederhana': 'Moderate', 'Tinggi': 'High' };
+  const displayLevel = displayLabels[level] || level;
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${styles[level] || styles['Rendah']}`}>
-      {level === 'Tinggi' && <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />}
-      Risiko {level}
+      {(level === 'Tinggi' || level === 'High') && <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />}
+      Risk: {displayLevel}
     </span>
   );
 }
@@ -180,9 +185,9 @@ function AutoAnalysis({ profession, phase, entries, isActive, hasAI, onSuggest }
 
   const relevantEntries = entries.filter(e => e.type === 'TRANSCRIPT' || e.type === 'INTERVIEWER');
   const transcriptTexts = relevantEntries.map(e => {
-    if (e.type === 'INTERVIEWER') return `Penemuduga: ${e.text}`;
-    if (e.speaker === 'subject') return `Subjek: ${e.text}`;
-    if (e.speaker === 'interviewer') return `Penemuduga: ${e.text}`;
+    if (e.type === 'INTERVIEWER') return `Interviewer: ${e.text}`;
+    if (e.speaker === 'subject') return `Subject: ${e.text}`;
+    if (e.speaker === 'interviewer') return `Interviewer: ${e.text}`;
     return e.text;
   });
   const recentTexts = transcriptTexts.slice(-5);
@@ -207,7 +212,7 @@ function AutoAnalysis({ profession, phase, entries, isActive, hasAI, onSuggest }
       setResult(data);
       setLastUpdated(new Date());
     } catch {
-      setError('Gagal mendapatkan analisa. Cuba lagi.');
+      setError('Failed to get analysis. Try again.');
     } finally {
       setLoading(false);
     }
@@ -253,7 +258,7 @@ function AutoAnalysis({ profession, phase, entries, isActive, hasAI, onSuggest }
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Analisa Realtime</span>
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Realtime Analysis</span>
             {loading && <span className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />}
           </div>
           <button
@@ -261,7 +266,7 @@ function AutoAnalysis({ profession, phase, entries, isActive, hasAI, onSuggest }
             disabled={loading || transcriptTexts.length === 0}
             className="text-xs text-blue-600 hover:text-blue-800 disabled:text-gray-300 font-medium transition-colors"
           >
-            Analisa Semula
+            Re-analyze
           </button>
         </div>
 
@@ -270,10 +275,10 @@ function AutoAnalysis({ profession, phase, entries, isActive, hasAI, onSuggest }
           <div className="py-6 text-center">
             <p className="text-xs text-gray-400">
               {!isActive
-                ? 'Mulakan rakaman untuk aktifkan analisa realtime.'
+                ? 'Start recording to activate realtime analysis.'
                 : transcriptTexts.length < AUTO_TRIGGER_EVERY
-                  ? `Analisa bermula selepas ${AUTO_TRIGGER_EVERY} ayat ditranskripsi...`
-                  : 'Mengumpul data perbualan...'}
+                  ? `Analysis starts after ${AUTO_TRIGGER_EVERY} sentence is transcribed...`
+                  : 'Gathering conversation data...'}
             </p>
           </div>
         )}
@@ -305,7 +310,7 @@ function AutoAnalysis({ profession, phase, entries, isActive, hasAI, onSuggest }
             {/* Red flag */}
             {result.redFlag && (
               <div className="p-2 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-xs font-semibold text-red-700">🚩 Amaran</p>
+                <p className="text-xs font-semibold text-red-700">🚩 Warning</p>
                 <p className="text-xs text-red-600 mt-0.5">{result.redFlagNote}</p>
               </div>
             )}
@@ -329,7 +334,7 @@ function AutoAnalysis({ profession, phase, entries, isActive, hasAI, onSuggest }
             {/* Observation */}
             {result.pemerhatian && (
               <div className="p-2 bg-blue-50 rounded-lg">
-                <p className="text-xs font-medium text-blue-700 mb-0.5">Pemerhatian</p>
+                <p className="text-xs font-medium text-blue-700 mb-0.5">Observation</p>
                 <p className="text-xs text-blue-600 leading-relaxed">{result.pemerhatian}</p>
               </div>
             )}
@@ -355,7 +360,7 @@ function AutoAnalysis({ profession, phase, entries, isActive, hasAI, onSuggest }
             {result.sualanSusulan?.length > 0 && (
               <div>
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-                  Soalan Susulan
+                  Follow-up Questions
                 </p>
                 <div className="space-y-1.5">
                   {result.sualanSusulan.map((q, i) => (
@@ -383,9 +388,9 @@ function GenericSuggestions({ profession, phase, lastQuestion, recentTranscript,
   const [error, setError] = useState(null);
 
   const mockSuggestions = [
-    'Boleh anda terangkan dengan lebih lanjut?',
-    'Apa yang berlaku sebelum kejadian itu?',
-    'Siapa lagi yang terlibat dalam situasi ini?',
+    'Can you explain in more detail?',
+    'What happened before that incident?',
+    'Who else was involved in this situation?',
   ];
 
   const fetch = async () => {
@@ -396,7 +401,7 @@ function GenericSuggestions({ profession, phase, lastQuestion, recentTranscript,
       const data = await suggestQuestions({ profession, phase, question: lastQuestion, recent_transcript: recentTranscript });
       setSuggestions(data);
     } catch {
-      setError('Gagal mendapatkan cadangan AI.');
+      setError('Failed to get AI suggestions.');
     } finally {
       setLoading(false);
     }
@@ -405,9 +410,9 @@ function GenericSuggestions({ profession, phase, lastQuestion, recentTranscript,
   return (
     <div className="p-3 space-y-3 relative">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Cadangan AI</p>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">AI Suggestions</p>
         <Button size="sm" variant="outline" onClick={hasAI ? fetch : undefined} loading={loading} disabled={!hasAI || !lastQuestion}>
-          Dapatkan Cadangan
+          Get Suggestions
         </Button>
       </div>
       {error && <p className="text-xs text-red-500">{error}</p>}
@@ -425,18 +430,18 @@ function GenericSuggestions({ profession, phase, lastQuestion, recentTranscript,
         <div className="space-y-3">
           {suggestions.redFlag && (
             <div className="p-2 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-xs font-semibold text-red-700">🚩 Petanda Kebimbangan</p>
+              <p className="text-xs font-semibold text-red-700">🚩 Concern Indicator</p>
               <p className="text-xs text-red-600 mt-0.5">{suggestions.redFlagNote}</p>
             </div>
           )}
           {suggestions.observation && (
             <div className="p-2 bg-blue-50 rounded-lg">
-              <p className="text-xs font-medium text-blue-700">Pemerhatian</p>
+              <p className="text-xs font-medium text-blue-700">Observation</p>
               <p className="text-xs text-blue-600 mt-0.5">{suggestions.observation}</p>
             </div>
           )}
           <div className="space-y-1.5">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Soalan Susulan</p>
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Follow-up Questions</p>
             {(suggestions.followUp || []).map((q, i) => (
               <button key={i} onClick={() => onSuggest?.(q)}
                 className="w-full text-left p-2 rounded-lg text-xs bg-gray-50 hover:bg-blue-50 hover:text-blue-700 transition-colors text-gray-700">
@@ -448,7 +453,7 @@ function GenericSuggestions({ profession, phase, lastQuestion, recentTranscript,
       )}
       {hasAI && !suggestions && !loading && !error && (
         <p className="text-xs text-gray-400 text-center py-4">
-          {lastQuestion ? 'Tekan butang untuk mendapatkan cadangan soalan.' : 'Tanya soalan dahulu untuk aktifkan cadangan AI.'}
+          {lastQuestion ? 'Press the button to get question suggestions.' : 'Ask a question first to activate AI suggestions.'}
         </p>
       )}
     </div>
