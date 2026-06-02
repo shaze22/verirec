@@ -255,7 +255,12 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - `vercel.json`: rewrite /manifest.webmanifest → /manifest-kaunselor.webmanifest when host is kaunselor.app or www.kaunselor.app
 - User must reinstall PWA to see new icon/name
 
-**Latest deploy:** commit `ff6ffc0` — 2026-06-02
+**Landing page updates (commit 7320cad — 2026-06-02):**
+- Demo tabs reordered to match app sidebar: Dashboard → Appointments → Session → Report
+- DemoBooking (client view) → DemoAppointments (counselor view) with 3 sub-tabs: Requests | Upcoming | QR & Link
+- Mobile App section added: phone mockup, Android + iPhone PWA install steps
+
+**Latest deploy:** commit `7320cad` — 2026-06-02
 
 ---
 
