@@ -236,7 +236,14 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - Footer: 'Kaunselor' brand, dark black bg
 - SEO: canonical updated to kaunselor.app
 
-**Latest deploy:** commit `45cf253` — 2026-06-02
+**Auth + Logout redesign for kaunselor.app (commit 179a62f — 2026-06-02):**
+- AuthPage counselor: split layout — dark left panel (Kaunselor brand + 3 features) + white right form panel
+- AuthPage heading: 'Kaunselor Portal', bg-gray-950 matching landing page
+- AuthPage non-counselor: unchanged VeriRec blue styling
+- LogoutPage: detects isCounselorSubdomain() — violet theme, 'Kaunselor' brand, dark bg
+- No 'VeriRec' references on kaunselor.app auth/logout pages
+
+**Latest deploy:** commit `179a62f` — 2026-06-02
 
 ---
 
