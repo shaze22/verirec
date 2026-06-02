@@ -270,7 +270,12 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - KaunslorClientFilePage: tabs violet, summary cards violet/blue, risk selector violet
 - SessionPage: mobile tab bar active indicator blue→violet
 
-**Latest deploy:** commit `a36ed08` — 2026-06-02
+**Favicon + title fix (commit 477d59e — 2026-06-02):**
+- public/favicon-kaunselor.svg: violet #8b5cf6
+- vercel.json: rewrite /favicon.svg → /favicon-kaunselor.svg for kaunselor.app + www.kaunselor.app
+- CounselorLandingPage title: 'Kaunselor — Digital Counselling Platform'
+
+**Latest deploy:** commit `477d59e` — 2026-06-02
 
 ---
 
