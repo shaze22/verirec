@@ -293,8 +293,9 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - ✅ Landing CTA: "Get Started Free" (no trial), KaunslorSetupPage: Kaunselor brand + booking URL (2026-06-02)
 - ✅ Supabase Auth redirect URLs: kaunselor.app + www.kaunselor.app added (2026-06-02)
 - ✅ Stripe secret key rotated + updated in Vercel (2026-06-02)
+- ✅ All remaining VeriRec refs in counselor pages replaced: print footers, notifications, QR popup, PDF, robots.txt (commit 271217b)
 
-**Latest deploy:** commit `b816002` + Stripe key env update — 2026-06-02
+**Latest deploy:** commit `271217b` — 2026-06-02
 
 **Supabase Auth Redirect URLs (updated 2026-06-02):**
 www.verirec.app/**, counselor.verirec.app/**, kaunselor.app/**, www.kaunselor.app/**
@@ -464,7 +465,7 @@ vercel deploy --prod --force --scope syedshazni-7682s-projects
 - www.verirec.app + counselor.verirec.app (doctor/jkm redirect ke www)
 - Project ID: `prj_EwnDU0nKMOn56auUR1WZF1GeNI3f`
 - GitHub: `https://github.com/shaze22/verirec` (branch: main)
-- Last deployed: 2026-06-02 (commit `b816002` + Stripe key rotation — kaunselor.app production-ready)
+- Last deployed: 2026-06-02 (commit `271217b` — full Kaunselor branding, zero VeriRec refs in counselor pages)
 - Supabase project ID: `sbakkkxuhkxfofpfhdtn`
 
 **Supabase Auth URL Configuration (dashboard):**
