@@ -249,7 +249,13 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - Subtitle: 'Kaunselor Platform' (violet text) for counselor, 'Professional Platform' (gray) for www
 - Header bg: subtle violet-950/30 tint + violet border for counselor
 
-**Latest deploy:** commit `9eec1c8` — 2026-06-02
+**PWA Kaunselor icon + manifest (commit ff6ffc0 — 2026-06-02):**
+- `public/pwa-192-kaunselor.svg` + `public/pwa-512-kaunselor.svg` — violet #8b5cf6 icons
+- `public/manifest-kaunselor.webmanifest` — name='Kaunselor', short_name='Kaunselor', theme_color='#8b5cf6'
+- `vercel.json`: rewrite /manifest.webmanifest → /manifest-kaunselor.webmanifest when host is kaunselor.app or www.kaunselor.app
+- User must reinstall PWA to see new icon/name
+
+**Latest deploy:** commit `ff6ffc0` — 2026-06-02
 
 ---
 
