@@ -1,5 +1,6 @@
 import { useEffect, useState, Suspense, lazy, Component } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore.js';
 import { useBillingStore } from './store/billingStore.js';
@@ -170,9 +171,16 @@ function AppInitializer({ children }) {
 }
 
 export default function App() {
+  const isCounselor = isCounselorSubdomain();
   return (
     <BrowserRouter>
       <ErrorBoundary>
+        {isCounselor && (
+          <Helmet>
+            <link rel="icon" type="image/svg+xml" href="/favicon-kaunselor.svg" />
+            <link rel="apple-touch-icon" href="/pwa-192-kaunselor.svg" />
+          </Helmet>
+        )}
         <AppInitializer>
           <PageTracker />
           <OfflineBanner />
