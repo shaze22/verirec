@@ -1,6 +1,6 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import DemoWalkthrough from '../components/DemoWalkthrough';
 
 const Logo = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-8 h-8 flex-shrink-0">
@@ -11,68 +11,263 @@ const Logo = () => (
 );
 
 const features = [
-  {
-    icon: (
-      <svg className="w-6 h-6 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-      </svg>
-    ),
-    title: 'Automated QR Booking',
-    desc: 'Share your personal QR code — clients book appointments themselves. Time slots, dates, and email confirmations are all handled automatically.',
-  },
-  {
-    icon: (
-      <svg className="w-6 h-6 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>
-    ),
-    title: 'Digital Client Files',
-    desc: 'Complete records for every client — profile, risk level (3 tiers), action plan, clinical referrals, and session history in one place.',
-  },
-  {
-    icon: (
-      <svg className="w-6 h-6 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-      </svg>
-    ),
-    title: 'Red Flag Detector',
-    desc: 'AI detects signs of suicide risk, self-harm, and mental health crises during sessions — immediate alerts so you never miss a warning signal.',
-  },
-  {
-    icon: (
-      <svg className="w-6 h-6 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-      </svg>
-    ),
-    title: 'SOP-Format Session Notes',
-    desc: 'Generate Case Session Notes in Counseling Unit SOP style — including presenting issues, shared goals, intervention, and follow-up plan. Print-ready PDF.',
-  },
-  {
-    icon: (
-      <svg className="w-6 h-6 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-      </svg>
-    ),
-    title: 'CBT / DBT Technique Suggestions',
-    desc: 'Claude AI suggests appropriate therapy techniques based on conversation context — CBT, DBT, motivational interviewing — without any extra clicks.',
-  },
-  {
-    icon: (
-      <svg className="w-6 h-6 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-      </svg>
-    ),
-    title: 'MBTI & RIASEC Assessment Tools',
-    desc: 'Assessment panel directly within sessions — MBTI 16 questions and Holland Code RIASEC. Auto-scored, results saved in client files.',
-  },
+  { icon: '📅', title: 'QR Booking', desc: 'Clients book themselves via your personal QR link. Slots, confirmations, and reminders handled automatically.' },
+  { icon: '🗂️', title: 'Digital Client Files', desc: 'Full profile, risk tiers, action plans, referrals, session history — all in one organised place.' },
+  { icon: '🔴', title: 'AI Red Flag Detection', desc: 'Detects suicide risk, self-harm signals, and crisis indicators in real time during the session.' },
+  { icon: '📝', title: 'SOP Session Notes', desc: 'Auto-generates Case Session Notes in Counseling Unit SOP format. Print-ready PDF in seconds.' },
+  { icon: '🧠', title: 'CBT / DBT Suggestions', desc: 'Claude AI recommends therapy techniques based on conversation context — no extra clicks needed.' },
+  { icon: '📊', title: 'MBTI & RIASEC', desc: 'Built-in assessment panel inside every session. Auto-scored, saved to client files automatically.' },
 ];
 
-const steps = [
-  { num: '1', label: 'Register', desc: 'Create a counselor account in 2 minutes.' },
-  { num: '2', label: 'Set Up Profile', desc: 'Fill in professional info and configure time slots.' },
-  { num: '3', label: 'Share QR', desc: 'Clients book appointments themselves via online form.' },
-  { num: '4', label: 'Start Session', desc: 'Record, transcribe, and AI report — all automatic.' },
+const DEMO_TABS = [
+  { id: 'booking', label: 'Client Books', icon: '📅' },
+  { id: 'session', label: 'Session Runs', icon: '🎙️' },
+  { id: 'report',  label: 'AI Report',   icon: '📋' },
+  { id: 'dash',    label: 'Dashboard',   icon: '📊' },
 ];
+
+function DemoBooking() {
+  const [step, setStep] = useState(1);
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 mb-4">
+        {[1,2,3].map(s => (
+          <div key={s} className="flex items-center gap-2">
+            <button
+              onClick={() => setStep(s)}
+              className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center transition-colors ${s === step ? 'bg-violet-600 text-white' : s < step ? 'bg-violet-200 text-violet-700' : 'bg-gray-100 text-gray-400'}`}
+            >{s < step ? '✓' : s}</button>
+            {s < 3 && <div className={`h-0.5 w-8 ${s < step ? 'bg-violet-400' : 'bg-gray-200'}`} />}
+          </div>
+        ))}
+        <span className="text-xs text-gray-400 ml-2">{step === 1 ? 'Pick date' : step === 2 ? 'Your details' : 'Confirmed!'}</span>
+      </div>
+
+      {step === 1 && (
+        <div className="space-y-3">
+          <p className="text-sm font-medium text-gray-700">Counselor: <span className="text-violet-600">Puan Suraya Mohd</span></p>
+          <div className="grid grid-cols-3 gap-2">
+            {['Mon 3 Jun', 'Tue 4 Jun', 'Wed 5 Jun', 'Thu 6 Jun', 'Fri 7 Jun', 'Mon 10 Jun'].map((d, i) => (
+              <button key={d} onClick={() => setStep(2)}
+                className={`text-xs p-2 rounded-lg border transition-colors ${i === 1 ? 'border-violet-500 bg-violet-50 text-violet-700 font-semibold' : 'border-gray-200 hover:border-violet-300 text-gray-600'}`}>
+                {d}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {['9:00 AM', '10:00 AM', '2:00 PM', '3:00 PM'].map((t, i) => (
+              <button key={t} onClick={() => setStep(2)}
+                className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${i === 2 ? 'bg-violet-600 text-white border-violet-600' : 'border-gray-200 hover:border-violet-300 text-gray-600'}`}>
+                {t}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {step === 2 && (
+        <div className="space-y-2.5">
+          {[['Full Name', 'Ahmad Faris bin Abdullah'], ['IC / Student ID', '990101-14-5678'], ['Email', 'ahmad.faris@utm.my'], ['Phone', '012-345 6789']].map(([label, val]) => (
+            <div key={label}>
+              <label className="text-xs text-gray-500">{label}</label>
+              <div className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 bg-gray-50">{val}</div>
+            </div>
+          ))}
+          <button onClick={() => setStep(3)} className="w-full bg-violet-600 text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-violet-700 transition-colors mt-1">
+            Submit Booking →
+          </button>
+        </div>
+      )}
+
+      {step === 3 && (
+        <div className="text-center py-4 space-y-3">
+          <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+            <svg className="w-7 h-7 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div>
+            <p className="font-semibold text-gray-900">Booking Confirmed!</p>
+            <p className="text-sm text-gray-500 mt-1">Tue, 4 Jun · 2:00 PM</p>
+            <p className="text-sm text-gray-500">Puan Suraya Mohd</p>
+          </div>
+          <div className="bg-violet-50 border border-violet-100 rounded-xl p-3 text-xs text-violet-700">
+            Confirmation email sent to ahmad.faris@utm.my
+          </div>
+          <button onClick={() => setStep(1)} className="text-xs text-gray-400 hover:text-gray-600 underline">Book another</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DemoSession() {
+  const [recording, setRecording] = useState(true);
+  const transcript = [
+    { speaker: 'Counselor', text: 'How have you been feeling this week overall?', time: '0:12' },
+    { speaker: 'Client', text: "Not great honestly. I've been having trouble sleeping and feeling really anxious about exams.", time: '0:18', flag: true },
+    { speaker: 'Counselor', text: 'I hear you. Let\'s explore that anxiety — when did it start getting worse?', time: '0:35' },
+    { speaker: 'Client', text: "About two weeks ago. Sometimes I feel like I just can't cope anymore.", time: '0:42', flag: true },
+  ];
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between bg-gray-900 rounded-xl px-4 py-2.5">
+        <div className="flex items-center gap-2">
+          <div className={`w-2.5 h-2.5 rounded-full ${recording ? 'bg-red-500 animate-pulse' : 'bg-gray-500'}`} />
+          <span className="text-white text-xs font-mono">12:34</span>
+          <span className="text-gray-400 text-xs">Ahmad Faris — Session 3</span>
+        </div>
+        <button onClick={() => setRecording(r => !r)}
+          className={`text-xs px-3 py-1 rounded-full font-medium transition-colors ${recording ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}`}>
+          {recording ? '⏸ Pause' : '▶ Resume'}
+        </button>
+      </div>
+      <div className="space-y-2 max-h-36 overflow-y-auto">
+        {transcript.map((t, i) => (
+          <div key={i} className={`rounded-lg p-2.5 text-xs ${t.speaker === 'Counselor' ? 'bg-violet-50 border border-violet-100' : 'bg-gray-50 border border-gray-100'}`}>
+            <div className="flex items-center justify-between mb-1">
+              <span className={`font-semibold ${t.speaker === 'Counselor' ? 'text-violet-700' : 'text-gray-600'}`}>{t.speaker}</span>
+              <div className="flex items-center gap-1.5">
+                {t.flag && <span className="bg-red-100 text-red-600 text-[10px] px-1.5 py-0.5 rounded font-medium">⚠ Flag</span>}
+                <span className="text-gray-400">{t.time}</span>
+              </div>
+            </div>
+            <p className="text-gray-700">{t.text}</p>
+          </div>
+        ))}
+      </div>
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+        <p className="text-xs font-semibold text-amber-800 mb-1">🧠 AI Suggestion</p>
+        <p className="text-xs text-amber-700">Client mentions inability to cope — consider exploring coping mechanisms using CBT thought records. Monitor for escalation.</p>
+      </div>
+    </div>
+  );
+}
+
+function DemoReport() {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-semibold text-gray-900">Session Report — Ahmad Faris</p>
+          <p className="text-xs text-gray-400">Generated in 48 seconds · 4 Jun 2026</p>
+        </div>
+        <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full">⚠ Moderate Risk</span>
+      </div>
+      <div className="space-y-2.5 text-xs">
+        {[
+          { label: 'Presenting Issue', val: 'Exam anxiety and sleep disturbance. Client reports feeling unable to cope.' },
+          { label: 'Key Findings', val: '2 red flags detected — coping difficulty, sleep disruption. No suicidal ideation.' },
+          { label: 'Intervention', val: 'Psychoeducation on anxiety cycle. CBT thought records introduced. Breathing exercise practised.' },
+          { label: 'Follow-Up Plan', val: 'Review sleep diary next session. Refer to student wellness if symptoms persist.' },
+        ].map(({ label, val }) => (
+          <div key={label} className="bg-gray-50 rounded-xl p-3">
+            <p className="font-semibold text-gray-500 uppercase tracking-wide text-[10px] mb-1">{label}</p>
+            <p className="text-gray-800 leading-relaxed">{val}</p>
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <div className="flex-1 bg-violet-600 text-white text-xs font-medium py-2 rounded-lg text-center">Export PDF</div>
+        <div className="flex-1 bg-gray-100 text-gray-600 text-xs font-medium py-2 rounded-lg text-center">Share Link</div>
+      </div>
+    </div>
+  );
+}
+
+function DemoDash() {
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-3 gap-2">
+        {[
+          { label: 'Clients', val: '24', sub: '+3 this month', color: 'text-violet-600' },
+          { label: 'Sessions', val: '8', sub: '2 remaining', color: 'text-blue-600' },
+          { label: 'Risk Flags', val: '3', sub: 'Need follow-up', color: 'text-amber-600' },
+        ].map(({ label, val, sub, color }) => (
+          <div key={label} className="bg-gray-50 rounded-xl p-3 text-center">
+            <p className={`text-2xl font-bold ${color}`}>{val}</p>
+            <p className="text-[10px] font-semibold text-gray-500 uppercase">{label}</p>
+            <p className="text-[10px] text-gray-400 mt-0.5">{sub}</p>
+          </div>
+        ))}
+      </div>
+      <div>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Today's Appointments</p>
+        <div className="space-y-2">
+          {[
+            { name: 'Nurul Ain', time: '10:00 AM', status: 'Confirmed', color: 'bg-green-100 text-green-700' },
+            { name: 'Muhammad Hafiz', time: '2:00 PM', status: 'Pending', color: 'bg-amber-100 text-amber-700' },
+            { name: 'Siti Rashidah', time: '3:30 PM', status: 'Confirmed', color: 'bg-green-100 text-green-700' },
+          ].map(({ name, time, status, color }) => (
+            <div key={name} className="flex items-center justify-between bg-white border border-gray-100 rounded-xl px-3 py-2.5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 bg-violet-100 rounded-full flex items-center justify-center text-xs font-bold text-violet-600">{name[0]}</div>
+                <div>
+                  <p className="text-xs font-medium text-gray-900">{name}</p>
+                  <p className="text-[10px] text-gray-400">{time}</p>
+                </div>
+              </div>
+              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${color}`}>{status}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InteractiveDemo() {
+  const [activeTab, setActiveTab] = useState('booking');
+  const content = { booking: <DemoBooking />, session: <DemoSession />, report: <DemoReport />, dash: <DemoDash /> };
+  return (
+    <section className="py-24 px-4 bg-gray-950">
+      <div className="max-w-5xl mx-auto">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-full px-4 py-1.5 text-sm font-medium text-violet-400 mb-4">
+            Interactive Demo
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">See it in action</h2>
+          <p className="text-gray-400 text-lg">Click through each stage of a real counseling workflow.</p>
+        </div>
+
+        <div className="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden shadow-2xl">
+          {/* Browser chrome */}
+          <div className="bg-gray-800 px-4 py-3 flex items-center gap-3 border-b border-gray-700">
+            <div className="flex gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-red-500" />
+              <div className="w-3 h-3 rounded-full bg-amber-500" />
+              <div className="w-3 h-3 rounded-full bg-green-500" />
+            </div>
+            <div className="flex-1 bg-gray-700 rounded-md px-3 py-1 text-xs text-gray-400">kaunselor.app</div>
+          </div>
+
+          <div className="flex flex-col md:flex-row min-h-[420px]">
+            {/* Tabs */}
+            <div className="md:w-44 border-b md:border-b-0 md:border-r border-gray-800 flex md:flex-col overflow-x-auto md:overflow-visible">
+              {DEMO_TABS.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-4 py-3.5 text-xs font-medium whitespace-nowrap transition-colors ${activeTab === tab.id ? 'bg-violet-600/20 text-violet-400 border-b-2 md:border-b-0 md:border-l-2 border-violet-500' : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50'}`}
+                >
+                  <span>{tab.icon}</span>
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 p-5 overflow-y-auto">
+              {content[activeTab]}
+            </div>
+          </div>
+        </div>
+
+        <p className="text-center text-gray-600 text-sm mt-4">This is a live interactive demo — click the tabs and buttons above.</p>
+      </div>
+    </section>
+  );
+}
 
 export default function CounselorLandingPage() {
   const navigate = useNavigate();
@@ -80,165 +275,106 @@ export default function CounselorLandingPage() {
   return (
     <>
       <Helmet>
-        <title>VeriRec Counselor — Digital Counseling Session Management Platform</title>
-        <meta name="description" content="Digital counseling session management platform for counselors — QR booking, client files, automatic SOP notes, AI red flag detection, MBTI & RIASEC. RM100/month, 10 sessions." />
-        <meta name="keywords" content="counseling platform, counselor software, counseling session management, SOP session notes, counselor, digital client records, QR counseling booking, AI counseling report" />
+        <title>Kaunselor — Digital Counseling Platform for Malaysian Counselors</title>
+        <meta name="description" content="Kaunselor is a digital counseling session management platform — QR booking, client files, AI session notes, red flag detection, MBTI & RIASEC. Built for Malaysian counselors." />
+        <meta name="keywords" content="counseling platform Malaysia, kaunselor digital, counseling session management, SOP session notes, AI counseling report, PDPA counseling" />
         <meta name="robots" content="index, follow" />
-        <meta name="author" content="VeriRec" />
-        <link rel="canonical" href="https://counselor.verirec.app" />
-
-        {/* Open Graph */}
+        <link rel="canonical" href="https://kaunselor.app" />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://counselor.verirec.app" />
-        <meta property="og:site_name" content="VeriRec for Counselors" />
-        <meta property="og:locale" content="en_MY" />
-        <meta property="og:title" content="VeriRec Counselor — Digital Counseling Session Management Platform" />
-        <meta property="og:description" content="Manage counseling sessions smarter — QR booking, digital client files, AI SOP notes, red flag detection, MBTI & RIASEC. PDPA compliant. RM100/month." />
-        <meta property="og:image" content="https://counselor.verirec.app/og-counselor.svg" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content="VeriRec Counselor — Digital Counseling Session Platform" />
-
-        {/* Twitter Card */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="VeriRec Counselor — Digital Counseling Session Management Platform" />
-        <meta name="twitter:description" content="Manage counseling sessions smarter — QR booking, digital client files, AI SOP notes, red flag detection. RM100/month, 10 sessions." />
-        <meta name="twitter:image" content="https://counselor.verirec.app/og-counselor.svg" />
-
-        {/* JSON-LD Structured Data */}
+        <meta property="og:url" content="https://kaunselor.app" />
+        <meta property="og:title" content="Kaunselor — Digital Counseling Platform" />
+        <meta property="og:description" content="Manage counseling sessions smarter. QR booking, digital client files, AI SOP notes, red flag detection. PDPA compliant." />
+        <meta property="og:image" content="https://kaunselor.app/og-counselor.svg" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "SoftwareApplication",
-          "name": "VeriRec Counselor",
-          "url": "https://counselor.verirec.app",
-          "description": "Digital counseling session management platform for counselors — QR booking, client files, automatic SOP notes, AI red flag detection, MBTI & RIASEC.",
+          "name": "Kaunselor",
+          "url": "https://kaunselor.app",
+          "description": "Digital counseling session management platform for counselors in Malaysia.",
           "applicationCategory": "BusinessApplication",
           "operatingSystem": "Web",
-          "inLanguage": "en-MY",
-          "offers": {
-            "@type": "Offer",
-            "price": "100",
-            "priceCurrency": "MYR",
-            "priceSpecification": {
-              "@type": "UnitPriceSpecification",
-              "price": "100",
-              "priceCurrency": "MYR",
-              "unitText": "month"
-            }
-          },
-          "publisher": {
-            "@type": "Organization",
-            "name": "VeriRec",
-            "url": "https://www.verirec.app"
-          },
-          "featureList": [
-            "Automated QR booking",
-            "Digital client files",
-            "SOP-format session notes",
-            "AI red flag detection",
-            "MBTI and RIASEC assessment",
-            "AI report after session",
-            "PDPA compliant"
-          ]
+          "offers": { "@type": "Offer", "price": "100", "priceCurrency": "MYR" },
+          "publisher": { "@type": "Organization", "name": "Kaunselor", "url": "https://kaunselor.app" }
         })}</script>
       </Helmet>
 
       <div className="min-h-screen bg-white">
+
         {/* Nav */}
-        <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
+        <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
           <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <Logo />
-              <div>
-                <span className="font-bold text-gray-900 text-sm leading-none block">VeriRec</span>
-                <span className="text-xs text-violet-600 font-medium leading-none">for Counselors</span>
-              </div>
+              <span className="font-bold text-gray-900 text-lg tracking-tight">Kaunselor</span>
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => navigate('/auth?profession=counselor')}
-                className="text-sm text-gray-600 hover:text-gray-900 font-medium px-3 py-2"
-              >
+            <div className="flex items-center gap-2">
+              <button onClick={() => navigate('/auth?profession=counselor')}
+                className="text-sm text-gray-600 hover:text-gray-900 font-medium px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
                 Sign In
               </button>
-              <button
-                onClick={() => navigate('/auth?mode=register&profession=counselor')}
-                className="text-sm bg-violet-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors"
-              >
-                Register Free
+              <button onClick={() => navigate('/auth?mode=register&profession=counselor')}
+                className="text-sm bg-violet-600 text-white font-semibold px-5 py-2 rounded-lg hover:bg-violet-700 transition-colors shadow-sm">
+                Get Started
               </button>
             </div>
           </div>
         </nav>
 
         {/* Hero */}
-        <section className="bg-gradient-to-br from-violet-900 via-violet-800 to-purple-900 text-white">
-          <div className="max-w-6xl mx-auto px-4 py-20 md:py-28 text-center">
-            <div className="inline-flex items-center gap-2 bg-violet-700/50 border border-violet-500/30 rounded-full px-4 py-1.5 text-sm font-medium text-violet-200 mb-6">
-              <span className="w-2 h-2 rounded-full bg-violet-400 animate-pulse inline-block"></span>
-              Built for Counselors
+        <section className="bg-gray-950 text-white overflow-hidden relative">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-900/40 via-transparent to-transparent pointer-events-none" />
+          <div className="max-w-5xl mx-auto px-4 py-24 md:py-32 text-center relative">
+            <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/25 rounded-full px-4 py-1.5 text-sm font-medium text-violet-400 mb-8">
+              <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse inline-block" />
+              Built for Malaysian Counselors
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-              Manage Counseling Sessions<br />
-              <span className="text-violet-300">Smarter &amp; Safer</span>
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] mb-6 tracking-tight">
+              Less Admin.<br />
+              <span className="text-violet-400">More Counseling.</span>
             </h1>
-            <p className="text-lg md:text-xl text-violet-100 max-w-2xl mx-auto mb-10 leading-relaxed">
-              From QR booking to AI reports — VeriRec handles all admin work so you can focus entirely on your clients.
+            <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+              From QR booking to AI session reports — Kaunselor handles all the paperwork so you can focus entirely on your clients.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <button
-                onClick={() => navigate('/auth?mode=register&profession=counselor')}
-                className="w-full sm:w-auto bg-white text-violet-800 font-bold text-base px-8 py-3.5 rounded-xl hover:bg-violet-50 transition-colors shadow-lg"
-              >
-                Get Started Free →
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-12">
+              <button onClick={() => navigate('/auth?mode=register&profession=counselor')}
+                className="w-full sm:w-auto bg-violet-600 text-white font-bold text-base px-8 py-3.5 rounded-xl hover:bg-violet-500 transition-colors shadow-lg shadow-violet-900/30">
+                Start Free Trial →
               </button>
-              <button
-                onClick={() => navigate('/auth?profession=counselor')}
-                className="w-full sm:w-auto border border-violet-400/50 text-white font-medium text-base px-8 py-3.5 rounded-xl hover:bg-violet-700/30 transition-colors"
-              >
-                Sign In
+              <button onClick={() => document.getElementById('demo-section').scrollIntoView({ behavior: 'smooth' })}
+                className="w-full sm:w-auto border border-gray-700 text-gray-300 font-medium text-base px-8 py-3.5 rounded-xl hover:bg-gray-800 transition-colors">
+                See Demo
               </button>
             </div>
-            <p className="text-violet-300 text-sm mt-4">No contract • Cancel anytime</p>
+
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-6 max-w-xl mx-auto border-t border-gray-800 pt-10">
+              {[
+                { val: 'AI', label: 'Red Flag Detection', sub: 'Real-time during session' },
+                { val: 'SOP', label: 'Session Notes', sub: 'Counselors Act 1998 compliant' },
+                { val: 'QR', label: 'Client Booking', sub: 'Fully automated' },
+              ].map(({ val, label, sub }) => (
+                <div key={label} className="text-center">
+                  <div className="text-2xl font-bold text-violet-400">{val}</div>
+                  <div className="text-xs font-semibold text-gray-300 mt-1">{label}</div>
+                  <div className="text-xs text-gray-600 mt-0.5">{sub}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* Stats bar */}
-        <div className="bg-violet-50 border-y border-violet-100">
-          <div className="max-w-6xl mx-auto px-4 py-5 grid grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="text-2xl font-bold text-violet-700">100%</div>
-              <div className="text-xs text-gray-500 mt-0.5">PDPA Compliant</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-violet-700">AI</div>
-              <div className="text-xs text-gray-500 mt-0.5">Red Flag Detection</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-violet-700">QR</div>
-              <div className="text-xs text-gray-500 mt-0.5">Automated Booking</div>
-            </div>
-          </div>
-        </div>
-
         {/* Features */}
-        <section className="py-20 px-4">
+        <section className="py-24 px-4">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-14">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-                Everything a Counselor Needs
-              </h2>
-              <p className="text-gray-500 text-lg max-w-xl mx-auto">
-                One complete platform — from consent forms to SOP session notes.
-              </p>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Everything you need. Nothing you don't.</h2>
+              <p className="text-gray-500 text-lg max-w-xl mx-auto">One platform from intake form to final report.</p>
             </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {features.map((f, i) => (
-                <div key={i} className="bg-gray-50 rounded-2xl p-6 hover:bg-violet-50 hover:border-violet-100 border border-transparent transition-colors">
-                  <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center mb-4">
-                    {f.icon}
-                  </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">{f.title}</h3>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {features.map((f) => (
+                <div key={f.title} className="group bg-white border border-gray-100 rounded-2xl p-6 hover:border-violet-200 hover:shadow-lg hover:shadow-violet-50 transition-all">
+                  <div className="text-2xl mb-4">{f.icon}</div>
+                  <h3 className="font-bold text-gray-900 mb-2 text-base">{f.title}</h3>
                   <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
                 </div>
               ))}
@@ -246,24 +382,50 @@ export default function CounselorLandingPage() {
           </div>
         </section>
 
-        {/* Demo Walkthrough */}
-        <DemoWalkthrough />
+        {/* Interactive Demo */}
+        <div id="demo-section">
+          <InteractiveDemo />
+        </div>
 
         {/* How it works */}
-        <section className="bg-gray-50 py-20 px-4">
+        <section className="py-24 px-4 bg-gray-50">
           <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">Get Started in 4 Steps</h2>
-              <p className="text-gray-500">Initial setup under 10 minutes.</p>
+            <div className="text-center mb-14">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Up and running in minutes</h2>
+              <p className="text-gray-500 text-lg">No IT department needed.</p>
             </div>
-            <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-6">
-              {steps.map((s) => (
-                <div key={s.num} className="text-center">
-                  <div className="w-12 h-12 bg-violet-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+            <div className="grid sm:grid-cols-3 gap-8 relative">
+              <div className="hidden sm:block absolute top-6 left-1/6 right-1/6 h-0.5 bg-gradient-to-r from-violet-200 via-violet-300 to-violet-200" />
+              {[
+                { num: '1', title: 'Create Account', desc: 'Register in 2 minutes. Choose your credentials and specializations.' },
+                { num: '2', title: 'Share Your QR', desc: 'Clients book appointments through your personal booking link or QR code.' },
+                { num: '3', title: 'Start Counseling', desc: 'Record sessions, get AI reports, manage client files — all in one place.' },
+              ].map((s) => (
+                <div key={s.num} className="text-center relative">
+                  <div className="w-12 h-12 bg-violet-600 text-white rounded-2xl flex items-center justify-center text-lg font-bold mx-auto mb-4 shadow-lg shadow-violet-200">
                     {s.num}
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-1">{s.label}</h3>
-                  <p className="text-gray-500 text-sm">{s.desc}</p>
+                  <h3 className="font-bold text-gray-900 mb-2">{s.title}</h3>
+                  <p className="text-gray-500 text-sm leading-relaxed">{s.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Trust */}
+        <section className="py-16 px-4 border-y border-gray-100">
+          <div className="max-w-4xl mx-auto">
+            <div className="grid sm:grid-cols-3 gap-6 text-center">
+              {[
+                { icon: '🔒', title: 'PDPA 2010 Compliant', desc: 'Client data encrypted. Consent records permanent. Full audit trail.' },
+                { icon: '⚖️', title: 'Counselors Act 1998', desc: 'Session notes follow official SOP format required by Lembaga Kaunselor.' },
+                { icon: '🛡️', title: 'SHA-256 Chain of Custody', desc: 'Every session cryptographically signed. Tamper-proof documentation.' },
+              ].map(({ icon, title, desc }) => (
+                <div key={title} className="p-6">
+                  <div className="text-3xl mb-3">{icon}</div>
+                  <h3 className="font-bold text-gray-900 mb-2 text-sm">{title}</h3>
+                  <p className="text-gray-500 text-xs leading-relaxed">{desc}</p>
                 </div>
               ))}
             </div>
@@ -271,29 +433,30 @@ export default function CounselorLandingPage() {
         </section>
 
         {/* Pricing */}
-        <section className="py-20 px-4">
-          <div className="max-w-lg mx-auto text-center">
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">Clear Pricing, No Surprises</h2>
-            <p className="text-gray-500 mb-10">One plan for counselors. Top-up when needed.</p>
-
-            <div className="bg-white border-2 border-violet-500 rounded-2xl p-8 shadow-xl">
-              <div className="inline-block bg-violet-100 text-violet-700 text-xs font-bold px-3 py-1 rounded-full mb-4">
-                COUNSELOR PLAN
+        <section className="py-24 px-4">
+          <div className="max-w-md mx-auto">
+            <div className="text-center mb-10">
+              <h2 className="text-3xl font-bold text-gray-900 mb-3">Simple pricing</h2>
+              <p className="text-gray-500">One plan. Everything included.</p>
+            </div>
+            <div className="bg-white border-2 border-violet-500 rounded-2xl p-8 shadow-xl shadow-violet-100">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <div className="text-4xl font-bold text-gray-900">RM100</div>
+                  <div className="text-sm text-gray-400 mt-0.5">per month</div>
+                </div>
+                <div className="bg-violet-100 text-violet-700 text-xs font-bold px-3 py-1.5 rounded-full">COUNSELOR PLAN</div>
               </div>
-              <div className="text-5xl font-bold text-gray-900 mb-1">
-                RM100<span className="text-xl font-normal text-gray-400">/month</span>
-              </div>
-              <p className="text-gray-500 text-sm mb-5">10 sessions included per month</p>
-              <ul className="space-y-3 text-left mb-8">
+              <ul className="space-y-3 mb-8">
                 {[
                   '10 recording sessions / month',
-                  'Digital client files',
+                  'Digital client files (unlimited)',
                   'Automated QR booking',
-                  'SOP-format session notes (PDF)',
+                  'SOP session notes PDF',
                   'AI red flag detection',
-                  'AI report after session',
-                  'MBTI + RIASEC assessment tools',
-                  'Top-up sessions when needed',
+                  'MBTI + RIASEC assessments',
+                  'Top-up sessions anytime',
+                  'PDPA + Counselors Act compliant',
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-3 text-sm text-gray-700">
                     <svg className="w-4 h-4 text-violet-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -303,65 +466,48 @@ export default function CounselorLandingPage() {
                   </li>
                 ))}
               </ul>
-              <div className="bg-gray-50 rounded-xl p-4 mb-6 text-sm text-gray-600">
-                <div className="font-semibold text-gray-800 mb-2">Session Top-Up (when depleted)</div>
-                <div className="flex justify-between"><span>1 session</span><span className="font-medium">RM13</span></div>
-                <div className="flex justify-between"><span>5 sessions</span><span className="font-medium">RM60</span></div>
-                <div className="flex justify-between"><span>10 sessions</span><span className="font-medium">RM100</span></div>
+              <div className="bg-gray-50 rounded-xl p-4 mb-6">
+                <p className="text-xs font-semibold text-gray-700 mb-2">Need more sessions?</p>
+                <div className="space-y-1 text-xs text-gray-600">
+                  <div className="flex justify-between"><span>1 session</span><span className="font-medium">RM13</span></div>
+                  <div className="flex justify-between"><span>5 sessions</span><span className="font-medium">RM60</span></div>
+                  <div className="flex justify-between"><span>10 sessions</span><span className="font-medium">RM100</span></div>
+                </div>
               </div>
-              <button
-                onClick={() => navigate('/auth?mode=register&profession=counselor')}
-                className="w-full bg-violet-600 text-white font-bold py-3.5 rounded-xl hover:bg-violet-700 transition-colors text-base"
-              >
-                Get Started Free →
+              <button onClick={() => navigate('/auth?mode=register&profession=counselor')}
+                className="w-full bg-violet-600 text-white font-bold py-3.5 rounded-xl hover:bg-violet-700 transition-colors text-sm">
+                Start Free Trial →
               </button>
-              <p className="text-xs text-gray-400 mt-3">No long-term contract. Cancel anytime.</p>
+              <p className="text-xs text-gray-400 text-center mt-3">No long-term contract. Cancel anytime.</p>
             </div>
           </div>
         </section>
 
-        {/* Compliance note */}
-        <section className="bg-violet-50 border-t border-violet-100 py-12 px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="w-12 h-12 bg-violet-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Compliant with Counselors Act 1998 &amp; PDPA</h3>
-            <p className="text-gray-500 text-sm max-w-xl mx-auto">
-              Digital consent forms contain full Counselors Act 1998 compliance text. Client data is encrypted and stored securely. Session records cannot be deleted — audit trail is permanent.
-            </p>
+        {/* Final CTA */}
+        <section className="bg-gray-950 py-20 px-4 text-center">
+          <div className="max-w-2xl mx-auto">
+            <div className="text-4xl font-bold text-white mb-4">Ready to simplify your practice?</div>
+            <p className="text-gray-400 text-lg mb-8">Join Malaysian counselors who've digitised their sessions with Kaunselor.</p>
+            <button onClick={() => navigate('/auth?mode=register&profession=counselor')}
+              className="bg-violet-600 text-white font-bold text-base px-10 py-4 rounded-xl hover:bg-violet-500 transition-colors shadow-lg shadow-violet-900/30">
+              Get Started Free →
+            </button>
           </div>
-        </section>
-
-        {/* CTA */}
-        <section className="bg-violet-700 py-16 px-4 text-center text-white">
-          <h2 className="text-3xl font-bold mb-3">Ready to get started?</h2>
-          <p className="text-violet-200 mb-8 text-lg">RM100/month. 10 sessions. No contract.</p>
-          <button
-            onClick={() => navigate('/auth?mode=register&profession=counselor')}
-            className="bg-white text-violet-700 font-bold text-base px-10 py-3.5 rounded-xl hover:bg-violet-50 transition-colors shadow-lg"
-          >
-            Register Now →
-          </button>
         </section>
 
         {/* Footer */}
-        <footer className="bg-gray-900 text-gray-400 py-8 px-4">
+        <footer className="bg-black text-gray-600 py-8 px-4">
           <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
             <div className="flex items-center gap-2">
               <Logo />
-              <span className="text-gray-300 font-medium">VeriRec for Counselors</span>
+              <span className="text-gray-400 font-bold">Kaunselor</span>
             </div>
-            <div className="flex items-center gap-4">
-              <button onClick={() => window.open('https://www.verirec.app', '_blank')} className="hover:text-white transition-colors">
-                verirec.app
-              </button>
-              <button onClick={() => navigate('/privacy')} className="hover:text-white transition-colors">Privacy</button>
-              <button onClick={() => navigate('/terms')} className="hover:text-white transition-colors">Terms</button>
+            <div className="flex items-center gap-5 text-xs">
+              <button onClick={() => window.open('https://www.verirec.app', '_blank')} className="hover:text-gray-300 transition-colors">verirec.app</button>
+              <button onClick={() => navigate('/privacy')} className="hover:text-gray-300 transition-colors">Privacy</button>
+              <button onClick={() => navigate('/terms')} className="hover:text-gray-300 transition-colors">Terms</button>
             </div>
-            <p>© {new Date().getFullYear()} VeriRec. All rights reserved.</p>
+            <p className="text-xs">© {new Date().getFullYear()} Kaunselor. All rights reserved.</p>
           </div>
         </footer>
       </div>
