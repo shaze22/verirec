@@ -1,11 +1,11 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, isPast, isToday, isTomorrow, formatDistanceToNow } from 'date-fns';
-import { ms } from 'date-fns/locale';
 import { useAuthStore } from '../store/authStore.js';
 import { useBillingStore } from '../store/billingStore.js';
 import { supabase } from '../lib/supabase.js';
 import { PROFESSIONS, professionLabel } from '../data/professions.js';
+import { isCounselorSubdomain } from '../lib/subdomain.js';
 import { TopBar } from '../components/layout/TopBar.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { Modal } from '../components/ui/Modal.jsx';
@@ -13,15 +13,15 @@ import { Badge } from '../components/ui/Badge.jsx';
 import toast from 'react-hot-toast';
 
 const STATUS_CONFIG = {
-  upcoming:  { label: 'Upcoming', color: 'blue' },
-  completed: { label: 'Done',     color: 'green' },
-  cancelled: { label: 'Dibatalkan',  color: 'gray' },
+  upcoming:  { label: 'Upcoming',   color: 'blue' },
+  completed: { label: 'Done',       color: 'green' },
+  cancelled: { label: 'Cancelled',  color: 'gray' },
 };
 
 function dateLabel(dt) {
   const d = new Date(dt);
-  if (isToday(d)) return 'Hari ini';
-  if (isTomorrow(d)) return 'Esok';
+  if (isToday(d)) return 'Today';
+  if (isTomorrow(d)) return 'Tomorrow';
   return format(d, 'dd MMM yyyy');
 }
 
@@ -52,7 +52,7 @@ export default function SchedulePage() {
     if (!user) return;
     fetchScheduled(user.id)
       .then(setItems)
-      .catch(() => toast.error('Gagal memuatkan jadual'))
+      .catch(() => toast.error('Failed to load schedule'))
       .finally(() => setLoading(false));
   }, [user]);
 
@@ -100,7 +100,7 @@ export default function SchedulePage() {
           .single();
         if (error) throw error;
         setItems(prev => prev.map(i => i.id === form.id ? data : i));
-        toast.success('Jadual dikemas kini.');
+        toast.success('Schedule updated.');
       } else {
         const { data, error } = await supabase
           .from('scheduled_sessions')
@@ -109,35 +109,39 @@ export default function SchedulePage() {
           .single();
         if (error) throw error;
         setItems(prev => [...prev, data]);
-        toast.success('Sesi berjadual added.');
+        toast.success('Session scheduled.');
       }
       setModal(false);
     } catch {
-      toast.error('Gagal menyimpan jadual.');
+      toast.error('Failed to save schedule.');
     } finally {
       setSaving(false);
     }
   };
 
   const handleCancel = async (id) => {
-    if (!window.confirm('Cancelkan sesi berjadual ini?')) return;
+    if (!window.confirm('Cancel this scheduled session?')) return;
     try {
       await supabase.from('scheduled_sessions').update({ status: 'cancelled' }).eq('id', id).eq('user_id', user.id);
       setItems(prev => prev.map(i => i.id === id ? { ...i, status: 'cancelled' } : i));
-      toast.success('Jadual dibatalkan.');
+      toast.success('Session cancelled.');
     } catch {
-      toast.error('Gagal membatalkan jadual.');
+      toast.error('Failed to cancel session.');
     }
   };
 
-  const isCounselor = localStorage.getItem('preferred_profession') === 'counselor';
-  const pricingTarget = isCounselor ? '/pricing?tab=kaunselor' : '/pricing';
+  const pricingTarget = isCounselorSubdomain() ? '/pricing?tab=kaunselor' : '/pricing';
 
   const handleStart = (item) => {
     if (!canStartSession()) { navigate(pricingTarget); return; }
-    navigate(`/session/setup/${item.profession}`, {
-      state: { prefill: { title: item.title, subject_name: item.subject_name || '', scheduled_id: item.id } }
-    });
+    // Write prefill to sessionStorage — SessionSetupPage reads 'session_setup' on init
+    sessionStorage.setItem('session_setup', JSON.stringify({
+      title: item.title,
+      subject_name: item.subject_name || '',
+      profession: item.profession,
+      scheduled_id: item.id,
+    }));
+    navigate(`/session/setup/${item.profession}`);
   };
 
   function ScheduleCard({ item, showStart = false }) {
@@ -151,7 +155,7 @@ export default function SchedulePage() {
               <h4 className="font-medium text-gray-900 truncate">{item.title}</h4>
               <Badge color="blue" className="text-xs">{professionLabel(item.profession)}</Badge>
               {item.status !== 'upcoming' && <Badge color={sc.color} className="text-xs">{sc.label}</Badge>}
-              {isOverdueItem && <Badge color="yellow" className="text-xs">Tertangguh</Badge>}
+              {isOverdueItem && <Badge color="yellow" className="text-xs">Overdue</Badge>}
             </div>
             {item.subject_name && <p className="text-sm text-gray-500">{item.subject_name}</p>}
             <div className="flex items-center gap-1.5 mt-1.5">
@@ -163,7 +167,7 @@ export default function SchedulePage() {
               </span>
               {item.status === 'upcoming' && (
                 <span className="text-xs text-gray-400">
-                  ({formatDistanceToNow(new Date(item.scheduled_at), { locale: ms, addSuffix: true })})
+                  ({formatDistanceToNow(new Date(item.scheduled_at), { addSuffix: true })})
                 </span>
               )}
             </div>
@@ -172,7 +176,7 @@ export default function SchedulePage() {
           <div className="flex items-center gap-1.5 flex-shrink-0">
             {showStart && item.status === 'upcoming' && (
               <Button size="sm" onClick={() => handleStart(item)}>
-                Mulakan
+                Start
               </Button>
             )}
             {item.status === 'upcoming' && (
@@ -212,7 +216,7 @@ export default function SchedulePage() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            <span className="hidden sm:inline">Jadualkan Sesi</span>
+            <span className="hidden sm:inline">Schedule Session</span>
           </Button>
         }
       />
@@ -245,15 +249,15 @@ export default function SchedulePage() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Tiada Sesi Berjadual</h3>
-                <p className="text-sm text-gray-500 mb-6 max-w-xs mx-auto">Jadualkan sesi akan datang supaya anda tidak terlepas temujanji.</p>
-                <Button onClick={openNew}>Jadualkan Sesi Pertama</Button>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Scheduled Sessions</h3>
+                <p className="text-sm text-gray-500 mb-6 max-w-xs mx-auto">Schedule upcoming sessions so you never miss an appointment.</p>
+                <Button onClick={openNew}>Schedule First Session</Button>
               </div>
             ) : (
               <div className="space-y-6">
                 {overdue.length > 0 && (
                   <div>
-                    <h3 className="text-xs font-semibold text-amber-600 uppercase tracking-wide mb-3">Tertangguh — Belum Dimulakan</h3>
+                    <h3 className="text-xs font-semibold text-amber-600 uppercase tracking-wide mb-3">Overdue — Not Started</h3>
                     <div className="space-y-3">
                       {overdue.map(i => <ScheduleCard key={i.id} item={i} showStart />)}
                     </div>
@@ -271,7 +275,7 @@ export default function SchedulePage() {
             )
           ) : (
             past.length === 0 ? (
-              <p className="text-center text-gray-400 text-sm py-16">No records selesai atau dibatalkan lagi.</p>
+              <p className="text-center text-gray-400 text-sm py-16">No completed or cancelled sessions yet.</p>
             ) : (
               <div className="space-y-3">
                 {past.map(i => <ScheduleCard key={i.id} item={i} />)}
@@ -284,7 +288,7 @@ export default function SchedulePage() {
       <Modal
         open={modal}
         onClose={() => setModal(false)}
-        title={form.id ? 'Edit Jadual' : 'Jadualkan Sesi Baharu'}
+        title={form.id ? 'Edit Schedule' : 'Schedule New Session'}
         footer={
           <div className="flex gap-3 justify-end">
             <Button variant="secondary" onClick={() => setModal(false)}>Cancel</Button>
@@ -299,12 +303,12 @@ export default function SchedulePage() {
               type="text"
               value={form.title}
               onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
-              placeholder="cth. Sesi Kaunseling Ahmad"
+              placeholder="e.g. Counseling Session — Ahmad"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Profesion</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Profession</label>
             <select
               value={form.profession}
               onChange={e => setForm(p => ({ ...p, profession: e.target.value }))}
@@ -314,12 +318,12 @@ export default function SchedulePage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nama Subjek</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Subject Name</label>
             <input
               type="text"
               value={form.subject_name}
               onChange={e => setForm(p => ({ ...p, subject_name: e.target.value }))}
-              placeholder="cth. Ahmad bin Ali"
+              placeholder="e.g. Ahmad bin Ali"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -338,7 +342,7 @@ export default function SchedulePage() {
               value={form.notes}
               onChange={e => setForm(p => ({ ...p, notes: e.target.value }))}
               rows={3}
-              placeholder="Maklumat tambahan..."
+              placeholder="Additional notes..."
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             />
           </div>
