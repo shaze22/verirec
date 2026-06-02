@@ -286,9 +286,9 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - OnboardingModal: counselor-specific 4 steps (Welcome→Profile→Slots→Session), violet theme, English
 - _mailer.js: new kaunsBase() violet template, FROM_KAUNSELOR sender, all emails English
 - Appointment emails: sent from 'Kaunselor <noreply@verirec.app>' with violet header
-- ⚠️ MANUAL: Update Stripe products to USD in Stripe dashboard → update STRIPE_PRICE_* env vars in Vercel
+- ✅ Stripe products renamed to English, USD prices created, STRIPE_PRICE_* env vars updated (2026-06-02)
 
-**Latest deploy:** commit `e6665cf` — 2026-06-02
+**Latest deploy:** commit `e1374b9` — 2026-06-02
 
 ---
 
@@ -386,16 +386,17 @@ Semasa: admin, cron-reset-usage, gemini, report, share-session, stripe-billing, 
 ## Plan & Harga
 | Plan        | Sesi/bulan | Harga/bulan | Top-up | Label UI      |
 |-------------|------------|-------------|--------|---------------|
-| free        | 2          | RM0         | Tidak  | Percuma       |
-| counselor   | 10         | RM100       | Ya     | Kaunselor     |
-| starter     | 10         | RM100       | Ya     | Profesional   |
-| pro         | 100        | RM999       | Tidak  | Pro (hidden)  |
-| biz         | 200        | RM2,499     | Tidak  | Enterprise → email |
+| free        | 2          | $0 USD      | No     | Free          |
+| counselor   | 10         | $25 USD     | Yes    | Counselor     |
+| starter     | 10         | $25 USD     | Yes    | Professional  |
+| pro         | 100        | $249 USD    | No     | Pro (hidden)  |
+| biz         | 200        | $599 USD    | No     | Enterprise → email |
 
 **Top-up (counselor + starter):**
-- 1 sesi: RM13 · 5 sesi: RM60 · 10 sesi: RM100
-- Simpan dalam `subscriptions.extra_sessions` — tidak luput, tidak reset bulanan
-- **TIADA free trial** — `trial_period_days` dibuang
+- 1 session: $3 · 5 sessions: $12 · 10 sessions: $22 USD
+- Stripe price IDs in Vercel: STRIPE_PRICE_TOPUP_1/5/10 (updated 2026-06-02)
+- Stored in `subscriptions.extra_sessions` — never expires, not reset monthly
+- **NO free trial** — `trial_period_days` removed
 
 **PricingPage dalam app (`/pricing`):**
 - Tab "VeriRec Profesional": Percuma + Profesional (RM100) + Organisasi (RM999, 5 pengguna) + Enterprise hubungi
@@ -454,7 +455,7 @@ vercel deploy --prod --force --scope syedshazni-7682s-projects
 - www.verirec.app + counselor.verirec.app (doctor/jkm redirect ke www)
 - Project ID: `prj_EwnDU0nKMOn56auUR1WZF1GeNI3f`
 - GitHub: `https://github.com/shaze22/verirec` (branch: main)
-- Last deployed: 2026-06-01 (commit `bd9ecda` — AssemblyAI Speaker Identification)
+- Last deployed: 2026-06-02 (commit `e1374b9` — billing UI English/USD + Stripe products updated)
 - Supabase project ID: `sbakkkxuhkxfofpfhdtn`
 
 **Supabase Auth URL Configuration (dashboard):**
