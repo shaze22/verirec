@@ -80,11 +80,11 @@ Pengesan subdomain via `src/lib/subdomain.js` — hanya `isCounselorSubdomain()`
 ## Peraturan Wajib
 1. **Jangan panggil OpenAI/Anthropic/Stripe/Gemini dari browser** — semua melalui `/api/` routes
 2. **Jangan simpan secrets dalam `src/`** — hanya `VITE_` prefix dibenarkan di frontend
-3. **All UI text in English** — code comments in English
+3. **All UI text in English** — code comments in English. EXCEPTION: BM consent body text in KaunslorClientFilePage (legally required for Malaysian counseling regulation)
 4. **Setiap async function perlu try/catch** — tiada silent failures
 5. **Consent data mesti tidak pernah dipadam** — PDPA compliance, audit trail kekal
 6. **SHA-256 hash dikira server-side** dalam `api/report.js` — bukan client-side
-7. **Bid/harga dalam whole integer RM sahaja** — tiada decimal
+7. **Pricing in USD** — $0 free, $25 professional, top-up $3/$12/$22. No RM in UI.
 8. **Tiada free trial** — `trial_period_days` telah dibuang dari `stripe-checkout.js`
 
 ## Struktur Projek
