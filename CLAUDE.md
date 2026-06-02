@@ -206,7 +206,14 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - Token: via @BotFather (do NOT store token here — it's in Vercel env)
 - Setup in Settings → Telegram Notification → enter Chat ID (get from @userinfobot) → toggle ON
 
-**Latest deploy:** commit `48fd042` — 2026-06-02
+**Jadual Sesi fix (SchedulePage.jsx — commit 4c17c23):**
+- All BM text → English (labels, toasts, badges, empty states)
+- `isCounselor`: `localStorage` → `isCounselorSubdomain()`
+- `handleStart` prefill: `location.state` (broken) → `sessionStorage 'session_setup'` so SessionSetupPage actually reads it
+- `formatDistanceToNow`: removed `ms` locale → English
+- STATUS_CONFIG: 'Dibatalkan' → 'Cancelled'
+
+**Latest deploy:** commit `4c17c23` — 2026-06-02
 
 ---
 
