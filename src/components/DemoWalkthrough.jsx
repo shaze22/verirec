@@ -153,7 +153,7 @@ function BookingMockup() {
             </svg>
           </div>
           <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-2 py-1 text-[10px] text-emerald-700 text-center">
-            verirec.app/book/<br /><span className="font-bold">fmw7y2qc</span>
+            {window.location.hostname}/book/<br /><span className="font-bold">fmw7y2qc</span>
           </div>
           <button className="w-full bg-emerald-600 text-white text-[10px] font-semibold py-1.5 rounded-lg">
             🖨 Cetak QR
@@ -368,7 +368,7 @@ export default function DemoWalkthrough() {
                     <div className="w-3 h-3 rounded-full bg-green-400" />
                   </div>
                   <div className="flex-1 bg-white rounded-md px-3 py-1 text-xs text-gray-400 ml-2">
-                    counselor.verirec.app
+                    {window.location.hostname}
                   </div>
                 </div>
                 <div className="rounded-b-2xl overflow-hidden shadow-2xl border border-gray-200 border-t-0">
@@ -415,7 +415,7 @@ export default function DemoWalkthrough() {
             </a>
           </div>
           <p className="text-xs text-gray-400 mt-2">
-            Akaun demo: test.kaunselor@verirec.app / Test1234!
+            No credit card required · Cancel anytime
           </p>
         </div>
       </div>

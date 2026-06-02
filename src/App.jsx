@@ -109,6 +109,11 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
+function ProfessionalRoute({ children, redirectTo = '/analytics' }) {
+  if (isCounselorSubdomain()) return <Navigate to={redirectTo} replace />;
+  return children;
+}
+
 function CounselorHome() {
   const { user } = useAuthStore();
   const [dest, setDest] = useState(null);
@@ -217,10 +222,10 @@ export default function App() {
                 </ProtectedRoute>
               } />
               <Route path="/session/new" element={
-                <ProtectedRoute><AppLayout><ProfessionSelectPage /></AppLayout></ProtectedRoute>
+                <ProtectedRoute><ProfessionalRoute redirectTo="/kaunselor/appointments"><AppLayout><ProfessionSelectPage /></AppLayout></ProfessionalRoute></ProtectedRoute>
               } />
               <Route path="/session/setup/:profession" element={
-                <ProtectedRoute><AppLayout><SessionSetupPage /></AppLayout></ProtectedRoute>
+                <ProtectedRoute><ProfessionalRoute redirectTo="/kaunselor/appointments"><AppLayout><SessionSetupPage /></AppLayout></ProfessionalRoute></ProtectedRoute>
               } />
               <Route path="/session/:id" element={
                 <ProtectedRoute><AppLayout><SessionReportPage /></AppLayout></ProtectedRoute>
@@ -232,16 +237,16 @@ export default function App() {
                 <ProtectedRoute><AppLayout><AnalyticsPage /></AppLayout></ProtectedRoute>
               } />
               <Route path="/sessions" element={
-                <ProtectedRoute><AppLayout><DashboardPage pageTitle="Sesi Terkini" /></AppLayout></ProtectedRoute>
+                <ProtectedRoute><ProfessionalRoute><AppLayout><DashboardPage pageTitle="Sesi Terkini" /></AppLayout></ProfessionalRoute></ProtectedRoute>
               } />
               <Route path="/subjects" element={
-                <ProtectedRoute><AppLayout><SubjectsPage /></AppLayout></ProtectedRoute>
+                <ProtectedRoute><ProfessionalRoute redirectTo="/kaunselor/clients"><AppLayout><SubjectsPage /></AppLayout></ProfessionalRoute></ProtectedRoute>
               } />
               <Route path="/cases" element={
-                <ProtectedRoute><AppLayout><CasesPage /></AppLayout></ProtectedRoute>
+                <ProtectedRoute><ProfessionalRoute redirectTo="/kaunselor/clients"><AppLayout><CasesPage /></AppLayout></ProfessionalRoute></ProtectedRoute>
               } />
               <Route path="/cases/:id" element={
-                <ProtectedRoute><AppLayout><CaseDetailPage /></AppLayout></ProtectedRoute>
+                <ProtectedRoute><ProfessionalRoute redirectTo="/kaunselor/clients"><AppLayout><CaseDetailPage /></AppLayout></ProfessionalRoute></ProtectedRoute>
               } />
               <Route path="/audit" element={
                 <ProtectedRoute><AppLayout><AuditLogPage /></AppLayout></ProtectedRoute>
@@ -250,10 +255,10 @@ export default function App() {
                 <ProtectedRoute><AppLayout><TeamPage /></AppLayout></ProtectedRoute>
               } />
               <Route path="/admin" element={
-                <ProtectedRoute><AppLayout><AdminPage /></AppLayout></ProtectedRoute>
+                <ProtectedRoute><ProfessionalRoute><AppLayout><AdminPage /></AppLayout></ProfessionalRoute></ProtectedRoute>
               } />
               <Route path="/library" element={
-                <ProtectedRoute><AppLayout><AudioLibraryPage /></AppLayout></ProtectedRoute>
+                <ProtectedRoute><ProfessionalRoute><AppLayout><AudioLibraryPage /></AppLayout></ProfessionalRoute></ProtectedRoute>
               } />
               <Route path="/templat" element={
                 <ProtectedRoute><AppLayout><QuestionTemplatesPage /></AppLayout></ProtectedRoute>

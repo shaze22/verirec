@@ -133,7 +133,7 @@ export default function AuthPage() {
       if (mode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        if (subdomainProfession) localStorage.setItem('preferred_profession', subdomainProfession);
+        if (subdomainProfession && !isCounselorSubdomain()) localStorage.setItem('preferred_profession', subdomainProfession);
         // Check if MFA is required
         const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
         if (aal?.nextLevel === 'aal2' && aal?.currentLevel !== 'aal2') {
@@ -149,7 +149,7 @@ export default function AuthPage() {
           options: { data: { full_name: name } },
         });
         if (error) throw error;
-        if (professionFromUrl) {
+        if (professionFromUrl && !isCounselorSubdomain()) {
           localStorage.setItem('preferred_profession', professionFromUrl);
         }
         if (signUpData?.session?.access_token) {
@@ -204,7 +204,7 @@ export default function AuthPage() {
 
   const handleGoogleAuth = async () => {
     setLoading(true);
-    if (subdomainProfession) localStorage.setItem('preferred_profession', subdomainProfession);
+    if (subdomainProfession && !isCounselorSubdomain()) localStorage.setItem('preferred_profession', subdomainProfession);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
