@@ -20,81 +20,89 @@ const features = [
 ];
 
 const DEMO_TABS = [
-  { id: 'booking', label: 'Client Books', icon: '📅' },
-  { id: 'session', label: 'Session Runs', icon: '🎙️' },
-  { id: 'report',  label: 'AI Report',   icon: '📋' },
-  { id: 'dash',    label: 'Dashboard',   icon: '📊' },
+  { id: 'dash',    label: 'Dashboard',    icon: '📊' },
+  { id: 'appt',   label: 'Appointments', icon: '📅' },
+  { id: 'session', label: 'Session',      icon: '🎙️' },
+  { id: 'report',  label: 'Report',       icon: '📋' },
 ];
 
-function DemoBooking() {
-  const [step, setStep] = useState(1);
+function DemoAppointments() {
+  const [tab, setTab] = useState('requests');
+  const requests = [
+    { name: 'Ahmad Faris', time: 'Tue 4 Jun · 2:00 PM', issue: 'Exam anxiety', status: 'pending' },
+    { name: 'Nurul Ain', time: 'Wed 5 Jun · 10:00 AM', issue: 'Family conflict', status: 'pending' },
+  ];
+  const upcoming = [
+    { name: 'Siti Rashidah', time: 'Today · 3:30 PM', status: 'confirmed' },
+    { name: 'Muhammad Hafiz', time: 'Tomorrow · 9:00 AM', status: 'confirmed' },
+    { name: 'Amirul Hakim', time: 'Thu 6 Jun · 11:00 AM', status: 'confirmed' },
+  ];
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-4">
-        {[1,2,3].map(s => (
-          <div key={s} className="flex items-center gap-2">
-            <button
-              onClick={() => setStep(s)}
-              className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center transition-colors ${s === step ? 'bg-violet-600 text-white' : s < step ? 'bg-violet-200 text-violet-700' : 'bg-gray-100 text-gray-400'}`}
-            >{s < step ? '✓' : s}</button>
-            {s < 3 && <div className={`h-0.5 w-8 ${s < step ? 'bg-violet-400' : 'bg-gray-200'}`} />}
-          </div>
+    <div className="space-y-3">
+      <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+        {[['requests', 'Requests (2)'], ['upcoming', 'Upcoming'], ['qr', 'QR & Link']].map(([id, label]) => (
+          <button key={id} onClick={() => setTab(id)}
+            className={`flex-1 text-xs py-1.5 rounded-md font-medium transition-colors ${tab === id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}>
+            {label}
+          </button>
         ))}
-        <span className="text-xs text-gray-400 ml-2">{step === 1 ? 'Pick date' : step === 2 ? 'Your details' : 'Confirmed!'}</span>
       </div>
 
-      {step === 1 && (
-        <div className="space-y-3">
-          <p className="text-sm font-medium text-gray-700">Counselor: <span className="text-violet-600">Puan Suraya Mohd</span></p>
-          <div className="grid grid-cols-3 gap-2">
-            {['Mon 3 Jun', 'Tue 4 Jun', 'Wed 5 Jun', 'Thu 6 Jun', 'Fri 7 Jun', 'Mon 10 Jun'].map((d, i) => (
-              <button key={d} onClick={() => setStep(2)}
-                className={`text-xs p-2 rounded-lg border transition-colors ${i === 1 ? 'border-violet-500 bg-violet-50 text-violet-700 font-semibold' : 'border-gray-200 hover:border-violet-300 text-gray-600'}`}>
-                {d}
-              </button>
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {['9:00 AM', '10:00 AM', '2:00 PM', '3:00 PM'].map((t, i) => (
-              <button key={t} onClick={() => setStep(2)}
-                className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${i === 2 ? 'bg-violet-600 text-white border-violet-600' : 'border-gray-200 hover:border-violet-300 text-gray-600'}`}>
-                {t}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {step === 2 && (
+      {tab === 'requests' && (
         <div className="space-y-2.5">
-          {[['Full Name', 'Ahmad Faris bin Abdullah'], ['IC / Student ID', '990101-14-5678'], ['Email', 'ahmad.faris@utm.my'], ['Phone', '012-345 6789']].map(([label, val]) => (
-            <div key={label}>
-              <label className="text-xs text-gray-500">{label}</label>
-              <div className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 bg-gray-50">{val}</div>
+          {requests.map(r => (
+            <div key={r.name} className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 bg-violet-100 rounded-full flex items-center justify-center text-[10px] font-bold text-violet-600">{r.name[0]}</div>
+                  <p className="text-xs font-semibold text-gray-900">{r.name}</p>
+                </div>
+                <span className="text-[10px] bg-amber-100 text-amber-700 font-semibold px-2 py-0.5 rounded-full">New</span>
+              </div>
+              <p className="text-[10px] text-gray-500 mb-1">📅 {r.time} · {r.issue}</p>
+              <div className="flex gap-2">
+                <button className="flex-1 bg-violet-600 text-white text-[10px] font-semibold py-1.5 rounded-lg">Confirm</button>
+                <button className="flex-1 bg-gray-100 text-gray-600 text-[10px] font-semibold py-1.5 rounded-lg">Decline</button>
+              </div>
             </div>
           ))}
-          <button onClick={() => setStep(3)} className="w-full bg-violet-600 text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-violet-700 transition-colors mt-1">
-            Submit Booking →
-          </button>
         </div>
       )}
 
-      {step === 3 && (
-        <div className="text-center py-4 space-y-3">
-          <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-            <svg className="w-7 h-7 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
+      {tab === 'upcoming' && (
+        <div className="space-y-2">
+          {upcoming.map(a => (
+            <div key={a.name} className="flex items-center justify-between bg-white border border-gray-100 rounded-xl px-3 py-2.5">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 bg-violet-100 rounded-full flex items-center justify-center text-xs font-bold text-violet-600">{a.name[0]}</div>
+                <div>
+                  <p className="text-xs font-medium text-gray-900">{a.name}</p>
+                  <p className="text-[10px] text-gray-400">{a.time}</p>
+                </div>
+              </div>
+              <span className="text-[10px] bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded-full">Confirmed</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === 'qr' && (
+        <div className="text-center py-2 space-y-3">
+          <div className="w-28 h-28 bg-gray-900 rounded-xl mx-auto flex items-center justify-center">
+            <div className="grid grid-cols-3 gap-1 p-2">
+              {Array.from({length: 9}).map((_, i) => (
+                <div key={i} className={`w-5 h-5 rounded-sm ${[0,2,6,8,4].includes(i) ? 'bg-violet-400' : 'bg-gray-600'}`} />
+              ))}
+            </div>
           </div>
           <div>
-            <p className="font-semibold text-gray-900">Booking Confirmed!</p>
-            <p className="text-sm text-gray-500 mt-1">Tue, 4 Jun · 2:00 PM</p>
-            <p className="text-sm text-gray-500">Puan Suraya Mohd</p>
+            <p className="text-xs font-semibold text-gray-900">Your Booking Link</p>
+            <p className="text-[10px] text-violet-600 mt-0.5">kaunselor.app/book/suraya-7f2k</p>
           </div>
-          <div className="bg-violet-50 border border-violet-100 rounded-xl p-3 text-xs text-violet-700">
-            Confirmation email sent to ahmad.faris@utm.my
+          <div className="flex gap-2">
+            <div className="flex-1 bg-violet-600 text-white text-[10px] font-medium py-2 rounded-lg text-center">Download QR</div>
+            <div className="flex-1 bg-gray-100 text-gray-600 text-[10px] font-medium py-2 rounded-lg text-center">Copy Link</div>
           </div>
-          <button onClick={() => setStep(1)} className="text-xs text-gray-400 hover:text-gray-600 underline">Book another</button>
         </div>
       )}
     </div>
@@ -217,8 +225,8 @@ function DemoDash() {
 }
 
 function InteractiveDemo() {
-  const [activeTab, setActiveTab] = useState('booking');
-  const content = { booking: <DemoBooking />, session: <DemoSession />, report: <DemoReport />, dash: <DemoDash /> };
+  const [activeTab, setActiveTab] = useState('dash');
+  const content = { dash: <DemoDash />, appt: <DemoAppointments />, session: <DemoSession />, report: <DemoReport /> };
   return (
     <section className="py-24 px-4 bg-gray-950">
       <div className="max-w-5xl mx-auto">
@@ -428,6 +436,72 @@ export default function CounselorLandingPage() {
                   <p className="text-gray-500 text-xs leading-relaxed">{desc}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Mobile App */}
+        <section className="py-20 px-4 bg-gray-950">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex flex-col md:flex-row items-center gap-12">
+              {/* Left — phone mockup */}
+              <div className="flex-shrink-0 flex items-center justify-center">
+                <div className="relative">
+                  <div className="w-48 h-80 bg-gray-900 rounded-[2.5rem] border-4 border-gray-700 shadow-2xl flex flex-col overflow-hidden">
+                    <div className="h-6 bg-gray-800 flex items-center justify-center">
+                      <div className="w-16 h-1.5 bg-gray-700 rounded-full" />
+                    </div>
+                    <div className="flex-1 bg-gray-950 p-3 space-y-2">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{background:'#8b5cf6'}}>
+                          <svg viewBox="0 0 32 32" className="w-4 h-4"><polyline points="4,16 7,11 10,21 13,9 16,23 19,11 22,18 25,14 28,16" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none"/></svg>
+                        </div>
+                        <span className="text-white text-xs font-bold">Kaunselor</span>
+                      </div>
+                      {[['Total Clients', '24', 'text-violet-400'], ['Sessions Used', '8/10', 'text-blue-400'], ['Pending', '2', 'text-amber-400']].map(([l, v, c]) => (
+                        <div key={l} className="bg-gray-800 rounded-lg p-2 flex justify-between items-center">
+                          <span className="text-[10px] text-gray-400">{l}</span>
+                          <span className={`text-xs font-bold ${c}`}>{v}</span>
+                        </div>
+                      ))}
+                      <div className="bg-violet-600 rounded-lg py-2 text-center">
+                        <span className="text-white text-[10px] font-semibold">+ New Session</span>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Glow */}
+                  <div className="absolute inset-0 rounded-[2.5rem] bg-violet-500/10 blur-xl -z-10 scale-110" />
+                </div>
+              </div>
+
+              {/* Right — text */}
+              <div className="flex-1 text-center md:text-left">
+                <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-full px-4 py-1.5 text-sm font-medium text-violet-400 mb-5">
+                  📱 Mobile App
+                </div>
+                <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Works on your phone.<br/>No download needed.</h2>
+                <p className="text-gray-400 text-lg mb-8 leading-relaxed">
+                  Kaunselor is a Progressive Web App — install it on your phone in seconds. Works offline too.
+                </p>
+                <div className="space-y-4 mb-8">
+                  {[
+                    { num: '1', os: '🤖 Android', step: 'Open kaunselor.app in Chrome → tap ⋮ menu → "Add to Home Screen"' },
+                    { num: '2', os: '🍎 iPhone', step: 'Open kaunselor.app in Safari → tap Share → "Add to Home Screen"' },
+                  ].map(({ num, os, step }) => (
+                    <div key={num} className="flex items-start gap-3 text-left">
+                      <div className="w-6 h-6 bg-violet-600 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5">{num}</div>
+                      <div>
+                        <p className="text-sm font-semibold text-white">{os}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{step}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => window.location.href = '/auth?mode=register&profession=counselor'}
+                  className="bg-violet-600 text-white font-semibold px-8 py-3 rounded-xl hover:bg-violet-500 transition-colors text-sm">
+                  Get Started — Install Later →
+                </button>
+              </div>
             </div>
           </div>
         </section>
