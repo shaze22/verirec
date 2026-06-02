@@ -87,7 +87,7 @@ src/
   lib/                  — Supabase, IndexedDB, crypto, sync, subdomain, profConfig
   store/                — Zustand state (auth, billing)
   pages/
-    LandingPage.jsx     — www.verirec.app (soal siasat focus, 4 kumpulan profesion)
+    LandingPage.jsx     — www.verirec.app (Soro-inspired redesign 2026-06-02: white bg, font-black, comparison table, mobile PWA section)
     CounselorLandingPage.jsx  — counselor.verirec.app
     kaunselor/          — Counselor-specific pages
   components/
@@ -411,9 +411,9 @@ Semasa: admin, cron-reset-usage, gemini, report, share-session, stripe-billing, 
 - **NO free trial** — `trial_period_days` removed
 
 **PricingPage dalam app (`/pricing`):**
-- Tab "VeriRec Profesional": Percuma + Profesional (RM100) + Organisasi (RM999, 5 pengguna) + Enterprise hubungi
-- Tab "Kaunselor": Kaunselor (RM100) + top-up
-- Pro/Biz ditunjuk sebagai "Organisasi" — Stripe price ID tidak diubah
+- Tab "VeriRec Profesional": Free ($0) + Professional ($25) + Enterprise → email
+- Tab "Kaunselor": Counselor ($25) + top-up
+- Pro/Biz ditunjuk sebagai Enterprise — Stripe price ID tidak diubah
 
 ## Counselor Module
 - Public booking: `/book/:booking_code` → `PublicBookingPage.jsx`
@@ -433,13 +433,21 @@ Semasa: admin, cron-reset-usage, gemini, report, share-session, stripe-billing, 
 - Print Intake CIF, Jana Memo Rujukan PDF, Case Session Note jsPDF, Tab Kebenaran print
 
 ## LandingPage (www.verirec.app)
-4 kumpulan profesion dengan pain points + features per kumpulan:
-1. **Penguatkuasa & Penyiasat** (biru) — Polis, MACC, SISPA, SKMM, Peguam, JTK
-2. **HR & Disiplin Korporat** (indigo) — Penyiasat HR, Panel Tatatertib
-3. **Audit & Pematuhan** (amber) — ISO, Halal JAKIM, Kualiti
-4. **Klinikal & Kebajikan** (rose) — Doktor, JKM, Pekerja Sosial
+Redesign 2026-06-02 — Soro-inspired. Sections (dalam order):
+1. Hero — "Make every investigation record unchallengeable." white bg, font-black
+2. Professions strip — 15 profession pills
+3. Narrative — "Handwritten notes get challenged... VeriRec fixes that."
+4. App mockup — SPRM session, live transcript + AI panel + PEACE phases
+5. 3 Steps — nombor oversized 01/02/03
+6. Features — 6 cards 3×2 grid
+7. Mobile App — PWA install steps Android + iPhone, dark phone mockup
+8. Who It's For — 4 compact 2×2 cards (bukan panel besar)
+9. Comparison table — VeriRec vs Paper Notes vs Basic Recorder
+10. Pricing — Free ($0) + Professional ($25) + top-up $3/$12/$22
+11. Final CTA + Footer
 
-Pricing section: Percuma (RM0) + Profesional (RM100/bulan, 10 sesi) + top-up table.
+**AISuggestions locked overlay:** English + "$25/month" (updated 2026-06-02)
+**ProfessionLandingPage (/polis, /sprm dll):** USD pricing — Free $0 / Professional $25 / Pro $249
 
 ## Environment Variables
 ```
