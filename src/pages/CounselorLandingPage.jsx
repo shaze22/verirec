@@ -284,8 +284,8 @@ export default function CounselorLandingPage() {
     <>
       <Helmet>
         <title>Kaunselor — Digital Counselling Platform</title>
-        <meta name="description" content="Kaunselor is a digital counseling session management platform — QR booking, client files, AI session notes, red flag detection, MBTI & RIASEC. Built for Malaysian counselors." />
-        <meta name="keywords" content="counseling platform Malaysia, kaunselor digital, counseling session management, SOP session notes, AI counseling report, PDPA counseling" />
+        <meta name="description" content="Kaunselor is a digital counseling platform meeting global and local standards — QR booking, client files, AI session notes, MBTI & RIASEC assessments. Built for counselors everywhere." />
+        <meta name="keywords" content="counseling platform, digital counseling, kaunselor, counseling session management, AI session notes, MBTI RIASEC, PDPA compliant counseling" />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://kaunselor.app" />
         <meta property="og:type" content="website" />
@@ -334,7 +334,7 @@ export default function CounselorLandingPage() {
           <div className="max-w-5xl mx-auto px-4 py-24 md:py-32 text-center relative">
             <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/25 rounded-full px-4 py-1.5 text-sm font-medium text-violet-400 mb-8">
               <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse inline-block" />
-              Built for Malaysian Counselors
+              Global Standards · Built for Every Counselor
             </div>
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] mb-6 tracking-tight">
               Less Admin.<br />
