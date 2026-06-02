@@ -1,13 +1,19 @@
 import { useNavigate } from 'react-router-dom';
+import { isCounselorSubdomain } from '../lib/subdomain.js';
 
 const EFFECTIVE_DATE = '1 June 2026';
-const EMAIL = 'hello@verirec.app';
 
-const sections = [
-  {
-    id: 'dikumpul',
-    title: '1. Information We Collect',
-    body: `We collect the following information when you use VeriRec:
+export default function PrivacyPage() {
+  const navigate = useNavigate();
+  const isCounselor = isCounselorSubdomain();
+  const PLATFORM = isCounselor ? 'Kaunselor' : 'VeriRec';
+  const EMAIL = isCounselor ? 'hello@kaunselor.app' : 'hello@verirec.app';
+
+  const sections = [
+    {
+      id: 'dikumpul',
+      title: '1. Information We Collect',
+      body: `We collect the following information when you use ${PLATFORM}:
 
 Account Information:
 • Full name, email address, and password (encrypted)
@@ -17,8 +23,8 @@ Account Information:
 Session Information:
 • Audio recordings of sessions (stored temporarily for transcription)
 • Text transcripts generated from recordings
-• Session metadata: date, time, duration, phase, and context notes
-• PDPA consent records of interviewed subjects
+• Session metadata: date, time, duration, and context notes
+• Consent records of session subjects
 
 Technical Information:
 • IP address, browser type, and operating system
@@ -28,13 +34,13 @@ Technical Information:
 Payment Information:
 • We do not store credit card details — processed directly by Stripe
 • Transaction records and subscription history are retained for accounting purposes`,
-  },
-  {
-    id: 'penggunaan',
-    title: '2. How We Use Your Information',
-    body: `We use the information collected to:
+    },
+    {
+      id: 'penggunaan',
+      title: '2. How We Use Your Information',
+      body: `We use the information collected to:
 
-• Provide and improve the VeriRec Service
+• Provide and improve the ${PLATFORM} Service
 • Process audio recordings via OpenAI Whisper for transcription
 • Analyse session content via Anthropic Claude AI for reports and recommendations
 • Manage subscriptions and payments via Stripe
@@ -46,11 +52,11 @@ We do NOT use your session data to:
 • Train AI models (your data is not used for model training)
 • Third-party advertising or marketing
 • Sell to any party`,
-  },
-  {
-    id: 'perkongsian',
-    title: '3. Information Sharing',
-    body: `We share your information ONLY with service providers necessary for platform operations:
+    },
+    {
+      id: 'perkongsian',
+      title: '3. Information Sharing',
+      body: `We share your information ONLY with service providers necessary for platform operations:
 
 Technical Service Providers:
 • Supabase Inc. — database and authentication (servers in Asia Pacific region)
@@ -63,48 +69,49 @@ Payment Provider:
 
 We do not share your personal information with any other parties unless:
 • Required by law or court order
-• Necessary to protect the rights, property, or safety of VeriRec or other users
+• Necessary to protect the rights, property, or safety of ${PLATFORM} or other users
 • With your explicit consent`,
-  },
-  {
-    id: 'penyimpanan',
-    title: '4. Data Retention and Security',
-    body: `Storage Location:
+    },
+    {
+      id: 'penyimpanan',
+      title: '4. Data Retention and Security',
+      body: `Storage Location:
 • All data is stored on Supabase servers located in the Asia Pacific region
 • Audio recordings are stored in encrypted storage and deleted after transcription is complete
 
 Retention Periods:
 • Account data: retained while the account is active + 30 days after termination
 • Session reports and transcripts: retained while the account is active
-• PDPA consent records: retained PERMANENTLY as required by PDPA 2010 and cannot be deleted
+• Consent records: retained permanently as legally required evidence and cannot be deleted
 • Audit logs: retained for 7 years in accordance with compliance best practices
 
 Security Measures:
 • Encryption in transit (TLS 1.3) and at rest (AES-256)
 • SHA-256 hashing for report integrity (chain of custody)
 • Role-based access control (Row Level Security)
-• Two-factor authentication available for sensitive accounts`,
-  },
-  {
-    id: 'hak',
-    title: '5. Your Rights under PDPA 2010',
-    body: `Under the Personal Data Protection Act 2010 (PDPA) of Malaysia, you have the right to:
+• Two-factor authentication available for all accounts`,
+    },
+    {
+      id: 'hak',
+      title: '5. Your Data Protection Rights',
+      body: `${PLATFORM} respects your rights under applicable data protection laws, including the Personal Data Protection Act 2010 (PDPA) of Malaysia and equivalent international frameworks (including GDPR principles):
 
 • Access — Request a copy of the personal data we hold about you
 • Correction — Request that we correct inaccurate or incomplete data
 • Erasure — Request that we delete your personal data (subject to legal obligations)
 • Objection — Object to the processing of your data for direct marketing purposes
 • Portability — Request your data in a machine-readable format
+• Restriction — Request that we limit how we process your data in certain circumstances
 
 To exercise any of these rights, please contact us at ${EMAIL}.
 We will respond to your request within 21 business days.
 
-Note: PDPA consent records of interviewed subjects cannot be deleted as they constitute legally required evidence of compliance.`,
-  },
-  {
-    id: 'kuki',
-    title: '6. Cookies and Tracking Technologies',
-    body: `We use cookies and local storage to:
+Note: Consent records of session subjects cannot be deleted as they constitute legally required evidence of compliance.`,
+    },
+    {
+      id: 'kuki',
+      title: '6. Cookies and Tracking Technologies',
+      body: `We use cookies and local storage to:
 
 • Maintain your login session (required for core functionality)
 • Store session preferences and settings (session/local storage)
@@ -113,42 +120,39 @@ Note: PDPA consent records of interviewed subjects cannot be deleted as they con
 We do NOT use third-party cookies for advertising or cross-site tracking.
 
 You may disable cookies in your browser, but this may affect platform functionality.`,
-  },
-  {
-    id: 'kanak',
-    title: "7. Children's Privacy",
-    body: `The VeriRec Service is not intended for users under the age of 18.
+    },
+    {
+      id: 'kanak',
+      title: "7. Children's Privacy",
+      body: `The ${PLATFORM} Service is not intended for users under the age of 18.
 
-For JKM officers and other professionals who record sessions involving children as interview subjects:
+For professionals who conduct sessions involving children as subjects:
 • Parental or legal guardian consent must be obtained before any recording
-• VeriRec consent forms include a dedicated field for guardian consent
+• ${PLATFORM} consent forms include a dedicated field for guardian consent
 • Session data involving children is protected with the same level of security as adult data`,
-  },
-  {
-    id: 'perubahan',
-    title: '8. Changes to This Policy',
-    body: `We may update this Privacy Policy from time to time. Material changes will be communicated via:
+    },
+    {
+      id: 'perubahan',
+      title: '8. Changes to This Policy',
+      body: `We may update this Privacy Policy from time to time. Material changes will be communicated via:
 • Email to your registered address
 • In-platform notification
 
 The "Effective date" at the top of this page will be updated to reflect the latest version.
 Continued use of the Service after changes take effect constitutes acceptance of the revised policy.`,
-  },
-  {
-    id: 'hubungi',
-    title: '9. Contact Our Privacy Officer',
-    body: `For any questions, complaints, or requests regarding privacy and data protection:
+    },
+    {
+      id: 'hubungi',
+      title: '9. Contact Our Privacy Officer',
+      body: `For any questions, complaints, or requests regarding privacy and data protection:
 
 Email: ${EMAIL}
 Subject: [Privacy Enquiry] — brief description of your issue
 
 We are committed to addressing any privacy concerns seriously and promptly.
-If you are not satisfied with our response, you have the right to lodge a complaint with the Department of Personal Data Protection (JPDP) Malaysia.`,
-  },
-];
-
-export default function PrivacyPage() {
-  const navigate = useNavigate();
+Malaysian users who are not satisfied with our response have the right to lodge a complaint with the Department of Personal Data Protection (JPDP) Malaysia.`,
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-white">
@@ -159,7 +163,7 @@ export default function PrivacyPage() {
             ← Back to Home
           </button>
           <h1 className="text-3xl font-bold text-gray-900">Privacy Policy</h1>
-          <p className="text-gray-500 mt-2 text-sm">Effective date: {EFFECTIVE_DATE} · Compliant with PDPA 2010 Malaysia</p>
+          <p className="text-gray-500 mt-2 text-sm">Effective date: {EFFECTIVE_DATE} · Compliant with PDPA 2010 & International Data Protection Standards</p>
         </div>
       </div>
 
@@ -167,8 +171,9 @@ export default function PrivacyPage() {
         {/* Intro */}
         <div className="bg-green-50 border border-green-200 rounded-xl p-5 mb-10">
           <p className="text-sm text-green-800 leading-relaxed">
-            VeriRec is committed to protecting your privacy and personal data. This policy explains how we collect,
-            use, and safeguard your information in accordance with the Personal Data Protection Act 2010 (PDPA) Malaysia.
+            {PLATFORM} is committed to protecting your privacy and personal data. This policy explains how we collect,
+            use, and safeguard your information in accordance with applicable data protection laws, including the
+            Personal Data Protection Act 2010 (PDPA) of Malaysia and equivalent international standards.
           </p>
         </div>
 
