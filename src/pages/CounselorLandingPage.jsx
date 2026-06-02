@@ -346,7 +346,7 @@ export default function CounselorLandingPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-12">
               <button onClick={() => navigate('/auth?mode=register&profession=counselor')}
                 className="w-full sm:w-auto bg-violet-600 text-white font-bold text-base px-8 py-3.5 rounded-xl hover:bg-violet-500 transition-colors shadow-lg shadow-violet-900/30">
-                Start Free Trial →
+                Get Started Free →
               </button>
               <button onClick={() => document.getElementById('demo-section').scrollIntoView({ behavior: 'smooth' })}
                 className="w-full sm:w-auto border border-gray-700 text-gray-300 font-medium text-base px-8 py-3.5 rounded-xl hover:bg-gray-800 transition-colors">

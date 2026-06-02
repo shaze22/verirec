@@ -84,7 +84,7 @@ export default function KaunslorSetupPage() {
         <div className="max-w-2xl mx-auto space-y-6">
 
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800 flex items-start justify-between gap-3">
-            <span><strong>Welcome to VeriRec Counselor Module.</strong> Complete your profile to start accepting appointments from clients.</span>
+            <span><strong>Welcome to Kaunselor.</strong> Complete your profile to start accepting appointments from clients.</span>
             <button type="button" onClick={() => { localStorage.setItem(`counselor_setup_skipped_${user?.id}`, '1'); navigate('/dashboard'); }}
               className="text-xs text-blue-500 hover:text-blue-700 flex-shrink-0 underline">Skip</button>
           </div>
@@ -159,7 +159,7 @@ export default function KaunslorSetupPage() {
               <div className="bg-gray-50 rounded-lg p-3">
                 <p className="text-xs text-gray-500 mb-1">Your Booking Code</p>
                 <p className="font-mono font-bold text-gray-900 text-lg">{form.booking_code}</p>
-                <p className="text-xs text-gray-400 mt-1">URL: www.verirec.app/book/{form.booking_code}</p>
+                <p className="text-xs text-gray-400 mt-1">URL: kaunselor.app/book/{form.booking_code}</p>
               </div>
             </div>
 
