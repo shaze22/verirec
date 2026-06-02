@@ -177,6 +177,7 @@ export default function App() {
       <ErrorBoundary>
         {isCounselor && (
           <Helmet>
+            <title>Kaunselor — Digital Counselling Platform</title>
             <link rel="icon" type="image/svg+xml" href="/favicon-kaunselor.svg" />
             <link rel="apple-touch-icon" href="/pwa-192-kaunselor.svg" />
           </Helmet>
