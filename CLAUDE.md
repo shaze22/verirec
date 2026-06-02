@@ -260,7 +260,12 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - DemoBooking (client view) → DemoAppointments (counselor view) with 3 sub-tabs: Requests | Upcoming | QR & Link
 - Mobile App section added: phone mockup, Android + iPhone PWA install steps
 
-**Latest deploy:** commit `7320cad` — 2026-06-02
+**UI Polish — 3 pages (commit 08b1e35 — 2026-06-02):**
+- PublicBookingPage: dark gray-950 header with Kaunselor brand, white card body, premium loading/error/success screens
+- KaunslorClientsPage: card grid (2-col desktop), risk-colored avatars, presenting_issue shown, better empty state, focus rings violet
+- CounselorDashboard: appointment/session lists with avatar circles + hover, RISK_CONFIG English, PDF 'Dijana'→'Generated'
+
+**Latest deploy:** commit `08b1e35` — 2026-06-02
 
 ---
 
