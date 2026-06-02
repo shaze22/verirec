@@ -454,7 +454,7 @@ Redesign 2026-06-02 — Soro-inspired. Sections (dalam order):
 11. Final CTA + Footer
 
 **AISuggestions locked overlay:** English + "$25/month" (updated 2026-06-02)
-**ProfessionLandingPage (/polis, /sprm dll):** USD pricing — Free $0 / Professional $25 / Pro $249
+**ProfessionLandingPage (/polis, /sprm dll):** USD pricing — Free $0 / Professional $25 / Pro $249. All content fully in English (commit d20099e) — PROFESSION_META, PROFESSIONS data, TESTIMONIALS, CTA labels for all 9 professions.
 
 ## Environment Variables
 ```
