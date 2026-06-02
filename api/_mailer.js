@@ -1,6 +1,6 @@
 // Email helper using Resend API — set RESEND_API_KEY in Vercel env to activate
 const FROM = 'VeriRec <noreply@verirec.app>';
-const FROM_KAUNSELOR = 'Kaunselor <noreply@verirec.app>';
+const FROM_KAUNSELOR = 'Kaunselor <noreply@kaunselor.app>';
 
 export function buildCalendarUrl(date, time, duration, counselorName, location) {
   if (!date || !time) return '';
