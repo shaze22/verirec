@@ -141,7 +141,7 @@ export default function SchedulePage() {
       profession: item.profession,
       scheduled_id: item.id,
     }));
-    navigate(`/session/setup/${item.profession}`);
+    navigate('/session/setup');
   };
 
   function ScheduleCard({ item, showStart = false }) {

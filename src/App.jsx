@@ -15,7 +15,6 @@ const AuthPage              = lazy(() => import('./pages/AuthPage.jsx'));
 const LandingPage           = lazy(() => import('./pages/LandingPage.jsx'));
 const FaqPage               = lazy(() => import('./pages/FaqPage.jsx'));
 const DashboardPage         = lazy(() => import('./pages/DashboardPage.jsx'));
-const ProfessionSelectPage  = lazy(() => import('./pages/ProfessionSelectPage.jsx'));
 const SessionSetupPage      = lazy(() => import('./pages/SessionSetupPage.jsx'));
 const ConsentPage           = lazy(() => import('./pages/ConsentPage.jsx'));
 const SessionPage           = lazy(() => import('./pages/SessionPage.jsx'));
@@ -221,10 +220,9 @@ export default function App() {
                     : <Navigate to="/analytics" replace />}
                 </ProtectedRoute>
               } />
-              <Route path="/session/new" element={
-                <ProtectedRoute><ProfessionalRoute redirectTo="/kaunselor/appointments"><AppLayout><ProfessionSelectPage /></AppLayout></ProfessionalRoute></ProtectedRoute>
-              } />
-              <Route path="/session/setup/:profession" element={
+              <Route path="/session/new" element={<Navigate to="/session/setup" replace />} />
+              <Route path="/session/setup/:profession" element={<Navigate to="/session/setup" replace />} />
+              <Route path="/session/setup" element={
                 <ProtectedRoute><ProfessionalRoute redirectTo="/kaunselor/appointments"><AppLayout><SessionSetupPage /></AppLayout></ProfessionalRoute></ProtectedRoute>
               } />
               <Route path="/session/:id" element={

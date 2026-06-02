@@ -37,7 +37,7 @@ const COUNSELOR_ITEMS = [
 // Other professions tabs — Recent Sessions & Subjects removed from primary nav.
 // Sessions are accessed through Case Files. Subjects via Subject Search (secondary link) or global search.
 const OTHER_ITEMS = [
-  { to: '/session/new', label: 'New Session',        icon: ICONS.mic,      cta: true },
+  { to: '/session/setup', label: 'New Session',       icon: ICONS.mic,      cta: true },
   { to: '/cases',       label: 'Case Files',         icon: ICONS.folder },
   { to: '/jadual',      label: 'Schedule',           icon: ICONS.calendar },
   { to: '/templat',     label: 'Question Templates', icon: ICONS.doc },

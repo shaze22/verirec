@@ -23,7 +23,7 @@ const COUNSELOR_NAV = [
 
 const OTHER_NAV = [
   { to: '/analytics',   label: 'Home',        icon: I.home },
-  { to: '/session/new', label: 'New Session', icon: I.mic },
+  { to: '/session/setup', label: 'New Session', icon: I.mic },
   { to: '/cases',       label: 'Case Files',  icon: I.folder },
   { to: '/settings',    label: 'Settings',    icon: I.settings },
 ];

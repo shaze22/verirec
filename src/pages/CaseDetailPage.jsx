@@ -301,8 +301,7 @@ export default function CaseDetailPage() {
       case_title: caseData.title,
       profession: caseData.profession || '',
     }));
-    const prof = caseData.profession;
-    navigate(prof ? `/session/setup/${prof}` : '/session/new');
+    navigate('/session/setup');
   };
 
   const handleAdd = async (sessionId) => {
