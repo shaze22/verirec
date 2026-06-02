@@ -275,7 +275,12 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - vercel.json: rewrite /favicon.svg → /favicon-kaunselor.svg for kaunselor.app + www.kaunselor.app
 - CounselorLandingPage title: 'Kaunselor — Digital Counselling Platform'
 
-**Latest deploy:** commit `477d59e` — 2026-06-02
+**Favicon Helmet fix (commit 245772f — 2026-06-02):**
+- App.jsx: import Helmet, inject `<link rel="icon" href="/favicon-kaunselor.svg">` when isCounselorSubdomain()
+- Vercel static file rewrites cannot override favicon — must use react-helmet-async
+- Also sets apple-touch-icon to pwa-192-kaunselor.svg for counselor
+
+**Latest deploy:** commit `245772f` — 2026-06-02
 
 ---
 
