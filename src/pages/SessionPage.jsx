@@ -551,7 +551,7 @@ export default function SessionPage() {
                 key={t.key}
                 onClick={() => setActiveTab(t.key)}
                 className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 relative transition-colors min-h-[52px] ${
-                  activeTab === t.key ? 'text-blue-600' : 'text-gray-400'
+                  activeTab === t.key ? 'text-violet-600' : 'text-gray-400'
                 }`}
               >
                 <span className="text-[18px] leading-none">{t.icon}</span>
@@ -562,7 +562,7 @@ export default function SessionPage() {
                   </span>
                 )}
                 {activeTab === t.key && (
-                  <span className="absolute bottom-0 left-[20%] right-[20%] h-0.5 bg-blue-600 rounded-t-full" />
+                  <span className="absolute bottom-0 left-[20%] right-[20%] h-0.5 bg-violet-600 rounded-t-full" />
                 )}
               </button>
             ))}
@@ -583,13 +583,13 @@ export default function SessionPage() {
                 <div className="flex bg-gray-50 border-b text-xs flex-shrink-0">
                   <button
                     onClick={() => setMobileAiTab('ai')}
-                    className={`flex-1 py-2.5 font-semibold transition-colors ${mobileAiTab === 'ai' ? 'text-blue-600 border-b-2 border-blue-600 bg-white' : 'text-gray-500'}`}
+                    className={`flex-1 py-2.5 font-semibold transition-colors ${mobileAiTab === 'ai' ? 'text-violet-600 border-b-2 border-violet-600 bg-white' : 'text-gray-500'}`}
                   >
                     🤖 AI Suggestions
                   </button>
                   <button
                     onClick={() => setMobileAiTab('assessment')}
-                    className={`flex-1 py-2.5 font-semibold transition-colors ${mobileAiTab === 'assessment' ? 'text-blue-600 border-b-2 border-blue-600 bg-white' : 'text-gray-500'}`}
+                    className={`flex-1 py-2.5 font-semibold transition-colors ${mobileAiTab === 'assessment' ? 'text-violet-600 border-b-2 border-violet-600 bg-white' : 'text-gray-500'}`}
                   >
                     {isInvestigationProf ? '🔍 PEACE' : '📊 Assessment'}
                   </button>
@@ -630,8 +630,8 @@ export default function SessionPage() {
           {/* AI Suggestions — always visible on desktop, toggle on md */}
           <div className="w-72 flex flex-col overflow-hidden">
             <div className="flex border-b bg-white text-xs xl:hidden">
-              <button onClick={() => setActiveTab('ai')} className={`flex-1 py-2 font-medium ${activeTab !== 'assessment' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>AI Suggestions</button>
-              <button onClick={() => setActiveTab('assessment')} className={`flex-1 py-2 font-medium ${activeTab === 'assessment' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>
+              <button onClick={() => setActiveTab('ai')} className={`flex-1 py-2 font-medium ${activeTab !== 'assessment' ? 'text-violet-600 border-b-2 border-violet-600' : 'text-gray-500'}`}>AI Suggestions</button>
+              <button onClick={() => setActiveTab('assessment')} className={`flex-1 py-2 font-medium ${activeTab === 'assessment' ? 'text-violet-600 border-b-2 border-violet-600' : 'text-gray-500'}`}>
                 {isInvestigationProf ? 'PEACE Model' : 'Assessment'}
               </button>
             </div>

@@ -235,7 +235,7 @@ export default function KaunslorAppointmentsPage() {
             { id: 'rujukan', label: `Team Referrals${incomingReferrals.filter(r => r.status === 'pending').length ? ` (${incomingReferrals.filter(r => r.status === 'pending').length})` : ''}` },
           ].map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${tab === t.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${tab === t.id ? 'border-violet-600 text-violet-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
               {t.label}
             </button>
           ))}
@@ -251,17 +251,23 @@ export default function KaunslorAppointmentsPage() {
                   <h3 className="font-semibold text-gray-900 mb-3">Pending Confirmation ({pending.length})</h3>
                   <div className="space-y-3">
                     {pending.map(a => (
-                      <div key={a.id} className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <p className="font-semibold text-gray-900">{a.client_name}</p>
-                            <p className="text-sm text-gray-500">{a.client_phone} · {a.client_email}</p>
-                            <p className="text-sm text-blue-700 mt-1">
+                      <div key={a.id} className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-700 font-bold text-sm flex-shrink-0">
+                            {a.client_name?.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <p className="font-semibold text-gray-900">{a.client_name}</p>
+                              <span className="text-[10px] bg-amber-200 text-amber-800 font-bold px-2 py-0.5 rounded-full">New Request</span>
+                            </div>
+                            <p className="text-xs text-gray-500">{a.client_phone}{a.client_email ? ` · ${a.client_email}` : ''}</p>
+                            <p className="text-xs text-violet-700 font-medium mt-1">
                               📅 {format(parseISO(a.requested_date), 'dd MMM yyyy')} · 🕐 {a.requested_time?.slice(0, 5)}
                             </p>
-                            {a.presenting_issue && <p className="text-sm text-gray-600 mt-1 italic">"{a.presenting_issue}"</p>}
+                            {a.presenting_issue && <p className="text-xs text-gray-500 mt-1 italic">"{a.presenting_issue}"</p>}
                           </div>
-                          <div className="flex gap-2 flex-shrink-0">
+                          <div className="flex flex-col gap-1.5 flex-shrink-0">
                             <Button size="sm" onClick={() => openConfirm(a)}>Confirm</Button>
                             <Button size="sm" variant="secondary" onClick={() => handleCancel(a.id)}>Reject</Button>
                           </div>
@@ -282,9 +288,12 @@ export default function KaunslorAppointmentsPage() {
                         ? a.counselor_notes.replace('[Jadual Semula] ', '')
                         : null;
                       return (
-                        <div key={a.id} className={`border rounded-xl p-4 ${isRescheduled ? 'bg-blue-50 border-blue-200' : 'bg-white'}`}>
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1">
+                        <div key={a.id} className={`border rounded-2xl p-4 ${isRescheduled ? 'bg-violet-50 border-violet-200' : 'bg-white border-gray-100'}`}>
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 bg-violet-100 rounded-xl flex items-center justify-center text-violet-700 font-bold text-sm flex-shrink-0">
+                              {a.client_name?.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-0.5">
                                 <p className="font-medium text-gray-900">{a.client_name}</p>
                                 {isRescheduled && <Badge color="blue">Rescheduled</Badge>}
@@ -297,18 +306,18 @@ export default function KaunslorAppointmentsPage() {
                                 <p className="text-xs text-gray-400 mt-0.5 italic">"{a.presenting_issue}"</p>
                               )}
                               {rescheduleReason && (
-                                <p className="text-xs text-blue-700 mt-1 bg-blue-100 px-2 py-1 rounded-lg">
-                                  📝 Reschedule reason: {rescheduleReason}
+                                <p className="text-xs text-violet-700 mt-1 bg-violet-100 px-2 py-1 rounded-lg">
+                                  📝 {rescheduleReason}
                                 </p>
                               )}
                             </div>
                             <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
                               {a.subject_id && (
                                 <Button size="sm" onClick={() => navigate(`/kaunselor/clients/${a.subject_id}`)}>
-                                  Open Profile
+                                  Profile →
                                 </Button>
                               )}
-                              <button onClick={() => openReschedule(a)} className="text-xs text-blue-500 hover:text-blue-700 font-medium">Reschedule</button>
+                              <button onClick={() => openReschedule(a)} className="text-xs text-violet-500 hover:text-violet-700 font-medium">Reschedule</button>
                               <button onClick={() => handleCancel(a.id)} className="text-xs text-gray-400 hover:text-red-500">Cancel</button>
                             </div>
                           </div>
@@ -320,10 +329,12 @@ export default function KaunslorAppointmentsPage() {
               )}
 
               {pending.length === 0 && upcoming.length === 0 && (
-                <div className="text-center py-16 text-gray-400">
-                  <div className="text-4xl mb-3">📅</div>
-                  <p className="font-medium">No appointments at the moment</p>
-                  <p className="text-sm mt-1">Share your QR code with clients to get started.</p>
+                <div className="text-center py-16">
+                  <div className="w-16 h-16 bg-violet-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <span className="text-3xl">📅</span>
+                  </div>
+                  <p className="font-semibold text-gray-700">No appointments at the moment</p>
+                  <p className="text-sm text-gray-400 mt-1">Share your QR code with clients to get started.</p>
                 </div>
               )}
 
@@ -372,7 +383,7 @@ export default function KaunslorAppointmentsPage() {
                     const dt = new Date(s.scheduled_at);
                     const isToday = dt.toDateString() === new Date().toDateString();
                     return (
-                      <div key={s.id} className={`rounded-xl border p-4 ${isToday ? 'bg-blue-50 border-blue-200' : 'bg-white'}`}>
+                      <div key={s.id} className={`rounded-xl border p-4 ${isToday ? 'bg-violet-50 border-violet-200' : 'bg-white'}`}>
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1">
                             {isToday && <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full font-medium mb-1 inline-block">Today</span>}

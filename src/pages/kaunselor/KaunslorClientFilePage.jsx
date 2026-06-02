@@ -223,7 +223,7 @@ export default function KaunslorClientFilePage() {
               { id: 'notes',        label: `Notes (${progressNotes.length})` },
             ].map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
-                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${tab === t.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${tab === t.id ? 'border-violet-600 text-violet-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
                 {t.label}
               </button>
             ))}
@@ -237,13 +237,13 @@ export default function KaunslorClientFilePage() {
             <div className="space-y-4">
               {/* Summary cards */}
               <div className="grid grid-cols-3 gap-3">
-                <div className="bg-blue-50 rounded-xl p-4 text-center">
-                  <p className="text-2xl font-bold text-blue-700">{sessions.length}</p>
-                  <p className="text-xs text-blue-600">Sessions</p>
+                <div className="bg-violet-50 rounded-xl p-4 text-center">
+                  <p className="text-2xl font-bold text-violet-700">{sessions.length}</p>
+                  <p className="text-xs text-violet-600">Sessions</p>
                 </div>
-                <div className="bg-green-50 rounded-xl p-4 text-center">
-                  <p className="text-2xl font-bold text-green-700">{Math.round(totalDuration / 60)}</p>
-                  <p className="text-xs text-green-600">Minutes</p>
+                <div className="bg-blue-50 rounded-xl p-4 text-center">
+                  <p className="text-2xl font-bold text-blue-700">{Math.round(totalDuration / 60)}</p>
+                  <p className="text-xs text-blue-600">Minutes</p>
                 </div>
                 <div className={`rounded-xl p-4 text-center ${RISK_CONFIG[client.risk_level || 'none']?.bg || 'bg-gray-50'}`}>
                   <p className={`text-sm font-bold ${RISK_CONFIG[client.risk_level || 'none']?.text || 'text-gray-600'}`}>
@@ -259,7 +259,7 @@ export default function KaunslorClientFilePage() {
                 <div className="grid grid-cols-2 gap-2">
                   {Object.entries(RISK_CONFIG).map(([key, cfg]) => (
                     <button key={key} onClick={() => updateRiskLevel(key)}
-                      className={`p-3 rounded-xl border-2 text-left transition-all text-sm font-medium ${client.risk_level === key ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                      className={`p-3 rounded-xl border-2 text-left transition-all text-sm font-medium ${client.risk_level === key ? 'border-violet-500 bg-violet-50' : 'border-gray-200 hover:border-violet-200'}`}>
                       <span className={cfg.text}>{cfg.label}</span>
                     </button>
                   ))}
