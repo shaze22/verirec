@@ -533,7 +533,7 @@ export default function KaunslorAppointmentsPage() {
                     <div className="flex gap-3 justify-center mt-4">
                       <Button variant="secondary" onClick={() => {
                         const win = window.open('', '_blank', 'width=480,height=600');
-                        win.document.write(`<!DOCTYPE html><html><head><title>Booking QR - VeriRec</title>
+                        win.document.write(`<!DOCTYPE html><html><head><title>Booking QR - Kaunselor</title>
                           <style>
                             @page{size:A4;margin:1.5cm}
                             *{box-sizing:border-box}
@@ -545,7 +545,7 @@ export default function KaunslorAppointmentsPage() {
                             .url{font-family:monospace;background:#f1f5f9;padding:5px 10px;border-radius:6px;font-size:10px;margin:6px 0}
                           </style>
                         </head><body>
-                          <h2>VeriRec — Booking QR</h2>
+                          <h2>Kaunselor — Booking QR</h2>
                           <p>Scan this QR code to make an appointment</p>
                           <img src="${qrDataUrl}" alt="QR"/>
                           <p class="url">${bookingUrl}</p>

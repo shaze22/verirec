@@ -349,7 +349,7 @@ export default function KaunslorClientFilePage() {
                               <div><div style="border-top:1px solid #333;padding-top:4px;margin-top:40px"><strong>${client.name||'___________________'}</strong><br/>Client Signature<br/><span style="font-size:9px">Date: ${format(new Date(),'dd/MM/yyyy')}</span></div></div>
                               <div><div style="border-top:1px solid #333;padding-top:4px;margin-top:40px"><strong>${counselorName}</strong><br/>Counselor Signature<br/><span style="font-size:9px">Tarikh: ${format(new Date(),'dd/MM/yyyy')}</span></div></div>
                             </div>
-                            <div class="footer">SULIT — Unit Kaunseling — VeriRec Platform — verirec.app</div>
+                            <div class="footer">SULIT — Unit Kaunseling — Kaunselor Platform — kaunselor.app</div>
                             <script>window.onload=function(){window.print()}</script>
                           </body></html>`);
                           win.document.close();
@@ -773,7 +773,7 @@ export default function KaunslorClientFilePage() {
                         </div>
                       </div>
                     </div>
-                    <div class="footer">STRICTLY CONFIDENTIAL — VeriRec Counselor Platform — verirec.app</div>
+                    <div class="footer">STRICTLY CONFIDENTIAL — Kaunselor Platform — kaunselor.app</div>
                     <script>window.onload = function(){ window.print(); }</script>
                   </body></html>`);
                   win.document.close();
@@ -992,7 +992,7 @@ export default function KaunslorClientFilePage() {
                       <div><div class="sig-line"><strong>${counselorName}</strong><br/>Registered Counselor<br/>Unit Kaunseling UTM<br/>Tarikh: ${format(new Date(),'dd/MM/yyyy')}</div></div>
                       <div><div class="sig-line">___________________<br/>Pengesahan Penerima<br/>Tarikh: ___________</div></div>
                     </div>
-                    <div class="footer">SULIT — Unit Kaunseling UTM — VeriRec Platform — verirec.app</div>
+                    <div class="footer">SULIT — Unit Kaunseling — Kaunselor Platform — kaunselor.app</div>
                     <script>window.onload=function(){window.print()}</script>
                   </body></html>`);
                   win.document.close();

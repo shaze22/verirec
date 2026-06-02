@@ -13,4 +13,4 @@ Disallow: /kaunselor/appointments
 Disallow: /kaunselor/setup
 
 Sitemap: https://www.verirec.app/sitemap.xml
-Sitemap: https://counselor.verirec.app/sitemap.xml
+Sitemap: https://kaunselor.app/sitemap.xml
