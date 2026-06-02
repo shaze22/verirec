@@ -1,149 +1,149 @@
 import { useNavigate } from 'react-router-dom';
 
-const EFFECTIVE_DATE = '1 Jun 2026';
+const EFFECTIVE_DATE = '1 June 2026';
 const EMAIL = 'hello@verirec.app';
 
 const sections = [
   {
     id: 'dikumpul',
-    title: '1. Maklumat yang Kami Kumpul',
-    body: `Kami mengumpul maklumat berikut apabila anda menggunakan VeriRec:
+    title: '1. Information We Collect',
+    body: `We collect the following information when you use VeriRec:
 
-Maklumat Akaun:
-• Nama penuh, alamat e-mel, dan kata laluan (disulitkan)
-• Maklumat organisasi atau agensi (jika berkenaan)
-• Pilihan profesion dan tetapan akaun
+Account Information:
+• Full name, email address, and password (encrypted)
+• Organisation or agency information (where applicable)
+• Profession preferences and account settings
 
-Maklumat Sesi:
-• Rakaman audio sesi (disimpan sementara untuk transkripsi)
-• Transkrip teks yang dijana daripada rakaman
-• Metadata sesi: tarikh, masa, tempoh, fasa, dan nota konteks
-• Rekod persetujuan PDPA subjek yang ditemu bual
+Session Information:
+• Audio recordings of sessions (stored temporarily for transcription)
+• Text transcripts generated from recordings
+• Session metadata: date, time, duration, phase, and context notes
+• PDPA consent records of interviewed subjects
 
-Maklumat Teknikal:
-• Alamat IP, jenis pelayar, dan sistem pengendalian
-• Log aktiviti untuk audit dan keselamatan
-• Data penggunaan dan prestasi platform (tanpa maklumat peribadi)
+Technical Information:
+• IP address, browser type, and operating system
+• Activity logs for audit and security purposes
+• Platform usage and performance data (no personal information)
 
-Maklumat Pembayaran:
-• Kami tidak menyimpan butiran kad kredit — diproses terus oleh Stripe
-• Rekod transaksi dan sejarah langganan disimpan untuk tujuan perakaunan`,
+Payment Information:
+• We do not store credit card details — processed directly by Stripe
+• Transaction records and subscription history are retained for accounting purposes`,
   },
   {
     id: 'penggunaan',
-    title: '2. Cara Kami Menggunakan Maklumat',
-    body: `Kami menggunakan maklumat yang dikumpul untuk:
+    title: '2. How We Use Your Information',
+    body: `We use the information collected to:
 
-• Menyediakan dan menambah baik Perkhidmatan VeriRec
-• Memproses rakaman audio melalui OpenAI Whisper untuk transkripsi
-• Menganalisa kandungan sesi melalui Anthropic Claude AI untuk laporan dan cadangan
-• Menguruskan langganan dan pembayaran melalui Stripe
-• Menghantar e-mel berkaitan akaun (pengesahan, resit, notifikasi penting)
-• Mengesan dan mencegah penipuan serta penyalahgunaan
-• Mematuhi keperluan undang-undang dan peraturan yang berkenaan
+• Provide and improve the VeriRec Service
+• Process audio recordings via OpenAI Whisper for transcription
+• Analyse session content via Anthropic Claude AI for reports and recommendations
+• Manage subscriptions and payments via Stripe
+• Send account-related emails (verification, receipts, important notifications)
+• Detect and prevent fraud and misuse
+• Comply with applicable legal and regulatory requirements
 
-Kami TIDAK menggunakan data sesi anda untuk:
-• Melatih model AI (data anda tidak digunakan untuk latihan model)
-• Pengiklanan atau pemasaran pihak ketiga
-• Dijual kepada mana-mana pihak`,
+We do NOT use your session data to:
+• Train AI models (your data is not used for model training)
+• Third-party advertising or marketing
+• Sell to any party`,
   },
   {
     id: 'perkongsian',
-    title: '3. Perkongsian Maklumat',
-    body: `Kami berkongsi maklumat anda HANYA dengan pembekal perkhidmatan yang diperlukan untuk operasi platform:
+    title: '3. Information Sharing',
+    body: `We share your information ONLY with service providers necessary for platform operations:
 
-Pembekal Perkhidmatan Teknikal:
-• Supabase Inc. — pangkalan data dan pengesahan (pelayan di rantau Asia Pasifik)
-• Anthropic PBC — analisa AI sesi (data diproses, tidak disimpan oleh Anthropic)
-• OpenAI LLC — transkripsi audio Whisper (data diproses, tidak disimpan oleh OpenAI)
-• Vercel Inc. — hosting dan pengagihan platform
+Technical Service Providers:
+• Supabase Inc. — database and authentication (servers in Asia Pacific region)
+• Anthropic PBC — AI session analysis (data is processed, not stored by Anthropic)
+• OpenAI LLC — Whisper audio transcription (data is processed, not stored by OpenAI)
+• Vercel Inc. — platform hosting and delivery
 
-Pembekal Pembayaran:
-• Stripe Inc. — pemprosesan kad kredit/debit
+Payment Provider:
+• Stripe Inc. — credit/debit card processing
 
-Kami tidak berkongsi maklumat peribadi anda dengan pihak lain melainkan:
-• Diwajibkan oleh undang-undang atau perintah mahkamah
-• Diperlukan untuk melindungi hak, harta, atau keselamatan VeriRec atau pengguna lain
-• Dengan persetujuan nyata anda`,
+We do not share your personal information with any other parties unless:
+• Required by law or court order
+• Necessary to protect the rights, property, or safety of VeriRec or other users
+• With your explicit consent`,
   },
   {
     id: 'penyimpanan',
-    title: '4. Penyimpanan dan Keselamatan Data',
-    body: `Lokasi Penyimpanan:
-• Semua data disimpan di pelayan Supabase yang terletak di rantau Asia Pasifik
-• Rakaman audio disimpan dalam storan terenkripsi dan dipadamkan selepas transkripsi selesai
+    title: '4. Data Retention and Security',
+    body: `Storage Location:
+• All data is stored on Supabase servers located in the Asia Pacific region
+• Audio recordings are stored in encrypted storage and deleted after transcription is complete
 
-Tempoh Penyimpanan:
-• Data akaun: disimpan selagi akaun aktif + 30 hari selepas penamatan
-• Laporan dan transkrip sesi: disimpan selagi akaun aktif
-• Rekod persetujuan PDPA: disimpan secara KEKAL mengikut keperluan PDPA 2010 dan tidak boleh dipadam
-• Log audit: disimpan selama 7 tahun mengikut amalan terbaik pematuhan
+Retention Periods:
+• Account data: retained while the account is active + 30 days after termination
+• Session reports and transcripts: retained while the account is active
+• PDPA consent records: retained PERMANENTLY as required by PDPA 2010 and cannot be deleted
+• Audit logs: retained for 7 years in accordance with compliance best practices
 
-Langkah Keselamatan:
-• Enkripsi data semasa transit (TLS 1.3) dan semasa rehat (AES-256)
-• Hash SHA-256 untuk integriti laporan (chain of custody)
-• Kawalan akses berasaskan peranan (Row Level Security)
-• Pengesahan dua faktor tersedia untuk akaun sensitif`,
+Security Measures:
+• Encryption in transit (TLS 1.3) and at rest (AES-256)
+• SHA-256 hashing for report integrity (chain of custody)
+• Role-based access control (Row Level Security)
+• Two-factor authentication available for sensitive accounts`,
   },
   {
     id: 'hak',
-    title: '5. Hak Anda di bawah PDPA 2010',
-    body: `Di bawah Akta Perlindungan Data Peribadi 2010 (PDPA) Malaysia, anda mempunyai hak untuk:
+    title: '5. Your Rights under PDPA 2010',
+    body: `Under the Personal Data Protection Act 2010 (PDPA) of Malaysia, you have the right to:
 
-• Akses — Meminta salinan data peribadi yang kami pegang tentang anda
-• Pembetulan — Meminta kami membetulkan data yang tidak tepat atau tidak lengkap
-• Pemadaman — Meminta kami memadam data peribadi anda (tertakluk kepada kewajipan undang-undang)
-• Bantahan — Membantah pemprosesan data anda untuk tujuan pemasaran langsung
-• Portabiliti — Meminta data anda dalam format yang boleh dibaca mesin
+• Access — Request a copy of the personal data we hold about you
+• Correction — Request that we correct inaccurate or incomplete data
+• Erasure — Request that we delete your personal data (subject to legal obligations)
+• Objection — Object to the processing of your data for direct marketing purposes
+• Portability — Request your data in a machine-readable format
 
-Untuk menggunakan mana-mana hak ini, sila hubungi kami di ${EMAIL}.
-Kami akan membalas permintaan anda dalam masa 21 hari bekerja.
+To exercise any of these rights, please contact us at ${EMAIL}.
+We will respond to your request within 21 business days.
 
-Nota: Rekod persetujuan PDPA subjek yang ditemu bual tidak boleh dipadam kerana ia merupakan bukti pematuhan undang-undang yang wajib dikekalkan.`,
+Note: PDPA consent records of interviewed subjects cannot be deleted as they constitute legally required evidence of compliance.`,
   },
   {
     id: 'kuki',
-    title: '6. Kuki dan Teknologi Penjejakan',
-    body: `Kami menggunakan kuki dan storan tempatan untuk:
+    title: '6. Cookies and Tracking Technologies',
+    body: `We use cookies and local storage to:
 
-• Mengekalkan sesi log masuk anda (diperlukan untuk fungsi asas)
-• Menyimpan pilihan sesi dan tetapan (storan sesi/tempatan)
-• Memantau prestasi platform (data agregat tanpa maklumat peribadi)
+• Maintain your login session (required for core functionality)
+• Store session preferences and settings (session/local storage)
+• Monitor platform performance (aggregated data with no personal information)
 
-Kami TIDAK menggunakan kuki pihak ketiga untuk pengiklanan atau penjejakan merentas laman web.
+We do NOT use third-party cookies for advertising or cross-site tracking.
 
-Anda boleh mematikan kuki dalam pelayar anda, tetapi ini mungkin menjejaskan fungsi platform.`,
+You may disable cookies in your browser, but this may affect platform functionality.`,
   },
   {
     id: 'kanak',
-    title: '7. Privasi Kanak-kanak',
-    body: `Perkhidmatan VeriRec tidak ditujukan untuk pengguna bawah umur 18 tahun.
+    title: "7. Children's Privacy",
+    body: `The VeriRec Service is not intended for users under the age of 18.
 
-Bagi pegawai JKM dan profesional lain yang merakam sesi melibatkan kanak-kanak sebagai subjek temuduga:
-• Persetujuan ibu bapa atau penjaga sah mesti diperoleh sebelum mana-mana rakaman
-• Borang persetujuan VeriRec menyediakan ruangan khusus untuk persetujuan penjaga
-• Data sesi melibatkan kanak-kanak dilindungi dengan tahap keselamatan yang sama seperti data dewasa`,
+For JKM officers and other professionals who record sessions involving children as interview subjects:
+• Parental or legal guardian consent must be obtained before any recording
+• VeriRec consent forms include a dedicated field for guardian consent
+• Session data involving children is protected with the same level of security as adult data`,
   },
   {
     id: 'perubahan',
-    title: '8. Perubahan Polisi',
-    body: `Kami mungkin mengemas kini Polisi Privasi ini dari semasa ke semasa. Perubahan material akan dimaklumkan melalui:
-• E-mel kepada alamat berdaftar anda
-• Notifikasi dalam platform
+    title: '8. Changes to This Policy',
+    body: `We may update this Privacy Policy from time to time. Material changes will be communicated via:
+• Email to your registered address
+• In-platform notification
 
-Tarikh "Berkuat kuasa" di bahagian atas halaman ini akan dikemas kini bagi mencerminkan versi terkini.
-Penggunaan berterusan Perkhidmatan selepas perubahan berkuat kuasa dianggap sebagai penerimaan polisi yang dipinda.`,
+The "Effective date" at the top of this page will be updated to reflect the latest version.
+Continued use of the Service after changes take effect constitutes acceptance of the revised policy.`,
   },
   {
     id: 'hubungi',
-    title: '9. Hubungi Pegawai Privasi Kami',
-    body: `Untuk sebarang pertanyaan, aduan, atau permintaan berkaitan privasi dan perlindungan data:
+    title: '9. Contact Our Privacy Officer',
+    body: `For any questions, complaints, or requests regarding privacy and data protection:
 
-E-mel: ${EMAIL}
-Subjek: [Pertanyaan Privasi] — penerangan ringkas isu anda
+Email: ${EMAIL}
+Subject: [Privacy Enquiry] — brief description of your issue
 
-Kami komited untuk menyelesaikan sebarang kebimbangan privasi dengan serius dan tepat masa.
-Jika anda tidak berpuas hati dengan respons kami, anda berhak untuk membuat aduan kepada Jabatan Perlindungan Data Peribadi (JPDP) Malaysia.`,
+We are committed to addressing any privacy concerns seriously and promptly.
+If you are not satisfied with our response, you have the right to lodge a complaint with the Department of Personal Data Protection (JPDP) Malaysia.`,
   },
 ];
 
@@ -156,10 +156,10 @@ export default function PrivacyPage() {
       <div className="border-b bg-gray-50">
         <div className="max-w-3xl mx-auto px-6 py-8">
           <button onClick={() => navigate('/home')} className="text-sm text-blue-600 hover:underline mb-4 block">
-            ← Kembali ke Laman Utama
+            ← Back to Home
           </button>
-          <h1 className="text-3xl font-bold text-gray-900">Polisi Privasi</h1>
-          <p className="text-gray-500 mt-2 text-sm">Berkuat kuasa: {EFFECTIVE_DATE} · Mematuhi PDPA 2010 Malaysia</p>
+          <h1 className="text-3xl font-bold text-gray-900">Privacy Policy</h1>
+          <p className="text-gray-500 mt-2 text-sm">Effective date: {EFFECTIVE_DATE} · Compliant with PDPA 2010 Malaysia</p>
         </div>
       </div>
 
@@ -167,14 +167,14 @@ export default function PrivacyPage() {
         {/* Intro */}
         <div className="bg-green-50 border border-green-200 rounded-xl p-5 mb-10">
           <p className="text-sm text-green-800 leading-relaxed">
-            VeriRec komited untuk melindungi privasi dan data peribadi anda. Polisi ini menerangkan bagaimana kami mengumpul,
-            menggunakan, dan melindungi maklumat anda mengikut Akta Perlindungan Data Peribadi 2010 (PDPA) Malaysia.
+            VeriRec is committed to protecting your privacy and personal data. This policy explains how we collect,
+            use, and safeguard your information in accordance with the Personal Data Protection Act 2010 (PDPA) Malaysia.
           </p>
         </div>
 
         {/* Table of contents */}
         <div className="mb-10 p-5 bg-gray-50 rounded-xl border">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Kandungan</p>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Contents</p>
           <ul className="space-y-1">
             {sections.map(s => (
               <li key={s.id}>
@@ -196,7 +196,7 @@ export default function PrivacyPage() {
 
         {/* Footer links */}
         <div className="mt-12 pt-8 border-t flex flex-wrap gap-4 text-sm text-gray-500">
-          <button onClick={() => navigate('/terms')} className="text-blue-600 hover:underline">Terma Perkhidmatan</button>
+          <button onClick={() => navigate('/terms')} className="text-blue-600 hover:underline">Terms of Service</button>
           <button onClick={() => navigate('/faq')} className="hover:text-gray-900">FAQ</button>
           <a href={`mailto:${EMAIL}`} className="hover:text-gray-900">{EMAIL}</a>
         </div>

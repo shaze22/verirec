@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { format, formatDistanceToNow } from 'date-fns';
-import { ms } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase.js';
+
 import { TopBar } from '../components/layout/TopBar.jsx';
 import { Badge } from '../components/ui/Badge.jsx';
 import toast from 'react-hot-toast';
@@ -312,7 +312,7 @@ export default function AdminPage() {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-800">{u.email}</p>
-                        <p className="text-xs text-gray-400">{formatDistanceToNow(new Date(u.created_at), { addSuffix: true, locale: ms })}</p>
+                        <p className="text-xs text-gray-400">{formatDistanceToNow(new Date(u.created_at), { addSuffix: true })}</p>
                       </div>
                     </div>
                     <Badge color={PLAN_COLORS[u.subscription?.plan] || 'gray'} className="text-xs">
@@ -372,7 +372,7 @@ export default function AdminPage() {
                           {format(new Date(u.created_at), 'dd MMM yyyy')}
                         </td>
                         <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
-                          {u.last_sign_in_at ? formatDistanceToNow(new Date(u.last_sign_in_at), { addSuffix: true, locale: ms }) : <span className="text-gray-300">Tidak pernah</span>}
+                          {u.last_sign_in_at ? formatDistanceToNow(new Date(u.last_sign_in_at), { addSuffix: true }) : <span className="text-gray-300">Never</span>}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center justify-end gap-1.5">
