@@ -265,7 +265,12 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - KaunslorClientsPage: card grid (2-col desktop), risk-colored avatars, presenting_issue shown, better empty state, focus rings violet
 - CounselorDashboard: appointment/session lists with avatar circles + hover, RISK_CONFIG English, PDF 'Dijana'→'Generated'
 
-**Latest deploy:** commit `08b1e35` — 2026-06-02
+**UI Polish — Appointments, ClientFile, Session (commit a36ed08 — 2026-06-02):**
+- KaunslorAppointmentsPage: all blue→violet, pending cards with avatar+amber badge, upcoming with avatar, better empty state
+- KaunslorClientFilePage: tabs violet, summary cards violet/blue, risk selector violet
+- SessionPage: mobile tab bar active indicator blue→violet
+
+**Latest deploy:** commit `a36ed08` — 2026-06-02
 
 ---
 
