@@ -10,6 +10,16 @@
   ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
+    {
+      "source": "/manifest.webmanifest",
+      "has": [{ "type": "host", "value": "kaunselor.app" }],
+      "destination": "/manifest-kaunselor.webmanifest"
+    },
+    {
+      "source": "/manifest.webmanifest",
+      "has": [{ "type": "host", "value": "www.kaunselor.app" }],
+      "destination": "/manifest-kaunselor.webmanifest"
+    },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "headers": [
