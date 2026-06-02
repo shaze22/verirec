@@ -1,5 +1,6 @@
 import { useOnlineStatus } from '../../hooks/useOnlineStatus.js';
 import { useBillingStore } from '../../store/billingStore.js';
+import { NotificationBell } from './NotificationBell.jsx';
 
 export function TopBar({ title, actions, action, onBack }) {
   const { isOnline, wasOffline } = useOnlineStatus();
@@ -17,7 +18,7 @@ export function TopBar({ title, actions, action, onBack }) {
         )}
         <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         {!isOnline && (
           <span className="flex items-center gap-1.5 text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
             <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
@@ -37,6 +38,7 @@ export function TopBar({ title, actions, action, onBack }) {
         )}
         {actions}
         {action}
+        <NotificationBell />
       </div>
     </header>
   );
