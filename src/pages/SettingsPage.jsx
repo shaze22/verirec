@@ -661,7 +661,7 @@ export default function SettingsPage() {
                       </div>
                     </div>
                     <Button variant="danger" size="sm" onClick={() => handleMfaUnenroll(f.id)} loading={unenrolling}>
-                      Nyahaktifkan
+                      Deactivate
                     </Button>
                   </div>
                 ))}
@@ -800,15 +800,15 @@ export default function SettingsPage() {
             </div>
           </section>
 
-          {/* Langganan & Penggunaan */}
+          {/* Subscription & Usage */}
           <section className="bg-white rounded-xl border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Langganan & Penggunaan</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Subscription & Usage</h2>
             <BillingSettings />
           </section>
 
-          {/* PDPA — Eksport & Privasi */}
+          {/* Privacy & Data */}
           <section className="bg-white rounded-xl border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-1">Privasi & Data (PDPA 2010)</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">Privacy & Data (PDPA 2010)</h2>
             <p className="text-sm text-gray-500 mb-5">You have the right to access, export, or delete your personal data under the Personal Data Protection Act 2010.</p>
 
             <div className="space-y-4">
@@ -819,7 +819,7 @@ export default function SettingsPage() {
                   <p className="text-xs text-gray-500 mt-0.5">Download all sessions, reports, and account information in JSON format.</p>
                 </div>
                 <Button variant="outline" size="sm" loading={exportLoading} onClick={handleExportData}>
-                  Eksport JSON
+                  Export JSON
                 </Button>
               </div>
 
