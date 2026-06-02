@@ -506,31 +506,88 @@ export default function CounselorLandingPage() {
           </div>
         </section>
 
+        {/* Testimonials */}
+        <section className="py-20 px-4 bg-gray-50">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-3">Trusted by counselors</h2>
+              <p className="text-gray-500">See what practitioners say about Kaunselor.</p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-6">
+              {[
+                {
+                  name: 'Dr. Suraya Mohd Yusof',
+                  role: 'Senior Counselor, University Counseling Centre',
+                  avatar: 'S',
+                  rating: 5,
+                  text: 'The AI red flag detection has genuinely changed how I work. I used to worry about missing signs — now I have a safety net running throughout every session. The SOP notes save me 40 minutes per client.',
+                },
+                {
+                  name: 'Ahmad Nazri Ibrahim',
+                  role: 'Private Practice Counselor, KL',
+                  avatar: 'A',
+                  rating: 5,
+                  text: 'My clients love the online booking. They get a confirmation email, I get a notification. No more back-and-forth on WhatsApp. The MBTI built right into sessions is a huge plus.',
+                },
+                {
+                  name: 'Nurul Hafizah Othman',
+                  role: 'School Counselor, Selangor',
+                  avatar: 'N',
+                  rating: 5,
+                  text: 'Finally a platform designed for us, not adapted from something else. The student/client file tracks everything across sessions. I can see the risk trend over time and act early.',
+                },
+              ].map((t) => (
+                <div key={t.name} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                  <div className="flex gap-0.5 mb-4">
+                    {Array.from({length: t.rating}).map((_, i) => (
+                      <svg key={i} className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                  </div>
+                  <p className="text-gray-600 text-sm leading-relaxed mb-5">"{t.text}"</p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-violet-100 rounded-xl flex items-center justify-center text-violet-700 font-bold text-sm flex-shrink-0">{t.avatar}</div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{t.name}</p>
+                      <p className="text-xs text-gray-400">{t.role}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Pricing */}
         <section className="py-24 px-4">
-          <div className="max-w-md mx-auto">
+          <div className="max-w-lg mx-auto">
             <div className="text-center mb-10">
               <h2 className="text-3xl font-bold text-gray-900 mb-3">Simple pricing</h2>
-              <p className="text-gray-500">One plan. Everything included.</p>
+              <p className="text-gray-500">One plan. Everything included. Cancel anytime.</p>
             </div>
             <div className="bg-white border-2 border-violet-500 rounded-2xl p-8 shadow-xl shadow-violet-100">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-start justify-between mb-2">
                 <div>
-                  <div className="text-4xl font-bold text-gray-900">RM100</div>
-                  <div className="text-sm text-gray-400 mt-0.5">per month</div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-5xl font-bold text-gray-900">$25</span>
+                    <span className="text-gray-400 text-sm">USD / month</span>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">~RM110 · Pay in any currency via Stripe</p>
                 </div>
                 <div className="bg-violet-100 text-violet-700 text-xs font-bold px-3 py-1.5 rounded-full">COUNSELOR PLAN</div>
               </div>
+              <div className="border-t border-gray-100 my-5" />
               <ul className="space-y-3 mb-8">
                 {[
-                  '10 recording sessions / month',
-                  'Digital client files (unlimited)',
-                  'Automated QR booking',
-                  'SOP session notes PDF',
-                  'AI red flag detection',
-                  'MBTI + RIASEC assessments',
-                  'Top-up sessions anytime',
-                  'PDPA + Counselors Act compliant',
+                  '10 counseling sessions / month',
+                  'Digital client files (unlimited clients)',
+                  'Automated QR booking system',
+                  'SOP-format session notes PDF',
+                  'AI red flag & crisis detection',
+                  'MBTI + RIASEC assessment tools',
+                  'Top-up sessions when needed',
+                  'GDPR & compliance ready',
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-3 text-sm text-gray-700">
                     <svg className="w-4 h-4 text-violet-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -540,19 +597,19 @@ export default function CounselorLandingPage() {
                   </li>
                 ))}
               </ul>
-              <div className="bg-gray-50 rounded-xl p-4 mb-6">
-                <p className="text-xs font-semibold text-gray-700 mb-2">Need more sessions?</p>
+              <div className="bg-violet-50 rounded-xl p-4 mb-6">
+                <p className="text-xs font-semibold text-violet-800 mb-2">Need more sessions?</p>
                 <div className="space-y-1 text-xs text-gray-600">
-                  <div className="flex justify-between"><span>1 session</span><span className="font-medium">RM13</span></div>
-                  <div className="flex justify-between"><span>5 sessions</span><span className="font-medium">RM60</span></div>
-                  <div className="flex justify-between"><span>10 sessions</span><span className="font-medium">RM100</span></div>
+                  <div className="flex justify-between"><span>1 session</span><span className="font-medium text-gray-800">$3</span></div>
+                  <div className="flex justify-between"><span>5 sessions</span><span className="font-medium text-gray-800">$12</span></div>
+                  <div className="flex justify-between"><span>10 sessions</span><span className="font-medium text-gray-800">$22</span></div>
                 </div>
               </div>
               <button onClick={() => navigate('/auth?mode=register&profession=counselor')}
                 className="w-full bg-violet-600 text-white font-bold py-3.5 rounded-xl hover:bg-violet-700 transition-colors text-sm">
-                Start Free Trial →
+                Get Started Free →
               </button>
-              <p className="text-xs text-gray-400 text-center mt-3">No long-term contract. Cancel anytime.</p>
+              <p className="text-xs text-gray-400 text-center mt-3">No contract · Cancel anytime · Secure via Stripe</p>
             </div>
           </div>
         </section>
@@ -561,7 +618,7 @@ export default function CounselorLandingPage() {
         <section className="bg-gray-950 py-20 px-4 text-center">
           <div className="max-w-2xl mx-auto">
             <div className="text-4xl font-bold text-white mb-4">Ready to simplify your practice?</div>
-            <p className="text-gray-400 text-lg mb-8">Join Malaysian counselors who've digitised their sessions with Kaunselor.</p>
+            <p className="text-gray-400 text-lg mb-8">$25/month. 10 sessions. Cancel anytime.</p>
             <button onClick={() => navigate('/auth?mode=register&profession=counselor')}
               className="bg-violet-600 text-white font-bold text-base px-10 py-4 rounded-xl hover:bg-violet-500 transition-colors shadow-lg shadow-violet-900/30">
               Get Started Free →

@@ -29,7 +29,7 @@ export default async function handler(req, res) {
         .from('counselor_profiles').select('display_name, telegram_chat_id, telegram_enabled').eq('user_id', appt.counselor_id).single();
 
       if (counselor?.email) {
-        const { subject, html } = newAppointmentEmail(profile?.display_name || 'Kaunselor', {
+        const { subject, html, from } = newAppointmentEmail(profile?.display_name || 'Counselor', {
           name: appt.client_name,
           phone: appt.client_phone,
           email: appt.client_email,
@@ -37,7 +37,7 @@ export default async function handler(req, res) {
           time: appt.requested_time?.slice(0, 5),
           issue: appt.presenting_issue,
         });
-        await sendEmail({ to: counselor.email, subject, html });
+        await sendEmail({ to: counselor.email, subject, html, from });
       }
 
       // Telegram notification to counselor
@@ -86,8 +86,8 @@ export default async function handler(req, res) {
         calendarUrl,
       };
 
-      const { subject, html } = appointmentConfirmedEmail(counselorName, date, time, duration, isReschedule, counselorInfo, rescheduleReason);
-      await sendEmail({ to: appt.client_email, subject, html });
+      const { subject, html, from } = appointmentConfirmedEmail(counselorName, date, time, duration, isReschedule, counselorInfo, rescheduleReason);
+      await sendEmail({ to: appt.client_email, subject, html, from });
       return res.status(200).json({ ok: true });
     }
     // ── End public notifications ──────────────────────────────────────

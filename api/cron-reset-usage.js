@@ -50,14 +50,14 @@ export default async function handler(req, res) {
 
           // Email to client
           if (appt.client_email) {
-            const { subject, html } = appointmentReminderEmail(
+            const { subject, html, from } = appointmentReminderEmail(
               appt.client_name,
               counselorName,
               appt.confirmed_date,
               appt.confirmed_time || '',
               counselor?.klinik_address || ''
             );
-            await sendEmail({ to: appt.client_email, subject, html });
+            await sendEmail({ to: appt.client_email, subject, html, from });
           }
 
           // Telegram to counselor (if enabled)
