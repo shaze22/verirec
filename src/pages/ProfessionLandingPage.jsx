@@ -318,17 +318,17 @@ const TESTIMONIALS = {
 const PLANS = [
   {
     key: 'free', label: 'Free', price: 0, sessions: 2, popular: false, trial: false,
-    features: ['2 sessions/month', '1 user', 'Automatic transcription', 'Basic report'],
+    features: ['2 sessions / month', '1 user', 'AI real-time transcription', 'Basic PDF report'],
     notIncluded: ['Real-time AI analysis', 'PDF report', 'Priority support'],
   },
   {
-    key: 'starter', label: 'Professional', price: 100, sessions: 10, popular: true, trial: false,
-    features: ['10 sessions/month', 'Real-time AI analysis', 'PEACE Model guide', 'SOP PDF report', 'Speaker diarization', 'Top-up sessions when needed'],
+    key: 'starter', label: 'Professional', price: 25, sessions: 10, popular: true, trial: false,
+    features: ['10 sessions / month', 'Real-time AI analysis', 'PEACE Model guide', 'SOP PDF report', 'Speaker diarization', 'Top-up sessions when needed'],
     notIncluded: ['Unlimited users', 'SLA 99.9%'],
   },
   {
-    key: 'pro', label: 'Pro', price: 999, sessions: 100, popular: true, trial: false,
-    features: ['100 sessions/month', '10 users', 'All Starter features', 'AI analysis 7 Professions', 'Priority support', 'API access'],
+    key: 'pro', label: 'Pro', price: 249, sessions: 100, popular: true, trial: false,
+    features: ['100 sessions / month', '10 users', 'All Professional features', 'AI analysis all professions', 'Priority support', 'API access'],
     notIncluded: ['200+ sessions/month'],
   },
   {
@@ -613,7 +613,7 @@ export default function ProfessionLandingPage({ professionSlug }) {
                     )}
 
                     <h3 className="text-lg font-bold text-gray-900">{plan.label}</h3>
-                    <p className="text-xs text-gray-500 mt-0.5 mb-4">{plan.sessions} sesi/month</p>
+                    <p className="text-xs text-gray-500 mt-0.5 mb-4">{plan.sessions} sessions / month</p>
 
                     <div className="mb-5">
                       {plan.price === 0 ? (
@@ -621,11 +621,11 @@ export default function ProfessionLandingPage({ professionSlug }) {
                       ) : (
                         <>
                           <div className="flex items-baseline gap-1">
-                            <span className="text-3xl font-bold text-gray-900">RM{monthlyPrice}</span>
+                            <span className="text-3xl font-bold text-gray-900">${monthlyPrice}</span>
                             <span className="text-gray-500 text-sm">/month</span>
                           </div>
                           {annual && (
-                            <p className="text-xs text-gray-400 mt-0.5">Billed RM{getAnnualTotal(plan)}/year</p>
+                            <p className="text-xs text-gray-400 mt-0.5">Billed ${getAnnualTotal(plan)}/year</p>
                           )}
                         </>
                       )}

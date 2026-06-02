@@ -171,6 +171,19 @@ export default function LandingPage() {
       <meta property="og:description" content="AI transcription, SHA-256 chain of custody, and SOP reports for investigators, auditors, and officers." />
       <meta property="og:locale" content="en_MY" />
       <meta name="twitter:card" content="summary_large_image" />
+      <script type="application/ld+json">{JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: 'VeriRec',
+        applicationCategory: 'BusinessApplication',
+        operatingSystem: 'Web',
+        description: 'Professional investigation and audit recording platform. SHA-256 chain of custody, PEACE Model guide, AI real-time for Police, MACC, HR, ISO, Halal JAKIM, Lawyers and more.',
+        url: 'https://www.verirec.app',
+        offers: [
+          { '@type': 'Offer', price: '0',  priceCurrency: 'USD', name: 'Free' },
+          { '@type': 'Offer', price: '25', priceCurrency: 'USD', name: 'Professional' },
+        ],
+      })}</script>
     </Helmet>
     <div className="min-h-screen bg-white">
 
@@ -244,10 +257,10 @@ export default function LandingPage() {
           <p className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 leading-tight mb-5">
             Handwritten notes get challenged.
           </p>
-          <p className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-200 leading-tight mb-5">
+          <p className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-400 leading-tight mb-5">
             Basic recorders have no custody trail.
           </p>
-          <p className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-200 leading-tight mb-16">
+          <p className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-400 leading-tight mb-16">
             Spreadsheet reports get disputed in court.
           </p>
           <div className="flex items-center gap-5">
