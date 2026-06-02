@@ -37,7 +37,8 @@ Pengesan subdomain via `src/lib/subdomain.js` — hanya `isCounselorSubdomain()`
 - Route `/sessions` → DashboardPage dengan `pageTitle="Sesi Terkini"` (route kekal, tapi tiada link dalam nav)
 - `SessionSetupPage`: dropdown "Fail Kes" hanya pada www.verirec.app (`!isCounselorSubdomain()`), simpan `case_id` ke sessionStorage
 - `ConsentPage`: masukkan `case_id` dari sessionStorage ke dalam session insert
-- `Sidebar`, `BottomNav`, `App.jsx`, `DashboardPage`, `ProfessionSelectPage`, `QuestionTemplatesPage` semua guna `isCounselorSubdomain()`
+- `Sidebar`, `BottomNav`, `App.jsx`, `DashboardPage`, `QuestionTemplatesPage` semua guna `isCounselorSubdomain()`
+- `ProfessionSelectPage` — RETIRED 2026-06-02. Replaced by inline selector in SessionSetupPage.
 - `www.verirec.app`: sesi counselor ditapis keluar, profesi counselor tidak muncul, tab kaunseling tersembunyi
 - `/dashboard` redirect ke `/analytics` pada www — Sidebar "Papan Pemuka" link ke `/analytics`
 
@@ -45,19 +46,25 @@ Pengesan subdomain via `src/lib/subdomain.js` — hanya `isCounselorSubdomain()`
 - `Sidebar.jsx`: CTA item guna `bg-blue-600/15 text-blue-400 border border-blue-500/25` — subtle tint, bukan solid biru
 - Hover → solid biru. Jelas beza antara action button vs active page nav item.
 
-**Sesi Baru dari Fail Kes (commit 229c7de, 2026-06-01):**
-- `CaseDetailPage`: button "🎙 Sesi Baru" dalam header sesi + empty state
-- `startNewSession()`: simpan `case_prefill` ke sessionStorage → navigate ke `/session/setup/{profession}`
-- Rename "+ Tambah Sesi" → "+ Sesi Sedia Ada" (untuk link sesi sedia ada ke kes)
-- `SessionSetupPage`: baca `case_prefill` on mount → auto-isi `case_number`, `case_id`, `selectedCaseId`
-- Banner biru "Diteruskan dari Fail Kes" tunjuk nama + no. kes, sessionStorage dibersihkan selepas dibaca
+**Sesi Baru dari Fail Kes (commit 229c7de, 2026-06-01 — updated c9e3e41):**
+- `CaseDetailPage`: button "🎙 Sesi Baru" → `startNewSession()` simpan `case_prefill` ke sessionStorage → navigate `/session/setup`
+- `SessionSetupPage`: baca `case_prefill` on mount → auto-isi `case_number`, `case_id`, auto-set profession
+- Banner biru "Continued from Case File" tunjuk nama + no. kes
 
-**Nav Structure — www.verirec.app (commit 5882f8e, 2026-06-01):**
-- Sidebar `OTHER_ITEMS`: Sesi Baru (CTA biru) | Fail Kes | Jadual Sesi | Templat Soalan | Log Audit | Pasukan | Tetapan
-- "Sesi Terkini" dan "Subjek" **dibuang dari nav utama** — sesi diakses melalui Fail Kes; Subjek via link sekunder bawah separator
-- "Carian Subjek" — link sekunder kecil dalam Sidebar, bawah separator, untuk use case cross-case history lookup
-- BottomNav `OTHER_NAV`: Utama | Sesi Baru | Fail Kes | Tetapan (4 tab, Subjek dibuang)
-- SubjectsPage baca `?id=` URL param → auto-buka SubjectHistoryModal bila navigate dari global search result
+**Nav Structure — www.verirec.app:**
+- Sidebar `OTHER_ITEMS`: New Session `/session/setup` (CTA biru) | Case Files | Schedule | Templates | Audit Log | Team | Settings
+- BottomNav `OTHER_NAV`: Home | New Session `/session/setup` | Case Files | Settings
+- SubjectsPage baca `?id=` URL param → auto-buka SubjectHistoryModal dari global search
+
+**New Session Flow — unified (commit c9e3e41, 2026-06-02):**
+- Route: `/session/setup` (tiada `:profession` param)
+- `/session/new` dan `/session/setup/:profession` redirect ke `/session/setup` (backward compat)
+- `SessionSetupPage`: profession selector grid atas form (2-3 col compact)
+- Profession init priority: sessionStorage session_setup → case_prefill → localStorage preferred_profession → 'police'
+- Tukar profession live: case label, witness label, subject label auto-update tanpa reset form
+- `CASE_FIELDS` coverage: police, sprm, sispa, skmm, hr, jtk, iso, doctor, counselor, court, peguam, jkm (12 professions)
+- `SchedulePage.handleStart()`: navigate `/session/setup` (profession dalam sessionStorage)
+- `CaseDetailPage.startNewSession()`: navigate `/session/setup` (profession dalam case_prefill)
 
 ## Tech Stack
 - React + Vite (JSX, bukan TypeScript)
