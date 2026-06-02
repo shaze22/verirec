@@ -498,6 +498,46 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── Testimonials ── */}
+      <section className="py-28 px-6">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-4xl sm:text-5xl font-black text-gray-900 text-center mb-16">
+            Trusted by professionals across Malaysia
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {[
+              {
+                quote: 'SHA-256 hash on every report — defence lawyers can no longer challenge our records. It changed how we document investigations.',
+                name: 'DSP Ahmad Fauzi',
+                role: 'Head of Criminal Investigation',
+                org: 'IPD Petaling Jaya',
+              },
+              {
+                quote: 'What used to take 3 hours to write is now ready in 20 minutes. I can handle twice the number of audits in the same time.',
+                name: 'En. Farouk Ibrahim',
+                role: 'Principal Auditor ISO 9001',
+                org: 'National Quality Consulting',
+              },
+              {
+                quote: 'PDPA consent records in every session guarantee company legal protection. Our company lawyer recommends VeriRec.',
+                name: 'Pn. Melissa Tan',
+                role: 'CHRO',
+                org: 'Listed Company Bursa Malaysia',
+              },
+            ].map(t => (
+              <div key={t.name} className="bg-white rounded-2xl p-8 border border-gray-100 flex flex-col">
+                <p className="text-gray-700 leading-relaxed mb-8 flex-1">"{t.quote}"</p>
+                <div>
+                  <p className="font-black text-gray-900 text-sm">{t.name}</p>
+                  <p className="text-sm text-gray-500">{t.role}</p>
+                  <p className="text-sm text-gray-400">{t.org}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── Pricing ── */}
       <section id="harga" className="py-28 px-6">
         <div className="max-w-4xl mx-auto">

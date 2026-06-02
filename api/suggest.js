@@ -33,197 +33,197 @@ function readBody(req) {
 // { penemuan[], tahapRisiko, justifikasiRisiko, sualanSusulan[], pemerhatian, tindakan[], redFlag, redFlagNote }
 
 function buildAutoAnalysisPrompt(profession, phase, recentTexts, fullTexts) {
-  const recent = recentTexts.map(t => `- "${t}"`).join('\n') || '(tiada lagi)';
-  const full = fullTexts.map(t => `- "${t}"`).join('\n') || '(tiada lagi)';
+  const recent = recentTexts.map(t => `- "${t}"`).join('\n') || '(none yet)';
+  const full = fullTexts.map(t => `- "${t}"`).join('\n') || '(none yet)';
 
   const prompts = {
-    counselor: `Anda adalah pembantu klinikal untuk kaunselor profesional bertauliah di Malaysia.
-PERINGATAN: Output anda adalah panduan sokongan sahaja, BUKAN diagnosis rasmi.
+    counselor: `You are a clinical assistant for licensed professional counselors in Malaysia.
+REMINDER: Your output is a support guide only, NOT an official diagnosis.
 
-Fasa: ${phase}
-Petikan terkini: ${recent}
-Konteks penuh: ${full}
+Phase: ${phase}
+Recent excerpt: ${recent}
+Full context: ${full}
 
-Analisa perbualan kaunseling dan balas JSON:
+Analyse the counseling conversation and respond in JSON:
 {
-  "penemuan": ["simptom atau kebimbangan yang mungkin hadir berdasarkan perbualan, maksimum 4"],
+  "penemuan": ["possible symptoms or concerns present based on the conversation, maximum 4"],
   "tahapRisiko": "Rendah | Sederhana | Tinggi",
-  "justifikasiRisiko": "satu ayat ringkas kenapa tahap risiko ini",
-  "sualanSusulan": ["soalan CBT/terapi yang sesuai 1", "soalan 2", "soalan 3"],
-  "pemerhatian": "pemerhatian klinikal ringkas tentang keadaan klien",
-  "tindakan": ["teknik kaunseling disyorkan (CBT, DBT, dll), maksimum 3"],
+  "justifikasiRisiko": "one brief sentence explaining this risk level",
+  "sualanSusulan": ["appropriate CBT/therapy question 1", "question 2", "question 3"],
+  "pemerhatian": "brief clinical observation about the client's current state",
+  "tindakan": ["recommended counseling technique (CBT, DBT, etc.), maximum 3"],
   "redFlag": false,
   "redFlagNote": ""
 }
-Panduan: Rendah=tiada tanda bahaya, Sederhana=perlu pantau/rujuk, Tinggi=krisis/ideasi bahaya diri.`,
+Guide: Rendah=no danger signs, Sederhana=needs monitoring/referral, Tinggi=crisis/self-harm ideation.`,
 
-    police: `Anda adalah pembantu penyiasatan untuk pegawai polis Malaysia menggunakan model PEACE.
-Fasa: ${phase}
-Petikan terkini: ${recent}
-Konteks penuh: ${full}
+    police: `You are an investigation assistant for Malaysian police officers using the PEACE model.
+Phase: ${phase}
+Recent excerpt: ${recent}
+Full context: ${full}
 
-Analisa penyataan dan balas JSON:
+Analyse the statement and respond in JSON:
 {
-  "penemuan": ["ketidakkonsistenan atau jurang maklumat yang dikesan, maksimum 4"],
+  "penemuan": ["inconsistencies or information gaps detected, maximum 4"],
   "tahapRisiko": "Rendah | Sederhana | Tinggi",
-  "justifikasiRisiko": "penilaian kredibiliti dan kerjasama subjek secara ringkas",
-  "sualanSusulan": ["soalan susulan berdasarkan PEACE model 1", "soalan 2", "soalan 3"],
-  "pemerhatian": "penilaian ringkas terhadap penyataan subjek setakat ini",
-  "tindakan": ["langkah penyiasatan yang disyorkan, maksimum 3"],
+  "justifikasiRisiko": "brief assessment of subject credibility and cooperation",
+  "sualanSusulan": ["follow-up question based on PEACE model 1", "question 2", "question 3"],
+  "pemerhatian": "brief assessment of the subject's statement so far",
+  "tindakan": ["recommended investigation step, maximum 3"],
   "redFlag": false,
   "redFlagNote": ""
 }
-Panduan: Rendah=kerjasama baik, Sederhana=ada jurang perlu disiasat, Tinggi=tanda penipuan atau ancaman.`,
+Guide: Rendah=good cooperation, Sederhana=gaps requiring investigation, Tinggi=signs of deception or threat.`,
 
-    sprm: `Anda adalah pembantu analitik untuk pegawai penyiasat SPRM Malaysia.
-Fasa: ${phase}
-Petikan terkini: ${recent}
-Konteks penuh: ${full}
+    sprm: `You are an analytical assistant for SPRM/MACC investigating officers in Malaysia.
+Phase: ${phase}
+Recent excerpt: ${recent}
+Full context: ${full}
 
-Analisa penyataan berkaitan integriti dan balas JSON:
+Analyse the integrity-related statement and respond in JSON:
 {
-  "penemuan": ["tanda-tanda atau pola yang mencurigakan dalam penyataan, maksimum 4"],
+  "penemuan": ["suspicious signs or patterns detected in the statement, maximum 4"],
   "tahapRisiko": "Rendah | Sederhana | Tinggi",
-  "justifikasiRisiko": "penilaian ringkas potensi penyelewengan atau rasuah",
-  "sualanSusulan": ["soalan susulan berdasarkan undang-undang SPRM/MACC 2009 1", "soalan 2", "soalan 3"],
-  "pemerhatian": "rumusan ringkas tentang kredibiliti penyataan dan kawasan yang perlu diteliti",
-  "tindakan": ["tindakan penyiasatan yang disyorkan (dokumen diperlukan, saksi, dll), maksimum 3"],
+  "justifikasiRisiko": "brief assessment of potential misconduct or corruption",
+  "sualanSusulan": ["follow-up question based on SPRM/MACC Act 2009 1", "question 2", "question 3"],
+  "pemerhatian": "brief summary of statement credibility and areas requiring scrutiny",
+  "tindakan": ["recommended investigation action (documents needed, witnesses, etc.), maximum 3"],
   "redFlag": false,
   "redFlagNote": ""
 }
-Panduan: Rendah=tiada tanda penyelewengan, Sederhana=ada perkara perlu disiasat lanjut, Tinggi=tanda jelas rasuah/salah laku.`,
+Guide: Rendah=no misconduct signs, Sederhana=matters requiring further investigation, Tinggi=clear signs of corruption/misconduct.`,
 
-    doctor: `Anda adalah pembantu klinikal untuk pengamal perubatan di Malaysia menggunakan format SOAP.
-PERINGATAN: Output adalah panduan sokongan sahaja, BUKAN diagnosis rasmi.
+    doctor: `You are a clinical assistant for medical practitioners in Malaysia using the SOAP format.
+REMINDER: Output is a support guide only, NOT an official diagnosis.
 
-Fasa: ${phase}
-Petikan terkini: ${recent}
-Konteks penuh: ${full}
+Phase: ${phase}
+Recent excerpt: ${recent}
+Full context: ${full}
 
-Analisa perbualan klinikal dan balas JSON:
+Analyse the clinical conversation and respond in JSON:
 {
-  "penemuan": ["simptom yang dinyatakan atau tersirat dalam perbualan, maksimum 5"],
+  "penemuan": ["symptoms stated or implied in the conversation, maximum 5"],
   "tahapRisiko": "Rendah | Sederhana | Tinggi",
-  "justifikasiRisiko": "penilaian keterukan kes berdasarkan simptom yang dilaporkan",
-  "sualanSusulan": ["soalan klinikal susulan berdasarkan Calgary-Cambridge Guide 1", "soalan 2", "soalan 3"],
-  "pemerhatian": "rumusan klinikal ringkas termasuk sistem yang belum dikaji",
-  "tindakan": ["kemungkinan diagnosis pembezaan (differential), maksimum 3"],
+  "justifikasiRisiko": "severity assessment based on reported symptoms",
+  "sualanSusulan": ["clinical follow-up question based on Calgary-Cambridge Guide 1", "question 2", "question 3"],
+  "pemerhatian": "brief clinical summary including systems not yet assessed",
+  "tindakan": ["possible differential diagnoses, maximum 3"],
   "redFlag": false,
   "redFlagNote": ""
 }
-Panduan: Rendah=simptom ringan, Sederhana=perlu penilaian lanjut atau rujukan, Tinggi=tanda bahaya klinikal (red flag symptoms).`,
+Guide: Rendah=mild symptoms, Sederhana=needs further assessment or referral, Tinggi=clinical red flag symptoms.`,
 
-    iso: `Anda adalah pembantu teknikal untuk juruaudit ISO berpengalaman di Malaysia.
-Fasa: ${phase}
-Petikan terkini: ${recent}
-Konteks penuh: ${full}
+    iso: `You are a technical assistant for experienced ISO auditors in Malaysia.
+Phase: ${phase}
+Recent excerpt: ${recent}
+Full context: ${full}
 
-Analisa sesi audit dan balas JSON:
+Analyse the audit session and respond in JSON:
 {
-  "penemuan": ["potensi ketidakpatuhan (nonconformity) atau pemerhatian audit yang dikesan, maksimum 4"],
+  "penemuan": ["potential nonconformities or audit observations detected, maximum 4"],
   "tahapRisiko": "Rendah | Sederhana | Tinggi",
-  "justifikasiRisiko": "penilaian tahap pematuhan sistem pengurusan organisasi secara ringkas",
-  "sualanSusulan": ["soalan audit susulan berdasarkan ISO 9001:2015 / ISO 19011 1", "soalan 2", "soalan 3"],
-  "pemerhatian": "rumusan penemuan audit setakat ini termasuk klausa yang berkaitan",
-  "tindakan": ["klausa ISO atau tindakan audit yang disyorkan, maksimum 3"],
+  "justifikasiRisiko": "brief assessment of the organisation's management system compliance level",
+  "sualanSusulan": ["audit follow-up question based on ISO 9001:2015 / ISO 19011 1", "question 2", "question 3"],
+  "pemerhatian": "summary of audit findings so far including relevant clauses",
+  "tindakan": ["recommended ISO clause or audit action, maximum 3"],
   "redFlag": false,
   "redFlagNote": ""
 }
-Panduan: Rendah=pematuhan baik, Sederhana=pemerhatian minor perlu tindakan pembetulan, Tinggi=ketidakpatuhan major atau potensi penipuan rekod.`,
+Guide: Rendah=good compliance, Sederhana=minor observations requiring corrective action, Tinggi=major nonconformity or potential record fraud.`,
 
-    hr: `Anda adalah pembantu prosedur untuk pegawai penyiasat HR mengendalikan inkuiri domestik di Malaysia (Akta Kerja 1955).
-Fasa: ${phase}
-Petikan terkini: ${recent}
-Konteks penuh: ${full}
+    hr: `You are a procedural assistant for HR investigators conducting domestic inquiries in Malaysia (Employment Act 1955).
+Phase: ${phase}
+Recent excerpt: ${recent}
+Full context: ${full}
 
-Analisa penyataan inkuiri domestik dan balas JSON:
+Analyse the domestic inquiry statement and respond in JSON:
 {
-  "penemuan": ["fakta atau dakwaan yang perlu disahkan berdasarkan penyataan, maksimum 4"],
+  "penemuan": ["facts or allegations requiring verification based on the statement, maximum 4"],
   "tahapRisiko": "Rendah | Sederhana | Tinggi",
-  "justifikasiRisiko": "penilaian keterukan kes tatatertib berdasarkan maklumat yang ada",
-  "sualanSusulan": ["soalan inkuiri susulan berdasarkan prosedur tatatertib 1", "soalan 2", "soalan 3"],
-  "pemerhatian": "rumusan ringkas tentang konsistensi penyataan dan kawasan yang perlu diteliti",
-  "tindakan": ["tindakan penyiasatan HR yang disyorkan (saksi, dokumen, dll), maksimum 3"],
+  "justifikasiRisiko": "brief severity assessment of the disciplinary case based on available information",
+  "sualanSusulan": ["follow-up inquiry question based on disciplinary procedures 1", "question 2", "question 3"],
+  "pemerhatian": "brief summary of statement consistency and areas requiring scrutiny",
+  "tindakan": ["recommended HR investigation action (witnesses, documents, etc.), maximum 3"],
   "redFlag": false,
   "redFlagNote": ""
 }
-Panduan: Rendah=isu minor, Sederhana=pelanggaran dasar yang perlu siasatan lanjut, Tinggi=salah laku serius (misconduct) yang mungkin waranti penamatan atau tindakan undang-undang.`,
+Guide: Rendah=minor issue, Sederhana=policy breach requiring further investigation, Tinggi=serious misconduct potentially warranting termination or legal action.`,
 
-    jkm: `Anda adalah pembantu penilaian untuk pegawai Jabatan Kebajikan Masyarakat (JKM) Malaysia.
-PERINGATAN: Output adalah panduan penilaian sokongan sahaja. Keputusan muktamad adalah tanggungjawab pegawai kebajikan bertauliah.
+    jkm: `You are an assessment assistant for Department of Social Welfare (JKM) officers in Malaysia.
+REMINDER: Output is a supporting assessment guide only. Final decisions are the responsibility of the qualified welfare officer.
 
-Fasa: ${phase}
-Petikan terkini: ${recent}
-Konteks penuh: ${full}
+Phase: ${phase}
+Recent excerpt: ${recent}
+Full context: ${full}
 
-Analisa temubual kebajikan dan balas JSON:
+Analyse the welfare interview and respond in JSON:
 {
-  "penemuan": ["petanda risiko, tanda penderaan/pengabaian, atau kebimbangan kebajikan yang dikesan, maksimum 4"],
+  "penemuan": ["risk indicators, signs of abuse/neglect, or welfare concerns detected, maximum 4"],
   "tahapRisiko": "Rendah | Sederhana | Tinggi",
-  "justifikasiRisiko": "penilaian ringkas tahap keselamatan dan risiko terhadap individu berisiko",
-  "sualanSusulan": ["soalan trauma-informed susulan untuk mendalami penilaian risiko 1", "soalan 2", "soalan 3"],
-  "pemerhatian": "rumusan penilaian kebajikan termasuk faktor pelindung dan faktor risiko yang dikenal pasti",
-  "tindakan": ["tindakan kebajikan, penempatan, atau rujukan agensi yang disyorkan, maksimum 3"],
+  "justifikasiRisiko": "brief assessment of safety level and risk to the at-risk individual",
+  "sualanSusulan": ["trauma-informed follow-up question to deepen risk assessment 1", "question 2", "question 3"],
+  "pemerhatian": "welfare assessment summary including protective factors and identified risk factors",
+  "tindakan": ["recommended welfare action, placement, or agency referral, maximum 3"],
   "redFlag": false,
   "redFlagNote": ""
 }
-Panduan: Rendah=tiada petanda bahaya segera, Sederhana=ada kebimbangan perlu pemantauan dan intervensi, Tinggi=risiko bahaya segera — laporan mandatori dan tindakan perlindungan diperlukan.`,
+Guide: Rendah=no immediate danger signs, Sederhana=concerns requiring monitoring and intervention, Tinggi=immediate danger risk — mandatory report and protective action required.`,
 
-    peguam: `Anda adalah pembantu analisa untuk peguam dalam perundingan klien atau temubual saksi di Malaysia berdasarkan Akta Profesion Undang-Undang 1976 dan prinsip Legal Professional Privilege.
-Fasa: ${phase}
-Petikan terkini: ${recent}
-Konteks penuh: ${full}
+    peguam: `You are an analytical assistant for lawyers in client consultations or witness interviews in Malaysia, under the Legal Profession Act 1976 and Legal Professional Privilege principles.
+Phase: ${phase}
+Recent excerpt: ${recent}
+Full context: ${full}
 
-Analisa perbualan guaman dan balas JSON:
+Analyse the legal conversation and respond in JSON:
 {
-  "penemuan": ["jurang fakta, risiko undang-undang, atau perkara yang perlu disahkan, maksimum 4"],
+  "penemuan": ["factual gaps, legal risks, or matters requiring verification, maximum 4"],
   "tahapRisiko": "Rendah | Sederhana | Tinggi",
-  "justifikasiRisiko": "penilaian kekuatan kes dan risiko perundangan secara ringkas",
-  "sualanSusulan": ["soalan susulan kepada klien atau saksi bagi mengisi jurang fakta 1", "soalan 2", "soalan 3"],
-  "pemerhatian": "analisa ringkas kekuatan, kelemahan, dan peluang kes setakat ini",
-  "tindakan": ["tindakan undang-undang, penyiasatan, atau strategi guaman yang disyorkan, maksimum 3"],
+  "justifikasiRisiko": "brief assessment of case strength and legal risk",
+  "sualanSusulan": ["follow-up question to client or witness to fill factual gaps 1", "question 2", "question 3"],
+  "pemerhatian": "brief analysis of case strengths, weaknesses, and opportunities so far",
+  "tindakan": ["recommended legal action, investigation, or litigation strategy, maximum 3"],
   "redFlag": false,
   "redFlagNote": ""
 }
-Panduan: Rendah=fakta jelas dan kes kukuh, Sederhana=ada jurang atau risiko yang perlu ditangani, Tinggi=risiko undang-undang serius atau potensi konflik kepentingan.`,
+Guide: Rendah=clear facts and strong case, Sederhana=gaps or risks requiring attention, Tinggi=serious legal risk or potential conflict of interest.`,
 
-    court: `Anda adalah pembantu perundangan untuk peguam atau hakim dalam prosiding mahkamah Malaysia berdasarkan Akta Keterangan 1950 dan Kanun Prosedur Jenayah.
-Fasa: ${phase}
-Petikan terkini: ${recent}
-Konteks penuh: ${full}
+    court: `You are a legal assistant for lawyers or judges in Malaysian court proceedings under the Evidence Act 1950 and Criminal Procedure Code.
+Phase: ${phase}
+Recent excerpt: ${recent}
+Full context: ${full}
 
-Analisa keterangan dan prosiding mahkamah, balas JSON:
+Analyse the evidence and court proceedings, respond in JSON:
 {
-  "penemuan": ["kelemahan, percanggahan, atau jurang dalam keterangan saksi yang dikesan, maksimum 4"],
+  "penemuan": ["weaknesses, contradictions, or gaps in witness testimony detected, maximum 4"],
   "tahapRisiko": "Rendah | Sederhana | Tinggi",
-  "justifikasiRisiko": "penilaian kredibiliti keterangan dan kekuatan kes secara ringkas",
-  "sualanSusulan": ["soalan pemeriksaan balas atau susulan yang berkesan 1", "soalan 2", "soalan 3"],
-  "pemerhatian": "analisa ringkas tentang kekuatan atau kelemahan keterangan yang diberi setakat ini",
-  "tindakan": ["strategi soal balas, hujahan, atau tindakan perundangan yang disyorkan, maksimum 3"],
+  "justifikasiRisiko": "brief assessment of testimony credibility and case strength",
+  "sualanSusulan": ["effective cross-examination or follow-up question 1", "question 2", "question 3"],
+  "pemerhatian": "brief analysis of the strength or weakness of testimony given so far",
+  "tindakan": ["recommended cross-examination strategy, argument, or legal action, maximum 3"],
   "redFlag": false,
   "redFlagNote": ""
 }
-Panduan: Rendah=keterangan konsisten dan kukuh, Sederhana=ada jurang atau percanggahan yang boleh dipersoal, Tinggi=keterangan tidak boleh dipercayai atau tanda penghinaan mahkamah/keterangan palsu.`,
+Guide: Rendah=consistent and strong testimony, Sederhana=gaps or contradictions that can be challenged, Tinggi=testimony unreliable or signs of contempt/perjury.`,
   };
 
-  return (prompts[profession] || prompts.police) + '\n\nSemua teks dalam Bahasa Malaysia. Analisa hanya berdasarkan apa yang DINYATAKAN dalam perbualan.';
+  return (prompts[profession] || prompts.police) + '\n\nAll text in English. Analyse only based on what is STATED in the conversation.';
 }
 
 function buildGenericPrompt(profession, phase, question, recentTranscript) {
-  return `Anda adalah pembantu temuduga profesional untuk ${profession} Malaysia.
-Fasa semasa: ${phase}
-Soalan terkini: "${question}"
-Petikan transkrip terkini:
-${recentTranscript.join('\n') || '(tiada lagi)'}
+  return `You are a professional interview assistant for ${profession} Malaysia.
+Current phase: ${phase}
+Latest question: "${question}"
+Recent transcript excerpt:
+${recentTranscript.join('\n') || '(none yet)'}
 
-Balas dalam JSON sahaja (tiada teks lain):
+Reply in JSON only (no other text):
 {
-  "followUp": ["soalan susulan 1", "soalan susulan 2", "soalan susulan 3"],
-  "observation": "pemerhatian ringkas",
+  "followUp": ["follow-up question 1", "follow-up question 2", "follow-up question 3"],
+  "observation": "brief observation",
   "redFlag": false,
   "redFlagNote": ""
 }
-Semua teks dalam Bahasa Malaysia.`;
+All text in English.`;
 }
 
 export default async function handler(req, res) {
@@ -261,23 +261,23 @@ export default async function handler(req, res) {
     if (isCaseSummary) {
       if (!case_summaries.length) return res.status(400).json({ error: 'No session summaries provided' });
       const sessionLines = case_summaries.map((s, i) =>
-        `Sesi ${i + 1}: [${s.date}] ${s.subject} — Risiko: ${s.riskLevel || 'Tidak dianalisis'}\nRingkasan: ${s.summary || 'Tiada ringkasan'}\n${s.findings ? 'Penemuan: ' + s.findings.join('; ') : ''}`
+        `Session ${i + 1}: [${s.date}] ${s.subject} — Risk: ${s.riskLevel || 'Not analysed'}\nSummary: ${s.summary || 'No summary'}\n${s.findings ? 'Findings: ' + s.findings.join('; ') : ''}`
       ).join('\n\n');
-      const casePrompt = `Anda adalah penganalisis kes profesional untuk platform VeriRec Malaysia.
+      const casePrompt = `You are a professional case analyst for the VeriRec platform.
 
-Kes: ${case_title}
-Bilangan sesi: ${case_summaries.length}
+Case: ${case_title}
+Number of sessions: ${case_summaries.length}
 
-Ringkasan setiap sesi:
+Session summaries:
 ${sessionLines}
 
-Jana ringkasan keseluruhan kes dalam Bahasa Malaysia yang mencakupi:
-1. Tema utama dan corak yang dikesan merentas sesi
-2. Perkembangan kes dari masa ke masa
-3. Risiko kumulatif dan tahap risiko keseluruhan
-4. Cadangan tindakan susulan konkrit
+Generate a comprehensive case summary in English covering:
+1. Key themes and patterns detected across sessions
+2. Case progression over time
+3. Cumulative risk and overall risk level
+4. Concrete follow-up action recommendations
 
-Format respons dalam 4 perenggan yang teratur dan jelas. Jangan guna bullet points. Tulis dalam nada profesional yang sesuai untuk laporan rasmi.`;
+Format the response in 4 clear, well-structured paragraphs. Do not use bullet points. Write in a professional tone appropriate for an official report.`;
 
       let summaryText;
       let provider = 'claude';
