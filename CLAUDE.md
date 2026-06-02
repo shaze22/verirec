@@ -287,8 +287,11 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - _mailer.js: new kaunsBase() violet template, FROM_KAUNSELOR sender, all emails English
 - Appointment emails: sent from 'Kaunselor <noreply@verirec.app>' with violet header
 - ✅ Stripe products renamed to English, USD prices created, STRIPE_PRICE_* env vars updated (2026-06-02)
+- ✅ App.jsx Helmet: title "Kaunselor — Digital Counselling Platform" for counselor subdomain (2026-06-02)
+- ✅ Landing page badge global messaging, footer: FAQ · Privacy · Terms (2026-06-02)
+- ✅ Privacy, Terms, FAQ pages: subdomain-aware — Kaunselor branding on kaunselor.app (2026-06-02)
 
-**Latest deploy:** commit `e1374b9` — 2026-06-02
+**Latest deploy:** commit `9e84abc` — 2026-06-02
 
 ---
 
@@ -455,7 +458,7 @@ vercel deploy --prod --force --scope syedshazni-7682s-projects
 - www.verirec.app + counselor.verirec.app (doctor/jkm redirect ke www)
 - Project ID: `prj_EwnDU0nKMOn56auUR1WZF1GeNI3f`
 - GitHub: `https://github.com/shaze22/verirec` (branch: main)
-- Last deployed: 2026-06-02 (commit `e1374b9` — billing UI English/USD + Stripe products updated)
+- Last deployed: 2026-06-02 (commit `9e84abc` — FAQ footer link, landing page + legal pages polish)
 - Supabase project ID: `sbakkkxuhkxfofpfhdtn`
 
 **Supabase Auth URL Configuration (dashboard):**
