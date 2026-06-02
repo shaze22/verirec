@@ -258,6 +258,10 @@ export default function CaseDetailPage() {
   const [statusSaving, setStatusSaving] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [showTimeline, setShowTimeline] = useState(false);
+  const [closeModal, setCloseModal] = useState(false);
+  const [closeStep, setCloseStep] = useState(1);
+  const [closingRemarks, setClosingRemarks] = useState('');
+  const [exported, setExported] = useState(false);
   const [evidenceNote, setEvidenceNote] = useState('');
   const [evidenceSaving, setEvidenceSaving] = useState(false);
   const [aiSummary, setAiSummary] = useState('');
@@ -334,9 +338,33 @@ export default function CaseDetailPage() {
     try {
       const updated = await updateCase(id, { status: newStatus });
       setCaseData(updated);
-      toast.success('Status dikemas kini.');
+      toast.success('Status updated.');
     } catch {
-      toast.error('Gagal mengemas kini status.');
+      toast.error('Failed to update status.');
+    } finally {
+      setStatusSaving(false);
+    }
+  };
+
+  const handleCloseCase = async () => {
+    setStatusSaving(true);
+    try {
+      const closingNote = closingRemarks.trim()
+        ? `[Closing Remarks — ${format(new Date(), 'dd/MM/yyyy')}]\n${closingRemarks.trim()}`
+        : '';
+      const descUpdate = closingNote
+        ? (caseData.description ? `${caseData.description}\n\n${closingNote}` : closingNote)
+        : caseData.description;
+      const updated = await updateCase(id, { status: 'closed', description: descUpdate });
+      setCaseData(updated);
+      setEvidenceNote(descUpdate || '');
+      setCloseModal(false);
+      setCloseStep(1);
+      setClosingRemarks('');
+      setExported(false);
+      toast.success('Case closed successfully.');
+    } catch {
+      toast.error('Failed to close case.');
     } finally {
       setStatusSaving(false);
     }
@@ -430,17 +458,34 @@ export default function CaseDetailPage() {
                   <p className="text-sm text-gray-600 mt-2">{caseData.description}</p>
                 )}
               </div>
-              <div className="flex-shrink-0">
-                <select
-                  value={caseData.status}
-                  onChange={e => handleStatusChange(e.target.value)}
-                  disabled={statusSaving}
-                  className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                >
-                  <option value="active">Aktif</option>
-                  <option value="pending">Ditangguhkan</option>
-                  <option value="closed">Ditutup</option>
-                </select>
+              <div className="flex-shrink-0 flex items-center gap-2">
+                {caseData.status === 'closed' ? (
+                  <button
+                    onClick={() => handleStatusChange('active')}
+                    disabled={statusSaving}
+                    className="text-xs border border-gray-300 rounded-lg px-3 py-1.5 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  >
+                    Reopen Case
+                  </button>
+                ) : (
+                  <>
+                    <select
+                      value={caseData.status}
+                      onChange={e => handleStatusChange(e.target.value)}
+                      disabled={statusSaving}
+                      className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                    >
+                      <option value="active">Active</option>
+                      <option value="pending">Pending</option>
+                    </select>
+                    <button
+                      onClick={() => { setCloseStep(1); setCloseModal(true); }}
+                      className="text-xs border border-red-200 text-red-600 rounded-lg px-3 py-1.5 hover:bg-red-50 transition-colors font-medium"
+                    >
+                      🔒 Close Case
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
@@ -703,6 +748,136 @@ export default function CaseDetailPage() {
           </div>
         )}
       </Modal>
+
+      {/* ── Close Case Guided Flow Modal ── */}
+      {closeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+            {/* Header */}
+            <div className="p-5 border-b flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-semibold text-gray-900">🔒 Close Case</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Step {closeStep} of 3</p>
+              </div>
+              <div className="flex gap-1">
+                {[1,2,3].map(s => (
+                  <div key={s} className={`w-8 h-1.5 rounded-full transition-colors ${s <= closeStep ? 'bg-red-500' : 'bg-gray-200'}`} />
+                ))}
+              </div>
+            </div>
+
+            {/* Step 1 — Review */}
+            {closeStep === 1 && (
+              <div className="p-5 space-y-4">
+                <p className="text-sm text-gray-600">Review this case before closing. Once closed, it will be archived.</p>
+                <div className="bg-gray-50 rounded-xl p-4 space-y-2.5">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Case Title</span>
+                    <span className="font-medium text-gray-900 text-right max-w-xs truncate">{caseData.title}</span>
+                  </div>
+                  {caseData.case_number && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Case Number</span>
+                      <span className="font-medium text-gray-900">{caseData.case_number}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Total Sessions</span>
+                    <span className="font-medium text-gray-900">{sessions.length}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Reports Generated</span>
+                    <span className={`font-medium ${sessions.filter(s=>s.report).length < sessions.length ? 'text-amber-600' : 'text-green-600'}`}>
+                      {sessions.filter(s=>s.report).length} / {sessions.length}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">AI Case Summary</span>
+                    <span className={`font-medium ${aiSummary ? 'text-green-600' : 'text-gray-400'}`}>{aiSummary ? '✓ Ready' : 'Not generated'}</span>
+                  </div>
+                </div>
+                {sessions.filter(s=>!s.report).length > 0 && (
+                  <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <span className="text-amber-500 text-sm">⚠️</span>
+                    <p className="text-xs text-amber-700">{sessions.filter(s=>!s.report).length} session(s) have no AI report. Consider generating reports before closing.</p>
+                  </div>
+                )}
+                <div className="flex gap-2 pt-2">
+                  <button onClick={() => setCloseModal(false)} className="flex-1 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
+                  <button onClick={() => setCloseStep(2)} className="flex-1 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">Continue →</button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2 — Export */}
+            {closeStep === 2 && (
+              <div className="p-5 space-y-4">
+                <p className="text-sm text-gray-600">Export case documents before closing for your records.</p>
+                <div className="space-y-2">
+                  <div className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${exported ? 'border-green-300 bg-green-50' : 'border-gray-200 bg-white'}`}>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">{exported ? '✅' : '📦'}</span>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Export Full Case PDF</p>
+                        <p className="text-xs text-gray-500">{sessions.length} sessions · {sessions.filter(s=>s.report).length} reports</p>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant={exported ? 'secondary' : 'primary'}
+                      loading={exporting}
+                      onClick={async () => {
+                        setExporting(true);
+                        try {
+                          await exportCasePDF(caseData, sessions);
+                          setExported(true);
+                          toast.success('Case PDF exported.');
+                        } catch { toast.error('Export failed.'); }
+                        finally { setExporting(false); }
+                      }}
+                    >
+                      {exported ? 'Done' : 'Export'}
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-400 text-center">Export is recommended but not required to proceed.</p>
+                <div className="flex gap-2 pt-1">
+                  <button onClick={() => setCloseStep(1)} className="flex-1 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">← Back</button>
+                  <button onClick={() => setCloseStep(3)} className="flex-1 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">Continue →</button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3 — Confirm */}
+            {closeStep === 3 && (
+              <div className="p-5 space-y-4">
+                <p className="text-sm text-gray-600">Add closing remarks and confirm. This action can be undone by reopening the case.</p>
+                <textarea
+                  value={closingRemarks}
+                  onChange={e => setClosingRemarks(e.target.value)}
+                  placeholder="Closing remarks, outcome summary, final findings... (optional)"
+                  rows={4}
+                  className="w-full text-sm border border-gray-200 rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-red-400 placeholder-gray-400"
+                />
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p className="text-xs text-red-700 font-medium">This will archive the case and mark it as Closed.</p>
+                  <p className="text-xs text-red-500 mt-0.5">All sessions and evidence remain accessible. You can reopen at any time.</p>
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <button onClick={() => setCloseStep(2)} className="flex-1 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">← Back</button>
+                  <button
+                    onClick={handleCloseCase}
+                    disabled={statusSaving}
+                    className="flex-1 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                  >
+                    {statusSaving ? 'Closing...' : '🔒 Close Case'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
