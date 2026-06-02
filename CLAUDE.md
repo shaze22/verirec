@@ -243,7 +243,13 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - LogoutPage: detects isCounselorSubdomain() — violet theme, 'Kaunselor' brand, dark bg
 - No 'VeriRec' references on kaunselor.app auth/logout pages
 
-**Latest deploy:** commit `179a62f` — 2026-06-02
+**Sidebar Kaunselor branding (commit 9eec1c8 — 2026-06-02):**
+- Logo: violet #8b5cf6 for counselor, blue #2563eb for www
+- Brand name: 'Kaunselor' for counselor subdomain, 'VeriRec' for www
+- Subtitle: 'Kaunselor Platform' (violet text) for counselor, 'Professional Platform' (gray) for www
+- Header bg: subtle violet-950/30 tint + violet border for counselor
+
+**Latest deploy:** commit `9eec1c8` — 2026-06-02
 
 ---
 
