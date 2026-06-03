@@ -261,24 +261,26 @@ export default function KaunslorClientFilePage() {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white border-b px-6">
-          <div className="max-w-2xl mx-auto flex gap-1">
-            {[
-              { id: 'overview',     label: 'Overview' },
-              { id: 'sessions',     label: `Sessions (${sessions.length})` },
-              { id: 'calendar',     label: 'Calendar' },
-              { id: 'consent',      label: 'Consent' },
-              { id: 'plans',        label: `Plans (${actionPlans.length})` },
-              { id: 'referrals',    label: `Referrals (${referrals.length})` },
-              { id: 'appointments', label: `Appointments (${appointments.length})` },
-              { id: 'notes',        label: `Notes (${progressNotes.length})` },
-              { id: 'recordings',   label: `Recordings (${clientRecordings.length})` },
-            ].map(t => (
-              <button key={t.id} onClick={() => setTab(t.id)}
-                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${tab === t.id ? 'border-violet-600 text-violet-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
-                {t.label}
-              </button>
-            ))}
+        <div className="bg-white border-b">
+          <div className="max-w-2xl mx-auto overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <div className="flex gap-1 px-6 min-w-max">
+              {[
+                { id: 'overview',     label: 'Overview' },
+                { id: 'sessions',     label: `Sessions (${sessions.length})` },
+                { id: 'calendar',     label: 'Calendar' },
+                { id: 'consent',      label: 'Consent' },
+                { id: 'plans',        label: `Plans (${actionPlans.length})` },
+                { id: 'referrals',    label: `Referrals (${referrals.length})` },
+                { id: 'appointments', label: `Appointments (${appointments.length})` },
+                { id: 'notes',        label: `Notes (${progressNotes.length})` },
+                { id: 'recordings',   label: `Recordings (${clientRecordings.length})` },
+              ].map(t => (
+                <button key={t.id} onClick={() => setTab(t.id)}
+                  className={`px-3 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${tab === t.id ? 'border-violet-600 text-violet-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
