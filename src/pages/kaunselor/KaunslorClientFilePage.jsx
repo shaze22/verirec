@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore.js';
 import { supabase } from '../../lib/supabase.js';
@@ -55,6 +55,10 @@ export default function KaunslorClientFilePage() {
   const [showTeamReferral, setShowTeamReferral] = useState(false);
   const [teamReferralForm, setTeamReferralForm] = useState({ to_email: '', reason: '', notes: '' });
   const [savingTeamReferral, setSavingTeamReferral] = useState(false);
+  const [clientRecordings, setClientRecordings] = useState([]);
+  const [uploadingRec, setUploadingRec] = useState(false);
+  const [recDragging, setRecDragging] = useState(false);
+  const recFileRef = useRef(null);
 
   useEffect(() => {
     if (!user) return;
@@ -66,7 +70,7 @@ export default function KaunslorClientFilePage() {
         .eq('subject_id', id).order('created_at', { ascending: false }),
       supabase.from('action_plans').select('*').eq('subject_id', id).order('created_at', { ascending: false }),
       supabase.from('clinical_referrals').select('*').eq('subject_id', id).order('created_at', { ascending: false }),
-      supabase.from('audio_library').select('id, session_id, storage_path, file_name, duration').eq('subject_id', id),
+      supabase.from('audio_library').select('id, session_id, storage_path, file_name, duration, created_at, mime_type').eq('subject_id', id),
       supabase.from('progress_notes').select('*').eq('subject_id', id).order('note_date', { ascending: false }).order('created_at', { ascending: false }),
       supabase.from('team_referrals').select('*').eq('subject_id', id).eq('from_user_id', user.id).order('created_at', { ascending: false }),
     ]).then(([{ data: c }, { data: s }, { data: a }, { data: plans }, { data: refs }, { data: audios }, { data: notes }, { data: trefs }]) => {
@@ -79,15 +83,19 @@ export default function KaunslorClientFilePage() {
       setReferrals(refs || []);
       setProgressNotes(notes || []);
       setTeamReferrals(trefs || []);
-      // Map audio by session_id and generate signed URLs
       if (audios?.length) {
-        const map = {};
+        const sessionMap = {};
+        const standalone = [];
         Promise.all(audios.map(async (audio) => {
           const { data } = await supabase.storage.from('recordings').createSignedUrl(audio.storage_path, 3600);
           if (data?.signedUrl) {
-            map[audio.session_id] = { url: data.signedUrl, duration: audio.duration };
+            if (audio.session_id) {
+              sessionMap[audio.session_id] = { url: data.signedUrl, duration: audio.duration };
+            } else {
+              standalone.push({ ...audio, url: data.signedUrl });
+            }
           }
-        })).then(() => setAudioMap({ ...map })).catch(() => {});
+        })).then(() => { setAudioMap({ ...sessionMap }); setClientRecordings(standalone); }).catch(() => {});
       }
     }).finally(() => setLoading(false));
 
@@ -182,6 +190,49 @@ export default function KaunslorClientFilePage() {
     finally { setSavingReferral(false); }
   };
 
+  const handleUploadRecording = async (file) => {
+    if (file.size > 500 * 1024 * 1024) { toast.error('File exceeds 500MB limit.'); return; }
+    setUploadingRec(true);
+    try {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const storagePath = `${user.id}/clients/${id}/${Date.now()}_${safeName}`;
+      const { error: uploadErr } = await supabase.storage
+        .from('recordings')
+        .upload(storagePath, file, { contentType: file.type || 'audio/mpeg', upsert: false });
+      if (uploadErr) throw uploadErr;
+
+      const { data: row, error: dbErr } = await supabase.from('audio_library').insert({
+        user_id: user.id,
+        subject_id: id,
+        session_id: null,
+        storage_path: storagePath,
+        file_name: file.name,
+        file_size: file.size,
+        mime_type: file.type || 'audio/mpeg',
+      }).select().single();
+      if (dbErr) throw dbErr;
+
+      const { data: signed } = await supabase.storage.from('recordings').createSignedUrl(storagePath, 3600);
+      setClientRecordings(prev => [...prev, { ...row, url: signed?.signedUrl }]);
+      toast.success('Recording uploaded.');
+    } catch (err) {
+      toast.error(err.message || 'Upload failed.');
+    } finally {
+      setUploadingRec(false);
+      if (recFileRef.current) recFileRef.current.value = '';
+    }
+  };
+
+  const handleDeleteRecording = async (rec) => {
+    if (!window.confirm('Delete this recording?')) return;
+    try {
+      await supabase.storage.from('recordings').remove([rec.storage_path]);
+      await supabase.from('audio_library').delete().eq('id', rec.id);
+      setClientRecordings(prev => prev.filter(r => r.id !== rec.id));
+      toast.success('Recording deleted.');
+    } catch { toast.error('Failed to delete recording.'); }
+  };
+
   if (loading) return <div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>;
   if (!client) return null;
 
@@ -221,6 +272,7 @@ export default function KaunslorClientFilePage() {
               { id: 'referrals',    label: `Referrals (${referrals.length})` },
               { id: 'appointments', label: `Appointments (${appointments.length})` },
               { id: 'notes',        label: `Notes (${progressNotes.length})` },
+              { id: 'recordings',   label: `Recordings (${clientRecordings.length})` },
             ].map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
                 className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${tab === t.id ? 'border-violet-600 text-violet-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
@@ -1152,6 +1204,83 @@ export default function KaunslorClientFilePage() {
                             </div>
                           </div>
                         </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── RECORDINGS TAB ── */}
+          {tab === 'recordings' && (
+            <div className="space-y-4">
+              {/* Upload area */}
+              <div
+                className={`border-2 border-dashed rounded-2xl p-8 text-center transition-colors cursor-pointer ${
+                  recDragging ? 'border-violet-400 bg-violet-50' : 'border-gray-200 hover:border-violet-300 bg-white'
+                }`}
+                onClick={() => !uploadingRec && recFileRef.current?.click()}
+                onDragOver={(e) => { e.preventDefault(); setRecDragging(true); }}
+                onDragLeave={() => setRecDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setRecDragging(false);
+                  const f = e.dataTransfer.files[0];
+                  if (f) handleUploadRecording(f);
+                }}
+              >
+                <input
+                  ref={recFileRef}
+                  type="file"
+                  accept=".mp3,.m4a,.mp4,.wav,.ogg,.webm,.flac,.aac,.mov,.wma,.mkv"
+                  className="hidden"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUploadRecording(f); }}
+                />
+                {uploadingRec ? (
+                  <div>
+                    <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                    <p className="text-sm text-violet-700 font-medium">Uploading...</p>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="text-4xl mb-3">🎙️</div>
+                    <p className="font-semibold text-gray-700">Drop recording here or click to browse</p>
+                    <p className="text-sm text-gray-400 mt-1">Audio or video — MP3, M4A, WAV, MP4, MOV, WebM, etc. — max 500MB</p>
+                  </div>
+                )}
+              </div>
+
+              {clientRecordings.length === 0 ? (
+                <div className="text-center py-8 text-gray-400">
+                  <p className="text-sm">No recordings uploaded yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {clientRecordings.map(rec => (
+                    <div key={rec.id} className="bg-white rounded-xl border p-4 space-y-2">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900 text-sm truncate">{rec.file_name}</p>
+                          {rec.created_at && (
+                            <p className="text-xs text-gray-400">{format(parseISO(rec.created_at), 'dd MMM yyyy, HH:mm')}</p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => handleDeleteRecording(rec)}
+                          className="text-xs text-gray-400 hover:text-red-500 px-2 py-1 rounded hover:bg-red-50 transition-colors flex-shrink-0"
+                        >Delete</button>
+                      </div>
+                      {rec.url && (
+                        rec.mime_type?.startsWith('video/') ? (
+                          <video controls className="w-full rounded-lg" style={{ maxHeight: '220px' }}>
+                            <source src={rec.url} type={rec.mime_type} />
+                          </video>
+                        ) : (
+                          <audio controls className="w-full" style={{ height: '36px' }}>
+                            <source src={rec.url} />
+                          </audio>
+                        )
                       )}
                     </div>
                   ))}

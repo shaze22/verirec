@@ -304,7 +304,17 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - ✅ FROM_KAUNSELOR: noreply@kaunselor.app (commit c8a7098)
 - ⏳ Resend domain kaunselor.app: DNS records confirmed, pending Resend auto-verify (id: ea1931e0-8deb-4979-bd12-e6bc1909a32a)
 
-**Latest deploy:** commit `3cc7e46` — 2026-06-03
+**Recording Import — Client File (KaunslorClientFilePage.jsx — 2026-06-03):**
+- New "Recordings" tab in client file — upload audio/video directly to client record
+- Drag-and-drop or click-to-browse — accepts MP3, M4A, WAV, MP4, MOV, WebM, etc., max 500MB
+- Uploads directly from browser → Supabase `recordings` bucket, path `{user_id}/clients/{subject_id}/{timestamp}_{filename}`
+- Saved to `audio_library` table with `subject_id`, `session_id = null` (standalone, not tied to a session)
+- Video MIME type → `<video>` element; audio → `<audio>` element for playback
+- Delete button: removes from storage + audio_library
+- Existing session-linked audio continues to appear in Sessions tab (unchanged)
+- Tab label shows live count: "Recordings (N)"
+
+**Latest deploy:** commit 2026-06-03 — Recording import in client file
 
 **Supabase Auth Redirect URLs (updated 2026-06-02):**
 www.verirec.app/**, counselor.verirec.app/**, kaunselor.app/**, www.kaunselor.app/**
