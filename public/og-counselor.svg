@@ -1,85 +1,86 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#064e3b"/>
-      <stop offset="100%" stop-color="#022c22"/>
-    </linearGradient>
-    <linearGradient id="accent" x1="0" y1="0" x2="1200" y2="0" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#10b981"/>
-      <stop offset="100%" stop-color="#059669"/>
-    </linearGradient>
+    <radialGradient id="glow" cx="40%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#0a0a0f" stop-opacity="0"/>
+    </radialGradient>
   </defs>
 
   <!-- Background -->
-  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="#0a0a0f"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
 
-  <!-- Soft glow circles -->
-  <circle cx="1080" cy="160" r="320" fill="#10b981" opacity="0.07"/>
-  <circle cx="120" cy="510" r="220" fill="#059669" opacity="0.06"/>
+  <!-- Subtle grid -->
+  <line x1="0" y1="210" x2="1200" y2="210" stroke="#ffffff" stroke-opacity="0.03" stroke-width="1"/>
+  <line x1="0" y1="420" x2="1200" y2="420" stroke="#ffffff" stroke-opacity="0.03" stroke-width="1"/>
+  <line x1="600" y1="0" x2="600" y2="630" stroke="#ffffff" stroke-opacity="0.03" stroke-width="1"/>
 
-  <!-- Top accent bar -->
-  <rect x="0" y="0" width="1200" height="6" fill="url(#accent)"/>
+  <!-- Logo mark -->
+  <rect x="80" y="80" width="60" height="60" rx="15" fill="#7c3aed"/>
+  <polyline points="91,110 97,101 103,119 109,95 115,123 121,101 127,113 133,107 140,110"
+    stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
 
-  <!-- Logo icon -->
-  <rect x="60" y="72" width="88" height="88" rx="20" fill="#10b981"/>
-  <polyline points="72,116 85,97 98,135 111,88 124,148 137,97 150,120 163,108 174,116"
-    stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Brand -->
+  <text x="156" y="121" font-family="-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="38" font-weight="700" fill="white" letter-spacing="-0.5">Kaunselor</text>
 
-  <!-- VeriRec wordmark -->
-  <text x="168" y="124" font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
-    font-size="56" font-weight="700" fill="white" letter-spacing="-1">VeriRec</text>
-  <text x="170" y="152" font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
-    font-size="22" font-weight="500" fill="#6ee7b7">untuk Kaunselor</text>
+  <!-- Badge -->
+  <rect x="80" y="180" width="348" height="36" rx="18" fill="#7c3aed" fill-opacity="0.2" stroke="#7c3aed" stroke-opacity="0.4" stroke-width="1"/>
+  <circle cx="104" cy="198" r="5" fill="#a78bfa"/>
+  <text x="118" y="203" font-family="-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="15" font-weight="600" fill="#c4b5fd">Global Standards · Built for Every Counselor</text>
 
-  <!-- Horizontal divider -->
-  <rect x="60" y="192" width="540" height="2" fill="#10b981" opacity="0.4"/>
+  <!-- Headline -->
+  <text x="80" y="302" font-family="-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="76" font-weight="800" fill="white" letter-spacing="-2">Less Admin.</text>
+  <text x="80" y="388" font-family="-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="76" font-weight="800" fill="#a78bfa" letter-spacing="-2">More Counseling.</text>
 
-  <!-- Main headline -->
-  <text x="60" y="268" font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
-    font-size="44" font-weight="700" fill="white">Platform Digital Sesi Kaunseling</text>
+  <!-- Features -->
+  <text x="80" y="444" font-family="-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="20" fill="#64748b">QR Booking  ·  AI Session Notes  ·  Client Files  ·  MBTI &amp; RIASEC</text>
 
-  <!-- Sub headline -->
-  <text x="60" y="322" font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
-    font-size="24" font-weight="400" fill="#a7f3d0">Patuh SOP • Laporan AI • Tempahan QR • PDPA</text>
+  <!-- Pricing pill -->
+  <rect x="80" y="472" width="200" height="42" rx="21" fill="#7c3aed"/>
+  <text x="180" y="498" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="16" font-weight="700" fill="white">$25 USD / month</text>
 
-  <!-- Feature pills -->
-  <rect x="60" y="370" width="218" height="48" rx="24" fill="#065f46" opacity="0.95"/>
-  <text x="169" y="400" text-anchor="middle"
-    font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
-    font-size="18" font-weight="600" fill="#6ee7b7">Case Session Note</text>
-
-  <rect x="294" y="370" width="198" height="48" rx="24" fill="#065f46" opacity="0.95"/>
-  <text x="393" y="400" text-anchor="middle"
-    font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
-    font-size="18" font-weight="600" fill="#6ee7b7">Red Flag AI</text>
-
-  <rect x="508" y="370" width="222" height="48" rx="24" fill="#065f46" opacity="0.95"/>
-  <text x="619" y="400" text-anchor="middle"
-    font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
-    font-size="18" font-weight="600" fill="#6ee7b7">MBTI + RIASEC</text>
-
-  <!-- Pricing callout -->
-  <rect x="60" y="444" width="360" height="60" rx="12" fill="#10b981" opacity="0.15"/>
-  <text x="80" y="468" font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
-    font-size="16" font-weight="500" fill="#6ee7b7">Plan Kaunselor</text>
-  <text x="80" y="493" font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
-    font-size="26" font-weight="700" fill="white">RM100/bulan • 20 sesi</text>
-
-  <!-- Trial badge -->
-  <rect x="440" y="452" width="220" height="44" rx="22" fill="#10b981"/>
-  <text x="550" y="479" text-anchor="middle"
-    font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
-    font-size="17" font-weight="700" fill="white">🎉 14 Hari Percuma</text>
+  <rect x="294" y="472" width="180" height="42" rx="21" fill="#ffffff" fill-opacity="0.06" stroke="#ffffff" stroke-opacity="0.1" stroke-width="1"/>
+  <text x="384" y="498" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="16" font-weight="600" fill="#94a3b8">Free plan available</text>
 
   <!-- Domain -->
-  <rect x="60" y="538" width="330" height="44" rx="10" fill="#022c22" opacity="0.85"/>
-  <text x="225" y="566" text-anchor="middle"
-    font-family="Inter,-apple-system,BlinkMacSystemFont,Arial,sans-serif"
-    font-size="20" font-weight="500" fill="#34d399">counselor.verirec.app</text>
+  <text x="80" y="572" font-family="-apple-system,BlinkMacSystemFont,Arial,sans-serif"
+    font-size="18" fill="#334155">kaunselor.app</text>
 
-  <!-- Waveform decoration -->
-  <polyline points="840,240 865,280 890,195 915,320 940,158 965,348 990,142 1015,368 1040,172 1065,305 1090,225 1115,270 1140,245"
-    stroke="#10b981" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.28"/>
-  <polyline points="855,360 880,400 905,328 930,435 955,305 980,455 1005,290 1030,468 1055,316 1080,418 1105,352 1130,395 1155,368"
-    stroke="#059669" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.16"/>
+  <!-- Right decorative UI -->
+  <rect x="740" y="70" width="390" height="220" rx="18" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.07" stroke-width="1"/>
+  <rect x="766" y="96" width="90" height="10" rx="5" fill="#a78bfa" fill-opacity="0.5"/>
+  <rect x="766" y="115" width="150" height="8" rx="4" fill="#ffffff" fill-opacity="0.12"/>
+  <rect x="766" y="131" width="120" height="8" rx="4" fill="#ffffff" fill-opacity="0.08"/>
+  <rect x="766" y="157" width="340" height="40" rx="10" fill="#7c3aed" fill-opacity="0.25"/>
+  <rect x="780" y="171" width="130" height="8" rx="4" fill="#a78bfa" fill-opacity="0.5"/>
+  <rect x="766" y="211" width="100" height="8" rx="4" fill="#ffffff" fill-opacity="0.07"/>
+  <rect x="766" y="227" width="140" height="8" rx="4" fill="#ffffff" fill-opacity="0.05"/>
+  <rect x="766" y="243" width="110" height="8" rx="4" fill="#ffffff" fill-opacity="0.05"/>
+
+  <rect x="740" y="310" width="186" height="110" rx="18" fill="#7c3aed" fill-opacity="0.18" stroke="#7c3aed" stroke-opacity="0.3" stroke-width="1"/>
+  <rect x="762" y="332" width="65" height="9" rx="4" fill="#a78bfa" fill-opacity="0.6"/>
+  <rect x="762" y="350" width="140" height="8" rx="4" fill="#ffffff" fill-opacity="0.13"/>
+  <rect x="762" y="366" width="110" height="8" rx="4" fill="#ffffff" fill-opacity="0.09"/>
+  <rect x="762" y="382" width="85" height="8" rx="4" fill="#ffffff" fill-opacity="0.07"/>
+
+  <rect x="944" y="310" width="186" height="110" rx="18" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.07" stroke-width="1"/>
+  <rect x="966" y="332" width="55" height="9" rx="4" fill="#34d399" fill-opacity="0.6"/>
+  <rect x="966" y="350" width="130" height="8" rx="4" fill="#ffffff" fill-opacity="0.13"/>
+  <rect x="966" y="366" width="100" height="8" rx="4" fill="#ffffff" fill-opacity="0.09"/>
+  <rect x="966" y="382" width="120" height="8" rx="4" fill="#ffffff" fill-opacity="0.07"/>
+
+  <rect x="740" y="440" width="390" height="138" rx="18" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.07" stroke-width="1"/>
+  <rect x="766" y="464" width="75" height="9" rx="4" fill="#a78bfa" fill-opacity="0.5"/>
+  <rect x="766" y="482" width="330" height="7" rx="3" fill="#ffffff" fill-opacity="0.09"/>
+  <rect x="766" y="497" width="290" height="7" rx="3" fill="#ffffff" fill-opacity="0.07"/>
+  <rect x="766" y="512" width="310" height="7" rx="3" fill="#ffffff" fill-opacity="0.07"/>
+  <rect x="766" y="527" width="220" height="7" rx="3" fill="#ffffff" fill-opacity="0.05"/>
+  <rect x="766" y="548" width="100" height="7" rx="3" fill="#7c3aed" fill-opacity="0.4"/>
 </svg>
