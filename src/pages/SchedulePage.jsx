@@ -35,7 +35,7 @@ async function fetchScheduled(userId) {
   return data || [];
 }
 
-const BLANK = { id: null, title: '', profession: 'counselor', subject_name: '', scheduled_at: '', notes: '' };
+const BLANK = { id: null, title: '', profession: 'police', subject_name: '', scheduled_at: '', notes: '' };
 
 export default function SchedulePage() {
   const { user } = useAuthStore();
@@ -314,7 +314,7 @@ export default function SchedulePage() {
               onChange={e => setForm(p => ({ ...p, profession: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              {PROFESSIONS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+              {PROFESSIONS.filter(p => isCounselorSubdomain() ? true : p.id !== 'counselor').map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
             </select>
           </div>
           <div>

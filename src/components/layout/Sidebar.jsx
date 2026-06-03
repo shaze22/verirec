@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { useAuthStore } from '../../store/authStore.js';
 import { useBillingStore } from '../../store/billingStore.js';
@@ -36,14 +36,21 @@ const COUNSELOR_ITEMS = [
 
 // Other professions tabs — Recent Sessions & Subjects removed from primary nav.
 // Sessions are accessed through Case Files. Subjects via Subject Search (secondary link) or global search.
+const isSessionReport = (pathname) =>
+  pathname.startsWith('/session/') &&
+  !pathname.startsWith('/session/setup') &&
+  !pathname.startsWith('/session/import') &&
+  !pathname.startsWith('/session/active') &&
+  !pathname.startsWith('/session/new');
+
 const OTHER_ITEMS = [
   { to: '/session/setup', label: 'New Session',       icon: ICONS.mic,      cta: true },
-  { to: '/cases',       label: 'Case Files',         icon: ICONS.folder },
-  { to: '/jadual',      label: 'Schedule',           icon: ICONS.calendar },
-  { to: '/templat',     label: 'Question Templates', icon: ICONS.doc },
-  { to: '/audit',       label: 'Audit Log',          icon: ICONS.doc },
-  { to: '/team',        label: 'Team',               icon: ICONS.team },
-  { to: '/settings',    label: 'Settings',           icon: ICONS.settings },
+  { to: '/cases',         label: 'Case Files',         icon: ICONS.folder,   alsoActive: isSessionReport },
+  { to: '/jadual',        label: 'Schedule',           icon: ICONS.calendar },
+  { to: '/templat',       label: 'Question Templates', icon: ICONS.doc },
+  { to: '/audit',         label: 'Audit Log',          icon: ICONS.doc },
+  { to: '/team',          label: 'Team',               icon: ICONS.team },
+  { to: '/settings',      label: 'Settings',           icon: ICONS.settings },
 ];
 
 const Logo = ({ counselor }) => (
@@ -58,6 +65,7 @@ export function Sidebar() {
   const { user, signOut } = useAuthStore();
   const { subscription } = useBillingStore();
   const navigate = useNavigate();
+  const location = useLocation();
   const { canInstall, install } = usePwaInstall();
   const isCounselor = isCounselorSubdomain();
   const navItems = isCounselor ? COUNSELOR_ITEMS
@@ -199,12 +207,15 @@ export function Sidebar() {
           <NavLink
             key={item.to}
             to={item.to}
-            className={({ isActive }) => clsx(
-              'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors',
-              item.cta
-                ? (isCounselor ? 'bg-violet-600/15 text-violet-400 border border-violet-500/25 hover:bg-violet-600 hover:text-white hover:border-transparent font-medium' : 'bg-blue-600/15 text-blue-400 border border-blue-500/25 hover:bg-blue-600 hover:text-white hover:border-transparent font-medium')
-                : isActive ? (isCounselor ? 'bg-violet-600 text-white' : 'bg-blue-600 text-white') : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-            )}
+            className={({ isActive }) => {
+              const active = isActive || item.alsoActive?.(location.pathname);
+              return clsx(
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors',
+                item.cta
+                  ? (isCounselor ? 'bg-violet-600/15 text-violet-400 border border-violet-500/25 hover:bg-violet-600 hover:text-white hover:border-transparent font-medium' : 'bg-blue-600/15 text-blue-400 border border-blue-500/25 hover:bg-blue-600 hover:text-white hover:border-transparent font-medium')
+                  : active ? (isCounselor ? 'bg-violet-600 text-white' : 'bg-blue-600 text-white') : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+              );
+            }}
           >
             {item.icon}
             {item.label}
