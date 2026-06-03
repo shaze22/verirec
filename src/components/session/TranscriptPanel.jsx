@@ -43,7 +43,7 @@ export function TranscriptPanel({ entries = [], interim = '' }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `transkrip-${Date.now()}.txt`;
+    a.download = `transcript-${Date.now()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -58,7 +58,7 @@ export function TranscriptPanel({ entries = [], interim = '' }) {
           onChange={e => setSearch(e.target.value)}
           className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        <button onClick={handleExport} className="p-1.5 text-gray-500 hover:text-blue-600 transition-colors" title="Eksport .txt">
+        <button onClick={handleExport} className="p-1.5 text-gray-500 hover:text-blue-600 transition-colors" title="Export .txt">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
@@ -95,7 +95,7 @@ export function TranscriptPanel({ entries = [], interim = '' }) {
                   <span className="text-xs font-medium text-blue-600">🎙️ {entry.speaker}</span>
                 )}
                 {entry.type === 'FLAG' && (
-                  <span className="text-xs font-medium text-red-600">🚩 Bendera</span>
+                  <span className="text-xs font-medium text-red-600">🚩 Flag</span>
                 )}
               </div>
               <p className={clsx('leading-relaxed', TYPE_COLORS[entry.type] || TYPE_COLORS.TRANSCRIPT)}>
@@ -109,7 +109,7 @@ export function TranscriptPanel({ entries = [], interim = '' }) {
           <div className="p-3 rounded-xl text-sm bg-blue-600 shadow-sm">
             <div className="flex items-center gap-1.5 mb-1">
               <span className="w-2 h-2 bg-white rounded-full animate-pulse inline-block" />
-              <span className="text-xs text-blue-100 font-medium">Sedang ditranskrip...</span>
+              <span className="text-xs text-blue-100 font-medium">Transcribing...</span>
             </div>
             <p className="leading-relaxed text-white font-medium">{interim}</p>
           </div>

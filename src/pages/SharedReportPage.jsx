@@ -5,9 +5,9 @@ import { Helmet } from 'react-helmet-async';
 import { professionLabel } from '../data/professions.js';
 
 const RISK_CONFIG = {
-  low:    { label: 'Rendah',   bg: 'bg-green-50',  text: 'text-green-700',  border: 'border-green-200' },
-  medium: { label: 'Sederhana', bg: 'bg-amber-50', text: 'text-amber-700',  border: 'border-amber-200' },
-  high:   { label: 'Tinggi',   bg: 'bg-red-50',    text: 'text-red-700',    border: 'border-red-200' },
+  low:    { label: 'Low',      bg: 'bg-green-50',  text: 'text-green-700',  border: 'border-green-200' },
+  medium: { label: 'Moderate', bg: 'bg-amber-50',  text: 'text-amber-700',  border: 'border-amber-200' },
+  high:   { label: 'High',     bg: 'bg-red-50',    text: 'text-red-700',    border: 'border-red-200' },
 };
 
 export default function SharedReportPage() {
@@ -44,10 +44,10 @@ export default function SharedReportPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Laporan Tidak Dijumpai</h2>
-          <p className="text-sm text-gray-500 mb-6">Pautan ini mungkin telah tamat tempoh atau tidak sah.</p>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Report Not Found</h2>
+          <p className="text-sm text-gray-500 mb-6">This link may have expired or is no longer valid.</p>
           <Link to="/" className="inline-block px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
-            Pergi ke VeriRec
+            Go to VeriRec
           </Link>
         </div>
       </div>
@@ -60,7 +60,7 @@ export default function SharedReportPage() {
   return (
     <>
       <Helmet>
-        <title>{session.title} — Laporan VeriRec</title>
+        <title>{session.title} — VeriRec Report</title>
         <meta name="robots" content="noindex" />
       </Helmet>
       <div className="min-h-screen bg-gray-50">
@@ -78,7 +78,7 @@ export default function SharedReportPage() {
               <span className="text-sm text-gray-500">Shared Report</span>
             </div>
             <Link to="/auth" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-              Daftar Percuma →
+              Try Free →
             </Link>
           </div>
         </div>
@@ -97,12 +97,12 @@ export default function SharedReportPage() {
                   <span>·</span>
                   <span>{format(new Date(session.created_at), 'dd MMM yyyy')}</span>
                   <span>·</span>
-                  <span>{Math.round((session.duration || 0) / 60)} minit</span>
+                  <span>{Math.round((session.duration || 0) / 60)} min</span>
                 </div>
               </div>
               {report?.riskLevel && (
                 <div className={`px-3 py-1.5 rounded-full text-sm font-medium border ${risk.bg} ${risk.text} ${risk.border}`}>
-                  Risiko: {risk.label}
+                  Risk: {risk.label}
                 </div>
               )}
             </div>
@@ -110,14 +110,14 @@ export default function SharedReportPage() {
 
           {!report ? (
             <div className="bg-white rounded-2xl border p-8 text-center text-gray-500">
-              Laporan AI belum dijana untuk sesi ini.
+              AI report not yet generated for this session.
             </div>
           ) : (
             <>
               {/* Summary */}
               {report.summary && (
                 <div className="bg-white rounded-2xl border p-6">
-                  <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Ringkasan</h2>
+                  <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Summary</h2>
                   <p className="text-gray-800 leading-relaxed">{report.summary}</p>
                 </div>
               )}
@@ -125,7 +125,7 @@ export default function SharedReportPage() {
               {/* Key findings */}
               {report.keyFindings?.length > 0 && (
                 <div className="bg-white rounded-2xl border p-6">
-                  <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Penemuan Utama</h2>
+                  <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Key Findings</h2>
                   <ul className="space-y-2">
                     {report.keyFindings.map((f, i) => (
                       <li key={i} className="flex gap-3 text-sm text-gray-700">
@@ -140,7 +140,7 @@ export default function SharedReportPage() {
               {/* Recommendations */}
               {report.recommendations?.length > 0 && (
                 <div className="bg-white rounded-2xl border p-6">
-                  <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Cadangan</h2>
+                  <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Recommendations</h2>
                   <ul className="space-y-2">
                     {report.recommendations.map((r, i) => (
                       <li key={i} className="flex gap-3 text-sm text-gray-700">
@@ -155,7 +155,7 @@ export default function SharedReportPage() {
               {/* Red flags */}
               {report.redFlags?.length > 0 && (
                 <div className="bg-red-50 rounded-2xl border border-red-200 p-6">
-                  <h2 className="text-sm font-semibold text-red-600 uppercase tracking-wide mb-3">Bendera Merah</h2>
+                  <h2 className="text-sm font-semibold text-red-600 uppercase tracking-wide mb-3">Red Flags</h2>
                   <ul className="space-y-2">
                     {report.redFlags.map((f, i) => (
                       <li key={i} className="flex gap-2 text-sm text-red-800">
@@ -169,7 +169,7 @@ export default function SharedReportPage() {
               {/* Follow-up */}
               {report.followUpRequired && report.followUpItems?.length > 0 && (
                 <div className="bg-blue-50 rounded-2xl border border-blue-200 p-6">
-                  <h2 className="text-sm font-semibold text-blue-700 uppercase tracking-wide mb-3">Tindakan Susulan</h2>
+                  <h2 className="text-sm font-semibold text-blue-700 uppercase tracking-wide mb-3">Follow-up Actions</h2>
                   <ul className="space-y-2">
                     {report.followUpItems.map((item, i) => (
                       <li key={i} className="flex gap-2 text-sm text-blue-800">
@@ -184,15 +184,15 @@ export default function SharedReportPage() {
 
           {/* CTA */}
           <div className="bg-blue-600 rounded-2xl p-6 text-center">
-            <p className="text-white font-semibold mb-1">Jana laporan AI untuk sesi anda sendiri</p>
-            <p className="text-blue-200 text-sm mb-4">Platform rakaman sesi profesional yang patuh PDPA untuk Malaysia</p>
+            <p className="text-white font-semibold mb-1">Generate AI reports for your own sessions</p>
+            <p className="text-blue-200 text-sm mb-4">Professional session recording platform, PDPA-compliant for Malaysia</p>
             <Link to="/auth?mode=register" className="inline-block px-6 py-2.5 bg-white text-blue-600 font-semibold text-sm rounded-xl hover:bg-blue-50 transition-colors">
-              Cuba Percuma →
+              Try Free →
             </Link>
           </div>
 
           <p className="text-center text-xs text-gray-400 pb-4">
-            Laporan ini dijana oleh VeriRec. Dijana pada {format(new Date(session.created_at), 'dd MMM yyyy')}.
+            Report generated by VeriRec on {format(new Date(session.created_at), 'dd MMM yyyy')}.
           </p>
         </div>
       </div>

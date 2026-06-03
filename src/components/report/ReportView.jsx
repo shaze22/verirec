@@ -91,7 +91,7 @@ function FollowUpTracker({ sessionId, items }) {
     <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-amber-900 uppercase">Follow-up Actions</h3>
-        <span className="text-xs text-amber-600 font-medium">{done}/{items.length} selesai</span>
+        <span className="text-xs text-amber-600 font-medium">{done}/{items.length} done</span>
       </div>
       <div className="w-full bg-amber-200 rounded-full h-1.5 mb-4">
         <div className="bg-amber-500 h-1.5 rounded-full transition-all" style={{ width: `${(done / items.length) * 100}%` }} />
@@ -117,13 +117,13 @@ function FollowUpTracker({ sessionId, items }) {
                   {/* Deadline display */}
                   {deadlines[i] && !checked[i] && (
                     <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${ds === 'overdue' ? 'bg-red-100 text-red-700' : ds === 'soon' ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-600'}`}>
-                      {ds === 'overdue' ? '⚠ Tertunggak' : ds === 'soon' ? '⏰ Mendesak' : '📅'} {format(new Date(deadlines[i] + 'T00:00:00'), 'dd/MM/yyyy')}
+                      {ds === 'overdue' ? '⚠ Overdue' : ds === 'soon' ? '⏰ Urgent' : '📅'} {format(new Date(deadlines[i] + 'T00:00:00'), 'dd/MM/yyyy')}
                     </span>
                   )}
                   {/* Deadline set button */}
                   {!checked[i] && editDeadline !== i && (
                     <button onClick={() => setEditDeadline(i)} className="text-xs text-amber-600 hover:text-amber-800 underline opacity-0 group-hover:opacity-100 transition-opacity">
-                      {deadlines[i] ? 'Tukar tarikh' : '+ Date akhir'}
+                      {deadlines[i] ? 'Change date' : '+ Set deadline'}
                     </button>
                   )}
                   {editDeadline === i && (
@@ -273,14 +273,14 @@ function OfficerSummarySection({ sessionId, initialValue }) {
 function SOAPSection({ soap }) {
   if (!soap) return null;
   const fields = [
-    { key: 'subjective', label: 'S — Subjecttif', desc: 'Aduan pesakit dalam kata-katanya sendiri' },
-    { key: 'objective', label: 'O — Objektif', desc: 'Penemuan yang boleh diukur dan diperhatikan' },
-    { key: 'assessment', label: 'A — Penilaian', desc: 'Diagnosis atau penilaian klinikal' },
-    { key: 'plan', label: 'P — Rancangan', desc: 'Tindakan susulan dan rawatan' },
+    { key: 'subjective', label: 'S — Subjective', desc: "Patient's complaints in their own words" },
+    { key: 'objective', label: 'O — Objective', desc: 'Measurable and observable findings' },
+    { key: 'assessment', label: 'A — Assessment', desc: 'Clinical diagnosis or assessment' },
+    { key: 'plan', label: 'P — Plan', desc: 'Follow-up actions and treatment' },
   ];
   return (
     <div className="bg-red-50 border border-red-200 rounded-xl p-5">
-      <h3 className="text-sm font-semibold text-red-700 uppercase mb-4">Nota SOAP</h3>
+      <h3 className="text-sm font-semibold text-red-700 uppercase mb-4">SOAP Note</h3>
       <div className="space-y-4">
         {fields.map(({ key, label, desc }) => soap[key] && (
           <div key={key}>
@@ -297,15 +297,15 @@ function SOAPSection({ soap }) {
 function NCRSection({ ncr }) {
   if (!ncr) return null;
   const fields = [
-    { key: 'nonconformance', label: 'Ketidakpatuhan (NC)' },
-    { key: 'isoClause', label: 'Klausa ISO Berkaitan' },
-    { key: 'rootCause', label: 'Punca Akar (Root Cause)' },
-    { key: 'correctiveAction', label: 'Tindakan Pembetulan (CA)' },
-    { key: 'targetDate', label: 'Date Sasaran' },
+    { key: 'nonconformance', label: 'Nonconformance (NC)' },
+    { key: 'isoClause', label: 'Related ISO Clause' },
+    { key: 'rootCause', label: 'Root Cause' },
+    { key: 'correctiveAction', label: 'Corrective Action (CA)' },
+    { key: 'targetDate', label: 'Target Date' },
   ];
   return (
     <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
-      <h3 className="text-sm font-semibold text-amber-700 uppercase mb-4">Laporan Ketidakpatuhan (NCR/CAR)</h3>
+      <h3 className="text-sm font-semibold text-amber-700 uppercase mb-4">Non-Conformance Report (NCR/CAR)</h3>
       <div className="space-y-3">
         {fields.map(({ key, label }) => ncr[key] && (
           <div key={key} className="flex gap-3">
@@ -321,14 +321,14 @@ function NCRSection({ ncr }) {
 function DCPSection({ dcp }) {
   if (!dcp) return null;
   const fields = [
-    { key: 'allegation', label: 'Tuduhan / Aduan' },
-    { key: 'findings', label: 'Penemuan Siasatan' },
+    { key: 'allegation', label: 'Allegation / Complaint' },
+    { key: 'findings', label: 'Investigation Findings' },
     { key: 'recommendation', label: 'Recommendations' },
-    { key: 'proposedPenalty', label: 'Hukuman Yang Dicadangkan' },
+    { key: 'proposedPenalty', label: 'Proposed Disciplinary Action' },
   ];
   return (
     <div className="bg-purple-50 border border-purple-200 rounded-xl p-5">
-      <h3 className="text-sm font-semibold text-purple-700 uppercase mb-4">Summary Inkuiri Domestik (ID)</h3>
+      <h3 className="text-sm font-semibold text-purple-700 uppercase mb-4">Domestic Inquiry Summary</h3>
       <div className="space-y-3">
         {fields.map(({ key, label }) => dcp[key] && (
           <div key={key} className="flex gap-3">
@@ -404,15 +404,15 @@ Nama: ${session.subject_name}`;
   return (
     <div className="bg-purple-50 border border-purple-200 rounded-xl p-5 no-print">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-purple-700 uppercase">Template Surat Amaran</h3>
+        <h3 className="text-sm font-semibold text-purple-700 uppercase">Warning Letter Template</h3>
         <button
           onClick={copy}
           className="text-xs text-purple-600 hover:text-purple-800 font-medium border border-purple-300 rounded px-2 py-1 transition-colors"
         >
-          {copied ? '✓ Disalin' : 'Salin Teks'}
+          {copied ? '✓ Copied' : 'Copy Text'}
         </button>
       </div>
-      <p className="text-xs text-purple-500 mb-3">Draf berdasarkan laporan siasatan. Semak dan ubah suai sebelum digunakan secara rasmi.</p>
+      <p className="text-xs text-purple-500 mb-3">Draft based on investigation report. Review and amend before official use.</p>
       <pre className="text-xs text-gray-700 whitespace-pre-wrap font-mono bg-white border border-purple-100 rounded-lg p-4 leading-relaxed overflow-x-auto">
         {letter}
       </pre>
@@ -424,11 +424,11 @@ function StatementSection({ statement }) {
   if (!statement) return null;
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
-      <h3 className="text-sm font-semibold text-blue-700 uppercase mb-4">Summary Penyataan</h3>
+      <h3 className="text-sm font-semibold text-blue-700 uppercase mb-4">Statement Summary</h3>
       <div className="space-y-3">
         {statement.keyFacts?.length > 0 && (
           <div>
-            <p className="text-xs font-semibold text-blue-600 mb-1">Fakta Utama</p>
+            <p className="text-xs font-semibold text-blue-600 mb-1">Key Facts</p>
             <ul className="space-y-1">
               {statement.keyFacts.map((f, i) => (
                 <li key={i} className="text-sm text-gray-800 flex gap-2"><span className="text-blue-400">•</span>{f}</li>
@@ -438,7 +438,7 @@ function StatementSection({ statement }) {
         )}
         {statement.inconsistencies?.length > 0 && (
           <div>
-            <p className="text-xs font-semibold text-red-600 mb-1">Ketidakkonsistenan</p>
+            <p className="text-xs font-semibold text-red-600 mb-1">Inconsistencies</p>
             <ul className="space-y-1">
               {statement.inconsistencies.map((f, i) => (
                 <li key={i} className="text-sm text-gray-800 flex gap-2"><span className="text-red-400">!</span>{f}</li>
@@ -448,7 +448,7 @@ function StatementSection({ statement }) {
         )}
         {statement.evidenceNotes && (
           <div>
-            <p className="text-xs font-semibold text-blue-600 mb-1">Nota Bukti</p>
+            <p className="text-xs font-semibold text-blue-600 mb-1">Evidence Notes</p>
             <p className="text-sm text-gray-800">{statement.evidenceNotes}</p>
           </div>
         )}
@@ -473,9 +473,9 @@ function SignatureSection({ session }) {
       setSigAt(now);
       setSigned(true);
       setResigning(false);
-      toast.success('Tandatangan berjaya saved.');
+      toast.success('Signature saved.');
     } catch {
-      toast.error('Gagal menyimpan tandatangan.');
+      toast.error('Failed to save signature.');
     } finally {
       setSaving(false);
     }
@@ -484,13 +484,13 @@ function SignatureSection({ session }) {
   return (
     <div className="border-t pt-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-gray-500 uppercase">Pengesahan & Tandatangan Subject</h3>
+        <h3 className="text-sm font-semibold text-gray-500 uppercase">Subject Acknowledgement & Signature</h3>
         {signed && !resigning && (
           <button
             onClick={() => setResigning(true)}
             className="text-xs text-gray-400 hover:text-blue-600 transition-colors"
           >
-            Tandatangan Semula
+            Re-sign
           </button>
         )}
       </div>
@@ -498,14 +498,14 @@ function SignatureSection({ session }) {
       {signed && !resigning ? (
         <div className="bg-gray-50 rounded-xl p-5 border">
           <div className="bg-white border rounded-xl p-4 mb-3 flex items-center justify-center">
-            <img src={sigData} alt="Tandatangan subjek" className="max-h-28 max-w-full" />
+            <img src={sigData} alt="Subject signature" className="max-h-28 max-w-full" />
           </div>
           <div className="flex items-center gap-2 text-xs text-green-700">
             <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span>
-              Ditandatangani oleh <strong>{session.subject_name}</strong> pada{' '}
+              Signed by <strong>{session.subject_name}</strong> on{' '}
               {sigAt ? format(new Date(sigAt), 'dd MMM yyyy, HH:mm') : '-'}
             </span>
           </div>
@@ -513,10 +513,10 @@ function SignatureSection({ session }) {
       ) : (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 no-print">
           <div className="mb-4">
-            <p className="text-sm font-medium text-amber-900 mb-1">Akuan Subject</p>
+            <p className="text-sm font-medium text-amber-900 mb-1">Subject Declaration</p>
             <p className="text-sm text-amber-800">
-              Saya, <strong>{session.subject_name}</strong>, mengesahkan bahawa maklumat yang diberikan dalam sesi ini
-              adalah benar dan tepat setakat pengetahuan saya.
+              I, <strong>{session.subject_name}</strong>, confirm that the information provided in this session
+              is true and accurate to the best of my knowledge.
             </p>
           </div>
           <SignaturePad onSave={handleSave} saving={saving} />
@@ -543,13 +543,13 @@ function TranscriptScript({ transcript = [], forceExpand = false }) {
     <div className="border-t pt-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
-          Transcript Penuh ({lines.length} entri)
+          Full Transcript ({lines.length} entries)
         </h3>
         <button
           onClick={() => setExpanded(v => !v)}
           className="text-xs text-blue-600 hover:text-blue-800 font-medium border border-blue-200 rounded-lg px-3 py-1 transition-colors no-print"
         >
-          {isExpanded ? 'Sembunyikan' : 'Tunjukkan Semua'}
+          {isExpanded ? 'Collapse' : 'Show All'}
         </button>
       </div>
 
@@ -571,8 +571,8 @@ function TranscriptScript({ transcript = [], forceExpand = false }) {
                 isInterviewer ? 'text-blue-600' : isNote ? 'text-amber-600' : isFlag ? 'text-red-600' : 'text-gray-500'
               }`}>
                 {isInterviewer
-                  ? (entry.identified_name || entry.speaker || 'Penemuduga')
-                  : isNote ? '[NOTA]' : isFlag ? '[BENDERA]'
+                  ? (entry.identified_name || entry.speaker || 'Interviewer')
+                  : isNote ? '[NOTE]' : isFlag ? '[FLAG]'
                   : (entry.identified_name || 'Subject')}
                 {entry.identified_name && (
                   <span className="ml-1 text-[9px] text-green-600">✓</span>
@@ -593,7 +593,7 @@ function TranscriptScript({ transcript = [], forceExpand = false }) {
               onClick={() => setExpanded(true)}
               className="text-xs text-blue-500 hover:text-blue-700 no-print"
             >
-              + {lines.length - 4} entri lagi...
+              + {lines.length - 4} more entries...
             </button>
           </div>
         )}
@@ -613,7 +613,7 @@ function TranscriptScript({ transcript = [], forceExpand = false }) {
                 <span className={`text-xs font-semibold w-24 flex-shrink-0 ${
                   isInterviewer ? 'text-blue-600' : isNote ? 'text-amber-600' : isFlag ? 'text-red-600' : 'text-gray-500'
                 }`}>
-                  {isInterviewer ? (entry.speaker || 'Penemuduga') : isNote ? '[NOTA]' : isFlag ? '[BENDERA]' : 'Subject'}
+                  {isInterviewer ? (entry.speaker || 'Interviewer') : isNote ? '[NOTE]' : isFlag ? '[FLAG]' : 'Subject'}
                 </span>
                 <span className="flex-1 text-gray-800">{entry.text}</span>
               </div>
@@ -754,7 +754,7 @@ export function ReportView({ session }) {
       const sentLbl = { positive: 'Positive', neutral: 'Neutral', negative: 'Negative' }[report.sentiment] || (report.sentiment || '-');
       const durMin  = Math.round((duration || 0) / 60);
       [
-        [`Risiko: ${riskLbl}`, report.riskJustification],
+        [`Risk: ${riskLbl}`, report.riskJustification],
         [`Sentiment: ${sentLbl}`, report.sentimentNote],
         [`Duration: ${durMin} min`, report.followUpRequired ? 'Susulan diperlukan' : ''],
       ].forEach(([title, note], i) => {
@@ -832,7 +832,7 @@ export function ReportView({ session }) {
       }
 
       if ((profession === 'police' || profession === 'sprm') && report.statementSummary) {
-        sectionTitle('Summary Pernyataan');
+        sectionTitle('Statement Summary');
         bodyText(report.statementSummary);
       }
 
@@ -869,8 +869,8 @@ export function ReportView({ session }) {
           checkPage(8);
           const time = entry.timestamp ? format(new Date(entry.timestamp), 'HH:mm:ss') : '';
           const spk  = entry.type === 'INTERVIEWER'
-            ? (entry.identified_name || entry.speaker || 'Penemuduga')
-            : entry.type === 'NOTE' ? '[NOTA]' : entry.type === 'FLAG' ? '[BENDERA]'
+            ? (entry.identified_name || entry.speaker || 'Interviewer')
+            : entry.type === 'NOTE' ? '[NOTE]' : entry.type === 'FLAG' ? '[FLAG]'
             : (entry.identified_name || 'Subject');
           const rgb  = entry.type === 'INTERVIEWER' ? [30, 60, 180]
             : entry.type === 'FLAG' ? [180, 30, 30] : entry.type === 'NOTE' ? [140, 90, 0] : [60, 60, 60];
@@ -887,8 +887,8 @@ export function ReportView({ session }) {
       // ── Chain of Custody ──
       checkPage(40);
       y += 4;
-      sectionTitle('Rantai Jagaan (Chain of Custody)');
-      bodyText('Hash SHA-256 (dijana di pelayan):', 8, 'normal', [90, 90, 90]);
+      sectionTitle('Chain of Custody');
+      bodyText('SHA-256 Hash (generated server-side):', 8, 'normal', [90, 90, 90]);
       if (hash) {
         pdf.setFontSize(7.5); pdf.setFont('courier', 'normal'); pdf.setTextColor(30, 30, 30);
         pdf.splitTextToSize(hash, W - M * 2).forEach(line => { checkPage(5); pdf.text(line, M, y); y += 4; });
@@ -901,7 +901,7 @@ export function ReportView({ session }) {
       pdf.addPage();
       let cy = M;
       const printedAt = format(new Date(), 'dd MMM yyyy, HH:mm:ss');
-      const printedBy = user?.email || 'Pengguna Sistem';
+      const printedBy = user?.email || 'System User';
 
       pdf.setFillColor(245, 247, 250);
       pdf.rect(0, 0, W, 35, 'F');
@@ -946,14 +946,14 @@ export function ReportView({ session }) {
       cy += 2;
 
       pdf.setFontSize(8); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(60, 60, 60);
-      pdf.text('MAKLUMAT PERCETAKAN', M, cy); cy += 6;
-      cocField('Dicetak oleh', printedBy, [37, 99, 235]);
-      cocField('Date & Masa Print', printedAt);
+      pdf.text('PRINT INFORMATION', M, cy); cy += 6;
+      cocField('Printed by', printedBy, [37, 99, 235]);
+      cocField('Date & Time Printed', printedAt);
 
       if (auditTrail.length > 0) {
         cy += 2;
         pdf.setFontSize(8); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(60, 60, 60);
-        pdf.text('LOG AKSES TERKINI', M, cy); cy += 5;
+        pdf.text('RECENT ACCESS LOG', M, cy); cy += 5;
         auditTrail.slice(0, 8).forEach(evt => {
           if (cy > 270) { pdf.addPage(); cy = M; }
           const label = ACTION_LABELS[evt.action] || evt.action;
@@ -974,12 +974,12 @@ export function ReportView({ session }) {
       for (let i = 1; i <= totalPages; i++) {
         pdf.setPage(i);
         pdf.setFontSize(6.5); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(160, 160, 160);
-        pdf.text(`SULIT — ${printedBy} — ${printedAt}`, M, 292);
+        pdf.text(`CONFIDENTIAL — ${printedBy} — ${printedAt}`, M, 292);
         pdf.text(`${i} / ${totalPages}`, W - M, 292, { align: 'right' });
       }
 
       if (user) logEvent(user.id, 'report.export', 'session', id, session.title || subject_name).catch(() => {});
-      pdf.save(`laporan-verirec-${id?.substring(0, 8) || 'session'}.pdf`);
+      pdf.save(`verirec-report-${id?.substring(0, 8) || 'session'}.pdf`);
     } catch (err) {
       console.error('PDF export error:', err);
       toast.error(`PDF export failed: ${err?.message || 'Unknown error'}`);
@@ -1182,11 +1182,11 @@ export function ReportView({ session }) {
         ok: matches,
         hash: computed,
         note: matches
-          ? 'Hash sepadan — laporan tidak diubah suai sejak dijana.'
-          : 'Hash tidak sepadan — kandungan laporan mungkin telah diubah.',
+          ? 'Hash matched — report has not been modified since generation.'
+          : 'Hash mismatch — report content may have been altered.',
       });
     } catch {
-      setVerifyResult({ ok: false, note: 'Gagal mengira semula hash.' });
+      setVerifyResult({ ok: false, note: 'Failed to recompute hash.' });
     } finally {
       setVerifying(false);
     }
@@ -1289,7 +1289,7 @@ export function ReportView({ session }) {
         {/* Header */}
         <div className="flex items-start justify-between border-b pb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{orgName || 'Laporan Sesi VeriRec'}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{orgName || 'VeriRec Session Report'}</h1>
             {orgName && <p className="text-xs text-gray-400 mt-0.5">VeriRec</p>}
             <p className="text-gray-500 mt-1 capitalize">{profession} — {subject_name}</p>
             {caseNumber && <p className="text-sm text-gray-400 mt-0.5">Case No.: {caseNumber}</p>}
