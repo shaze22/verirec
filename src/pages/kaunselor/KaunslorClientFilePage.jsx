@@ -132,7 +132,7 @@ export default function KaunslorClientFilePage() {
       context_notes: client.presenting_issue || todayAppt?.presenting_issue || '',
       appointment_id: todayAppt?.id || null,
     }));
-    navigate('/session/setup/counselor');
+    navigate('/session/consent');
   };
 
   const updateRiskLevel = async (risk_level) => {
