@@ -523,7 +523,7 @@ vercel deploy --prod --force --scope syedshazni-7682s-projects
 - www.verirec.app + counselor.verirec.app (doctor/jkm redirect ke www)
 - Project ID: `prj_EwnDU0nKMOn56auUR1WZF1GeNI3f`
 - GitHub: `https://github.com/shaze22/verirec` (branch: main)
-- Last deployed: 2026-06-03 (commit `bb082d9` — OG image violet/Kaunselor, Google Search Console verified)
+- Last deployed: 2026-06-03 (commit `0f2bb36` — psychiatric Yes/No fix, counselor_notes display for confirmed appointments)
 - Supabase project ID: `sbakkkxuhkxfofpfhdtn`
 
 **Supabase Auth URL Configuration (dashboard):**
