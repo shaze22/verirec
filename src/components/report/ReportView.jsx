@@ -912,6 +912,9 @@ export function ReportView({ session }) {
 
       if (user) logEvent(user.id, 'report.export', 'session', id, session.title || subject_name).catch(() => {});
       pdf.save(`laporan-verirec-${id?.substring(0, 8) || 'session'}.pdf`);
+    } catch (err) {
+      console.error('PDF export error:', err);
+      toast.error(`PDF export failed: ${err?.message || 'Unknown error'}`);
     } finally {
       setExporting(false);
     }
@@ -1092,6 +1095,9 @@ export function ReportView({ session }) {
       }
 
       pdf.save(`case-session-note-${(subject_name || id?.substring(0,8) || 'session').replace(/\s+/g,'-')}-${format(new Date(),'yyyyMMdd')}.pdf`);
+    } catch (err) {
+      console.error('Case note PDF export error:', err);
+      toast.error(`PDF export failed: ${err?.message || 'Unknown error'}`);
     } finally {
       setExporting(false);
     }
