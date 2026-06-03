@@ -343,30 +343,39 @@ export default function SessionSetupPage() {
               </div>
             )}
 
-            {showCasePicker && activeCases.length > 0 && (
+            {showCasePicker && (
               <div>
                 <LabelWithTooltip label="Link to Case File (optional)" tooltip="Select a related case file to organise this session automatically." />
-                <select
-                  value={selectedCaseId}
-                  onChange={e => handleCaseChange(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">No case (standalone)</option>
-                  {activeCases
-                    .filter(c => !c.profession || c.profession === professionId)
-                    .map(c => (
-                      <option key={c.id} value={c.id}>
-                        {c.title}{c.case_number ? ` — ${c.case_number}` : ''}
-                      </option>
-                    ))}
-                  {activeCases
-                    .filter(c => c.profession && c.profession !== professionId)
-                    .map(c => (
-                      <option key={c.id} value={c.id}>
-                        {c.title}{c.case_number ? ` — ${c.case_number}` : ''} (other profession)
-                      </option>
-                    ))}
-                </select>
+                {activeCases.length > 0 ? (
+                  <select
+                    value={selectedCaseId}
+                    onChange={e => handleCaseChange(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">No case (standalone)</option>
+                    {activeCases
+                      .filter(c => !c.profession || c.profession === professionId)
+                      .map(c => (
+                        <option key={c.id} value={c.id}>
+                          {c.title}{c.case_number ? ` — ${c.case_number}` : ''}
+                        </option>
+                      ))}
+                    {activeCases
+                      .filter(c => c.profession && c.profession !== professionId)
+                      .map(c => (
+                        <option key={c.id} value={c.id}>
+                          {c.title}{c.case_number ? ` — ${c.case_number}` : ''} (other profession)
+                        </option>
+                      ))}
+                  </select>
+                ) : (
+                  <p className="text-sm text-gray-400 py-1">
+                    No case files yet.{' '}
+                    <button type="button" className="text-blue-600 hover:underline font-medium" onClick={() => navigate('/cases')}>
+                      Create a case file first →
+                    </button>
+                  </p>
+                )}
               </div>
             )}
 

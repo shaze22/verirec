@@ -6,10 +6,10 @@ const SR = typeof window !== 'undefined'
 
 export const isSpeechRecognitionSupported = !!SR;
 
-// Probe which language code Chrome actually has a model for.
-// ms-MY sometimes has gaps; ms is broader. Fall back to en-US only if both fail.
+// Map 'auto' to a valid BCP47 tag — Web Speech API rejects 'auto' outright.
+// ms-MY is the primary; onerror fallback chain handles ms → en-MY → en-US.
 function detectBestLang(preferred) {
-  // Return as-is — we try preferred first, then fall back in onerror
+  if (preferred === 'auto') return 'ms-MY';
   return preferred;
 }
 

@@ -595,17 +595,14 @@ export default function CaseDetailPage() {
           ) : (
             <div className="space-y-2">
               {sessions.map(s => (
-                <div key={s.id} className="bg-white border rounded-xl p-4 flex items-center gap-4 group hover:border-blue-200 transition-colors">
-                  <div
-                    className="flex-1 min-w-0 cursor-pointer"
-                    onClick={() => navigate(`/session/${s.id}`)}
-                  >
+                <div key={s.id} className="bg-white border rounded-xl p-4 flex items-center gap-4 group hover:border-blue-200 hover:shadow-sm transition-all cursor-pointer" onClick={() => navigate(`/session/${s.id}`)}>
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h4 className="font-medium text-gray-900 truncate">{s.title}</h4>
                       <Badge color="blue" className="text-xs">{professionLabel(s.profession)}</Badge>
                       {s.report?.riskLevel && (
                         <Badge color={riskColors[s.report.riskLevel]} className="text-xs">
-                          Risiko {riskLabels[s.report.riskLevel]}
+                          Risk: {riskLabels[s.report.riskLevel]}
                         </Badge>
                       )}
                     </div>
@@ -619,8 +616,9 @@ export default function CaseDetailPage() {
                       }
                     </div>
                   </div>
+                  <span className="text-xs text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">View →</span>
                   <button
-                    onClick={() => handleRemove(s.id)}
+                    onClick={(e) => { e.stopPropagation(); handleRemove(s.id); }}
                     disabled={removing === s.id}
                     className="text-xs text-gray-400 hover:text-red-600 px-2 py-1 rounded hover:bg-red-50 transition-colors flex-shrink-0 disabled:opacity-50"
                   >

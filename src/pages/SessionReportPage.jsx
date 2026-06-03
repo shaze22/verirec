@@ -428,8 +428,8 @@ export default function SessionReportPage() {
                       </svg>
                     </div>
                     <div>
-                      <p className="font-semibold text-sm text-purple-900">Laporan AI Belum Dijana</p>
-                      <p className="text-xs text-purple-700 mt-0.5">Sesi ini selesai dirakam tetapi analisis AI belum berjaya. Klik untuk jana laporan sekarang.</p>
+                      <p className="font-semibold text-sm text-purple-900">AI Report Not Generated</p>
+                      <p className="text-xs text-purple-700 mt-0.5">Session completed but AI analysis was unsuccessful. Click to generate the report now.</p>
                     </div>
                   </div>
                   <button
