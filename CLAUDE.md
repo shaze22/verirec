@@ -304,7 +304,7 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - ✅ FROM_KAUNSELOR: noreply@kaunselor.app (commit c8a7098)
 - ⏳ Resend domain kaunselor.app: DNS records confirmed, pending Resend auto-verify (id: ea1931e0-8deb-4979-bd12-e6bc1909a32a)
 
-**Latest deploy:** commit `0e66185` — 2026-06-03
+**Latest deploy:** commit `ae9cbcc` — 2026-06-03
 
 **Supabase Auth Redirect URLs (updated 2026-06-02):**
 www.verirec.app/**, counselor.verirec.app/**, kaunselor.app/**, www.kaunselor.app/**
@@ -453,6 +453,14 @@ Redesign 2026-06-02 — Soro-inspired. Sections (dalam order):
 10. Testimonials — 3-column grid, DSP Ahmad Fauzi + En. Farouk Ibrahim + Pn. Melissa Tan (commit 86e5d2e)
 11. Pricing — Free ($0) + Professional ($25) + top-up $3/$12/$22
 12. Final CTA + Footer
+
+## Import External Recording (2026-06-03 — commit ae9cbcc)
+- Route: `/session/import` → `ImportSessionPage.jsx`
+- Entry: "📁 Import External Recording →" button at bottom of SessionSetupPage
+- Supported: MP3, M4A, MP4, WAV, OGG, WEBM, FLAC, MOV (max 500MB)
+- Flow: file → Supabase `recordings` bucket (direct, bypass Vercel 4.5MB limit) → `api/transcribe?mode=import` (JSON body, signed URL) → AssemblyAI diarize → `updateSession` → `generateReport` → `/session/:id`
+- `src/api/whisper.js`: `importFromStoragePath({ storagePath, interviewer, subject_name })`
+- `api/transcribe.js`: `handleImport()` — creates signed URL, submits to AssemblyAI
 
 ## Session Report Features (2026-06-03)
 - **Audio playback**: "Play Recording" button in SessionReportPage — fetches from audio_library by session_id, HTML5 player
