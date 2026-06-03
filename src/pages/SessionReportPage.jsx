@@ -165,7 +165,6 @@ export default function SessionReportPage() {
     if (b < 1024 * 1024) return `${(b / 1024).toFixed(0)} KB`;
     return `${(b / (1024 * 1024)).toFixed(1)} MB`;
   };
-  };
 
   const handlePinUnlock = async (e) => {
     e.preventDefault();
