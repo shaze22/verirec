@@ -266,11 +266,8 @@ export default function KaunslorClientFilePage() {
             {[
               { id: 'overview',     label: 'Overview' },
               { id: 'sessions',     label: `Sessions (${sessions.length})` },
-              { id: 'calendar',     label: 'Calendar' },
-              { id: 'consent',      label: 'Consent' },
-              { id: 'plans',        label: `Plans (${actionPlans.length})` },
-              { id: 'referrals',    label: `Referrals (${referrals.length})` },
-              { id: 'appointments', label: `Appts (${appointments.length})` },
+              { id: 'appointments', label: `Appointments (${appointments.length})` },
+              { id: 'plans',        label: `Plans (${actionPlans.length + referrals.length})` },
               { id: 'notes',        label: `Notes (${progressNotes.length})` },
               { id: 'recordings',   label: `Recordings (${clientRecordings.length})` },
             ].map(t => (
@@ -622,277 +619,15 @@ export default function KaunslorClientFilePage() {
               ))}
             </div>
           )}
-
-          {/* ── CALENDAR TAB ── */}
-          {tab === 'calendar' && (() => {
-            const days = eachDayOfInterval({ start: startOfMonth(calMonth), end: endOfMonth(calMonth) });
-            const startPad = getDay(startOfMonth(calMonth)); // 0=Sun
-            const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-            // Build event map: date string → [{type, label, id}]
-            const eventMap = {};
-            sessions.forEach(s => {
-              const d = s.created_at?.slice(0, 10);
-              if (d) {
-                if (!eventMap[d]) eventMap[d] = [];
-                eventMap[d].push({ type: 'session', label: s.title || 'Sesi', id: s.id, report: s.report });
-              }
-            });
-            appointments.forEach(a => {
-              const d = a.confirmed_date || a.requested_date;
-              if (d) {
-                if (!eventMap[d]) eventMap[d] = [];
-                eventMap[d].push({ type: 'appointment', label: a.client_name, status: a.status, id: a.id });
-              }
-            });
-
-            const selectedKey = calSelected ? format(calSelected, 'yyyy-MM-dd') : null;
-            const selectedEvents = selectedKey ? (eventMap[selectedKey] || []) : [];
-
-            return (
-              <div className="space-y-4">
-                {/* Month navigation */}
-                <div className="bg-white rounded-xl border p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <button onClick={() => setCalMonth(m => subMonths(m, 1))}
-                      className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-                    </button>
-                    <h3 className="font-semibold text-gray-900">{format(calMonth, 'MMMM yyyy')}</h3>
-                    <button onClick={() => setCalMonth(m => addMonths(m, 1))}
-                      className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-                    </button>
-                  </div>
-
-                  {/* Day labels */}
-                  <div className="grid grid-cols-7 mb-1">
-                    {DAY_LABELS.map(d => (
-                      <div key={d} className="text-center text-xs font-medium text-gray-400 py-1">{d}</div>
-                    ))}
-                  </div>
-
-                  {/* Calendar grid */}
-                  <div className="grid grid-cols-7 gap-0.5">
-                    {/* Leading empty cells */}
-                    {Array.from({ length: startPad }).map((_, i) => <div key={`pad-${i}`} />)}
-
-                    {days.map(day => {
-                      const key = format(day, 'yyyy-MM-dd');
-                      const events = eventMap[key] || [];
-                      const hasSessions = events.some(e => e.type === 'session');
-                      const hasAppts = events.some(e => e.type === 'appointment');
-                      const isSelected = calSelected && isSameDay(day, calSelected);
-                      const today = isToday(day);
-
-                      return (
-                        <button key={key} onClick={() => setCalSelected(isSameDay(day, calSelected || new Date(0)) ? null : day)}
-                          className={`relative flex flex-col items-center py-2 rounded-lg transition-all ${
-                            isSelected ? 'bg-blue-600 text-white' :
-                            today ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50 text-gray-700'
-                          }`}>
-                          <span className="text-sm font-medium leading-none">{format(day, 'd')}</span>
-                          {events.length > 0 && (
-                            <div className="flex gap-0.5 mt-1">
-                              {hasSessions && <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-blue-500'}`} />}
-                              {hasAppts && <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-yellow-200' : 'bg-green-500'}`} />}
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Legend */}
-                  <div className="flex gap-4 mt-3 pt-3 border-t justify-center text-xs text-gray-500">
-                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" /> Sessions</span>
-                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" /> Appointments</span>
-                  </div>
-                </div>
-
-                {/* Selected day events */}
-                {calSelected && (
-                  <div className="bg-white rounded-xl border p-4">
-                    <h4 className="font-semibold text-gray-900 mb-3">
-                      {format(calSelected, 'dd MMMM yyyy')}
-                    </h4>
-                    {selectedEvents.length === 0 ? (
-                      <div className="flex items-center gap-3">
-                        <p className="text-sm text-gray-400">No activity on this date.</p>
-                        <button onClick={startNewSession}
-                          className="text-xs text-blue-600 font-medium hover:underline">+ Start Session</button>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {selectedEvents.map((ev, i) => (
-                          <div key={i} className={`flex items-center justify-between p-3 rounded-xl ${ev.type === 'session' ? 'bg-blue-50' : 'bg-green-50'}`}>
-                            <div>
-                              <p className="text-sm font-medium text-gray-900">{ev.label}</p>
-                              <p className="text-xs text-gray-500 mt-0.5">
-                                {ev.type === 'session' ? '🎙 Recorded session' : `📅 Appointment — ${ev.status === 'confirmed' ? 'Confirmed' : ev.status === 'completed' ? 'Completed' : 'Pending'}`}
-                              </p>
-                            </div>
-                            {ev.type === 'session' && (
-                              <button onClick={() => navigate(`/session/${ev.id}`)}
-                                className="text-xs text-blue-600 font-medium hover:underline">View →</button>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Quick summary */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-blue-50 rounded-xl p-4 text-center">
-                    <p className="text-2xl font-bold text-blue-700">{sessions.length}</p>
-                    <p className="text-xs text-blue-600">Total Sessions</p>
-                  </div>
-                  <div className="bg-green-50 rounded-xl p-4 text-center">
-                    <p className="text-2xl font-bold text-green-700">{appointments.filter(a => a.status === 'confirmed' || a.status === 'completed').length}</p>
-                    <p className="text-xs text-green-600">Confirmed Appointments</p>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
-
-          {/* ── CONSENT TAB ── */}
-          {tab === 'consent' && (
-            <div className="space-y-4">
-              {appointments.filter(a => a.consent_signed).length === 0 ? (
-                <div className="text-center py-12 text-gray-400">
-                  <div className="text-4xl mb-3">📋</div>
-                  <p>No signed consent forms yet.</p>
-                  <p className="text-sm mt-1">Consent will be recorded when the client fills in the booking form.</p>
-                </div>
-              ) : appointments.filter(a => a.consent_signed).map(a => {
-                const sessionDate = a.confirmed_date || a.requested_date;
-                const sessionTime = a.confirmed_time || a.requested_time;
-                const counselorName = user?.user_metadata?.full_name || '—';
-
-                const handlePrintConsent = () => {
-                  const win = window.open('', '_blank', 'width=794,height=1123');
-                  win.document.write(`<!DOCTYPE html><html><head>
-                    <title>Borang Persetujuan Makluman — ${a.client_name}</title>
-                    <style>
-                      body { font-family: Arial, sans-serif; font-size: 12px; padding: 40px; color: #111; line-height: 1.6; }
-                      h1 { font-size: 14px; text-align: center; text-transform: uppercase; margin-bottom: 4px; }
-                      h2 { font-size: 12px; text-align: center; color: #444; margin-top: 0; margin-bottom: 24px; }
-                      .section { margin-bottom: 16px; }
-                      .label { font-size: 10px; color: #666; text-transform: uppercase; margin-bottom: 2px; }
-                      .value { font-weight: bold; border-bottom: 1px solid #ccc; padding-bottom: 2px; min-height: 20px; }
-                      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-                      .body-text { font-size: 11px; line-height: 1.7; margin-bottom: 12px; }
-                      .sig-block { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
-                      .sig-line { border-top: 1px solid #333; padding-top: 4px; margin-top: 40px; font-size: 11px; }
-                      .footer { margin-top: 30px; font-size: 9px; color: #888; text-align: center; border-top: 1px solid #eee; padding-top: 8px; }
-                      @media print { body { padding: 20px; } }
-                    </style>
-                  </head><body>
-                    <h1>BORANG PERSETUJUAN MAKLUMAN</h1>
-                    <h2>(Informed Consent Form)</h2>
-                    <div class="grid">
-                      <div><div class="label">Client Name</div><div class="value">${a.client_name || '—'}</div></div>
-                      <div><div class="label">IC / Passport No.</div><div class="value">${a.client_ic || '—'}</div></div>
-                      <div><div class="label">Matric / Staff No.</div><div class="value">${a.client_student_id || '—'}</div></div>
-                      <div><div class="label">Gender</div><div class="value">${a.client_gender || '—'}</div></div>
-                      <div><div class="label">Session Date</div><div class="value">${format(parseISO(sessionDate), 'dd MMMM yyyy')}</div></div>
-                      <div><div class="label">Session Time</div><div class="value">${sessionTime?.slice(0,5) || '—'}</div></div>
-                    </div>
-                    <div class="section">
-                      <p class="body-text"><strong>1. Perkhidmatan Kaunseling.</strong> Kaunseling adalah hubungan profesional antara anda dan kaunselor bertauliah. Matlamat utama adalah untuk memudahkan perubahan tingkah laku, meningkatkan keupayaan membina hubungan, menggalakkan proses membuat keputusan, dan memudahkan potensi serta perkembangan peribadi klien.</p>
-                      <p class="body-text"><strong>2. Kerahsiaan.</strong> Kaunselor bertanggungjawab menjaga kerahsiaan semua maklumat yang diperoleh semasa sesi kaunseling berdasarkan Akta Kaunselor 1998 dan PDPA 2010. Maklumat hanya boleh didedahkan dalam situasi berikut: (a) bahaya kepada diri sendiri atau orang lain; (b) perlindungan kanak-kanak; (c) perintah mahkamah.</p>
-                      <p class="body-text"><strong>3. Rakaman &amp; Dokumentasi.</strong> Sesi ini mungkin dirakam suara untuk tujuan dokumentasi klinikal menggunakan teknologi AI yang dilindungi. Semua data disimpan secara selamat mengikut PDPA 2010. Rakaman tidak akan dikongsi tanpa kebenaran anda.</p>
-                      <p class="body-text"><strong>4. Hak Klien.</strong> Anda berhak: (a) bertanya tentang apa sahaja berkaitan sesi; (b) meminta kaunselor merujuk kepada profesional lain; (c) memberhentikan sesi pada bila-bila masa; (d) mendapatkan salinan rekod anda dengan permohonan bertulis.</p>
-                      <p class="body-text"><strong>5. Had Kaunseling.</strong> Kaunseling bukan rawatan perubatan dan kaunselor bukan doktor. Jika anda memerlukan rawatan perubatan atau psikiatri, kaunselor akan membuat rujukan yang sesuai.</p>
-                    </div>
-                    <p class="body-text">Dengan menandatangani / menyatakan persetujuan secara digital di bawah, saya mengakui bahawa saya telah membaca, memahami, dan bersetuju dengan syarat-syarat di atas.</p>
-                    <div class="sig-block">
-                      <div>
-                        <div class="sig-line">
-                          <strong>${a.client_name || '___________________'}</strong><br/>
-                          Client Signature / Consent<br/>
-                          Date: ${a.consent_at ? format(new Date(a.consent_at), 'dd/MM/yyyy HH:mm') : '___________'}
-                        </div>
-                      </div>
-                      <div>
-                        <div class="sig-line">
-                          <strong>${counselorName}</strong><br/>
-                          Counselor Signature<br/>
-                          Date: ${format(new Date(), 'dd/MM/yyyy')}
-                        </div>
-                      </div>
-                    </div>
-                    <div class="footer">STRICTLY CONFIDENTIAL — Kaunselor Platform — kaunselor.app</div>
-                    <script>window.onload = function(){ window.print(); }</script>
-                  </body></html>`);
-                  win.document.close();
-                };
-
-                return (
-                  <div key={a.id} className="bg-white rounded-xl border p-5 space-y-4">
-                    {/* Header */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-semibold text-gray-900">Informed Consent Form</h3>
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {a.consent_at ? format(new Date(a.consent_at), 'dd MMM yyyy, HH:mm') : 'Date not recorded'}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">✓ Signed</span>
-                        <Button size="sm" variant="secondary" onClick={handlePrintConsent}>🖨 Print</Button>
-                      </div>
-                    </div>
-
-                    {/* Client details */}
-                    <div className="grid grid-cols-2 gap-3 text-sm bg-gray-50 rounded-xl p-4">
-                      {[
-                        ['Name', a.client_name],
-                        ['IC / Passport No.', a.client_ic],
-                        ['Matric / Staff No.', a.client_student_id],
-                        ['Gender', a.client_gender],
-                        ['Session Date', format(parseISO(sessionDate), 'dd MMM yyyy')],
-                        ['Session Time', sessionTime?.slice(0, 5)],
-                      ].map(([label, val]) => val ? (
-                        <div key={label}>
-                          <p className="text-xs text-gray-400">{label}</p>
-                          <p className="font-medium text-gray-800">{val}</p>
-                        </div>
-                      ) : null)}
-                    </div>
-
-                    {/* Consent text summary */}
-                    <div className="border rounded-xl p-4 text-sm text-gray-600 space-y-2 leading-relaxed">
-                      <p className="font-semibold text-gray-800 text-center text-xs uppercase tracking-wide mb-3">Agreed Consent Terms</p>
-                      <p><strong>Confidentiality:</strong> Session information is kept confidential under the Counselors Act 1998 and PDPA 2010, except for danger to self/others, child protection, or court orders.</p>
-                      <p><strong>Recording:</strong> Sessions may be voice-recorded for clinical documentation using protected AI technology. Data is stored securely per PDPA 2010.</p>
-                      <p><strong>Client Rights:</strong> Client has the right to ask questions, request referrals, stop the session, or obtain copies of records.</p>
-                    </div>
-
-                    {/* Presenting issue */}
-                    {a.presenting_issue && (
-                      <div className="bg-blue-50 rounded-xl p-3">
-                        <p className="text-xs text-blue-500 mb-1">Presenting Issue</p>
-                        <p className="text-sm text-blue-900 italic">"{a.presenting_issue}"</p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* ── ACTION PLANS TAB ── */}
+          {/* ── PLANS TAB (action plans + referrals) ── */}
           {tab === 'plans' && (
             <div className="space-y-3">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Action Plans</p>
               <Button onClick={() => setShowAddPlan(true)} className="w-full">+ New Action Plan</Button>
               {actionPlans.length === 0 ? (
-                <div className="text-center py-12 text-gray-400">
-                  <div className="text-4xl mb-3">📋</div>
-                  <p>No action plans yet for this client.</p>
+                <div className="text-center py-8 text-gray-400">
+                  <div className="text-3xl mb-2">📋</div>
+                  <p className="text-sm">No action plans yet.</p>
                 </div>
               ) : actionPlans.map(p => (
                 <div key={p.id} className="bg-white rounded-xl border p-4 space-y-2">
@@ -940,161 +675,88 @@ export default function KaunslorClientFilePage() {
                   </div>
                 </div>
               )}
-            </div>
-          )}
 
-          {/* ── REFERRALS TAB ── */}
-          {tab === 'referrals' && (
-            <div className="space-y-3">
-              <div className="flex gap-2">
-                <Button onClick={() => setShowAddReferral(true)} className="flex-1">+ Professional Referral</Button>
-                {teamMembers.length > 0 && (
-                  <Button variant="secondary" onClick={() => setShowTeamReferral(true)} className="flex-1">👥 Refer to Another Counselor</Button>
-                )}
-              </div>
-
-              {/* Outgoing team referrals */}
-              {teamReferrals.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Team Referrals</p>
-                  {teamReferrals.map(tr => (
-                    <div key={tr.id} className="bg-blue-50 border border-blue-100 rounded-xl p-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="text-sm font-medium text-blue-900">→ {tr.to_email}</p>
-                          <p className="text-xs text-blue-700 mt-0.5">{tr.reason}</p>
-                          {tr.notes && <p className="text-xs text-blue-600 italic mt-0.5">{tr.notes}</p>}
-                          <p className="text-xs text-blue-400 mt-1">{format(parseISO(tr.created_at), 'dd MMM yyyy')}</p>
+              {/* Referrals */}
+              <div className="pt-4 border-t space-y-3">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Referrals</p>
+                <div className="flex gap-2">
+                  <Button onClick={() => setShowAddReferral(true)} className="flex-1">+ Professional Referral</Button>
+                  {teamMembers.length > 0 && (
+                    <Button variant="secondary" onClick={() => setShowTeamReferral(true)} className="flex-1">👥 Refer to Counselor</Button>
+                  )}
+                </div>
+                {teamReferrals.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Team Referrals</p>
+                    {teamReferrals.map(tr => (
+                      <div key={tr.id} className="bg-blue-50 border border-blue-100 rounded-xl p-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="text-sm font-medium text-blue-900">→ {tr.to_email}</p>
+                            <p className="text-xs text-blue-700 mt-0.5">{tr.reason}</p>
+                            {tr.notes && <p className="text-xs text-blue-600 italic mt-0.5">{tr.notes}</p>}
+                            <p className="text-xs text-blue-400 mt-1">{format(parseISO(tr.created_at), 'dd MMM yyyy')}</p>
+                          </div>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${tr.status === 'accepted' ? 'bg-green-100 text-green-700' : tr.status === 'declined' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                            {tr.status === 'accepted' ? 'Accepted' : tr.status === 'declined' ? 'Declined' : 'Pending'}
+                          </span>
                         </div>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${
-                          tr.status === 'accepted' ? 'bg-green-100 text-green-700' :
-                          tr.status === 'declined' ? 'bg-red-100 text-red-700' :
-                          'bg-amber-100 text-amber-700'}`}>
-                          {tr.status === 'accepted' ? 'Accepted' : tr.status === 'declined' ? 'Declined' : 'Pending'}
-                        </span>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {referrals.length === 0 ? (
-                <div className="text-center py-12 text-gray-400">
-                  <div className="text-4xl mb-3">🏥</div>
-                  <p>No referrals yet for this client.</p>
-                </div>
-              ) : referrals.map(r => {
-                const REFERRAL_LABELS = { psychiatry: 'Psychiatry', hospital: 'Hospital', social_welfare: 'Social Welfare', ngo: 'NGO / Charity', other: 'Others' };
-                const handlePrintMemo = () => {
-                  const counselorName = user?.user_metadata?.full_name || 'Kaunselor';
-                  const refDate = format(parseISO(r.created_at), 'dd MMMM yyyy');
-                  const win = window.open('', '_blank', 'width=794,height=1123');
-                  win.document.write(`<!DOCTYPE html><html><head>
-                    <title>Memo Bantuan Profesional — ${client.name}</title>
-                    <style>
-                      body{font-family:Arial,sans-serif;font-size:11px;padding:40px;color:#111;line-height:1.7}
-                      .header{text-align:center;border-bottom:2px solid #333;padding-bottom:12px;margin-bottom:20px}
-                      .header h1{font-size:14px;text-transform:uppercase;margin:0 0 2px}
-                      .header p{font-size:10px;color:#555;margin:0}
-                      .memo-block{margin-bottom:16px}
-                      .memo-row{display:grid;grid-template-columns:120px 1fr;margin-bottom:4px}
-                      .memo-label{font-weight:bold;font-size:11px}
-                      .memo-value{font-size:11px}
-                      .subject-box{background:#f5f5f5;border:1px solid #ddd;border-radius:4px;padding:10px;margin:14px 0}
-                      .subject-row{display:grid;grid-template-columns:140px 1fr;margin-bottom:3px;font-size:11px}
-                      .body-text{font-size:11px;line-height:1.8;margin-bottom:10px}
-                      .sig-block{margin-top:36px;display:grid;grid-template-columns:1fr 1fr;gap:40px}
-                      .sig-line{border-top:1px solid #333;padding-top:4px;margin-top:36px;font-size:10px}
-                      .footer{margin-top:24px;font-size:8px;color:#888;text-align:center;border-top:1px solid #eee;padding-top:6px}
-                      @media print{body{padding:20px}}
-                    </style></head><body>
-                    <div class="header">
-                      <h1>Universiti Teknologi Malaysia</h1>
-                      <p>Unit Kaunseling | Bahagian Hal Ehwal Pelajar</p>
-                    </div>
-                    <div style="text-align:center;margin-bottom:20px">
-                      <strong style="font-size:13px;text-transform:uppercase;text-decoration:underline">MEMO UNTUK BANTUAN PROFESIONAL TAMBAHAN</strong><br/>
-                      <span style="font-size:10px;color:#555">(Memo for Extra Professional Assistance)</span>
-                    </div>
-                    <div class="memo-block">
-                      <div class="memo-row"><span class="memo-label">TO</span><span class="memo-value">: ${r.referred_to}</span></div>
-                      <div class="memo-row"><span class="memo-label">FROM</span><span class="memo-value">: ${counselorName}, Counseling Unit UTM</span></div>
-                      <div class="memo-row"><span class="memo-label">DATE</span><span class="memo-value">: ${refDate}</span></div>
-                      <div class="memo-row"><span class="memo-label">REFERRAL TYPE</span><span class="memo-value">: ${REFERRAL_LABELS[r.referral_type]||r.referral_type}</span></div>
-                    </div>
-                    <div class="subject-box">
-                      <strong style="font-size:10px;text-transform:uppercase">Client Information</strong>
-                      <div style="margin-top:6px">
-                        <div class="subject-row"><span>Name</span><span>: ${client.name||'—'}</span></div>
-                        <div class="subject-row"><span>IC / Passport No.</span><span>: ${client.ic_number||'—'}</span></div>
-                        <div class="subject-row"><span>Matric / ID No.</span><span>: ${client.student_id||'—'}</span></div>
-                        <div class="subject-row"><span>Programme / Year</span><span>: ${client.occupation||'—'} ${client.year_of_study?'/ '+client.year_of_study:''}</span></div>
-                        <div class="subject-row"><span>Phone No.</span><span>: ${client.phone||'—'}</span></div>
-                      </div>
-                    </div>
-                    <p class="body-text"><strong>1. Purpose of Memo</strong><br/>
-                    This memo is to refer the above client to ${r.referred_to} for additional professional assistance in addressing issues discussed during the counseling session.</p>
-                    <p class="body-text"><strong>2. Reason for Referral</strong><br/>
-                    ${r.reason||'Client requires additional professional assessment and support beyond the scope of counseling.'}</p>
-                    <p class="body-text"><strong>3. Issue Information</strong><br/>
-                    ${client.presenting_issue||'Refer to counseling records for further information.'}</p>
-                    <p class="body-text"><strong>4. Action Required</strong><br/>
-                    ${r.referred_to} is requested to provide appropriate assessment and treatment. Any feedback may be directed to the Counseling Unit UTM.</p>
-                    <p class="body-text" style="font-size:10px;color:#555">* Information in this memo is CONFIDENTIAL and for authorized use only.</p>
-                    <div class="sig-block">
-                      <div><div class="sig-line"><strong>${counselorName}</strong><br/>Registered Counselor<br/>Counseling Unit UTM<br/>Date: ${format(new Date(),'dd/MM/yyyy')}</div></div>
-                      <div><div class="sig-line">___________________<br/>Recipient Acknowledgment<br/>Date: ___________</div></div>
-                    </div>
-                    <div class="footer">SULIT — Unit Kaunseling — Kaunselor Platform — kaunselor.app</div>
-                    <script>window.onload=function(){window.print()}</script>
-                  </body></html>`);
-                  win.document.close();
-                };
-                return (
-                  <div key={r.id} className="bg-white rounded-xl border p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900">{r.referred_to}</p>
-                        <p className="text-xs text-gray-500">{REFERRAL_LABELS[r.referral_type] || r.referral_type}</p>
-                        {r.reason && <p className="text-sm text-gray-600 mt-1">{r.reason}</p>}
-                        <p className="text-xs text-gray-400 mt-1">{format(parseISO(r.created_at), 'dd MMM yyyy')}</p>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <Button size="sm" variant="secondary" onClick={handlePrintMemo}>🖨 Generate Memo</Button>
+                    ))}
+                  </div>
+                )}
+                {referrals.length === 0 && teamReferrals.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400">
+                    <div className="text-3xl mb-2">🏥</div>
+                    <p className="text-sm">No referrals yet.</p>
+                  </div>
+                ) : referrals.map(r => {
+                  const REFERRAL_LABELS = { psychiatry: 'Psychiatry', hospital: 'Hospital', social_welfare: 'Social Welfare', ngo: 'NGO / Charity', other: 'Others' };
+                  return (
+                    <div key={r.id} className="bg-white rounded-xl border p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">{r.referred_to}</p>
+                          <p className="text-xs text-gray-500">{REFERRAL_LABELS[r.referral_type] || r.referral_type}</p>
+                          {r.reason && <p className="text-sm text-gray-600 mt-1">{r.reason}</p>}
+                          <p className="text-xs text-gray-400 mt-1">{format(parseISO(r.created_at), 'dd MMM yyyy')}</p>
+                        </div>
                         <Badge color={r.status === 'completed' ? 'green' : r.status === 'sent' ? 'blue' : 'yellow'}>
                           {r.status === 'completed' ? 'Completed' : r.status === 'sent' ? 'Sent' : 'Pending'}
                         </Badge>
                       </div>
                     </div>
+                  );
+                })}
+                {showAddReferral && (
+                  <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+                      <h3 className="font-semibold text-lg">New Referral</h3>
+                      <form onSubmit={handleAddReferral} className="space-y-3">
+                        <div><label className="text-xs text-gray-500 mb-1 block">Referred To *</label>
+                          <input type="text" value={referralForm.referred_to} onChange={e => setReferralForm(p => ({ ...p, referred_to: e.target.value }))} required
+                            placeholder="e.g. Hospital, Psychiatry..."
+                            className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" /></div>
+                        <div><label className="text-xs text-gray-500 mb-1 block">Referral Type</label>
+                          <select value={referralForm.referral_type} onChange={e => setReferralForm(p => ({ ...p, referral_type: e.target.value }))}
+                            className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            {[['psychiatry','Psychiatry'],['hospital','Hospital'],['social_welfare','Social Welfare'],['ngo','NGO / Charity'],['other','Others']].map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+                          </select></div>
+                        <div><label className="text-xs text-gray-500 mb-1 block">Reason</label>
+                          <textarea value={referralForm.reason} onChange={e => setReferralForm(p => ({ ...p, reason: e.target.value }))} rows={2}
+                            className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" /></div>
+                        <div className="flex gap-3 pt-2">
+                          <Button type="submit" loading={savingReferral} className="flex-1">Save</Button>
+                          <Button type="button" variant="secondary" onClick={() => setShowAddReferral(false)}>Cancel</Button>
+                        </div>
+                      </form>
+                    </div>
                   </div>
-                );
-              })}
-              {showAddReferral && (
-                <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 p-4">
-                  <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
-                    <h3 className="font-semibold text-lg">New Referral</h3>
-                    <form onSubmit={handleAddReferral} className="space-y-3">
-                      <div><label className="text-xs text-gray-500 mb-1 block">Referred To *</label>
-                        <input type="text" value={referralForm.referred_to} onChange={e => setReferralForm(p => ({ ...p, referred_to: e.target.value }))} required
-                          placeholder="e.g. Kuala Lumpur General Hospital, Psychiatry..."
-                          className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" /></div>
-                      <div><label className="text-xs text-gray-500 mb-1 block">Referral Type</label>
-                        <select value={referralForm.referral_type} onChange={e => setReferralForm(p => ({ ...p, referral_type: e.target.value }))}
-                          className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                          {[['psychiatry','Psychiatry'],['hospital','Hospital'],['social_welfare','Social Welfare'],['ngo','NGO / Charity'],['other','Others']].map(([v,l]) => <option key={v} value={v}>{l}</option>)}
-                        </select></div>
-                      <div><label className="text-xs text-gray-500 mb-1 block">Reason for Referral</label>
-                        <textarea value={referralForm.reason} onChange={e => setReferralForm(p => ({ ...p, reason: e.target.value }))} rows={2}
-                          className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" /></div>
-                      <div className="flex gap-3 pt-2">
-                        <Button type="submit" loading={savingReferral} className="flex-1">Save</Button>
-                        <Button type="button" variant="secondary" onClick={() => setShowAddReferral(false)}>Cancel</Button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
+
 
           {/* ── PROGRESS NOTES TAB ── */}
           {tab === 'notes' && (
@@ -1289,9 +951,9 @@ export default function KaunslorClientFilePage() {
             </div>
           )}
 
-          {/* ── APPOINTMENTS TAB ── */}
+          {/* ── APPOINTMENTS TAB (includes consent forms) ── */}
           {tab === 'appointments' && (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {appointments.length === 0 ? (
                 <div className="text-center py-12 text-gray-400">
                   <div className="text-4xl mb-3">📅</div>
@@ -1315,6 +977,58 @@ export default function KaunslorClientFilePage() {
                   </div>
                 );
               })}
+
+              {/* Consent forms section */}
+              {appointments.filter(a => a.consent_signed).length > 0 && (
+                <div className="pt-4 border-t space-y-3">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Signed Consent Forms</p>
+                  {appointments.filter(a => a.consent_signed).map(a => {
+                    const sessionDate = a.confirmed_date || a.requested_date;
+                    const sessionTime = a.confirmed_time || a.requested_time;
+                    const counselorName = user?.user_metadata?.full_name || '—';
+                    const handlePrintConsent = () => {
+                      const win = window.open('', '_blank', 'width=794,height=1123');
+                      win.document.write(`<!DOCTYPE html><html><head><title>Consent — ${a.client_name}</title>
+                        <style>body{font-family:Arial,sans-serif;font-size:12px;padding:40px;color:#111;line-height:1.6}h1{font-size:14px;text-align:center;text-transform:uppercase;margin-bottom:4px}h2{font-size:12px;text-align:center;color:#444;margin:0 0 24px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.label{font-size:10px;color:#666;text-transform:uppercase}.value{font-weight:bold;border-bottom:1px solid #ccc;min-height:20px;padding-bottom:2px}.body-text{font-size:11px;line-height:1.7;margin-bottom:12px}.sig-block{margin-top:40px;display:grid;grid-template-columns:1fr 1fr;gap:40px}.sig-line{border-top:1px solid #333;padding-top:4px;margin-top:40px;font-size:11px}.footer{margin-top:30px;font-size:9px;color:#888;text-align:center;border-top:1px solid #eee;padding-top:8px}@media print{body{padding:20px}}</style>
+                      </head><body>
+                        <h1>BORANG PERSETUJUAN MAKLUMAN</h1><h2>(Informed Consent Form)</h2>
+                        <div class="grid">
+                          <div><div class="label">Client Name</div><div class="value">${a.client_name||'—'}</div></div>
+                          <div><div class="label">IC / Passport No.</div><div class="value">${a.client_ic||'—'}</div></div>
+                          <div><div class="label">Matric / Staff No.</div><div class="value">${a.client_student_id||'—'}</div></div>
+                          <div><div class="label">Gender</div><div class="value">${a.client_gender||'—'}</div></div>
+                          <div><div class="label">Session Date</div><div class="value">${sessionDate ? format(parseISO(sessionDate), 'dd MMMM yyyy') : '—'}</div></div>
+                          <div><div class="label">Session Time</div><div class="value">${sessionTime?.slice(0,5)||'—'}</div></div>
+                        </div>
+                        <p class="body-text"><strong>Confidentiality:</strong> All session information is kept strictly confidential under the Counselors Act 1998 and PDPA 2010, except where required by law.</p>
+                        <p class="body-text"><strong>Recording & Documentation:</strong> Sessions may be recorded for clinical documentation purposes using secure AI technology. Data is stored per PDPA 2010.</p>
+                        <p class="body-text"><strong>Client Rights:</strong> Client may ask questions, request referrals, stop the session at any time, or obtain copies of records.</p>
+                        <div class="sig-block">
+                          <div><div class="sig-line"><strong>${a.client_name||'___________________'}</strong><br/>Client — Digital Consent<br/>Date: ${a.consent_at ? format(new Date(a.consent_at), 'dd/MM/yyyy HH:mm') : '___________'}</div></div>
+                          <div><div class="sig-line"><strong>${counselorName}</strong><br/>Counselor<br/>Date: ${format(new Date(), 'dd/MM/yyyy')}</div></div>
+                        </div>
+                        <div class="footer">STRICTLY CONFIDENTIAL — Kaunselor Platform — kaunselor.app</div>
+                        <script>window.onload=function(){window.print()}</script>
+                      </body></html>`);
+                      win.document.close();
+                    };
+                    return (
+                      <div key={`consent-${a.id}`} className="bg-white rounded-xl border p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="font-medium text-gray-900 text-sm">{a.client_name}</p>
+                            <p className="text-xs text-gray-400">{a.consent_at ? format(new Date(a.consent_at), 'dd MMM yyyy, HH:mm') : 'Date not recorded'}</p>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">✓ Signed</span>
+                            <Button size="sm" variant="secondary" onClick={handlePrintConsent}>🖨 Print</Button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>
