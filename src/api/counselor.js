@@ -79,10 +79,10 @@ export async function submitAppointment(bookingCode, form) {
 
   const prevCounseling = form.previous_counseling === 'ya' ? true
     : form.previous_counseling === 'tidak' ? false : null;
-  const psyHistory = (form.psychiatric_history && form.psychiatric_history !== 'Tiada') ? true
-    : form.psychiatric_history === 'Tiada' ? false : null;
-  const psyMed = (form.psychiatric_medication && form.psychiatric_medication !== 'Tiada') ? true
-    : form.psychiatric_medication === 'Tiada' ? false : null;
+  const psyHistory = form.psychiatric_history === 'tidak' ? false
+    : (form.psychiatric_history && form.psychiatric_history !== '') ? true : null;
+  const psyMed = form.psychiatric_medication === 'tidak' ? false
+    : (form.psychiatric_medication && form.psychiatric_medication !== '') ? true : null;
 
   const { data, error } = await supabase.rpc('submit_appointment', {
     p_code: bookingCode,

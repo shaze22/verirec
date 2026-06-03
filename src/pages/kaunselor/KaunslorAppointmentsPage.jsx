@@ -266,6 +266,13 @@ export default function KaunslorAppointmentsPage() {
                               📅 {format(parseISO(a.requested_date), 'dd MMM yyyy')} · 🕐 {a.requested_time?.slice(0, 5)}
                             </p>
                             {a.presenting_issue && <p className="text-xs text-gray-500 mt-1 italic">"{a.presenting_issue}"</p>}
+                            {(a.psychiatric_history !== null || a.psychiatric_medication !== null) && (
+                              <p className="text-xs text-gray-400 mt-1">
+                                Prev: <strong>{a.previous_counseling === true ? 'Yes' : a.previous_counseling === false ? 'No' : '—'}</strong>
+                                {' · '}Psych: <strong className={a.psychiatric_history ? 'text-amber-600' : ''}>{a.psychiatric_history === true ? 'Yes ⚠' : a.psychiatric_history === false ? 'No' : '—'}</strong>
+                                {' · '}Meds: <strong className={a.psychiatric_medication ? 'text-amber-600' : ''}>{a.psychiatric_medication === true ? 'Yes ⚠' : a.psychiatric_medication === false ? 'No' : '—'}</strong>
+                              </p>
+                            )}
                           </div>
                           <div className="flex flex-col gap-1.5 flex-shrink-0">
                             <Button size="sm" onClick={() => openConfirm(a)}>Confirm</Button>
@@ -308,6 +315,11 @@ export default function KaunslorAppointmentsPage() {
                               {rescheduleReason && (
                                 <p className="text-xs text-violet-700 mt-1 bg-violet-100 px-2 py-1 rounded-lg">
                                   📝 {rescheduleReason}
+                                </p>
+                              )}
+                              {!isRescheduled && a.counselor_notes && (
+                                <p className="text-xs text-blue-700 mt-1 bg-blue-50 px-2 py-1 rounded-lg">
+                                  📋 {a.counselor_notes}
                                 </p>
                               )}
                             </div>
@@ -693,10 +705,23 @@ export default function KaunslorAppointmentsPage() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
             <h3 className="font-semibold text-lg">Confirm Appointment</h3>
-            <div className="bg-gray-50 rounded-lg p-3 text-sm">
+            <div className="bg-gray-50 rounded-lg p-3 text-sm space-y-1">
               <p className="font-medium">{selectedAppt.client_name}</p>
               <p className="text-gray-500">{selectedAppt.client_phone} · {selectedAppt.client_email}</p>
               {selectedAppt.presenting_issue && <p className="text-gray-600 mt-1 italic">"{selectedAppt.presenting_issue}"</p>}
+              {(selectedAppt.psychiatric_history !== null || selectedAppt.psychiatric_medication !== null) && (
+                <div className="mt-2 pt-2 border-t border-gray-200 text-xs text-gray-600 space-y-0.5">
+                  {selectedAppt.previous_counseling !== null && (
+                    <p>Prev. counseling: <strong>{selectedAppt.previous_counseling ? 'Yes' : 'No'}</strong></p>
+                  )}
+                  {selectedAppt.psychiatric_history !== null && (
+                    <p>Psychiatric history: <strong className={selectedAppt.psychiatric_history ? 'text-amber-600' : ''}>{selectedAppt.psychiatric_history ? 'Yes ⚠' : 'No'}</strong></p>
+                  )}
+                  {selectedAppt.psychiatric_medication !== null && (
+                    <p>On psychiatric medication: <strong className={selectedAppt.psychiatric_medication ? 'text-amber-600' : ''}>{selectedAppt.psychiatric_medication ? 'Yes ⚠' : 'No'}</strong></p>
+                  )}
+                </div>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>

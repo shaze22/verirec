@@ -351,14 +351,15 @@ export default function PublicBookingPage() {
               <label className="text-sm font-medium text-gray-700 mb-1 block">Do you have a psychiatric history?</label>
               <div className="grid grid-cols-2 gap-2 mb-2">
                 {[['ya','Yes'],['tidak','No']].map(([v,l]) => (
-                  <button key={v} type="button" onClick={() => setForm(f => ({ ...f, psychiatric_history: v === 'tidak' ? 'None' : '' }))}
-                    className={`py-2 rounded-lg border text-sm font-medium transition-all ${(form.psychiatric_history === 'None' ? 'tidak' : form.psychiatric_history ? 'ya' : '') === v ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-gray-200 text-gray-600'}`}>
+                  <button key={v} type="button" onClick={() => setForm(f => ({ ...f, psychiatric_history: v === 'tidak' ? 'tidak' : 'ya' }))}
+                    className={`py-2 rounded-lg border text-sm font-medium transition-all ${(form.psychiatric_history === 'tidak' ? 'tidak' : form.psychiatric_history ? 'ya' : '') === v ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-gray-200 text-gray-600'}`}>
                     {l}
                   </button>
                 ))}
               </div>
-              {form.psychiatric_history !== 'None' && form.psychiatric_history !== '' && (
-                <textarea value={form.psychiatric_history} onChange={set('psychiatric_history')} rows={2}
+              {form.psychiatric_history !== 'tidak' && form.psychiatric_history !== '' && (
+                <textarea value={form.psychiatric_history === 'ya' ? '' : form.psychiatric_history}
+                  onChange={e => setForm(f => ({ ...f, psychiatric_history: e.target.value || 'ya' }))} rows={2}
                   placeholder="State the diagnosis / treatment received..."
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
               )}
@@ -369,14 +370,15 @@ export default function PublicBookingPage() {
               <label className="text-sm font-medium text-gray-700 mb-1 block">Are you currently taking psychiatric medication?</label>
               <div className="grid grid-cols-2 gap-2 mb-2">
                 {[['ya','Yes'],['tidak','No']].map(([v,l]) => (
-                  <button key={v} type="button" onClick={() => setForm(f => ({ ...f, psychiatric_medication: v === 'tidak' ? 'None' : '' }))}
-                    className={`py-2 rounded-lg border text-sm font-medium transition-all ${(form.psychiatric_medication === 'None' ? 'tidak' : form.psychiatric_medication ? 'ya' : '') === v ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-gray-200 text-gray-600'}`}>
+                  <button key={v} type="button" onClick={() => setForm(f => ({ ...f, psychiatric_medication: v === 'tidak' ? 'tidak' : 'ya' }))}
+                    className={`py-2 rounded-lg border text-sm font-medium transition-all ${(form.psychiatric_medication === 'tidak' ? 'tidak' : form.psychiatric_medication ? 'ya' : '') === v ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-gray-200 text-gray-600'}`}>
                     {l}
                   </button>
                 ))}
               </div>
-              {form.psychiatric_medication !== 'None' && form.psychiatric_medication !== '' && (
-                <textarea value={form.psychiatric_medication} onChange={set('psychiatric_medication')} rows={2}
+              {form.psychiatric_medication !== 'tidak' && form.psychiatric_medication !== '' && (
+                <textarea value={form.psychiatric_medication === 'ya' ? '' : form.psychiatric_medication}
+                  onChange={e => setForm(f => ({ ...f, psychiatric_medication: e.target.value || 'ya' }))} rows={2}
                   placeholder="State the medication name and dosage..."
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
               )}
