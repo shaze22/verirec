@@ -304,7 +304,7 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - ✅ FROM_KAUNSELOR: noreply@kaunselor.app (commit c8a7098)
 - ⏳ Resend domain kaunselor.app: DNS records confirmed, pending Resend auto-verify (id: ea1931e0-8deb-4979-bd12-e6bc1909a32a)
 
-**Latest deploy:** commit `c8a7098` — 2026-06-02
+**Latest deploy:** commit `0e66185` — 2026-06-03
 
 **Supabase Auth Redirect URLs (updated 2026-06-02):**
 www.verirec.app/**, counselor.verirec.app/**, kaunselor.app/**, www.kaunselor.app/**
@@ -450,8 +450,16 @@ Redesign 2026-06-02 — Soro-inspired. Sections (dalam order):
 7. Mobile App — PWA install steps Android + iPhone, dark phone mockup
 8. Who It's For — 4 compact 2×2 cards (bukan panel besar)
 9. Comparison table — VeriRec vs Paper Notes vs Basic Recorder
-10. Pricing — Free ($0) + Professional ($25) + top-up $3/$12/$22
-11. Final CTA + Footer
+10. Testimonials — 3-column grid, DSP Ahmad Fauzi + En. Farouk Ibrahim + Pn. Melissa Tan (commit 86e5d2e)
+11. Pricing — Free ($0) + Professional ($25) + top-up $3/$12/$22
+12. Final CTA + Footer
+
+## Session Report Features (2026-06-03)
+- **Audio playback**: "Play Recording" button in SessionReportPage — fetches from audio_library by session_id, HTML5 player
+- **Officer's Case Summary**: Editable amber card in ReportView — `OfficerSummarySection`, saves to `sessions.report.officerSummary` (JSONB), exported in PDF
+- **PDF export**: catch block added — errors now show as toast instead of silent failure
+- **useRealtimeTranscript**: 'auto' lang → 'ms-MY' (BCP47 fix for Web Speech API)
+- **CaseDetailPage**: Full card clickable with 'View →' hover, Remove stops propagation
 
 **AISuggestions locked overlay:** English + "$25/month" (updated 2026-06-02)
 **ProfessionLandingPage (/polis, /sprm dll):** USD pricing — Free $0 / Professional $25 / Pro $249. All content fully in English (commit d20099e) — PROFESSION_META, PROFESSIONS data, TESTIMONIALS, CTA labels for all 9 professions.
