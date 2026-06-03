@@ -32,9 +32,9 @@ function CaseForm({ value, onChange }) {
   const set = (field) => (e) => onChange({ ...value, [field]: e.target.value });
   return (
     <div className="space-y-4">
-      <Input label="Tajuk Case Files *" value={value.title} onChange={set('title')} placeholder="cth. Kes Kaunseling Ahmad 2026" required />
+      <Input label="Case File Title *" value={value.title} onChange={set('title')} placeholder="e.g. Investigation — John Doe 2026" required />
       <div className="grid grid-cols-2 gap-3">
-        <Input label="Case Number" value={value.case_number} onChange={set('case_number')} placeholder="cth. KS/2026/001" />
+        <Input label="Case Number" value={value.case_number} onChange={set('case_number')} placeholder="e.g. CASE/2026/001" />
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Profession</label>
           <select

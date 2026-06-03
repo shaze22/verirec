@@ -430,7 +430,7 @@ export default function KaunslorAppointmentsPage() {
                       <div>
                         <label className="text-xs text-gray-500 mb-1 block">Session Title *</label>
                         <input type="text" value={scheduleForm.title} onChange={e => setScheduleForm(f => ({ ...f, title: e.target.value }))} required
-                          placeholder="e.g. Counseling Session - Ahmad"
+                          placeholder="e.g. Counseling Session — John Doe"
                           className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                       </div>
                       <div>

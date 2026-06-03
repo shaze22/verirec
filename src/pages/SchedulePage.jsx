@@ -303,7 +303,7 @@ export default function SchedulePage() {
               type="text"
               value={form.title}
               onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
-              placeholder="e.g. Counseling Session — Ahmad"
+              placeholder="e.g. Investigation Session — John Doe"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -323,7 +323,7 @@ export default function SchedulePage() {
               type="text"
               value={form.subject_name}
               onChange={e => setForm(p => ({ ...p, subject_name: e.target.value }))}
-              placeholder="e.g. Ahmad bin Ali"
+              placeholder="e.g. John Doe"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>

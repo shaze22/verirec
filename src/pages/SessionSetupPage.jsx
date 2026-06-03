@@ -313,7 +313,7 @@ export default function SessionSetupPage() {
                   value={form.other_officers}
                   onChange={set('other_officers')}
                   rows={2}
-                  placeholder="e.g. Insp. Ahmad, Sgt. Razak (separate with commas)"
+                  placeholder="e.g. Insp. John, Sgt. Smith (separate with commas)"
                 />
               </div>
             )}
