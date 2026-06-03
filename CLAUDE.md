@@ -304,7 +304,7 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - ✅ FROM_KAUNSELOR: noreply@kaunselor.app (commit c8a7098)
 - ⏳ Resend domain kaunselor.app: DNS records confirmed, pending Resend auto-verify (id: ea1931e0-8deb-4979-bd12-e6bc1909a32a)
 
-**Latest deploy:** commit `7d016db` — 2026-06-03
+**Latest deploy:** commit `24e3b13` — 2026-06-03
 
 **Supabase Auth Redirect URLs (updated 2026-06-02):**
 www.verirec.app/**, counselor.verirec.app/**, kaunselor.app/**, www.kaunselor.app/**
@@ -453,6 +453,13 @@ Redesign 2026-06-02 — Soro-inspired. Sections (dalam order):
 10. Testimonials — 3-column grid, DSP Ahmad Fauzi + En. Farouk Ibrahim + Pn. Melissa Tan (commit 86e5d2e)
 11. Pricing — Free ($0) + Professional ($25) + top-up $3/$12/$22
 12. Final CTA + Footer
+
+## BM Cleanup — Final Sweep (2026-06-03 — commit 24e3b13)
+- `ReportView.jsx`: ~40 BM strings → English (SOAP/NCR/DCP labels, follow-up tracker, transcript labels, signature section, PDF Chain of Custody, CONFIDENTIAL, hash verification)
+- `TranscriptPanel.jsx`: Export, Flag, Transcribing
+- `SharedReportPage.jsx`: All risk labels, headings, CTAs, error states
+- PDF filename: `laporan-verirec-*.pdf` → `verirec-report-*.pdf`
+- CLAUDE.md rule: "All UI text in English" — now fully enforced on www.verirec.app
 
 ## UI Polish + Bug Fixes (2026-06-03 — commits e4e3bf7 → 7d016db)
 - CaseDetailPage sessions header: grouped secondary buttons `[+ Existing | 📁 Import | 📦 Export]` + primary `🎙 New Session`
