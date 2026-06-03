@@ -450,7 +450,7 @@ export default function SessionReportPage() {
                 </div>
               </>
             )}
-            <Button variant="secondary" size="sm" onClick={() => navigate('/dashboard')}>← Back</Button>
+            <Button variant="secondary" size="sm" onClick={() => session?.case_id ? navigate(`/cases/${session.case_id}`) : navigate(-1)}>← Back</Button>
           </div>
         }
       />

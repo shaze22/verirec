@@ -293,7 +293,7 @@ export default function AudioLibraryPage() {
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">No Recordings Yet</h3>
             <p className="text-gray-500 text-sm mb-6 max-w-xs mx-auto">Session audio will be saved here automatically after each session is recorded.</p>
-            <Button onClick={() => navigate('/dashboard')}>Start Session</Button>
+            <Button onClick={() => navigate('/session/setup')}>Start Session</Button>
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-12 text-gray-400">
