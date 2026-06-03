@@ -143,18 +143,18 @@ export default async function handler(req, res) {
 
       const count = withItems.reduce((acc, s) => acc + s.report.followUpItems.length, 0);
       const listHtml = withItems.slice(0, 3).map(s =>
-        `<li><a href="https://www.verirec.app/session/${s.id}" style="color:#2563eb">${s.title || 'Sesi'}</a> — ${s.report.followUpItems.length} item</li>`
+        `<li><a href="https://www.verirec.app/session/${s.id}" style="color:#2563eb">${s.title || 'Session'}</a> — ${s.report.followUpItems.length} item(s)</li>`
       ).join('');
 
       await sendEmail({
         to: user.email,
-        subject: `Peringatan: ${count} tindakan susulan belum selesai`,
+        subject: `Reminder: ${count} follow-up item${count !== 1 ? 's' : ''} pending`,
         html: `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;background:#f8fafc;padding:24px">
           <div style="background:#fff;border-radius:12px;max-width:520px;margin:0 auto;padding:32px;border:1px solid #e2e8f0">
-            <h2 style="color:#0f172a;margin:0 0 8px">📋 Tindakan Susulan Belum Selesai</h2>
-            <p style="color:#475569">Anda mempunyai <strong>${count} tindakan susulan</strong> yang masih belum diselesaikan:</p>
+            <h2 style="color:#0f172a;margin:0 0 8px">📋 Pending Follow-up Items</h2>
+            <p style="color:#475569">You have <strong>${count} follow-up item${count !== 1 ? 's' : ''}</strong> that have not been completed:</p>
             <ul style="color:#475569;font-size:14px;line-height:2">${listHtml}</ul>
-            <a href="https://www.verirec.app/dashboard" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;margin:16px 0">Semak Dashboard →</a>
+            <a href="https://www.verirec.app/dashboard" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;margin:16px 0">Check Dashboard →</a>
             <p style="font-size:12px;color:#94a3b8;margin-top:16px">VeriRec · <a href="https://www.verirec.app" style="color:#2563eb">www.verirec.app</a></p>
           </div></body></html>`,
       });

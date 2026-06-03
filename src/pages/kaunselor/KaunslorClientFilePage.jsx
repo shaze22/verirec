@@ -438,7 +438,7 @@ export default function KaunslorClientFilePage() {
                       ['Email', client.email],
                       ['IC No.', client.ic_number],
                       ['Matric / ID No.', client.student_id],
-                      ['Date of Birth', client.date_of_birth],
+                      ['Date of Birth', client.date_of_birth ? format(new Date(client.date_of_birth), 'dd MMM yyyy') : null],
                       ['Gender', client.gender],
                       ['Race', client.race],
                       ['Religion', client.religion],

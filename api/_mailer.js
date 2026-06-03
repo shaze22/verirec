@@ -152,73 +152,57 @@ export function limitWarningEmail(used, limit) {
 
 export function paymentFailedEmail() {
   return {
-    subject: 'Tindakan Diperlukan: Pembayaran VeriRec Gagal',
+    subject: 'Action Required: VeriRec Payment Failed',
     html: base(`
-      <div class="logo">
-        <div class="logo-box"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><polyline points="2,12 5,8 8,16 11,6 14,18 17,8 19,13 21,12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
-        <span class="logo-text">VeriRec</span>
-      </div>
-      <h1>Pembayaran Gagal</h1>
-      <p>Pembayaran langganan VeriRec anda telah gagal diproses. Perkhidmatan anda masih aktif buat sementara waktu.</p>
-      <div class="warn"><p>⚠️ Sila kemas kini kaedah pembayaran anda untuk mengelakkan gangguan perkhidmatan.</p></div>
-      <a href="https://www.verirec.app/settings" class="btn">Kemas Kini Pembayaran →</a>
-      <p>Jika anda memerlukan bantuan, hubungi kami di <a href="mailto:hello@verirec.app" style="color:#2563eb">hello@verirec.app</a></p>
+      <h1>Payment Failed</h1>
+      <p>Your VeriRec subscription payment could not be processed. Your service remains active for now.</p>
+      <div class="warn"><p>⚠️ Please update your payment method to avoid any service interruption.</p></div>
+      <a href="https://www.verirec.app/settings" class="btn">Update Payment →</a>
+      <p>If you need help, contact us at <a href="mailto:hello@verirec.app" style="color:#2563eb">hello@verirec.app</a></p>
     `),
   };
 }
 
 export function teamInviteEmail(inviterName, teamName, roleLabel) {
   return {
-    subject: `Jemputan untuk menyertai pasukan "${teamName}" di VeriRec`,
+    subject: `You've been invited to join "${teamName}" on VeriRec`,
     html: base(`
-      <div class="logo">
-        <div class="logo-box"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><polyline points="2,12 5,8 8,16 11,6 14,18 17,8 19,13 21,12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
-        <span class="logo-text">VeriRec</span>
-      </div>
-      <h1>Anda Dijemput!</h1>
-      <p><strong>${inviterName}</strong> telah menjemput anda untuk menyertai pasukan <strong>"${teamName}"</strong> di VeriRec sebagai <strong>${roleLabel}</strong>.</p>
-      <p>VeriRec adalah platform rakaman dan analitik sesi profesional yang patuh PDPA untuk Malaysia.</p>
-      <a href="https://www.verirec.app/auth?mode=register" class="btn">Terima Jemputan →</a>
-      <p style="font-size:12px;color:#94a3b8">Jika anda sudah ada akaun, log masuk dengan e-mel yang sama untuk bergabung dengan pasukan secara automatik.</p>
+      <h1>You're Invited!</h1>
+      <p><strong>${inviterName}</strong> has invited you to join the team <strong>"${teamName}"</strong> on VeriRec as <strong>${roleLabel}</strong>.</p>
+      <p>VeriRec is a PDPA-compliant AI-powered professional session recording and analytics platform.</p>
+      <a href="https://www.verirec.app/auth?mode=register" class="btn">Accept Invitation →</a>
+      <p style="font-size:12px;color:#94a3b8">If you already have an account, sign in with the same email to join the team automatically.</p>
     `),
   };
 }
 
 export function reportReadyEmail(sessionTitle, sessionId) {
   return {
-    subject: `Laporan AI sedia: ${sessionTitle || 'Sesi VeriRec'}`,
+    subject: `AI Report Ready: ${sessionTitle || 'VeriRec Session'}`,
     html: base(`
-      <div class="logo">
-        <div class="logo-box"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><polyline points="2,12 5,8 8,16 11,6 14,18 17,8 19,13 21,12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
-        <span class="logo-text">VeriRec</span>
-      </div>
-      <h1>Laporan AI Sedia ✓</h1>
-      <p>Laporan AI untuk sesi <strong>${sessionTitle || 'Sesi Anda'}</strong> telah berjaya dijana.</p>
-      <p>Laporan merangkumi ringkasan eksekutif, penemuan utama, tahap risiko, dan cadangan tindakan susulan.</p>
-      <a href="https://www.verirec.app/session/${sessionId}" class="btn">Lihat Laporan →</a>
-      <p style="font-size:12px;color:#94a3b8">Laporan ini dilindungi dan hanya boleh diakses oleh anda.</p>
+      <h1>AI Report Ready ✓</h1>
+      <p>The AI report for session <strong>${sessionTitle || 'Your Session'}</strong> has been successfully generated.</p>
+      <p>The report includes an executive summary, key findings, risk level assessment, and recommended follow-up actions.</p>
+      <a href="https://www.verirec.app/session/${sessionId}" class="btn">View Report →</a>
+      <p style="font-size:12px;color:#94a3b8">This report is protected and accessible only by you.</p>
     `),
   };
 }
 
 export function monthlySummaryEmail(name, sessionsUsed, sessionsLimit, plan) {
-  const planLabel = { free: 'Percuma', starter: 'Starter', pro: 'Pro', business: 'Perniagaan' }[plan] || plan;
+  const planLabel = { free: 'Free', starter: 'Starter', pro: 'Pro', business: 'Business' }[plan] || plan;
   return {
-    subject: `Ringkasan Bulanan VeriRec — ${sessionsUsed} sesi selesai`,
+    subject: `VeriRec Monthly Summary — ${sessionsUsed} sessions completed`,
     html: base(`
-      <div class="logo">
-        <div class="logo-box"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><polyline points="2,12 5,8 8,16 11,6 14,18 17,8 19,13 21,12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
-        <span class="logo-text">VeriRec</span>
-      </div>
-      <h1>Ringkasan Bulanan, ${name || 'Rakan Profesional'}!</h1>
-      <p>Berikut adalah ringkasan aktiviti VeriRec anda bulan lepas:</p>
+      <h1>Monthly Summary, ${name || 'Professional'}!</h1>
+      <p>Here's a summary of your VeriRec activity last month:</p>
       <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:16px;margin:16px 0">
-        <p style="margin:4px 0;color:#0369a1"><strong>📊 Jumlah Sesi Selesai:</strong> ${sessionsUsed} sesi</p>
-        <p style="margin:4px 0;color:#0369a1"><strong>📋 Had Pelan ${planLabel}:</strong> ${sessionsLimit === -1 ? 'Tanpa Had' : `${sessionsLimit} sesi/bulan`}</p>
+        <p style="margin:4px 0;color:#0369a1"><strong>📊 Sessions Completed:</strong> ${sessionsUsed} sessions</p>
+        <p style="margin:4px 0;color:#0369a1"><strong>📋 ${planLabel} Plan Limit:</strong> ${sessionsLimit === -1 ? 'Unlimited' : `${sessionsLimit} sessions/month`}</p>
       </div>
-      <p>Had sesi anda telah direset secara automatik. Anda kini bermula dengan had penuh untuk bulan ini.</p>
-      <a href="https://www.verirec.app/dashboard" class="btn">Lihat Dashboard →</a>
-      ${sessionsLimit !== -1 && sessionsUsed >= sessionsLimit * 0.8 ? `<p style="font-size:12px;color:#64748b">💡 Pertimbangkan untuk naik taraf pelan bagi kapasiti yang lebih besar.</p>` : ''}
+      <p>Your session limit has been automatically reset. You're starting fresh with your full allowance for this month.</p>
+      <a href="https://www.verirec.app/dashboard" class="btn">View Dashboard →</a>
+      ${sessionsLimit !== -1 && sessionsUsed >= sessionsLimit * 0.8 ? `<p style="font-size:12px;color:#64748b">💡 Consider upgrading your plan for more capacity.</p>` : ''}
     `),
   };
 }
