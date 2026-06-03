@@ -208,6 +208,68 @@ function AnnotationSection({ sessionId, initialNote }) {
   );
 }
 
+function OfficerSummarySection({ sessionId, initialValue }) {
+  const [value, setValue] = useState(initialValue || '');
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const handleEdit = () => { setDraft(value); setEditing(true); };
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const { data: s } = await supabase.from('sessions').select('report').eq('id', sessionId).single();
+      const updated = { ...(s?.report || {}), officerSummary: draft.trim() };
+      await supabase.from('sessions').update({ report: updated, updated_at: new Date().toISOString() }).eq('id', sessionId);
+      setValue(draft.trim());
+      setEditing(false);
+      toast.success('Summary saved.');
+    } catch {
+      toast.error('Failed to save summary.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <h3 className="text-sm font-semibold text-amber-900 uppercase tracking-wide">Officer's Case Summary</h3>
+          <p className="text-xs text-amber-600 mt-0.5">Written by the recording officer — included in the official PDF report.</p>
+        </div>
+        {!editing && (
+          <button onClick={handleEdit} className="text-xs text-amber-700 hover:text-amber-900 font-medium border border-amber-300 rounded px-2.5 py-1 bg-white hover:bg-amber-50 transition-colors flex-shrink-0">
+            {value ? '✏️ Edit' : '+ Write Summary'}
+          </button>
+        )}
+      </div>
+      {editing ? (
+        <div className="space-y-2 mt-3">
+          <textarea
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            rows={6}
+            placeholder="Write your summary of this case — key findings, officer's assessment, recommended actions, and any observations not captured by AI..."
+            className="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white leading-relaxed"
+            autoFocus
+          />
+          <div className="flex gap-2 justify-end">
+            <button onClick={() => setEditing(false)} className="text-xs text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded border border-gray-200 bg-white">Cancel</button>
+            <button onClick={handleSave} disabled={saving} className="text-xs text-white bg-amber-600 hover:bg-amber-700 px-3 py-1.5 rounded disabled:opacity-50 font-medium">
+              {saving ? 'Saving...' : 'Save Summary'}
+            </button>
+          </div>
+        </div>
+      ) : value ? (
+        <p className="text-sm text-amber-900 whitespace-pre-wrap leading-relaxed mt-3">{value}</p>
+      ) : (
+        <p className="text-sm text-amber-400 italic mt-3">No officer summary yet. Click "+ Write Summary" to add.</p>
+      )}
+    </div>
+  );
+}
+
 function SOAPSection({ soap }) {
   if (!soap) return null;
   const fields = [
@@ -716,7 +778,13 @@ export function ReportView({ session }) {
         Object.entries(customFields).filter(([, v]) => v).forEach(([k, v]) => field(k, v));
       }
 
-      if (sec.summary) { sectionTitle('Summary Eksekutif'); bodyText(report.summary); }
+      if (sec.summary) { sectionTitle('Executive Summary'); bodyText(report.summary); }
+
+      // ── Officer's Summary ──
+      if (report.officerSummary) {
+        sectionTitle("Officer's Case Summary", [140, 80, 0]);
+        bodyText(report.officerSummary, 9, 'normal', [80, 50, 0]);
+      }
 
       // ── Key Findings ──
       if (sec.findings && report.keyFindings?.length > 0) {
@@ -1128,12 +1196,12 @@ export function ReportView({ session }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4 no-print">
-        <h2 className="text-xl font-bold text-gray-900">Laporan Sesi</h2>
+        <h2 className="text-xl font-bold text-gray-900">Session Report</h2>
         <div className="flex gap-3 flex-wrap justify-end">
           {profession === 'counselor' && (
             <Button variant="secondary" onClick={printCaseNote} loading={exporting}>📄 Case Session Note</Button>
           )}
-          <button onClick={() => setShowSectionPicker(p => !p)} className="text-sm text-gray-500 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors">⚙️ Bahagian PDF</button>
+          <button onClick={() => setShowSectionPicker(p => !p)} className="text-sm text-gray-500 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors">⚙️ PDF Sections</button>
           <Button onClick={exportPDF} loading={exporting}>Export PDF</Button>
         </div>
       </div>
@@ -1141,16 +1209,16 @@ export function ReportView({ session }) {
       {/* Section picker */}
       {showSectionPicker && (
         <div className="no-print mb-4 bg-white border border-gray-200 rounded-xl p-4">
-          <p className="text-sm font-semibold text-gray-700 mb-3">Pilih bahagian dalam PDF</p>
+          <p className="text-sm font-semibold text-gray-700 mb-3">Select sections to include in PDF</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {[
-              { key: 'summary',         label: 'Summary Eksekutif' },
-              { key: 'riskSentimentt',   label: 'Risiko & Sentiment' },
+              { key: 'summary',         label: 'Executive Summary' },
+              { key: 'riskSentimentt',   label: 'Risk & Sentiment' },
               { key: 'findings',        label: 'Key Findings' },
-              { key: 'recommendations', label: 'Recommendations Tindakan' },
-              { key: 'followUp',        label: 'Item Susulan' },
-              { key: 'flags',           label: 'Bendera Penting' },
-              { key: 'transcript',      label: 'Transcript Penuh' },
+              { key: 'recommendations', label: 'Action Recommendations' },
+              { key: 'followUp',        label: 'Follow-up Items' },
+              { key: 'flags',           label: 'Red Flags' },
+              { key: 'transcript',      label: 'Full Transcript' },
             ].map(({ key, label }) => (
               <label key={key} className="flex items-center gap-2 cursor-pointer select-none">
                 <input type="checkbox" checked={pdfSections[key]} onChange={() => toggleSection(key)} className="w-4 h-4 text-blue-600 rounded" />
@@ -1213,6 +1281,7 @@ export function ReportView({ session }) {
       {/* Follow-up Tracker — above the printable report */}
       <div className="mb-6 space-y-4 no-print">
         <FollowUpTracker sessionId={id} items={report.followUpItems} />
+        <OfficerSummarySection sessionId={id} initialValue={report.officerSummary} />
         <AnnotationSection sessionId={id} initialNote={session.counselor_notes} />
       </div>
 
