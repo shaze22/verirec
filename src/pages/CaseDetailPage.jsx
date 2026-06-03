@@ -308,26 +308,39 @@ function CaseRecordings({ caseId, userId }) {
   };
 
   return (
-    <div className="bg-white border rounded-xl p-5 mt-4">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">External Recordings</h3>
+    <div className="bg-white border border-gray-100 rounded-xl p-5 mt-4">
+      <div className="flex items-center justify-between mb-1">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">External Recordings</h3>
+          <p className="text-xs text-gray-400 mt-0.5">Stored directly in case file — no transcription</p>
+        </div>
         <div>
           <input ref={fileInputRef} type="file" accept={AUDIO_EXT} className="hidden" onChange={e => handleUpload(e.target.files?.[0])} />
-          <Button size="sm" loading={uploading} onClick={() => fileInputRef.current?.click()}>
-            {uploading ? 'Uploading...' : '+ Add Recording'}
-          </Button>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-900 font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 hover:bg-gray-50 transition-colors disabled:opacity-50"
+          >
+            {uploading
+              ? <span className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+              : <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+            }
+            {uploading ? 'Uploading...' : 'Add Recording'}
+          </button>
         </div>
       </div>
-      <p className="text-xs text-gray-400 mb-3">MP3, M4A, MP4, WAV, OGG — stored in case file, no transcription</p>
       {recordings.length === 0 ? (
-        <div className="text-center py-6 text-gray-300">
-          <p className="text-2xl mb-1">🎙️</p>
-          <p className="text-sm">No external recordings yet.</p>
+        <div className="flex items-center gap-3 py-5 text-gray-300 mt-3 border-t border-gray-50">
+          <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+          </svg>
+          <p className="text-sm">No external recordings yet. Upload body cam footage, PLAUD Note or any audio file.</p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-1.5 mt-3 border-t border-gray-50 pt-3">
           {recordings.map(rec => (
-            <div key={rec.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <div key={rec.id} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100">
+              <div className="w-7 h-7 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 text-sm">🎙️</div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-800 truncate">{rec.file_name}</p>
                 <p className="text-xs text-gray-400">{formatBytes(rec.file_size)} · {format(new Date(rec.created_at), 'dd MMM yyyy')}</p>
@@ -335,12 +348,13 @@ function CaseRecordings({ caseId, userId }) {
               {playUrls[rec.id] ? (
                 <audio controls src={playUrls[rec.id]} className="h-8 min-w-0 w-40 flex-shrink-0" />
               ) : (
-                <button onClick={() => handlePlay(rec)} className="text-xs text-blue-600 hover:text-blue-800 font-medium px-2 py-1 rounded border border-blue-200 bg-white flex-shrink-0">
-                  ▶ Play
+                <button onClick={() => handlePlay(rec)} className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium px-2.5 py-1.5 rounded-lg border border-blue-100 bg-blue-50 hover:bg-blue-100 transition-colors flex-shrink-0">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                  Play
                 </button>
               )}
-              <button onClick={() => handleDelete(rec)} disabled={deleting === rec.id} className="text-xs text-gray-400 hover:text-red-600 px-2 py-1 rounded hover:bg-red-50 flex-shrink-0 disabled:opacity-50">
-                {deleting === rec.id ? '...' : 'Delete'}
+              <button onClick={() => handleDelete(rec)} disabled={deleting === rec.id} className="text-xs text-gray-300 hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50 flex-shrink-0 disabled:opacity-50 transition-colors">
+                {deleting === rec.id ? '...' : '✕'}
               </button>
             </div>
           ))}
@@ -598,7 +612,7 @@ export default function CaseDetailPage() {
             <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t">
               <div className="text-center">
                 <p className="text-2xl font-bold text-gray-900">{sessions.length}</p>
-                <p className="text-xs text-gray-500">Sesi</p>
+                <p className="text-xs text-gray-500">Sessions</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-gray-900">{Math.round(totalDuration / 60)}</p>
@@ -658,33 +672,46 @@ export default function CaseDetailPage() {
           </div>
 
           {/* Sessions */}
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
-              Sessions in Case File ({sessions.length})
+          <div className="flex items-center justify-between mb-3 gap-3">
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide flex-shrink-0">
+              Sessions ({sessions.length})
             </h3>
             <div className="flex items-center gap-2">
-              {sessions.length > 0 && (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  loading={exporting}
-                  onClick={async () => {
-                    setExporting(true);
-                    try {
-                      await exportCasePDF(caseData, sessions);
-                      toast.success('Case PDF exported successfully.');
-                    } catch {
-                      toast.error('Failed to export case PDF.');
-                    } finally {
-                      setExporting(false);
-                    }
-                  }}
+              {/* Secondary actions — grouped */}
+              <div className="flex items-center divide-x divide-gray-200 border border-gray-200 rounded-lg overflow-hidden">
+                <button
+                  onClick={openAddModal}
+                  className="px-2.5 py-1.5 text-xs text-gray-600 hover:bg-gray-50 transition-colors whitespace-nowrap"
                 >
-                  📦 Export Case
-                </Button>
-              )}
-              <Button size="sm" variant="secondary" onClick={openAddModal}>+ Existing</Button>
-              <Button size="sm" variant="secondary" onClick={() => navigate(`/session/import?case_id=${id}`)}>📁 Import</Button>
+                  + Existing
+                </button>
+                <button
+                  onClick={() => navigate(`/session/import?case_id=${id}`)}
+                  className="px-2.5 py-1.5 text-xs text-gray-600 hover:bg-gray-50 transition-colors whitespace-nowrap"
+                >
+                  📁 Import
+                </button>
+                {sessions.length > 0 && (
+                  <button
+                    onClick={async () => {
+                      setExporting(true);
+                      try {
+                        await exportCasePDF(caseData, sessions);
+                        toast.success('Case PDF exported successfully.');
+                      } catch {
+                        toast.error('Failed to export case PDF.');
+                      } finally {
+                        setExporting(false);
+                      }
+                    }}
+                    disabled={exporting}
+                    className="px-2.5 py-1.5 text-xs text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50 whitespace-nowrap"
+                  >
+                    {exporting ? '...' : '📦 Export'}
+                  </button>
+                )}
+              </div>
+              {/* Primary action */}
               <Button size="sm" onClick={startNewSession}>🎙 New Session</Button>
             </div>
           </div>
@@ -736,10 +763,13 @@ export default function CaseDetailPage() {
             </div>
           )}
 
-          {/* Nota Bukti */}
-          <div className="bg-white border rounded-xl p-5 mt-4">
+          {/* Evidence Notes */}
+          <div className="bg-white border border-gray-100 rounded-xl p-5 mt-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Evidence Notes & Case Comments</h3>
+              <div>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Case Notes</h3>
+                <p className="text-xs text-gray-400 mt-0.5">Evidence notes, investigation updates, action items</p>
+              </div>
               <Button
                 size="sm"
                 variant="secondary"
@@ -749,7 +779,7 @@ export default function CaseDetailPage() {
                   try {
                     localStorage.setItem(`case_evidence_${id}`, evidenceNote);
                     await updateCase(id, { description: evidenceNote });
-                    toast.success('Nota saved.');
+                    toast.success('Note saved.');
                   } catch {
                     localStorage.setItem(`case_evidence_${id}`, evidenceNote);
                     toast.success('Note saved locally.');
@@ -765,10 +795,9 @@ export default function CaseDetailPage() {
               value={evidenceNote}
               onChange={e => setEvidenceNote(e.target.value)}
               rows={4}
-              placeholder="Catatan bukti, nota siasatan, senarai dokumen, status tindakan polis/pendakwa raya..."
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              placeholder="Evidence notes, investigation updates, document list, prosecution status..."
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none placeholder-gray-300"
             />
-            <p className="text-xs text-gray-400 mt-1">This note is saved in the case file. Not counted in session hash.</p>
           </div>
 
           {/* Evidence Attachments */}

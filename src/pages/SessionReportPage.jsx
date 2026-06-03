@@ -561,17 +561,13 @@ export default function SessionReportPage() {
                 </div>
               )}
               {/* Session Recordings */}
-              <div className="mb-5 bg-gray-50 border border-gray-200 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                      </svg>
-                    </div>
-                    <span className="text-sm font-semibold text-gray-700">
-                      Session Recordings {recordingsLoaded && recordings.length > 0 ? `(${recordings.length})` : ''}
-                    </span>
+              <div className="mb-5 bg-white border border-gray-100 rounded-xl overflow-hidden">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-700">
+                      Recordings {recordingsLoaded && recordings.length > 0 ? <span className="text-gray-400 font-normal">({recordings.length})</span> : ''}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">Session audio files — permanent evidence</p>
                   </div>
                   <div>
                     <input
@@ -584,10 +580,10 @@ export default function SessionReportPage() {
                     <button
                       onClick={() => recFileInputRef.current?.click()}
                       disabled={uploadingRec}
-                      className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 font-medium border border-blue-200 rounded-lg px-2.5 py-1.5 bg-white hover:bg-blue-50 transition-colors disabled:opacity-50"
+                      className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-900 font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 hover:bg-gray-50 transition-colors disabled:opacity-50"
                     >
                       {uploadingRec
-                        ? <span className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                        ? <span className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
                         : <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
                       }
                       {uploadingRec ? 'Uploading...' : 'Add Recording'}
@@ -595,38 +591,50 @@ export default function SessionReportPage() {
                   </div>
                 </div>
 
-                {!recordingsLoaded ? (
-                  <div className="flex items-center gap-2 text-sm text-gray-400 py-2">
-                    <span className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
-                    Loading...
-                  </div>
-                ) : recordings.length === 0 ? (
-                  <p className="text-sm text-gray-400 py-1">No recordings saved. Click "Add Recording" to upload from PLAUD Note, phone, or any device.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {recordings.map((rec, i) => (
-                      <div key={rec.id} className="bg-white border border-gray-100 rounded-lg p-3 flex items-center gap-3">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-800 truncate">
-                            {recordings.length > 1 ? `Recording ${i + 1} — ` : ''}{rec.file_name}
-                          </p>
-                          <p className="text-xs text-gray-400">{formatBytes(rec.file_size)}</p>
+                <div className="px-5 py-3">
+                  {!recordingsLoaded ? (
+                    <div className="flex items-center gap-2 text-sm text-gray-400 py-3">
+                      <span className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
+                      Loading...
+                    </div>
+                  ) : recordings.length === 0 ? (
+                    <div className="flex items-center gap-3 py-3 text-gray-400">
+                      <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                      </svg>
+                      <p className="text-sm">No recordings saved. Add from PLAUD Note, phone, or any audio device.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {recordings.map((rec, i) => (
+                        <div key={rec.id} className="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-50">
+                          <div className="w-7 h-7 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <svg className="w-3.5 h-3.5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                            </svg>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-800 truncate">
+                              {recordings.length > 1 ? `Recording ${i + 1}` : 'Session Recording'}
+                            </p>
+                            <p className="text-xs text-gray-400">{rec.file_name} · {formatBytes(rec.file_size)}</p>
+                          </div>
+                          {playUrls[rec.id] ? (
+                            <audio controls src={playUrls[rec.id]} className="h-8 w-44 flex-shrink-0 min-w-0" />
+                          ) : (
+                            <button
+                              onClick={() => handlePlayRec(rec)}
+                              className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 font-medium px-2.5 py-1.5 rounded-lg border border-blue-100 bg-blue-50 hover:bg-blue-100 transition-colors flex-shrink-0"
+                            >
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                              Play
+                            </button>
+                          )}
                         </div>
-                        {playUrls[rec.id] ? (
-                          <audio controls src={playUrls[rec.id]} className="h-8 w-44 flex-shrink-0 min-w-0" />
-                        ) : (
-                          <button
-                            onClick={() => handlePlayRec(rec)}
-                            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium px-2 py-1 rounded border border-blue-200 bg-white hover:bg-blue-50 flex-shrink-0"
-                          >
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                            Play
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <ReportView session={session} />
