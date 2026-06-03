@@ -314,7 +314,16 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - Existing session-linked audio continues to appear in Sessions tab (unchanged)
 - Tab label shows live count: "Recordings (N)"
 
-**Latest deploy:** commit 2026-06-03 — Recording import in client file
+**Client File Tab Refactor (KaunslorClientFilePage.jsx — 2026-06-03):**
+- Reduced from 9 tabs → 6 tabs: Overview | Sessions | Appointments | Plans | Notes | Recordings
+- Calendar tab removed (global calendar page exists)
+- Consent forms merged into Appointments tab (sub-section "Signed Consent Forms")
+- Referrals merged into Plans tab (sub-section "Referrals")
+- Tab bar uses `grid grid-cols-6` — perfectly symmetrical, equal width, no overflow
+- "Appointments" shortened to "Appts" in grid to fit cleanly
+- New Session bug fixed: `navigate('/session/setup/counselor')` → `navigate('/session/consent')` — ProfessionalRoute was blocking /session/setup on counselor subdomain
+
+**Latest deploy:** commit `829da7c` — 2026-06-03
 
 **Supabase Auth Redirect URLs (updated 2026-06-02):**
 www.verirec.app/**, counselor.verirec.app/**, kaunselor.app/**, www.kaunselor.app/**
