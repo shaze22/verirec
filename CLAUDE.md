@@ -325,6 +325,11 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 
 **Latest deploy:** commit `829da7c` — 2026-06-03
 
+**Generate Memo fix (commit `512d2a5` — 2026-06-03):**
+- Regression from tab merge: "🖨 Memo" button was dropped from referral cards in Plans tab
+- Restored full memo print handler — client info, referral type, reason, presenting issue, signature block
+- Prints as styled HTML via `window.open` + `window.print()`
+
 **Supabase Auth Redirect URLs (updated 2026-06-02):**
 www.verirec.app/**, counselor.verirec.app/**, kaunselor.app/**, www.kaunselor.app/**
 
