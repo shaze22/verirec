@@ -712,6 +712,68 @@ export default function KaunslorClientFilePage() {
                   </div>
                 ) : referrals.map(r => {
                   const REFERRAL_LABELS = { psychiatry: 'Psychiatry', hospital: 'Hospital', social_welfare: 'Social Welfare', ngo: 'NGO / Charity', other: 'Others' };
+                  const handlePrintMemo = () => {
+                    const counselorName = user?.user_metadata?.full_name || 'Kaunselor';
+                    const refDate = format(parseISO(r.created_at), 'dd MMMM yyyy');
+                    const win = window.open('', '_blank', 'width=794,height=1123');
+                    win.document.write(`<!DOCTYPE html><html><head>
+                      <title>Memo Bantuan Profesional — ${client.name}</title>
+                      <style>
+                        body{font-family:Arial,sans-serif;font-size:11px;padding:40px;color:#111;line-height:1.7}
+                        .header{text-align:center;border-bottom:2px solid #333;padding-bottom:12px;margin-bottom:20px}
+                        .header h1{font-size:14px;text-transform:uppercase;margin:0 0 2px}
+                        .header p{font-size:10px;color:#555;margin:0}
+                        .memo-block{margin-bottom:16px}
+                        .memo-row{display:grid;grid-template-columns:120px 1fr;margin-bottom:4px}
+                        .memo-label{font-weight:bold;font-size:11px}
+                        .memo-value{font-size:11px}
+                        .subject-box{background:#f5f5f5;border:1px solid #ddd;border-radius:4px;padding:10px;margin:14px 0}
+                        .subject-row{display:grid;grid-template-columns:140px 1fr;margin-bottom:3px;font-size:11px}
+                        .body-text{font-size:11px;line-height:1.8;margin-bottom:10px}
+                        .sig-block{margin-top:36px;display:grid;grid-template-columns:1fr 1fr;gap:40px}
+                        .sig-line{border-top:1px solid #333;padding-top:4px;margin-top:36px;font-size:10px}
+                        .footer{margin-top:24px;font-size:8px;color:#888;text-align:center;border-top:1px solid #eee;padding-top:6px}
+                        @media print{body{padding:20px}}
+                      </style></head><body>
+                      <div class="header">
+                        <h1>Counseling Unit</h1>
+                        <p>Professional Referral Memo</p>
+                      </div>
+                      <div style="text-align:center;margin-bottom:20px">
+                        <strong style="font-size:13px;text-transform:uppercase;text-decoration:underline">MEMO FOR ADDITIONAL PROFESSIONAL ASSISTANCE</strong>
+                      </div>
+                      <div class="memo-block">
+                        <div class="memo-row"><span class="memo-label">TO</span><span class="memo-value">: ${r.referred_to}</span></div>
+                        <div class="memo-row"><span class="memo-label">FROM</span><span class="memo-value">: ${counselorName}, Counseling Unit</span></div>
+                        <div class="memo-row"><span class="memo-label">DATE</span><span class="memo-value">: ${refDate}</span></div>
+                        <div class="memo-row"><span class="memo-label">REFERRAL TYPE</span><span class="memo-value">: ${REFERRAL_LABELS[r.referral_type]||r.referral_type}</span></div>
+                      </div>
+                      <div class="subject-box">
+                        <strong style="font-size:10px;text-transform:uppercase">Client Information</strong>
+                        <div style="margin-top:6px">
+                          <div class="subject-row"><span>Name</span><span>: ${client.name||'—'}</span></div>
+                          <div class="subject-row"><span>IC / Passport No.</span><span>: ${client.ic_number||'—'}</span></div>
+                          <div class="subject-row"><span>Matric / ID No.</span><span>: ${client.student_id||'—'}</span></div>
+                          <div class="subject-row"><span>Programme / Year</span><span>: ${client.occupation||'—'} ${client.year_of_study?'/ '+client.year_of_study:''}</span></div>
+                          <div class="subject-row"><span>Phone No.</span><span>: ${client.phone||'—'}</span></div>
+                        </div>
+                      </div>
+                      <p class="body-text"><strong>1. Purpose of Referral</strong><br/>
+                      This memo refers the above client to ${r.referred_to} for additional professional assistance.</p>
+                      <p class="body-text"><strong>2. Reason for Referral</strong><br/>
+                      ${r.reason||'Client requires additional professional assessment and support beyond the scope of counseling.'}</p>
+                      <p class="body-text"><strong>3. Presenting Issue</strong><br/>
+                      ${client.presenting_issue||'Refer to counseling records for further information.'}</p>
+                      <p class="body-text" style="font-size:10px;color:#555">* Information in this memo is CONFIDENTIAL and for authorized use only.</p>
+                      <div class="sig-block">
+                        <div><div class="sig-line"><strong>${counselorName}</strong><br/>Registered Counselor<br/>Date: ${format(new Date(),'dd/MM/yyyy')}</div></div>
+                        <div><div class="sig-line">___________________<br/>Recipient Acknowledgment<br/>Date: ___________</div></div>
+                      </div>
+                      <div class="footer">CONFIDENTIAL — Kaunselor Platform — kaunselor.app</div>
+                      <script>window.onload=function(){window.print()}</script>
+                    </body></html>`);
+                    win.document.close();
+                  };
                   return (
                     <div key={r.id} className="bg-white rounded-xl border p-4">
                       <div className="flex items-start justify-between gap-3">
@@ -721,9 +783,12 @@ export default function KaunslorClientFilePage() {
                           {r.reason && <p className="text-sm text-gray-600 mt-1">{r.reason}</p>}
                           <p className="text-xs text-gray-400 mt-1">{format(parseISO(r.created_at), 'dd MMM yyyy')}</p>
                         </div>
-                        <Badge color={r.status === 'completed' ? 'green' : r.status === 'sent' ? 'blue' : 'yellow'}>
-                          {r.status === 'completed' ? 'Completed' : r.status === 'sent' ? 'Sent' : 'Pending'}
-                        </Badge>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <Button size="sm" variant="secondary" onClick={handlePrintMemo}>🖨 Memo</Button>
+                          <Badge color={r.status === 'completed' ? 'green' : r.status === 'sent' ? 'blue' : 'yellow'}>
+                            {r.status === 'completed' ? 'Completed' : r.status === 'sent' ? 'Sent' : 'Pending'}
+                          </Badge>
+                        </div>
                       </div>
                     </div>
                   );
