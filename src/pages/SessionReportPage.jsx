@@ -84,9 +84,21 @@ export default function SessionReportPage() {
   const [newPin, setNewPin] = useState('');
   const [pinSaving, setPinSaving] = useState(false);
 
-  const [audioUrl, setAudioUrl] = useState(null);
-  const [audioLoading, setAudioLoading] = useState(false);
-  const audioRef = useRef(null);
+  const [recordings, setRecordings] = useState([]);
+  const [recordingsLoaded, setRecordingsLoaded] = useState(false);
+  const [playUrls, setPlayUrls] = useState({});
+  const [uploadingRec, setUploadingRec] = useState(false);
+  const [deletingRec, setDeletingRec] = useState(null);
+  const recFileInputRef = useRef(null);
+
+  const loadRecordings = async (sessionId) => {
+    try {
+      const { data } = await supabase.from('audio_library').select('*')
+        .eq('session_id', sessionId).order('created_at', { ascending: true });
+      setRecordings(data || []);
+    } catch { /* silent */ }
+    finally { setRecordingsLoaded(true); }
+  };
 
   useEffect(() => {
     getSessionById(id)
@@ -96,23 +108,63 @@ export default function SessionReportPage() {
         if (s.report_pin) setPinLocked(true);
         if (s.share_token) setShareToken(s.share_token);
         if (user) logEvent(user.id, 'session.view', 'session', s.id, s.title);
+        loadRecordings(s.id);
       })
       .catch(() => toast.error('Session not found'))
       .finally(() => setLoading(false));
   }, [id]);
 
-  const loadAudio = async () => {
-    if (audioUrl || audioLoading) return;
-    setAudioLoading(true);
+  const handlePlayRec = async (rec) => {
+    if (playUrls[rec.id]) return;
     try {
-      const { data } = await supabase.from('audio_library').select('storage_path').eq('session_id', id).order('created_at', { ascending: false }).limit(1).single();
-      if (data?.storage_path) {
-        const url = await getSignedUrl(data.storage_path);
-        setAudioUrl(url);
-        if (user) logEvent(user.id, 'audio.play', 'session', id, session?.title).catch(() => {});
-      }
-    } catch { /* no recording saved */ }
-    finally { setAudioLoading(false); }
+      const url = await getSignedUrl(rec.storage_path);
+      setPlayUrls(prev => ({ ...prev, [rec.id]: url }));
+      if (user) logEvent(user.id, 'audio.play', 'session', id, session?.title).catch(() => {});
+    } catch { toast.error('Could not load recording.'); }
+  };
+
+  const handleUploadRec = async (file) => {
+    if (!file || !user) return;
+    if (file.size > 500 * 1024 * 1024) { toast.error('File exceeds 500MB.'); return; }
+    setUploadingRec(true);
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'mp3';
+      const path = `${user.id}/${Date.now()}_import.${ext}`;
+      const { error: upErr } = await supabase.storage.from('recordings').upload(path, file, { contentType: file.type, upsert: false });
+      if (upErr) throw upErr;
+      const { data: rec } = await supabase.from('audio_library').insert({
+        user_id: user.id, session_id: id,
+        storage_path: path, file_name: file.name,
+        file_size: file.size, mime_type: file.type, title: file.name,
+      }).select().single();
+      setRecordings(prev => [...prev, rec]);
+      toast.success('Recording added to session.');
+    } catch (err) {
+      toast.error(err.message || 'Upload failed.');
+    } finally {
+      setUploadingRec(false);
+      if (recFileInputRef.current) recFileInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteRec = async (rec) => {
+    if (!window.confirm(`Delete "${rec.file_name}"?`)) return;
+    setDeletingRec(rec.id);
+    try {
+      await supabase.storage.from('recordings').remove([rec.storage_path]);
+      await supabase.from('audio_library').delete().eq('id', rec.id);
+      setRecordings(prev => prev.filter(r => r.id !== rec.id));
+      setPlayUrls(prev => { const n = { ...prev }; delete n[rec.id]; return n; });
+      toast.success('Recording deleted.');
+    } catch { toast.error('Delete failed.'); }
+    finally { setDeletingRec(null); }
+  };
+
+  const formatBytes = (b) => {
+    if (!b) return '';
+    if (b < 1024 * 1024) return `${(b / 1024).toFixed(0)} KB`;
+    return `${(b / (1024 * 1024)).toFixed(1)} MB`;
+  };
   };
 
   const handlePinUnlock = async (e) => {
@@ -509,34 +561,80 @@ export default function SessionReportPage() {
                   </button>
                 </div>
               )}
-              {/* Audio Recording Playback */}
-              <div className="mb-5 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                    </svg>
-                  </div>
-                  <span className="text-sm font-semibold text-gray-700">Session Recording</span>
-                </div>
-                {audioUrl ? (
-                  <audio ref={audioRef} controls src={audioUrl} className="flex-1 h-9 min-w-0" />
-                ) : (
-                  <button
-                    onClick={loadAudio}
-                    disabled={audioLoading}
-                    className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium border border-blue-200 rounded-lg px-3 py-1.5 bg-white hover:bg-blue-50 transition-colors disabled:opacity-50"
-                  >
-                    {audioLoading ? (
-                      <span className="w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              {/* Session Recordings */}
+              <div className="mb-5 bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                       </svg>
-                    )}
-                    {audioLoading ? 'Loading...' : 'Play Recording'}
-                  </button>
+                    </div>
+                    <span className="text-sm font-semibold text-gray-700">
+                      Session Recordings {recordingsLoaded && recordings.length > 0 ? `(${recordings.length})` : ''}
+                    </span>
+                  </div>
+                  <div>
+                    <input
+                      ref={recFileInputRef}
+                      type="file"
+                      accept=".mp3,.m4a,.mp4,.wav,.ogg,.webm,.flac,.aac,.mov"
+                      className="hidden"
+                      onChange={e => handleUploadRec(e.target.files?.[0])}
+                    />
+                    <button
+                      onClick={() => recFileInputRef.current?.click()}
+                      disabled={uploadingRec}
+                      className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 font-medium border border-blue-200 rounded-lg px-2.5 py-1.5 bg-white hover:bg-blue-50 transition-colors disabled:opacity-50"
+                    >
+                      {uploadingRec
+                        ? <span className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                        : <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                      }
+                      {uploadingRec ? 'Uploading...' : 'Add Recording'}
+                    </button>
+                  </div>
+                </div>
+
+                {!recordingsLoaded ? (
+                  <div className="flex items-center gap-2 text-sm text-gray-400 py-2">
+                    <span className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
+                    Loading...
+                  </div>
+                ) : recordings.length === 0 ? (
+                  <p className="text-sm text-gray-400 py-1">No recordings saved. Click "Add Recording" to upload from PLAUD Note, phone, or any device.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {recordings.map((rec, i) => (
+                      <div key={rec.id} className="bg-white border border-gray-100 rounded-lg p-3 flex items-center gap-3">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-800 truncate">
+                            {recordings.length > 1 ? `Recording ${i + 1} — ` : ''}{rec.file_name}
+                          </p>
+                          <p className="text-xs text-gray-400">{formatBytes(rec.file_size)}</p>
+                        </div>
+                        {playUrls[rec.id] ? (
+                          <audio controls src={playUrls[rec.id]} className="h-8 w-44 flex-shrink-0 min-w-0" />
+                        ) : (
+                          <button
+                            onClick={() => handlePlayRec(rec)}
+                            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium px-2 py-1 rounded border border-blue-200 bg-white hover:bg-blue-50 flex-shrink-0"
+                          >
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            Play
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDeleteRec(rec)}
+                          disabled={deletingRec === rec.id}
+                          className="text-xs text-gray-300 hover:text-red-500 px-1.5 py-1 rounded hover:bg-red-50 flex-shrink-0 transition-colors disabled:opacity-50"
+                          title="Delete recording"
+                        >
+                          {deletingRec === rec.id ? '...' : '✕'}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
 
