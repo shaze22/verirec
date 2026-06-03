@@ -304,7 +304,7 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - ✅ FROM_KAUNSELOR: noreply@kaunselor.app (commit c8a7098)
 - ⏳ Resend domain kaunselor.app: DNS records confirmed, pending Resend auto-verify (id: ea1931e0-8deb-4979-bd12-e6bc1909a32a)
 
-**Latest deploy:** commit `ae9cbcc` — 2026-06-03
+**Latest deploy:** commit `70806d9` — 2026-06-03
 
 **Supabase Auth Redirect URLs (updated 2026-06-02):**
 www.verirec.app/**, counselor.verirec.app/**, kaunselor.app/**, www.kaunselor.app/**
@@ -453,6 +453,13 @@ Redesign 2026-06-02 — Soro-inspired. Sections (dalam order):
 10. Testimonials — 3-column grid, DSP Ahmad Fauzi + En. Farouk Ibrahim + Pn. Melissa Tan (commit 86e5d2e)
 11. Pricing — Free ($0) + Professional ($25) + top-up $3/$12/$22
 12. Final CTA + Footer
+
+## Recording & Navigation (2026-06-03 — commits d4ae802 → 70806d9)
+- Import Recording moved OUT of SessionSetupPage, INTO CaseDetailPage sessions header ("📁 Import" → `/session/import?case_id=xxx`)
+- CaseDetailPage: `CaseRecordings` component — upload raw audio/video to case file (outside sessions, no transcription)
+- SessionReportPage: "Session Recordings" panel — all audio_library records for session, "Add Recording" upload, no delete (permanent)
+- Back navigation: SessionReportPage `← Back` → case file if `session.case_id`, else `navigate(-1)`
+- AudioLibraryPage "Start Session" CTA → `/session/setup` (was `/dashboard`)
 
 ## Import External Recording (2026-06-03 — commit ae9cbcc)
 - Route: `/session/import` → `ImportSessionPage.jsx`
