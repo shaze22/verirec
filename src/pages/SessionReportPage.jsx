@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getSessionById, updateSessionStatus, updateSession } from '../api/sessions.js';
 import { supabase } from '../lib/supabase.js';
+import { getSignedUrl } from '../api/audioLibrary.js';
 import { logEvent } from '../api/auditLog.js';
 import { useAuthStore } from '../store/authStore.js';
 import { generateReport } from '../api/claude.js';
@@ -83,6 +84,10 @@ export default function SessionReportPage() {
   const [newPin, setNewPin] = useState('');
   const [pinSaving, setPinSaving] = useState(false);
 
+  const [audioUrl, setAudioUrl] = useState(null);
+  const [audioLoading, setAudioLoading] = useState(false);
+  const audioRef = useRef(null);
+
   useEffect(() => {
     getSessionById(id)
       .then(s => {
@@ -95,6 +100,20 @@ export default function SessionReportPage() {
       .catch(() => toast.error('Session not found'))
       .finally(() => setLoading(false));
   }, [id]);
+
+  const loadAudio = async () => {
+    if (audioUrl || audioLoading) return;
+    setAudioLoading(true);
+    try {
+      const { data } = await supabase.from('audio_library').select('storage_path').eq('session_id', id).order('created_at', { ascending: false }).limit(1).single();
+      if (data?.storage_path) {
+        const url = await getSignedUrl(data.storage_path);
+        setAudioUrl(url);
+        if (user) logEvent(user.id, 'audio.play', 'session', id, session?.title).catch(() => {});
+      }
+    } catch { /* no recording saved */ }
+    finally { setAudioLoading(false); }
+  };
 
   const handlePinUnlock = async (e) => {
     e.preventDefault();
@@ -490,6 +509,37 @@ export default function SessionReportPage() {
                   </button>
                 </div>
               )}
+              {/* Audio Recording Playback */}
+              <div className="mb-5 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="flex items-center gap-3 flex-shrink-0">
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    </svg>
+                  </div>
+                  <span className="text-sm font-semibold text-gray-700">Session Recording</span>
+                </div>
+                {audioUrl ? (
+                  <audio ref={audioRef} controls src={audioUrl} className="flex-1 h-9 min-w-0" />
+                ) : (
+                  <button
+                    onClick={loadAudio}
+                    disabled={audioLoading}
+                    className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium border border-blue-200 rounded-lg px-3 py-1.5 bg-white hover:bg-blue-50 transition-colors disabled:opacity-50"
+                  >
+                    {audioLoading ? (
+                      <span className="w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    )}
+                    {audioLoading ? 'Loading...' : 'Play Recording'}
+                  </button>
+                )}
+              </div>
+
               <ReportView session={session} />
 
               {/* Hash verification */}
