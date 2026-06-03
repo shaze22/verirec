@@ -623,14 +623,6 @@ export default function SessionReportPage() {
                             Play
                           </button>
                         )}
-                        <button
-                          onClick={() => handleDeleteRec(rec)}
-                          disabled={deletingRec === rec.id}
-                          className="text-xs text-gray-300 hover:text-red-500 px-1.5 py-1 rounded hover:bg-red-50 flex-shrink-0 transition-colors disabled:opacity-50"
-                          title="Delete recording"
-                        >
-                          {deletingRec === rec.id ? '...' : '✕'}
-                        </button>
                       </div>
                     ))}
                   </div>
