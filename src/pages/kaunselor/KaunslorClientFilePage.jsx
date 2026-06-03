@@ -261,18 +261,18 @@ export default function KaunslorClientFilePage() {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white border-b overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          <div className="flex gap-1 px-6">
+        <div className="bg-white border-b">
+          <div className="grid grid-cols-6">
             {[
               { id: 'overview',     label: 'Overview' },
               { id: 'sessions',     label: `Sessions (${sessions.length})` },
-              { id: 'appointments', label: `Appointments (${appointments.length})` },
+              { id: 'appointments', label: `Appts (${appointments.length})` },
               { id: 'plans',        label: `Plans (${actionPlans.length + referrals.length})` },
               { id: 'notes',        label: `Notes (${progressNotes.length})` },
               { id: 'recordings',   label: `Recordings (${clientRecordings.length})` },
             ].map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
-                className={`px-3 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${tab === t.id ? 'border-violet-600 text-violet-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+                className={`py-2.5 text-sm font-medium border-b-2 text-center transition-colors ${tab === t.id ? 'border-violet-600 text-violet-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
                 {t.label}
               </button>
             ))}
