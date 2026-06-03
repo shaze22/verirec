@@ -400,16 +400,6 @@ export default function SessionSetupPage() {
               <Button type="submit" className="flex-1">Continue to Consent →</Button>
             </div>
 
-            <div className="border-t pt-4">
-              <p className="text-xs text-gray-400 mb-2">Have an existing recording from PLAUD Note, phone, Zoom, or a body camera?</p>
-              <button
-                type="button"
-                onClick={() => navigate('/session/import')}
-                className="w-full py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 hover:border-blue-300 hover:text-blue-600 transition-colors font-medium"
-              >
-                📁 Import External Recording →
-              </button>
-            </div>
           </form>
         </div>
       </div>

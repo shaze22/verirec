@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore.js';
 import { useBillingStore } from '../store/billingStore.js';
 import { PROFESSIONS, getProfession } from '../data/professions.js';
@@ -61,6 +61,8 @@ export default function ImportSessionPage() {
   const { user } = useAuthStore();
   const { incrementUsage } = useBillingStore();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const prefillCaseId = searchParams.get('case_id') || '';
   const fileInputRef = useRef(null);
 
   const [dragging, setDragging] = useState(false);
@@ -76,7 +78,7 @@ export default function ImportSessionPage() {
     consentConfirmed: false,
   });
   const [activeCases, setActiveCases] = useState([]);
-  const [selectedCaseId, setSelectedCaseId] = useState('');
+  const [selectedCaseId, setSelectedCaseId] = useState(prefillCaseId);
   const [processing, setProcessing] = useState(false);
   const [currentStep, setCurrentStep] = useState(''); // uploading | transcribing | generating | done
   const [stepDetail, setStepDetail] = useState('');
@@ -86,7 +88,16 @@ export default function ImportSessionPage() {
     if (!user) return;
     supabase.from('cases').select('id,title,case_number,profession')
       .eq('user_id', user.id).eq('status', 'active').order('created_at', { ascending: false })
-      .then(({ data }) => setActiveCases(data || [])).catch(() => {});
+      .then(({ data }) => {
+        setActiveCases(data || []);
+        if (prefillCaseId && data?.length) {
+          const c = data.find(x => x.id === prefillCaseId);
+          if (c) {
+            if (c.profession) setProfessionId(c.profession);
+            if (c.case_number) setForm(prev => ({ ...prev, case_number: prev.case_number || c.case_number }));
+          }
+        }
+      }).catch(() => {});
   }, [user]);
 
   const set = (field) => (e) => setForm(prev => ({ ...prev, [field]: e.target.value }));
@@ -375,7 +386,16 @@ export default function ImportSessionPage() {
               </div>
             </div>
 
-            {activeCases.length > 0 && (
+            {prefillCaseId ? (
+              <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
+                <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
+                </svg>
+                <span className="text-sm text-blue-700 font-medium">
+                  {activeCases.find(c => c.id === prefillCaseId)?.title || 'Case File'} — session will be linked automatically
+                </span>
+              </div>
+            ) : activeCases.length > 0 && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Link to Case File (optional)</label>
                 <select

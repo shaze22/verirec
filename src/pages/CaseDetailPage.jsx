@@ -6,6 +6,7 @@ import {
   updateCase, assignSessionToCase, removeSessionFromCase,
 } from '../api/cases.js';
 import { supabase } from '../lib/supabase.js';
+import { getSignedUrl } from '../api/audioLibrary.js';
 import { useAuthStore } from '../store/authStore.js';
 import { TopBar } from '../components/layout/TopBar.jsx';
 import { Button } from '../components/ui/Button.jsx';
@@ -16,6 +17,8 @@ import toast from 'react-hot-toast';
 
 const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'video/mp4'];
 const MAX_SIZE_BYTES = 52428800; // 50MB
+const AUDIO_TYPES = ['audio/mpeg', 'audio/mp4', 'audio/m4a', 'audio/wav', 'audio/ogg', 'audio/webm', 'audio/flac', 'audio/aac', 'video/mp4', 'video/quicktime'];
+const AUDIO_EXT = '.mp3,.m4a,.mp4,.wav,.ogg,.webm,.flac,.aac,.mov';
 
 function formatBytes(bytes) {
   if (bytes < 1024) return `${bytes} B`;
@@ -243,6 +246,109 @@ const statusConfig = {
 
 const riskColors = { low: 'green', medium: 'yellow', high: 'red' };
 const riskLabels = { low: 'Low', medium: 'Moderate', high: 'High' };
+
+function CaseRecordings({ caseId, userId }) {
+  const [recordings, setRecordings] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [playUrls, setPlayUrls] = useState({});
+  const [deleting, setDeleting] = useState(null);
+  const fileInputRef = useRef(null);
+  const pathPrefix = `${userId}/case_${caseId}/`;
+
+  const load = useCallback(async () => {
+    const { data } = await supabase.from('audio_library').select('*')
+      .eq('user_id', userId).like('storage_path', `${pathPrefix}%`)
+      .order('created_at', { ascending: false });
+    setRecordings(data || []);
+  }, [userId, caseId]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleUpload = async (file) => {
+    if (!file) return;
+    if (file.size > 500 * 1024 * 1024) { toast.error('File exceeds 500MB.'); return; }
+    setUploading(true);
+    try {
+      const path = `${pathPrefix}${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+      const { error: upErr } = await supabase.storage.from('recordings').upload(path, file, { contentType: file.type, upsert: false });
+      if (upErr) throw upErr;
+      await supabase.from('audio_library').insert({
+        user_id: userId, session_id: null,
+        storage_path: path, file_name: file.name,
+        file_size: file.size, mime_type: file.type, title: file.name,
+      });
+      toast.success('Recording added.');
+      load();
+    } catch (err) {
+      toast.error(err.message || 'Upload failed.');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handlePlay = async (rec) => {
+    if (playUrls[rec.id]) return;
+    try {
+      const url = await getSignedUrl(rec.storage_path);
+      setPlayUrls(prev => ({ ...prev, [rec.id]: url }));
+    } catch { toast.error('Could not load recording.'); }
+  };
+
+  const handleDelete = async (rec) => {
+    if (!window.confirm(`Delete "${rec.file_name}"?`)) return;
+    setDeleting(rec.id);
+    try {
+      await supabase.storage.from('recordings').remove([rec.storage_path]);
+      await supabase.from('audio_library').delete().eq('id', rec.id);
+      setRecordings(prev => prev.filter(r => r.id !== rec.id));
+      toast.success('Recording deleted.');
+    } catch { toast.error('Delete failed.'); }
+    finally { setDeleting(null); }
+  };
+
+  return (
+    <div className="bg-white border rounded-xl p-5 mt-4">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">External Recordings</h3>
+        <div>
+          <input ref={fileInputRef} type="file" accept={AUDIO_EXT} className="hidden" onChange={e => handleUpload(e.target.files?.[0])} />
+          <Button size="sm" loading={uploading} onClick={() => fileInputRef.current?.click()}>
+            {uploading ? 'Uploading...' : '+ Add Recording'}
+          </Button>
+        </div>
+      </div>
+      <p className="text-xs text-gray-400 mb-3">MP3, M4A, MP4, WAV, OGG — stored in case file, no transcription</p>
+      {recordings.length === 0 ? (
+        <div className="text-center py-6 text-gray-300">
+          <p className="text-2xl mb-1">🎙️</p>
+          <p className="text-sm">No external recordings yet.</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {recordings.map(rec => (
+            <div key={rec.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-800 truncate">{rec.file_name}</p>
+                <p className="text-xs text-gray-400">{formatBytes(rec.file_size)} · {format(new Date(rec.created_at), 'dd MMM yyyy')}</p>
+              </div>
+              {playUrls[rec.id] ? (
+                <audio controls src={playUrls[rec.id]} className="h-8 min-w-0 w-40 flex-shrink-0" />
+              ) : (
+                <button onClick={() => handlePlay(rec)} className="text-xs text-blue-600 hover:text-blue-800 font-medium px-2 py-1 rounded border border-blue-200 bg-white flex-shrink-0">
+                  ▶ Play
+                </button>
+              )}
+              <button onClick={() => handleDelete(rec)} disabled={deleting === rec.id} className="text-xs text-gray-400 hover:text-red-600 px-2 py-1 rounded hover:bg-red-50 flex-shrink-0 disabled:opacity-50">
+                {deleting === rec.id ? '...' : 'Delete'}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function CaseDetailPage() {
   const { id } = useParams();
@@ -577,7 +683,8 @@ export default function CaseDetailPage() {
                   📦 Export Case
                 </Button>
               )}
-              <Button size="sm" variant="secondary" onClick={openAddModal}>+ Existing Session</Button>
+              <Button size="sm" variant="secondary" onClick={openAddModal}>+ Existing</Button>
+              <Button size="sm" variant="secondary" onClick={() => navigate(`/session/import?case_id=${id}`)}>📁 Import</Button>
               <Button size="sm" onClick={startNewSession}>🎙 New Session</Button>
             </div>
           </div>
@@ -666,6 +773,9 @@ export default function CaseDetailPage() {
 
           {/* Evidence Attachments */}
           {user && <EvidenceAttachments caseId={id} userId={user.id} />}
+
+          {/* External Recordings */}
+          {user && <CaseRecordings caseId={id} userId={user.id} />}
 
           {/* Timeline Kes */}
           <div className="bg-white border rounded-xl overflow-hidden mt-4">
