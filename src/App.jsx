@@ -36,6 +36,7 @@ const NotFoundPage          = lazy(() => import('./pages/NotFoundPage.jsx'));
 const LogoutPage            = lazy(() => import('./pages/LogoutPage.jsx'));
 const SharedReportPage      = lazy(() => import('./pages/SharedReportPage.jsx'));
 const QuestionTemplatesPage   = lazy(() => import('./pages/QuestionTemplatesPage.jsx'));
+const ImportSessionPage       = lazy(() => import('./pages/ImportSessionPage.jsx'));
 const SchedulePage            = lazy(() => import('./pages/SchedulePage.jsx'));
 const PublicBookingPage       = lazy(() => import('./pages/PublicBookingPage.jsx'));
 const KaunslorSetupPage       = lazy(() => import('./pages/kaunselor/KaunslorSetupPage.jsx'));
@@ -224,6 +225,9 @@ export default function App() {
               <Route path="/session/setup/:profession" element={<Navigate to="/session/setup" replace />} />
               <Route path="/session/setup" element={
                 <ProtectedRoute><ProfessionalRoute redirectTo="/kaunselor/appointments"><AppLayout><SessionSetupPage /></AppLayout></ProfessionalRoute></ProtectedRoute>
+              } />
+              <Route path="/session/import" element={
+                <ProtectedRoute><ProfessionalRoute redirectTo="/kaunselor/appointments"><AppLayout><ImportSessionPage /></AppLayout></ProfessionalRoute></ProtectedRoute>
               } />
               <Route path="/session/:id" element={
                 <ProtectedRoute><AppLayout><SessionReportPage /></AppLayout></ProtectedRoute>

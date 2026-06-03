@@ -51,6 +51,22 @@ export async function pollDiarization(jobId, { onProgress, maxWaitMs = 180_000, 
   throw new Error('diarize_timeout');
 }
 
+// Submit an already-uploaded file (Supabase storage path) to AssemblyAI for transcription.
+export async function importFromStoragePath({ storagePath, interviewer, subject_name }) {
+  const token = await getToken();
+  const res = await fetch(CONFIG.api.transcribe, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode: 'import', storage_path: storagePath, interviewer, subject_name }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'import_failed');
+  }
+  const data = await res.json();
+  return data.job_id;
+}
+
 export function createWhisperClient({ onTranscript, onError, onStatus, lang = 'auto' } = {}) {
   let inFlight = 0;
   const MAX_CONCURRENT = 3;

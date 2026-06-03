@@ -9,6 +9,15 @@ const supabaseAdmin = createClient(
 
 export const config = { api: { bodyParser: false } };
 
+function readJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    let data = '';
+    req.on('data', chunk => { data += chunk; });
+    req.on('end', () => { try { resolve(JSON.parse(data)); } catch { reject(new Error('Invalid JSON')); } });
+    req.on('error', reject);
+  });
+}
+
 function parseMultipart(req) {
   return new Promise((resolve, reject) => {
     const bb = Busboy({ headers: req.headers });
@@ -117,6 +126,30 @@ async function handlePoll(req, res) {
   }
 }
 
+async function handleImport(res, body) {
+  const { storage_path, interviewer, subject_name } = body;
+  if (!storage_path) return res.status(400).json({ error: 'Missing storage_path' });
+  if (!process.env.ASSEMBLYAI_API_KEY) return res.status(503).json({ error: 'AssemblyAI not configured' });
+
+  const { data, error } = await supabaseAdmin.storage.from('recordings').createSignedUrl(storage_path, 7200);
+  if (error || !data?.signedUrl) return res.status(400).json({ error: 'Could not access file' });
+
+  const transcriptRes = await fetch('https://api.assemblyai.com/v2/transcript', {
+    method: 'POST',
+    headers: { Authorization: process.env.ASSEMBLYAI_API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      audio_url: data.signedUrl,
+      speech_model: 'universal',
+      speaker_labels: true,
+      speakers_expected: 2,
+      language_detection: true,
+    }),
+  });
+  if (!transcriptRes.ok) throw new Error('AssemblyAI job submission failed');
+  const { id } = await transcriptRes.json();
+  return res.status(200).json({ job_id: id, status: 'processing' });
+}
+
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -130,6 +163,14 @@ export default async function handler(req, res) {
 
     const rl = await checkRateLimit(user.id, 'transcribe');
     if (!rl.ok) return res.status(429).json({ error: 'Terlalu banyak permintaan. Cuba lagi sebentar.' });
+
+    // ── IMPORT MODE (JSON body — external file already in Supabase storage) ──
+    const contentType = req.headers['content-type'] || '';
+    if (contentType.includes('application/json')) {
+      const body = await readJsonBody(req);
+      if (body.mode === 'import') return handleImport(res, body);
+      return res.status(400).json({ error: 'Unknown JSON mode' });
+    }
 
     const { fields, audioBuffer, audioMime } = await parseMultipart(req);
     if (!audioBuffer || audioBuffer.length === 0) {
