@@ -523,7 +523,7 @@ vercel deploy --prod --force --scope syedshazni-7682s-projects
 - www.verirec.app + counselor.verirec.app (doctor/jkm redirect ke www)
 - Project ID: `prj_EwnDU0nKMOn56auUR1WZF1GeNI3f`
 - GitHub: `https://github.com/shaze22/verirec` (branch: main)
-- Last deployed: 2026-06-03 (commit `37e7561` — gender field, psych detail text, counselor notes in email, Telegram English, client details in confirm modal)
+- Last deployed: 2026-06-03 (commit `2779fec` — BM email strings fully translated, DOB formatted in client file)
 - Supabase project ID: `sbakkkxuhkxfofpfhdtn`
 
 **Supabase Auth URL Configuration (dashboard):**
