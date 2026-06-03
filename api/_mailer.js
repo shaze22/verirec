@@ -114,7 +114,7 @@ p{color:#475569;font-size:14px;line-height:1.7;margin:10px 0}
 </div>
 <div class="card">${content}
 <div class="footer">Kaunselor · Digital Counselling Platform<br>
-<a href="https://kaunselor.app" style="color:#7c3aed">kaunselor.app</a> · <a href="mailto:hello@verirec.app" style="color:#7c3aed">hello@verirec.app</a>
+<a href="https://kaunselor.app" style="color:#7c3aed">kaunselor.app</a> · <a href="mailto:hello@kaunselor.app" style="color:#7c3aed">hello@kaunselor.app</a>
 </div></div></div></body></html>`;
 
 export function welcomeEmail(name) {
@@ -245,7 +245,7 @@ export function newAppointmentEmail(counselorName, client) {
   };
 }
 
-export function appointmentConfirmedEmail(counselorName, date, time, duration, isReschedule = false, counselor = {}, rescheduleReason = null) {
+export function appointmentConfirmedEmail(counselorName, date, time, duration, isReschedule = false, counselor = {}, rescheduleReason = null, notes = null) {
   return {
     subject: isReschedule ? `🔄 Appointment Rescheduled — ${date} at ${time}` : `✅ Appointment Confirmed — ${date} at ${time}`,
     from: FROM_KAUNSELOR,
@@ -262,6 +262,7 @@ export function appointmentConfirmedEmail(counselorName, date, time, duration, i
         ${counselor.location ? `<p><strong>📍 Location:</strong> ${counselor.location}</p>` : ''}
       </div>
       ${isReschedule && rescheduleReason ? `<div class="warn"><p>📝 <strong>Reason for rescheduling:</strong> ${rescheduleReason}</p></div>` : ''}
+      ${!isReschedule && notes ? `<div class="warn"><p>📝 <strong>Note from your counselor:</strong> ${notes}</p></div>` : ''}
       ${(counselor.phone || counselor.email) ? `<div style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:10px;padding:16px 20px;margin:14px 0"><p style="margin:0 0 8px;color:#4c1d95;font-weight:600;font-size:13px">Contact Your Counselor</p>${counselor.phone ? `<p style="margin:4px 0;color:#475569;font-size:13px">📱 <a href="tel:${counselor.phone}" style="color:#7c3aed">${counselor.phone}</a></p>` : ''}${counselor.email ? `<p style="margin:4px 0;color:#475569;font-size:13px">📧 <a href="mailto:${counselor.email}" style="color:#7c3aed">${counselor.email}</a></p>` : ''}</div>` : ''}
       ${counselor.calendarUrl ? `<div style="text-align:center;margin:20px 0"><a href="${counselor.calendarUrl}" style="display:inline-block;background:#7c3aed;color:#fff!important;text-decoration:none;padding:13px 28px;border-radius:10px;font-weight:600;font-size:14px">📅 Add to Google Calendar</a></div>` : ''}
       <div class="warn"><p>⚠️ <strong>Cancellation policy:</strong> Please contact your counselor at least 24 hours in advance to cancel or reschedule.</p></div>

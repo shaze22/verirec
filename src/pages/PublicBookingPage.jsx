@@ -320,6 +320,19 @@ export default function PublicBookingPage() {
               </div>
             </div>
 
+            {/* Gender */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Gender</label>
+              <div className="grid grid-cols-3 gap-2">
+                {[['male','Male'],['female','Female'],['prefer_not','Prefer not to say']].map(([v,l]) => (
+                  <button key={v} type="button" onClick={() => setForm(f => ({ ...f, gender: v }))}
+                    className={`py-2 rounded-lg border text-sm font-medium transition-all ${form.gender === v ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-gray-200 text-gray-600'}`}>
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Session type */}
             <div>
               <label className="text-sm font-medium text-gray-700 mb-1 block">Session Type</label>

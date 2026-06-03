@@ -84,6 +84,13 @@ export async function submitAppointment(bookingCode, form) {
   const psyMed = form.psychiatric_medication === 'tidak' ? false
     : (form.psychiatric_medication && form.psychiatric_medication !== '') ? true : null;
 
+  // Append psychiatric detail text to presenting issue so counselor can see it
+  let fullIssue = form.issue || '';
+  const psyHistText = (form.psychiatric_history && form.psychiatric_history !== 'ya' && form.psychiatric_history !== 'tidak') ? form.psychiatric_history : null;
+  const psyMedText = (form.psychiatric_medication && form.psychiatric_medication !== 'ya' && form.psychiatric_medication !== 'tidak') ? form.psychiatric_medication : null;
+  if (psyHistText) fullIssue += `${fullIssue ? '\n' : ''}[Psychiatric History: ${psyHistText}]`;
+  if (psyMedText) fullIssue += `${fullIssue ? '\n' : ''}[Medication: ${psyMedText}]`;
+
   const { data, error } = await supabase.rpc('submit_appointment', {
     p_code: bookingCode,
     p_name: form.name,
@@ -94,7 +101,7 @@ export async function submitAppointment(bookingCode, form) {
     p_address: form.address || null,
     p_date: form.date,
     p_time: form.time,
-    p_issue: form.issue || null,
+    p_issue: fullIssue || null,
     p_consent: form.consent,
     p_gender: form.gender || null,
     p_student_id: form.student_id || null,

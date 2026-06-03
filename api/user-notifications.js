@@ -45,7 +45,7 @@ export default async function handler(req, res) {
         const time = appt.requested_time ? appt.requested_time.slice(0, 5) : '';
         await sendTelegram(
           profile.telegram_chat_id,
-          `🆕 <b>Temujanji Baru Diterima</b>\n\nKlien: <b>${appt.client_name}</b>\nTarikh: ${appt.requested_date}${time ? ` jam ${time}` : ''}\nIsu: ${appt.presenting_issue || '—'}\n\nBuka VeriRec untuk sahkan.`
+          `🆕 <b>New Appointment Request</b>\n\nClient: <b>${appt.client_name}</b>\nDate: ${appt.requested_date}${time ? ` at ${time}` : ''}\nIssue: ${appt.presenting_issue || '—'}\n\nOpen Kaunselor to confirm.`
         );
       }
 
@@ -75,8 +75,9 @@ export default async function handler(req, res) {
       const isReschedule = appt.status === 'rescheduled';
       const counselorName = profile?.display_name || 'Kaunselor';
       const rescheduleReason = isReschedule && appt.counselor_notes
-        ? appt.counselor_notes.replace('[Jadual Semula] ', '').trim()
+        ? appt.counselor_notes.replace('[Rescheduled] ', '').trim()
         : null;
+      const confirmedNotes = !isReschedule && appt.counselor_notes ? appt.counselor_notes : null;
 
       const calendarUrl = buildCalendarUrl(date, time, duration, counselorName, profile?.klinik_address);
       const counselorInfo = {
@@ -86,7 +87,7 @@ export default async function handler(req, res) {
         calendarUrl,
       };
 
-      const { subject, html, from } = appointmentConfirmedEmail(counselorName, date, time, duration, isReschedule, counselorInfo, rescheduleReason);
+      const { subject, html, from } = appointmentConfirmedEmail(counselorName, date, time, duration, isReschedule, counselorInfo, rescheduleReason, confirmedNotes);
       await sendEmail({ to: appt.client_email, subject, html, from });
       return res.status(200).json({ ok: true });
     }
