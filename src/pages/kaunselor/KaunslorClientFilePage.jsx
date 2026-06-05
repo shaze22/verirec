@@ -59,6 +59,8 @@ export default function KaunslorClientFilePage() {
   const [uploadingRec, setUploadingRec] = useState(false);
   const [recDragging, setRecDragging] = useState(false);
   const recFileRef = useRef(null);
+  const rawAudiosRef = useRef([]);
+  const urlsResolvedRef = useRef(false);
 
   useEffect(() => {
     if (!user) return;
@@ -83,20 +85,10 @@ export default function KaunslorClientFilePage() {
       setReferrals(refs || []);
       setProgressNotes(notes || []);
       setTeamReferrals(trefs || []);
-      if (audios?.length) {
-        const sessionMap = {};
-        const standalone = [];
-        Promise.all(audios.map(async (audio) => {
-          const { data } = await supabase.storage.from('recordings').createSignedUrl(audio.storage_path, 3600);
-          if (data?.signedUrl) {
-            if (audio.session_id) {
-              sessionMap[audio.session_id] = { url: data.signedUrl, duration: audio.duration };
-            } else {
-              standalone.push({ ...audio, url: data.signedUrl });
-            }
-          }
-        })).then(() => { setAudioMap({ ...sessionMap }); setClientRecordings(standalone); }).catch(() => {});
-      }
+      // Store raw metadata; resolve signed URLs lazily when user opens Sessions/Recordings tab
+      rawAudiosRef.current = audios || [];
+      // Show count in tab without URLs
+      setClientRecordings((audios || []).filter(a => !a.session_id));
     }).finally(() => setLoading(false));
 
     // Fetch team members (active only) for referral dropdown
@@ -104,6 +96,30 @@ export default function KaunslorClientFilePage() {
       .eq('status', 'active')
       .then(({ data }) => setTeamMembers(data || []));
   }, [id, user]);
+
+  // Resolve signed URLs lazily when user opens Sessions or Recordings tab
+  useEffect(() => {
+    if (!['sessions', 'recordings'].includes(tab)) return;
+    if (urlsResolvedRef.current) return;
+    if (!rawAudiosRef.current.length) return;
+    urlsResolvedRef.current = true;
+    const audios = rawAudiosRef.current;
+    const sessionMap = {};
+    const standalone = [];
+    Promise.all(audios.map(async (audio) => {
+      const { data } = await supabase.storage.from('recordings').createSignedUrl(audio.storage_path, 3600);
+      if (data?.signedUrl) {
+        if (audio.session_id) {
+          sessionMap[audio.session_id] = { url: data.signedUrl, duration: audio.duration };
+        } else {
+          standalone.push({ ...audio, url: data.signedUrl });
+        }
+      }
+    })).then(() => {
+      setAudioMap({ ...sessionMap });
+      setClientRecordings(standalone);
+    }).catch(() => {});
+  }, [tab]);
 
   const handleSave = async () => {
     setSaving(true);

@@ -27,7 +27,6 @@ const COUNSELOR_ITEMS = [
   { to: '/analytics',                label: 'Dashboard',    icon: ICONS.chart },
   { to: '/kaunselor/clients',        label: 'Clients',      icon: ICONS.users },
   { to: '/kaunselor/appointments',   label: 'Appointments', icon: ICONS.calendar },
-  { to: '/kaunselor/calendar',       label: 'Calendar',     icon: ICONS.calendar },
   { to: '/team',                     label: 'Team',         icon: ICONS.team },
   { to: '/templat',                  label: 'Templates',    icon: ICONS.doc },
   { to: '/audit',                    label: 'Audit Log',    icon: ICONS.folder },

@@ -92,6 +92,7 @@ export default defineConfig({
           if (pkg === 'date-fns')            return 'date-vendor';
           if (pkg.startsWith('@sentry/'))    return 'sentry';
           if (['react-hot-toast', 'react-helmet-async', 'zustand', 'clsx'].includes(pkg)) return 'ui-vendor';
+          if (pkg === 'jspdf') return 'jspdf-vendor';
         },
       },
     },

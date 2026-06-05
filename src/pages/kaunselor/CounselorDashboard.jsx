@@ -7,7 +7,6 @@ import { supabase } from '../../lib/supabase.js';
 import { TopBar } from '../../components/layout/TopBar.jsx';
 import { Button } from '../../components/ui/Button.jsx';
 import toast from 'react-hot-toast';
-import jsPDF from 'jspdf';
 
 const RISK_CONFIG = {
   none:          { label: 'Low',      color: 'bg-green-500',  text: 'text-green-700',  bg: 'bg-green-50' },
@@ -68,7 +67,7 @@ export default function CounselorDashboard() {
     if (!user) return;
     Promise.all([
       supabase.from('subjects').select('id, name, risk_level, presenting_issue, created_at').eq('user_id', user.id),
-      supabase.from('sessions').select('id, created_at, duration, report, subject_name, subject_id').eq('user_id', user.id).order('created_at', { ascending: false }).limit(100),
+      supabase.from('sessions').select('id, created_at, duration, subject_name, subject_id, problem_types, risk_level').eq('user_id', user.id).order('created_at', { ascending: false }).limit(100),
       supabase.from('appointments').select('id, client_name, confirmed_date, confirmed_time, requested_date, status, subject_id').eq('counselor_id', user.id).in('status', ['confirmed', 'pending', 'rescheduled']).order('confirmed_date'),
     ]).then(([{ data: c }, { data: s }, { data: a }]) => {
       setClients(c || []);
@@ -159,6 +158,7 @@ export default function CounselorDashboard() {
       });
       const topProblems = Object.entries(problemCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
 
+      const { default: jsPDF } = await import('jspdf');
       const doc = new jsPDF({ unit: 'mm', format: 'a4' });
       const W = 210, MARGIN = 18;
       let y = MARGIN;
@@ -454,12 +454,12 @@ export default function CounselorDashboard() {
                         <p className="text-sm font-medium text-gray-800 truncate">{s.subject_name || '—'}</p>
                         <p className="text-xs text-gray-400">{format(new Date(s.created_at), 'dd MMM yyyy')} · {Math.round((s.duration || 0) / 60)} min</p>
                       </div>
-                      {s.report?.riskLevel && (
+                      {s.risk_level && s.risk_level !== 'none' && (
                         <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${
-                          s.report.riskLevel === 'high' ? 'bg-red-100 text-red-700' :
-                          s.report.riskLevel === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
+                          ['self_harm', 'suicidal'].includes(s.risk_level) ? 'bg-red-100 text-red-700' :
+                          s.risk_level === 'mental_health' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
                         }`}>
-                          {s.report.riskLevel === 'high' ? 'High' : s.report.riskLevel === 'medium' ? 'Moderate' : 'Low'}
+                          {['self_harm', 'suicidal'].includes(s.risk_level) ? 'High' : s.risk_level === 'mental_health' ? 'Moderate' : 'Low'}
                         </span>
                       )}
                     </div>
