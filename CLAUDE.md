@@ -323,7 +323,7 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - "Appointments" shortened to "Appts" in grid to fit cleanly
 - New Session bug fixed: `navigate('/session/setup/counselor')` → `navigate('/session/consent')` — ProfessionalRoute was blocking /session/setup on counselor subdomain
 
-**Latest deploy:** commit `829da7c` — 2026-06-03
+**Latest deploy:** commit `87d6362` — 2026-06-05
 
 **Generate Memo fix (commit `512d2a5` — 2026-06-03):**
 - Regression from tab merge: "🖨 Memo" button was dropped from referral cards in Plans tab
@@ -398,6 +398,13 @@ www.verirec.app/**, counselor.verirec.app/**, kaunselor.app/**, www.kaunselor.ap
 - `api/report.js`: GET endpoint `?verify=true&session_id=` untuk hash verification
 - `CaseDetailPage`: butang "📦 Eksport Kes" — jsPDF export semua sesi dalam kes
 - `PricingPage`: plan "Organisasi" (RM999/bulan, 5 pengguna, 100 sesi/pengguna) ditambah
+
+## Performance (2026-06-05 — commit 87d6362)
+- **Removed dead packages:** `html2canvas` (199kB) and `lamejs` (151kB) — were in package.json but never imported
+- **html2canvas stubbed:** `src/stubs/html2canvas.js` → aliased in vite.config.js so jsPDF's optional `.html()` method doesn't pull in the full 199kB lib
+- **PWA precache:** 2.2MB (86 entries) → **157kB (20 entries)** — removed all JS chunks from globPatterns; JS now uses StaleWhileRevalidate at runtime
+- **Sentry deferred:** `main.jsx` uses `requestIdleCallback(() => import('@sentry/react'))` — no longer blocks initial render
+- **QRCode lazy:** `KaunslorAppointmentsPage` static import → dynamic `import('qrcode')` inside useEffect
 
 ## Hobby Plan — 12 Serverless Functions (HARD LIMIT)
 Jangan tambah function baru tanpa remove/merge yang lain dulu.
