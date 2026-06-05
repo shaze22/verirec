@@ -323,7 +323,7 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - "Appointments" shortened to "Appts" in grid to fit cleanly
 - New Session bug fixed: `navigate('/session/setup/counselor')` → `navigate('/session/consent')` — ProfessionalRoute was blocking /session/setup on counselor subdomain
 
-**Latest deploy:** commit `87d6362` — 2026-06-05
+**Latest deploy:** commit `bb80c18` — 2026-06-05
 
 **Generate Memo fix (commit `512d2a5` — 2026-06-03):**
 - Regression from tab merge: "🖨 Memo" button was dropped from referral cards in Plans tab
@@ -399,6 +399,20 @@ www.verirec.app/**, counselor.verirec.app/**, kaunselor.app/**, www.kaunselor.ap
 - `CaseDetailPage`: butang "📦 Eksport Kes" — jsPDF export semua sesi dalam kes
 - `PricingPage`: plan "Organisasi" (RM999/bulan, 5 pengguna, 100 sesi/pengguna) ditambah
 
+## Features (2026-06-05 — commits 7a5f003 + bb80c18)
+
+**Import Recording — credit gate (commit 7a5f003):**
+- `ImportSessionPage.jsx`: added `canStartSession()` check upfront — blocks if limit reached before any DB write
+- Fixed `incrementUsage()` — result was previously ignored; now throws on `limit_reached`
+- `Sidebar.jsx`: "Import Recording" nav item added (upload icon, below "New Session") for www
+- `DashboardPage.jsx`: "Import" button added to header action bar + "Or import an existing recording →" link in empty state
+
+**Pricing change (commit bb80c18):**
+- Professional + Counselor plan: 10 sessions → **5 sessions** at $25/month
+- `src/config.js`, `api/stripe-webhook.js` `PLAN_LIMITS`, `PricingPage.jsx`, `LandingPage.jsx` all updated
+- Per-session display: "$2.50/session" → "$5/session"
+- Top-up callout: "Top-up at $3/session — cheaper than base rate"
+
 ## Performance (2026-06-05 — commit 87d6362)
 - **Removed dead packages:** `html2canvas` (199kB) and `lamejs` (151kB) — were in package.json but never imported
 - **html2canvas stubbed:** `src/stubs/html2canvas.js` → aliased in vite.config.js so jsPDF's optional `.html()` method doesn't pull in the full 199kB lib
@@ -437,8 +451,8 @@ Semasa: admin, cron-reset-usage, gemini, report, share-session, stripe-billing, 
 | Plan        | Sesi/bulan | Harga/bulan | Top-up | Label UI      |
 |-------------|------------|-------------|--------|---------------|
 | free        | 2          | $0 USD      | No     | Free          |
-| counselor   | 10         | $25 USD     | Yes    | Counselor     |
-| starter     | 10         | $25 USD     | Yes    | Professional  |
+| counselor   | 5          | $25 USD     | Yes    | Counselor     |
+| starter     | 5          | $25 USD     | Yes    | Professional  |
 | pro         | 100        | $249 USD    | No     | Pro (hidden)  |
 | biz         | 200        | $599 USD    | No     | Enterprise → email |
 
@@ -554,7 +568,8 @@ vercel deploy --prod --force --scope syedshazni-7682s-projects
 - www.verirec.app + counselor.verirec.app (doctor/jkm redirect ke www)
 - Project ID: `prj_EwnDU0nKMOn56auUR1WZF1GeNI3f`
 - GitHub: `https://github.com/shaze22/verirec` (branch: main)
-- Last deployed: 2026-06-03 (commit `2779fec` — BM email strings fully translated, DOB formatted in client file)
+- Last deployed: 2026-06-05 (commit `bb80c18` — pricing 5 sessions, import recording + credit gate)
+- ⚠️ GitHub→Vercel auto-deploy broken — always use `vercel deploy --prod --force --scope syedshazni-7682s-projects`
 - Supabase project ID: `sbakkkxuhkxfofpfhdtn`
 
 **Supabase Auth URL Configuration (dashboard):**
