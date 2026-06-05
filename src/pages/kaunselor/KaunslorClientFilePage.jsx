@@ -1,11 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore.js';
+import { useBillingStore } from '../../store/billingStore.js';
 import { supabase } from '../../lib/supabase.js';
 import { TopBar } from '../../components/layout/TopBar.jsx';
 import { Button } from '../../components/ui/Button.jsx';
 import { Badge } from '../../components/ui/Badge.jsx';
 import { format, parseISO } from 'date-fns';
+import { importFromStoragePath, pollDiarization } from '../../api/whisper.js';
+import { generateReport } from '../../api/claude.js';
+import { updateSession } from '../../api/sessions.js';
 import toast from 'react-hot-toast';
 
 const PROBLEM_TYPES = [
@@ -24,6 +28,7 @@ const RISK_CONFIG = {
 export default function KaunslorClientFilePage() {
   const { id } = useParams();
   const { user } = useAuthStore();
+  const { canStartSession, incrementUsage } = useBillingStore();
   const navigate = useNavigate();
   const [client, setClient] = useState(null);
   const [sessions, setSessions] = useState([]);
@@ -59,6 +64,11 @@ export default function KaunslorClientFilePage() {
   const recFileRef = useRef(null);
   const rawAudiosRef = useRef([]);
   const urlsResolvedRef = useRef(false);
+  const [pendingTranscribeRec, setPendingTranscribeRec] = useState(null); // rec waiting for confirm
+  const [transcribeCounselorName, setTranscribeCounselorName] = useState('');
+  const [transcribingRec, setTranscribingRec] = useState(null); // rec currently being processed
+  const [transcribeStep, setTranscribeStep] = useState(''); // creating|transcribing|generating|done
+  const [transcribeDetail, setTranscribeDetail] = useState('');
 
   useEffect(() => {
     if (!user) return;
@@ -245,6 +255,127 @@ export default function KaunslorClientFilePage() {
       setClientRecordings(prev => prev.filter(r => r.id !== rec.id));
       toast.success('Recording deleted.');
     } catch { toast.error('Failed to delete recording.'); }
+  };
+
+  const openTranscribeModal = (rec) => {
+    if (!canStartSession()) {
+      toast.error('Session limit reached. Please upgrade or purchase more sessions.');
+      return;
+    }
+    setPendingTranscribeRec(rec);
+    setTranscribeCounselorName(user?.user_metadata?.full_name || '');
+  };
+
+  const handleTranscribeRecording = async () => {
+    const rec = pendingTranscribeRec;
+    if (!rec) return;
+    setPendingTranscribeRec(null);
+    setTranscribingRec(rec);
+    setTranscribeStep('creating');
+    setTranscribeDetail('');
+    let sessionId = null;
+
+    try {
+      const title = `Counseling Session — ${client.name}`;
+      const { data: session, error: sessionErr } = await supabase.from('sessions').insert({
+        user_id: user.id,
+        title,
+        profession: 'counselor',
+        interviewer: transcribeCounselorName.trim() || user?.email || '',
+        subject_name: client.name,
+        subject_id: id,
+        consent_signed: true,
+        consent_data: { items: ['Transcribed from uploaded recording'], subject_name: client.name, import_mode: true },
+        recording_status: 'in_progress',
+      }).select().single();
+      if (sessionErr) throw sessionErr;
+      sessionId = session.id;
+
+      const usageResult = await incrementUsage();
+      if (usageResult?.error) throw new Error(
+        usageResult.error === 'limit_reached'
+          ? 'Session limit reached. Please upgrade or purchase more sessions.'
+          : 'Failed to update session count.'
+      );
+
+      // Link audio_library row to this session
+      await supabase.from('audio_library').update({ session_id: sessionId }).eq('id', rec.id).catch(() => {});
+
+      setTranscribeStep('transcribing');
+      setTranscribeDetail('Submitting to AssemblyAI...');
+      const jobId = await importFromStoragePath({
+        storagePath: rec.storage_path,
+        interviewer: transcribeCounselorName.trim(),
+        subject_name: client.name,
+      });
+
+      setTranscribeDetail('Processing audio — this may take a few minutes...');
+      const utterances = await pollDiarization(jobId, {
+        interviewer: transcribeCounselorName.trim(),
+        subject_name: client.name,
+        onProgress: (status) => setTranscribeDetail(`AssemblyAI: ${status}`),
+        maxWaitMs: 600_000,
+      });
+
+      const speakers = [...new Set(utterances.map(u => u.speaker))].sort();
+      const speakerMap = {};
+      speakers.forEach((sp, i) => {
+        speakerMap[sp] = i === 0
+          ? (transcribeCounselorName.trim() || 'Counselor')
+          : client.name;
+      });
+
+      const transcript = utterances.map(u => ({
+        id: crypto.randomUUID(),
+        type: 'TRANSCRIPT',
+        text: u.text,
+        speaker: speakerMap[u.speaker],
+        identified_name: u.identified_name || null,
+        timestamp: new Date(Date.now() - ((utterances.at(-1)?.end ?? 0) - u.start)).toISOString(),
+      }));
+
+      const totalDuration = utterances.length > 0
+        ? Math.round((utterances.at(-1)?.end ?? 0) / 1000)
+        : 0;
+
+      await updateSession(sessionId, {
+        transcript,
+        duration: totalDuration,
+        recording_status: 'completed',
+        synced: true,
+      });
+
+      setTranscribeStep('generating');
+      setTranscribeDetail('');
+      await generateReport({
+        session_id: sessionId,
+        transcript,
+        flags: [],
+        session_info: {
+          profession: 'counselor',
+          title,
+          subject_name: client.name,
+          subject_role: '',
+          context_notes: '',
+          duration: totalDuration,
+          interviewer: transcribeCounselorName.trim(),
+        },
+      });
+
+      setTranscribeStep('done');
+      toast.success('Transcription complete! Redirecting to session report...');
+      setTimeout(() => navigate(`/session/${sessionId}`), 1200);
+
+    } catch (err) {
+      console.error('Transcribe error:', err);
+      toast.error(err.message || 'Transcription failed. Please try again.');
+      if (sessionId) {
+        await updateSession(sessionId, { recording_status: 'completed' }).catch(() => {});
+      }
+      setTranscribingRec(null);
+      setTranscribeStep('');
+      setTranscribeDetail('');
+    }
   };
 
   if (loading) return (
@@ -1032,7 +1163,9 @@ export default function KaunslorClientFilePage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {clientRecordings.map(rec => (
+                  {clientRecordings.map(rec => {
+                    const isBeingTranscribed = transcribingRec?.id === rec.id;
+                    return (
                     <div key={rec.id} className="bg-white rounded-xl border p-4 space-y-2">
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex-1 min-w-0">
@@ -1041,12 +1174,49 @@ export default function KaunslorClientFilePage() {
                             <p className="text-xs text-gray-400">{format(parseISO(rec.created_at), 'dd MMM yyyy, HH:mm')}</p>
                           )}
                         </div>
-                        <button
-                          onClick={() => handleDeleteRecording(rec)}
-                          className="text-xs text-gray-400 hover:text-red-500 px-2 py-1 rounded hover:bg-red-50 transition-colors flex-shrink-0"
-                        >Delete</button>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <button
+                            onClick={() => openTranscribeModal(rec)}
+                            disabled={!!transcribingRec}
+                            className="text-xs text-violet-600 hover:text-violet-800 border border-violet-200 hover:bg-violet-50 px-2.5 py-1 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            {isBeingTranscribed ? '⟳ Transcribing...' : '✦ Transcribe'}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteRecording(rec)}
+                            disabled={!!transcribingRec}
+                            className="text-xs text-gray-400 hover:text-red-500 px-2 py-1 rounded hover:bg-red-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          >Delete</button>
+                        </div>
                       </div>
-                      {rec.url && (
+
+                      {/* Transcription progress for this recording */}
+                      {isBeingTranscribed && (
+                        <div className="bg-violet-50 border border-violet-100 rounded-xl p-4 space-y-2.5">
+                          {[
+                            { key: 'creating',     label: 'Creating session record' },
+                            { key: 'transcribing', label: 'Transcribing with AI speaker diarization' },
+                            { key: 'generating',   label: 'Generating counseling session report' },
+                            { key: 'done',         label: 'Complete — redirecting to report' },
+                          ].map(({ key, label }) => {
+                            const order = ['creating', 'transcribing', 'generating', 'done'];
+                            const cur = order.indexOf(transcribeStep);
+                            const tgt = order.indexOf(key);
+                            const status = cur > tgt ? 'done' : cur === tgt ? 'active' : 'pending';
+                            return (
+                              <div key={key} className="flex items-center gap-2.5">
+                                {status === 'done' && <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0"><svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg></div>}
+                                {status === 'active' && <div className="w-4 h-4 rounded-full border-2 border-violet-500 border-t-transparent animate-spin flex-shrink-0" />}
+                                {status === 'pending' && <div className="w-4 h-4 rounded-full border-2 border-gray-200 flex-shrink-0" />}
+                                <span className={`text-xs ${status === 'active' ? 'text-violet-700 font-semibold' : status === 'done' ? 'text-green-700' : 'text-gray-400'}`}>{label}</span>
+                              </div>
+                            );
+                          })}
+                          {transcribeDetail && <p className="text-xs text-gray-400 pt-1">{transcribeDetail}</p>}
+                        </div>
+                      )}
+
+                      {rec.url && !isBeingTranscribed && (
                         rec.mime_type?.startsWith('video/') ? (
                           <video controls className="w-full rounded-lg" style={{ maxHeight: '220px' }}>
                             <source src={rec.url} type={rec.mime_type} />
@@ -1058,7 +1228,41 @@ export default function KaunslorClientFilePage() {
                         )
                       )}
                     </div>
-                  ))}
+                  );})}
+                </div>
+              )}
+
+              {/* Transcribe confirm modal */}
+              {pendingTranscribeRec && (
+                <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 p-4">
+                  <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+                    <div>
+                      <h3 className="font-semibold text-lg">Transcribe Recording</h3>
+                      <p className="text-xs text-gray-500 mt-1 truncate">{pendingTranscribeRec.file_name}</p>
+                    </div>
+                    <div className="bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5">
+                      <p className="text-xs text-amber-700">This will use <strong>1 session credit</strong> and create a new counseling session report.</p>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Your Name (Counselor)</label>
+                      <input
+                        type="text"
+                        value={transcribeCounselorName}
+                        onChange={e => setTranscribeCounselorName(e.target.value)}
+                        placeholder="e.g. Pn. Siti Aminah"
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                      />
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      <span className="font-medium">Client:</span> {client?.name}
+                    </div>
+                    <div className="flex gap-3 pt-1">
+                      <Button onClick={handleTranscribeRecording} className="flex-1 bg-violet-600 hover:bg-violet-700">
+                        ✦ Start Transcription
+                      </Button>
+                      <Button variant="secondary" onClick={() => setPendingTranscribeRec(null)}>Cancel</Button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
