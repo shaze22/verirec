@@ -20,8 +20,8 @@ export const CONFIG = {
   },
   plans: {
     free:      { sessions: 2,   users: 1,  price: 0,   currency: 'USD', label: 'Free' },
-    counselor: { sessions: 10,  users: 1,  price: 25,  currency: 'USD', label: 'Counselor' },
-    starter:   { sessions: 10,  users: 2,  price: 25,  currency: 'USD', label: 'Professional' },
+    counselor: { sessions: 5,   users: 1,  price: 25,  currency: 'USD', label: 'Counselor' },
+    starter:   { sessions: 5,   users: 2,  price: 25,  currency: 'USD', label: 'Professional' },
     pro:       { sessions: 100, users: 10, price: 249, currency: 'USD', label: 'Pro' },
     biz:       { sessions: 200, users: -1, price: 599, currency: 'USD', label: 'Business' },
   },

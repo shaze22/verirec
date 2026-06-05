@@ -10,7 +10,7 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-const PLAN_LIMITS = { free: 2, counselor: 10, starter: 10, pro: 100, biz: -1 };
+const PLAN_LIMITS = { free: 2, counselor: 5, starter: 5, pro: 100, biz: -1 };
 
 export const config = { api: { bodyParser: false } };
 

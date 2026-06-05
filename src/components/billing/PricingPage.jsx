@@ -9,7 +9,7 @@ import { isCounselorSubdomain } from '../../lib/subdomain.js';
 import toast from 'react-hot-toast';
 
 const COUNSELOR_FEATURES = [
-  '10 counseling sessions / month',
+  '5 counseling sessions / month',
   'Automated QR booking — clients self-serve',
   'Digital client files + session history',
   'SOP-format Case Session Notes (PDF)',
@@ -21,7 +21,7 @@ const COUNSELOR_FEATURES = [
 ];
 
 const PROFESSIONAL_FEATURES = [
-  '10 recording sessions / month',
+  '5 recording sessions / month',
   'AI analysis + real-time red flag detection',
   'PEACE Model guide in sessions',
   'SOP PDF reports (profession-specific)',
@@ -78,7 +78,7 @@ export function PricingPage() {
     <>
       <Helmet>
         <title>Pricing — VeriRec</title>
-        <meta name="description" content="$25/month, 10 sessions. No contract. Top-up anytime." />
+        <meta name="description" content="$25/month, 5 sessions. No contract. Top-up anytime." />
         <link rel="canonical" href="https://www.verirec.app/pricing" />
       </Helmet>
       <div className="max-w-5xl mx-auto px-6 py-12">
@@ -144,7 +144,7 @@ export function PricingPage() {
                   <span className="text-4xl font-bold text-gray-900">$25</span>
                   <span className="text-gray-400 text-sm mb-1">USD/month</span>
                 </div>
-                <p className="text-xs text-gray-400 mb-5">10 sessions · $2.50/session · cancel anytime</p>
+                <p className="text-xs text-gray-400 mb-5">5 sessions · $5/session · cancel anytime</p>
                 <ul className="space-y-2 flex-1 mb-6">
                   {PROFESSIONAL_FEATURES.map(f => (
                     <li key={f} className="flex items-start gap-2 text-sm text-gray-700"><Check color="text-blue-500" />{f}</li>
@@ -226,7 +226,7 @@ export function PricingPage() {
                   <span className="text-4xl font-bold text-gray-900">$25</span>
                   <span className="text-gray-400 text-sm mb-1">USD/month</span>
                 </div>
-                <p className="text-xs text-gray-400 mb-1">10 sessions · $2.50/session · cancel anytime</p>
+                <p className="text-xs text-gray-400 mb-1">5 sessions · $5/session · cancel anytime</p>
                 <p className="text-xs text-violet-500 mb-5">~RM110 · pay in any currency via Stripe</p>
                 <ul className="space-y-2 flex-1 mb-6">
                   {COUNSELOR_FEATURES.map(f => (
@@ -272,7 +272,7 @@ export function PricingPage() {
 
                 <div className="bg-violet-50 rounded-xl border border-violet-100 p-4">
                   <p className="text-sm font-semibold text-violet-800 mb-1">Clear cost per client</p>
-                  <p className="text-sm text-violet-700">$2.50–3 per session. Easy to calculate when charging your clients.</p>
+                  <p className="text-sm text-violet-700">Top-up at $3/session — cheaper than the base rate. Easy to plan client billing.</p>
                 </div>
               </div>
             </div>

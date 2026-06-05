@@ -579,10 +579,10 @@ export default function LandingPage() {
                 <span className="text-5xl font-black text-white">$25</span>
                 <span className="text-blue-300 mb-2 text-sm">/month</span>
               </div>
-              <p className="text-blue-300 text-sm mb-8">10 sessions per month</p>
+              <p className="text-blue-300 text-sm mb-8">5 sessions per month</p>
               <ul className="space-y-3 flex-1 mb-8">
                 {[
-                  '10 recording sessions / month',
+                  '5 recording sessions / month',
                   'AI analysis + real-time red flags',
                   'PEACE Model guide',
                   'SOP PDF report by profession',
@@ -628,7 +628,7 @@ export default function LandingPage() {
           </div>
 
           <p className="text-center text-sm text-gray-500 mt-8">
-            Need more than 10 sessions or a large team?{' '}
+            Need more than 5 sessions or a large team?{' '}
             <a href="mailto:hello@verirec.app" className="text-blue-600 hover:underline font-semibold">Contact us</a>
           </p>
         </div>
