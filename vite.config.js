@@ -42,13 +42,22 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // Cache all static assets from the build
-        globPatterns: ['**/*.{js,css,html,ico,svg,woff,woff2,ttf,eot}'],
+        // Only precache HTML + CSS + fonts/icons — NOT all JS chunks (too heavy for first install)
+        globPatterns: ['**/*.{css,html,ico,svg,woff,woff2,ttf,eot}'],
         // Serve index.html for all navigation requests (SPA fallback)
         navigateFallback: '/index.html',
         // Never intercept API or Supabase requests
         navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
+          // JS chunks — serve from cache immediately, refresh in background
+          {
+            urlPattern: /\.js$/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'js-chunks',
+              expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 30 },
+            },
+          },
           // Google Fonts CSS — stale-while-revalidate
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com/,
@@ -80,6 +89,12 @@ export default defineConfig({
       },
     }),
   ],
+  resolve: {
+    alias: {
+      // jsPDF optionally imports html2canvas for .html() which we never use — stub it out
+      'html2canvas': '/src/stubs/html2canvas.js',
+    },
+  },
   build: {
     chunkSizeWarningLimit: 600,
     rollupOptions: {
@@ -93,6 +108,7 @@ export default defineConfig({
           if (pkg.startsWith('@sentry/'))    return 'sentry';
           if (['react-hot-toast', 'react-helmet-async', 'zustand', 'clsx'].includes(pkg)) return 'ui-vendor';
           if (pkg === 'jspdf') return 'jspdf-vendor';
+          if (pkg === 'qrcode') return 'qrcode-vendor';
         },
       },
     },

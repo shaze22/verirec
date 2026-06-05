@@ -8,7 +8,6 @@ import { Button } from '../../components/ui/Button.jsx';
 import { Badge } from '../../components/ui/Badge.jsx';
 import { format, parseISO } from 'date-fns';
 import toast from 'react-hot-toast';
-import QRCode from 'qrcode';
 
 const STATUS_CONFIG = {
   pending:     { label: 'Pending',      color: 'yellow' },
@@ -58,8 +57,9 @@ export default function KaunslorAppointmentsPage() {
       setIncomingReferrals(refs || []);
       if (p?.booking_code) {
         const url = `${window.location.origin}/book/${p.booking_code}`;
-        QRCode.toDataURL(url, { width: 400, margin: 3, color: { dark: '#1e293b', light: '#ffffff' } })
-          .then(setQrDataUrl).catch(() => {});
+        import('qrcode').then(({ default: QRCode }) =>
+          QRCode.toDataURL(url, { width: 400, margin: 3, color: { dark: '#1e293b', light: '#ffffff' } })
+        ).then(setQrDataUrl).catch(() => {});
       }
     }).finally(() => setLoading(false));
   }, [user]);
