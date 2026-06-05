@@ -15,7 +15,7 @@ const features = [
   { icon: '🗂️', title: 'Digital Client Files', desc: 'Full profile, risk tiers, action plans, referrals, session history — all in one organised place.' },
   { icon: '🔴', title: 'AI Red Flag Detection', desc: 'Detects suicide risk, self-harm signals, and crisis indicators in real time during the session.' },
   { icon: '📝', title: 'SOP Session Notes', desc: 'Auto-generates Case Session Notes in Counseling Unit SOP format. Print-ready PDF in seconds.' },
-  { icon: '🧠', title: 'CBT / DBT Suggestions', desc: 'Claude AI recommends therapy techniques based on conversation context — no extra clicks needed.' },
+  { icon: '🎙️', title: 'Recording Transcription', desc: 'Upload any audio or video recording. AI transcribes, diarizes speakers, and generates a full session report automatically.' },
   { icon: '📊', title: 'MBTI & RIASEC', desc: 'Built-in assessment panel inside every session. Auto-scored, saved to client files automatically.' },
 ];
 
@@ -189,7 +189,7 @@ function DemoDash() {
       <div className="grid grid-cols-3 gap-2">
         {[
           { label: 'Clients', val: '24', sub: '+3 this month', color: 'text-violet-600' },
-          { label: 'Sessions', val: '8', sub: '2 remaining', color: 'text-blue-600' },
+          { label: 'Sessions', val: '3', sub: '2 remaining', color: 'text-blue-600' },
           { label: 'Risk Flags', val: '3', sub: 'Need follow-up', color: 'text-amber-600' },
         ].map(({ label, val, sub, color }) => (
           <div key={label} className="bg-gray-50 rounded-xl p-3 text-center">
@@ -458,7 +458,7 @@ export default function CounselorLandingPage() {
                         </div>
                         <span className="text-white text-xs font-bold">Kaunselor</span>
                       </div>
-                      {[['Total Clients', '24', 'text-violet-400'], ['Sessions Used', '8/10', 'text-blue-400'], ['Pending', '2', 'text-amber-400']].map(([l, v, c]) => (
+                      {[['Total Clients', '24', 'text-violet-400'], ['Sessions Used', '3/5', 'text-blue-400'], ['Pending', '2', 'text-amber-400']].map(([l, v, c]) => (
                         <div key={l} className="bg-gray-800 rounded-lg p-2 flex justify-between items-center">
                           <span className="text-[10px] text-gray-400">{l}</span>
                           <span className={`text-xs font-bold ${c}`}>{v}</span>
@@ -573,19 +573,20 @@ export default function CounselorLandingPage() {
                     <span className="text-5xl font-bold text-gray-900">$25</span>
                     <span className="text-gray-400 text-sm">USD / month</span>
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">~RM110 · Pay in any currency via Stripe</p>
+                  <p className="text-xs text-gray-400 mt-1">~RM118 · Pay in any currency via Stripe</p>
                 </div>
                 <div className="bg-violet-100 text-violet-700 text-xs font-bold px-3 py-1.5 rounded-full">COUNSELOR PLAN</div>
               </div>
               <div className="border-t border-gray-100 my-5" />
               <ul className="space-y-3 mb-8">
                 {[
-                  '10 counseling sessions / month',
+                  '5 counseling sessions / month',
                   'Digital client files (unlimited clients)',
                   'Automated QR booking system',
                   'SOP-format session notes PDF',
                   'AI red flag & crisis detection',
                   'MBTI + RIASEC assessment tools',
+                  'Recording transcription (AI speaker diarization)',
                   'Top-up sessions when needed',
                   'GDPR & compliance ready',
                 ].map((item) => (
@@ -618,7 +619,7 @@ export default function CounselorLandingPage() {
         <section className="bg-gray-950 py-20 px-4 text-center">
           <div className="max-w-2xl mx-auto">
             <div className="text-4xl font-bold text-white mb-4">Ready to simplify your practice?</div>
-            <p className="text-gray-400 text-lg mb-8">$25/month. 10 sessions. Cancel anytime.</p>
+            <p className="text-gray-400 text-lg mb-8">$25/month. 5 sessions. Cancel anytime.</p>
             <button onClick={() => navigate('/auth?mode=register&profession=counselor')}
               className="bg-violet-600 text-white font-bold text-base px-10 py-4 rounded-xl hover:bg-violet-500 transition-colors shadow-lg shadow-violet-900/30">
               Get Started Free →
