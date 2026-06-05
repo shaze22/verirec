@@ -308,7 +308,7 @@ export default function CounselorDashboard() {
           <Button size="sm" variant="secondary" loading={exporting} onClick={exportMonthlyReport}>
             📊 Report
           </Button>
-          <Button size="sm" onClick={() => navigate('/session/setup/counselor')}>
+          <Button size="sm" onClick={() => navigate('/session/consent')}>
             + New Session
           </Button>
         </div>

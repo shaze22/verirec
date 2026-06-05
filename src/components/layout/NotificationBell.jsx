@@ -12,11 +12,19 @@ const TYPE_CONFIG = {
   appointment: { icon: '📅', bg: 'bg-blue-50',    dot: 'bg-blue-500',   label: 'Appointment' },
 };
 
+function getSeenIds(userId) {
+  try { return new Set(JSON.parse(localStorage.getItem(`notif_seen_${userId}`) || '[]')); } catch { return new Set(); }
+}
+function saveSeenIds(userId, ids) {
+  localStorage.setItem(`notif_seen_${userId}`, JSON.stringify([...ids]));
+}
+
 export function NotificationBell() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [seenIds, setSeenIds] = useState(() => getSeenIds(user?.id));
   const [loading, setLoading] = useState(false);
   const panelRef = useRef(null);
 
@@ -85,6 +93,7 @@ export function NotificationBell() {
 
   useEffect(() => { build(); }, [build]);
 
+  // Close panel on outside click
   useEffect(() => {
     const handler = (e) => {
       if (panelRef.current && !panelRef.current.contains(e.target)) setOpen(false);
@@ -93,21 +102,39 @@ export function NotificationBell() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const count = notifications.length;
+  const handleOpen = () => {
+    const next = !open;
+    setOpen(next);
+    if (next) build();
+  };
+
+  const markAllRead = () => {
+    const ids = new Set(notifications.map(n => n.id));
+    saveSeenIds(user.id, ids);
+    setSeenIds(ids);
+  };
+
+  const markOneRead = (id) => {
+    const ids = new Set([...seenIds, id]);
+    saveSeenIds(user.id, ids);
+    setSeenIds(ids);
+  };
+
+  const unseenCount = notifications.filter(n => !seenIds.has(n.id)).length;
 
   return (
     <div ref={panelRef} className="relative">
       <button
-        onClick={() => { setOpen(o => !o); if (!open) build(); }}
+        onClick={handleOpen}
         className="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
         aria-label="Notifications"
       >
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
-        {count > 0 && (
+        {unseenCount > 0 && (
           <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
-            {count > 9 ? '9+' : count}
+            {unseenCount > 9 ? '9+' : unseenCount}
           </span>
         )}
       </button>
@@ -116,8 +143,13 @@ export function NotificationBell() {
         <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl border shadow-2xl z-50 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b">
             <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
-            {count > 0 && (
-              <span className="text-xs bg-red-100 text-red-600 font-medium px-2 py-0.5 rounded-full">{count} new</span>
+            {unseenCount > 0 && (
+              <button
+                onClick={markAllRead}
+                className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Mark all as read
+              </button>
             )}
           </div>
 
@@ -126,7 +158,7 @@ export function NotificationBell() {
               <div className="flex justify-center py-6">
                 <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
               </div>
-            ) : count === 0 ? (
+            ) : notifications.length === 0 ? (
               <div className="py-8 text-center">
                 <p className="text-2xl mb-2">🔔</p>
                 <p className="text-sm text-gray-400">All caught up!</p>
@@ -135,17 +167,18 @@ export function NotificationBell() {
             ) : (
               notifications.map(n => {
                 const cfg = TYPE_CONFIG[n.type] || TYPE_CONFIG.soon;
+                const isSeen = seenIds.has(n.id);
                 return (
                   <button
                     key={n.id}
-                    onClick={() => { setOpen(false); navigate(n.link); }}
-                    className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors flex items-start gap-3 ${cfg.bg}`}
+                    onClick={() => { markOneRead(n.id); setOpen(false); navigate(n.link); }}
+                    className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors flex items-start gap-3 ${isSeen ? 'opacity-50' : cfg.bg}`}
                   >
                     <span className="text-lg flex-shrink-0 mt-0.5">{cfg.icon}</span>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-0.5">
                         <p className="text-xs font-semibold text-gray-800">{n.title}</p>
-                        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${cfg.dot}`} />
+                        {!isSeen && <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${cfg.dot}`} />}
                       </div>
                       <p className="text-xs text-gray-600 truncate">{n.body}</p>
                       <p className="text-xs text-gray-400 mt-0.5">
@@ -158,9 +191,9 @@ export function NotificationBell() {
             )}
           </div>
 
-          {count > 0 && (
+          {notifications.length > 0 && unseenCount === 0 && (
             <div className="px-4 py-2 border-t bg-gray-50">
-              <p className="text-xs text-gray-400 text-center">Click a notification to go to the relevant page</p>
+              <p className="text-xs text-gray-400 text-center">All notifications read</p>
             </div>
           )}
         </div>

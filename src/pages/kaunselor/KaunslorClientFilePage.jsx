@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase.js';
 import { TopBar } from '../../components/layout/TopBar.jsx';
 import { Button } from '../../components/ui/Button.jsx';
 import { Badge } from '../../components/ui/Badge.jsx';
-import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay, addMonths, subMonths, isToday } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import toast from 'react-hot-toast';
 
 const PROBLEM_TYPES = [
@@ -42,8 +42,6 @@ export default function KaunslorClientFilePage() {
   const [referralForm, setReferralForm] = useState({ referred_to: '', referral_type: 'other', reason: '' });
   const [savingPlan, setSavingPlan] = useState(false);
   const [savingReferral, setSavingReferral] = useState(false);
-  const [calMonth, setCalMonth] = useState(new Date());
-  const [calSelected, setCalSelected] = useState(null);
   const [progressNotes, setProgressNotes] = useState([]);
   const [noteContent, setNoteContent] = useState('');
   const [noteDate, setNoteDate] = useState(new Date().toISOString().slice(0, 10));
@@ -249,7 +247,41 @@ export default function KaunslorClientFilePage() {
     } catch { toast.error('Failed to delete recording.'); }
   };
 
-  if (loading) return <div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return (
+    <div className="flex flex-col h-screen animate-pulse">
+      <div className="h-14 bg-white border-b px-4 flex items-center gap-3">
+        <div className="w-8 h-8 bg-gray-200 rounded-lg" />
+        <div className="w-32 h-4 bg-gray-200 rounded" />
+      </div>
+      <div className="bg-white border-b px-6 py-4">
+        <div className="max-w-2xl mx-auto flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full bg-gray-200 flex-shrink-0" />
+          <div className="space-y-2 flex-1">
+            <div className="w-40 h-5 bg-gray-200 rounded" />
+            <div className="w-24 h-3 bg-gray-100 rounded" />
+          </div>
+        </div>
+      </div>
+      <div className="bg-white border-b">
+        <div className="grid grid-cols-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="py-3 flex justify-center"><div className="w-16 h-3 bg-gray-200 rounded" /></div>
+          ))}
+        </div>
+      </div>
+      <div className="flex-1 p-4">
+        <div className="max-w-2xl mx-auto space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-xl border p-4 space-y-2">
+              <div className="w-24 h-3 bg-gray-200 rounded" />
+              <div className="w-full h-4 bg-gray-100 rounded" />
+              <div className="w-3/4 h-3 bg-gray-100 rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
   if (!client) return null;
 
   const lastSession = sessions[0];
