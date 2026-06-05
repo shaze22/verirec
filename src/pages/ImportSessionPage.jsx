@@ -59,7 +59,7 @@ function StepRow({ label, status }) {
 
 export default function ImportSessionPage() {
   const { user } = useAuthStore();
-  const { incrementUsage } = useBillingStore();
+  const { canStartSession, incrementUsage } = useBillingStore();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const prefillCaseId = searchParams.get('case_id') || '';
@@ -132,6 +132,10 @@ export default function ImportSessionPage() {
     if (!file) { toast.error('Please select a recording file.'); return; }
     if (!form.subject_name.trim()) { toast.error('Subject name is required.'); return; }
     if (!form.consentConfirmed) { toast.error('Please confirm subject consent was obtained.'); return; }
+    if (!canStartSession()) {
+      toast.error('Session limit reached. Please upgrade or purchase more sessions.');
+      return;
+    }
 
     setProcessing(true);
     setErrorMsg('');
@@ -160,7 +164,12 @@ export default function ImportSessionPage() {
       }).select().single();
       if (sessionErr) throw sessionErr;
       sessionId = session.id;
-      await incrementUsage().catch(() => {});
+      const usageResult = await incrementUsage();
+      if (usageResult?.error) throw new Error(
+        usageResult.error === 'limit_reached'
+          ? 'Session limit reached. Please upgrade or purchase more sessions.'
+          : 'Failed to update session count.'
+      );
 
       // 2. Upload file to Supabase storage (directly from browser — no Vercel size limit)
       setCurrentStep('uploading');
