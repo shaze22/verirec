@@ -121,7 +121,7 @@ export default async function handler(req, res) {
 
     const sessionParams = {
       customer: customerId,
-      'payment_method_types[0]': 'card',
+      'automatic_payment_methods[enabled]': 'true',
       'line_items[0][price]': priceId,
       'line_items[0][quantity]': 1,
       success_url: `${baseUrl}/settings?payment=success&plan=${plan}&session_id={CHECKOUT_SESSION_ID}`,
