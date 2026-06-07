@@ -255,6 +255,61 @@ export default async function handler(req, res) {
     const body = await readBody(req);
     const { mode, profession, phase, question, recent_transcript = [], transcript = [], case_summaries = [], case_title = '' } = body;
 
+    if (mode === 'doc_letter') {
+      const { letter_type, client_name, client_ic, counselor_name, context: docCtx, session_count, date_first, date_last, presenting_issue } = body;
+      const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+      const docTypeLabel = { employment: 'Employment Support Letter', court: 'Court Support Letter', school: 'Academic Support Letter', insurance: 'Progress Report for Insurance Panel' }[letter_type] || 'Support Letter';
+      let docPrompt;
+      if (letter_type === 'insurance') {
+        docPrompt = `You are a licensed professional counselor in Malaysia drafting a formal progress report for an insurance panel.
+
+Client: ${client_name}
+IC / Passport: ${client_ic || 'N/A'}
+Presenting Issue: ${presenting_issue || 'N/A'}
+Sessions Completed: ${session_count || 'N/A'}
+First Session: ${date_first || 'N/A'}
+Most Recent Session: ${date_last || 'N/A'}
+Counselor notes: ${docCtx || 'N/A'}
+Counselor: ${counselor_name}
+Date: ${today}
+
+Write a formal clinical progress report in English for insurance submission. Include: (1) Client Overview, (2) Clinical Findings, (3) Treatment Progress, (4) Current Status, (5) Prognosis & Recommendations. Format as a formal letter with date, subject line, numbered sections, and counselor signature block. Professional, objective tone.`;
+      } else {
+        const purposeMap = {
+          employment: 'employment matters — such as reasonable workplace adjustments, explaining medically-related absence, or supporting a return-to-work plan',
+          court: 'court proceedings — such as family law, custody, or mental health diversion programs',
+          school: 'academic support — such as requesting accommodations, assessment extensions, or deferred examinations',
+        };
+        docPrompt = `You are a licensed professional counselor in Malaysia drafting a formal ${docTypeLabel}.
+
+Client: ${client_name}
+IC / Passport: ${client_ic || 'N/A'}
+Presenting Issue: ${presenting_issue || 'N/A'}
+Purpose: ${purposeMap[letter_type] || 'professional support'}
+Additional context: ${docCtx || 'N/A'}
+Counselor: ${counselor_name}
+Date: ${today}
+
+Write a formal support letter in English with: date, "To Whom It May Concern" salutation, clear purpose, professional clinical summary (no sensitive diagnostic details), recommendation, and counselor signature block with credentials. Empathetic yet professional. Under 350 words.`;
+      }
+      let letterText;
+      let provider = 'claude';
+      try {
+        const message = await anthropic.messages.create({
+          model: 'claude-opus-4-7',
+          max_tokens: 900,
+          messages: [{ role: 'user', content: docPrompt }],
+        });
+        letterText = message.content[0].text.trim();
+      } catch (claudeErr) {
+        const isRetryable = claudeErr?.status === 529 || claudeErr?.status >= 500;
+        if (!isRetryable) throw claudeErr;
+        letterText = await callGeminiFallback(docPrompt);
+        provider = 'gemini';
+      }
+      return res.status(200).json({ letter: letterText, mode: 'doc_letter', provider });
+    }
+
     const isAutoMode = mode === 'auto_analysis';
     const isCaseSummary = mode === 'case_summary';
 

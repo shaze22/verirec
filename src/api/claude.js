@@ -78,3 +78,7 @@ export function analyzeSession(params) {
 export async function generateReport(params) {
   return authFetch(CONFIG.api.report, params);
 }
+
+export function generateDocument(params) {
+  return authFetch(CONFIG.api.suggest, { mode: 'doc_letter', ...params });
+}

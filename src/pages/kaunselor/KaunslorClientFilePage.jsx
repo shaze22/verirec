@@ -8,7 +8,7 @@ import { Button } from '../../components/ui/Button.jsx';
 import { Badge } from '../../components/ui/Badge.jsx';
 import { format, parseISO } from 'date-fns';
 import { importFromStoragePath, pollDiarization } from '../../api/whisper.js';
-import { generateReport } from '../../api/claude.js';
+import { generateReport, generateDocument } from '../../api/claude.js';
 import { updateSession } from '../../api/sessions.js';
 import toast from 'react-hot-toast';
 import { ASSESSMENTS, ASSESSMENT_LIST, BADGE_COLORS } from '../../data/assessments.js';
@@ -75,6 +75,14 @@ export default function KaunslorClientFilePage() {
   const [assignTestType, setAssignTestType] = useState('phq9');
   const [assigning, setAssigning] = useState(false);
   const [viewingResult, setViewingResult] = useState(null);
+  const [noteType, setNoteType] = useState('free');
+  const [soapForm, setSoapForm] = useState({ s: '', o: '', a: '', p: '' });
+  const [dapForm, setDapForm] = useState({ d: '', a: '', p: '' });
+  const [showDocModal, setShowDocModal] = useState(false);
+  const [docType, setDocType] = useState('employment');
+  const [docContext, setDocContext] = useState('');
+  const [generatingDoc, setGeneratingDoc] = useState(false);
+  const [generatedDoc, setGeneratedDoc] = useState('');
 
   useEffect(() => {
     if (!user) return;
@@ -213,6 +221,97 @@ export default function KaunslorClientFilePage() {
       toast.success('Referral added.');
     } catch { toast.error('Failed to save.'); }
     finally { setSavingReferral(false); }
+  };
+
+  const handleSaveNote = async () => {
+    setSavingNote(true);
+    try {
+      let content, note_type, note_data;
+      if (noteType === 'soap') {
+        if (!soapForm.s.trim()) { toast.error('Subjective (S) is required.'); setSavingNote(false); return; }
+        note_type = 'soap';
+        note_data = { ...soapForm };
+        content = `SOAP: ${soapForm.s.slice(0, 80)}${soapForm.s.length > 80 ? '...' : ''}`;
+      } else if (noteType === 'dap') {
+        if (!dapForm.d.trim()) { toast.error('Data (D) is required.'); setSavingNote(false); return; }
+        note_type = 'dap';
+        note_data = { ...dapForm };
+        content = `DAP: ${dapForm.d.slice(0, 80)}${dapForm.d.length > 80 ? '...' : ''}`;
+      } else {
+        if (!noteContent.trim()) return;
+        note_type = 'free';
+        note_data = null;
+        content = noteContent.trim();
+      }
+      const { data, error } = await supabase.from('progress_notes').insert({
+        subject_id: id, user_id: user.id,
+        content, note_date: noteDate, note_type, note_data,
+      }).select().single();
+      if (error) throw error;
+      setProgressNotes(prev => [data, ...prev]);
+      setNoteContent('');
+      setNoteDate(new Date().toISOString().slice(0, 10));
+      setSoapForm({ s: '', o: '', a: '', p: '' });
+      setDapForm({ d: '', a: '', p: '' });
+      toast.success('Note saved.');
+    } catch { toast.error('Failed to save note.'); }
+    finally { setSavingNote(false); }
+  };
+
+  const handlePrintNote = (note) => {
+    const counselorName = user?.user_metadata?.full_name || 'Counselor';
+    const noteDateFmt = format(parseISO(note.note_date), 'dd MMMM yyyy');
+    let bodyContent = '';
+    if (note.note_type === 'soap' && note.note_data) {
+      const { s, o, a, p } = note.note_data;
+      bodyContent = [
+        s ? `<div class="section"><div class="sec-label">S — Subjective</div><div class="sec-body">${s.replace(/\n/g,'<br/>')}</div></div>` : '',
+        o ? `<div class="section"><div class="sec-label">O — Objective</div><div class="sec-body">${o.replace(/\n/g,'<br/>')}</div></div>` : '',
+        a ? `<div class="section"><div class="sec-label">A — Assessment</div><div class="sec-body">${a.replace(/\n/g,'<br/>')}</div></div>` : '',
+        p ? `<div class="section"><div class="sec-label">P — Plan</div><div class="sec-body">${p.replace(/\n/g,'<br/>')}</div></div>` : '',
+      ].join('');
+    } else if (note.note_type === 'dap' && note.note_data) {
+      const { d, a, p } = note.note_data;
+      bodyContent = [
+        d ? `<div class="section"><div class="sec-label">D — Data</div><div class="sec-body">${d.replace(/\n/g,'<br/>')}</div></div>` : '',
+        a ? `<div class="section"><div class="sec-label">A — Assessment</div><div class="sec-body">${a.replace(/\n/g,'<br/>')}</div></div>` : '',
+        p ? `<div class="section"><div class="sec-label">P — Plan</div><div class="sec-body">${p.replace(/\n/g,'<br/>')}</div></div>` : '',
+      ].join('');
+    } else {
+      bodyContent = `<div class="sec-body">${(note.content || '').replace(/\n/g,'<br/>')}</div>`;
+    }
+    const win = window.open('', '_blank', 'width=794,height=1123');
+    win.document.write(`<!DOCTYPE html><html><head>
+      <title>Session Note — ${client.name}</title>
+      <style>
+        body{font-family:Arial,sans-serif;font-size:11px;padding:40px;color:#111;line-height:1.6}
+        .header{text-align:center;border-bottom:2px solid #333;padding-bottom:10px;margin-bottom:16px}
+        .header h1{font-size:13px;text-transform:uppercase;margin:0 0 2px}
+        .meta{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:16px;font-size:11px}
+        .meta-row{display:flex;gap:6px}.meta-label{color:#666;width:70px;flex-shrink:0}
+        .section{margin-bottom:12px;border:1px solid #e5e7eb;border-radius:4px;overflow:hidden}
+        .sec-label{background:#f3f4f6;padding:5px 10px;font-weight:bold;font-size:9px;text-transform:uppercase;color:#374151;letter-spacing:0.5px}
+        .sec-body{padding:10px;font-size:11px;line-height:1.6;min-height:32px}
+        .sig{margin-top:28px;border-top:1px solid #333;padding-top:4px;font-size:10px}
+        .footer{margin-top:20px;font-size:8px;color:#888;text-align:center;border-top:1px solid #eee;padding-top:6px}
+        @media print{body{padding:20px}}
+      </style></head><body>
+      <div class="header">
+        <h1>COUNSELING PROGRESS NOTE</h1>
+        <p>${note.note_type === 'soap' ? 'SOAP Format' : note.note_type === 'dap' ? 'DAP Format' : 'Progress Note'}</p>
+      </div>
+      <div class="meta">
+        <div class="meta-row"><span class="meta-label">Client</span><strong>${client.name}</strong></div>
+        <div class="meta-row"><span class="meta-label">Date</span><strong>${noteDateFmt}</strong></div>
+        <div class="meta-row"><span class="meta-label">IC / ID</span><span>${client.ic_number || '—'}</span></div>
+        <div class="meta-row"><span class="meta-label">Sessions</span><span>${sessions.length} total</span></div>
+      </div>
+      ${bodyContent}
+      <div class="sig"><strong>${counselorName}</strong><br/>Registered Counselor · Date: ${format(new Date(),'dd/MM/yyyy')}</div>
+      <div class="footer">STRICTLY CONFIDENTIAL — Kaunselor Platform — kaunselor.app</div>
+      <script>window.onload=function(){window.print()}</script>
+    </body></html>`);
+    win.document.close();
   };
 
   const handleUploadRecording = async (file) => {
@@ -1000,6 +1099,14 @@ export default function KaunslorClientFilePage() {
                   </div>
                 )}
               </div>
+
+              {/* Clinical Documents */}
+              <div className="pt-4 border-t space-y-3">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Clinical Documents</p>
+                <Button onClick={() => { setShowDocModal(true); setGeneratedDoc(''); setDocContext(''); }} className="w-full">
+                  📄 Generate Support Letter / Report
+                </Button>
+              </div>
             </div>
           )}
 
@@ -1009,45 +1116,66 @@ export default function KaunslorClientFilePage() {
             <div className="space-y-4">
               {/* Add note form */}
               <div className="bg-white rounded-xl border p-4 space-y-3">
-                <p className="text-sm font-semibold text-gray-700">New Note</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-gray-700">New Note</p>
+                  <div className="flex gap-1">
+                    {[['free','Free'],['soap','SOAP'],['dap','DAP']].map(([t, label]) => (
+                      <button key={t} onClick={() => setNoteType(t)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${noteType === t ? 'bg-violet-100 text-violet-700 border-violet-300' : 'text-gray-400 border-gray-200 hover:text-gray-600'}`}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <div className="flex gap-2 items-center">
                   <label className="text-xs text-gray-500 whitespace-nowrap">Date</label>
-                  <input
-                    type="date"
-                    value={noteDate}
-                    onChange={e => setNoteDate(e.target.value)}
-                    className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-violet-500"
-                  />
+                  <input type="date" value={noteDate} onChange={e => setNoteDate(e.target.value)}
+                    className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-violet-500" />
                 </div>
-                <textarea
-                  value={noteContent}
-                  onChange={e => setNoteContent(e.target.value)}
-                  rows={3}
-                  placeholder="Write client progress, observations, or follow-up actions..."
-                  className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
-                />
+
+                {noteType === 'free' && (
+                  <textarea value={noteContent} onChange={e => setNoteContent(e.target.value)} rows={3}
+                    placeholder="Write client progress, observations, or follow-up actions..."
+                    className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
+                )}
+
+                {noteType === 'soap' && (
+                  <div className="space-y-2">
+                    {[
+                      { k: 's', label: 'S — Subjective', ph: 'What the client reports: presenting issue, feelings, direct quotes...', cls: 'border-blue-200 bg-blue-50/40 focus:ring-blue-400', lblCls: 'text-blue-700' },
+                      { k: 'o', label: 'O — Objective', ph: 'Counselor observations: behavior, affect, appearance, engagement, test scores...', cls: 'border-green-200 bg-green-50/40 focus:ring-green-400', lblCls: 'text-green-700' },
+                      { k: 'a', label: 'A — Assessment', ph: 'Clinical impressions: diagnosis considerations, risk level, progress toward goals...', cls: 'border-violet-200 bg-violet-50/40 focus:ring-violet-400', lblCls: 'text-violet-700' },
+                      { k: 'p', label: 'P — Plan', ph: 'Next steps: interventions, referrals, homework, next session focus...', cls: 'border-amber-200 bg-amber-50/40 focus:ring-amber-400', lblCls: 'text-amber-700' },
+                    ].map(({ k, label, ph, cls, lblCls }) => (
+                      <div key={k}>
+                        <label className={`text-xs font-semibold mb-1 block ${lblCls}`}>{label}</label>
+                        <textarea value={soapForm[k]} onChange={e => setSoapForm(f => ({ ...f, [k]: e.target.value }))} rows={2}
+                          placeholder={ph} className={`w-full text-sm border rounded-xl px-3 py-2 focus:outline-none focus:ring-2 resize-none ${cls}`} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {noteType === 'dap' && (
+                  <div className="space-y-2">
+                    {[
+                      { k: 'd', label: 'D — Data', ph: 'Session content: topics discussed, client statements and behaviors...', cls: 'border-blue-200 bg-blue-50/40 focus:ring-blue-400', lblCls: 'text-blue-700' },
+                      { k: 'a', label: 'A — Assessment', ph: 'Clinical interpretation: patterns, themes, risk assessment, progress...', cls: 'border-violet-200 bg-violet-50/40 focus:ring-violet-400', lblCls: 'text-violet-700' },
+                      { k: 'p', label: 'P — Plan', ph: 'Next steps: therapeutic approach, referrals, client tasks, next session goals...', cls: 'border-amber-200 bg-amber-50/40 focus:ring-amber-400', lblCls: 'text-amber-700' },
+                    ].map(({ k, label, ph, cls, lblCls }) => (
+                      <div key={k}>
+                        <label className={`text-xs font-semibold mb-1 block ${lblCls}`}>{label}</label>
+                        <textarea value={dapForm[k]} onChange={e => setDapForm(f => ({ ...f, [k]: e.target.value }))} rows={2}
+                          placeholder={ph} className={`w-full text-sm border rounded-xl px-3 py-2 focus:outline-none focus:ring-2 resize-none ${cls}`} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <div className="flex justify-end">
-                  <Button
-                    size="sm"
-                    loading={savingNote}
-                    disabled={!noteContent.trim()}
-                    onClick={async () => {
-                      if (!noteContent.trim()) return;
-                      setSavingNote(true);
-                      try {
-                        const { data, error } = await supabase.from('progress_notes').insert({
-                          subject_id: id, user_id: user.id,
-                          content: noteContent.trim(), note_date: noteDate,
-                        }).select().single();
-                        if (error) throw error;
-                        setProgressNotes(prev => [data, ...prev]);
-                        setNoteContent('');
-                        setNoteDate(new Date().toISOString().slice(0, 10));
-                        toast.success('Note saved.');
-                      } catch { toast.error('Failed to save note.'); }
-                      finally { setSavingNote(false); }
-                    }}
-                  >Save Note</Button>
+                  <Button size="sm" loading={savingNote}
+                    disabled={noteType === 'free' ? !noteContent.trim() : noteType === 'soap' ? !soapForm.s.trim() : !dapForm.d.trim()}
+                    onClick={handleSaveNote}>Save Note</Button>
                 </div>
               </div>
 
@@ -1088,15 +1216,47 @@ export default function KaunslorClientFilePage() {
                       ) : (
                         <div>
                           <div className="flex items-start justify-between gap-3">
-                            <div className="flex-1">
-                              <p className="text-xs text-gray-400 mb-1">{format(parseISO(note.note_date), 'dd MMM yyyy')}</p>
-                              <p className="text-sm text-gray-800 whitespace-pre-wrap">{note.content}</p>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                                <p className="text-xs text-gray-400">{format(parseISO(note.note_date), 'dd MMM yyyy')}</p>
+                                {(note.note_type === 'soap' || note.note_type === 'dap') && (
+                                  <span className="text-xs font-semibold px-1.5 py-0.5 rounded bg-violet-100 text-violet-600">{note.note_type.toUpperCase()}</span>
+                                )}
+                              </div>
+                              {note.note_type === 'soap' && note.note_data ? (
+                                <div className="space-y-2 text-sm">
+                                  {[['s','S — Subjective'],['o','O — Objective'],['a','A — Assessment'],['p','P — Plan']].map(([k, label]) =>
+                                    note.note_data[k] ? (
+                                      <div key={k}>
+                                        <p className="text-xs font-semibold text-gray-500">{label}</p>
+                                        <p className="text-gray-800 whitespace-pre-wrap">{note.note_data[k]}</p>
+                                      </div>
+                                    ) : null
+                                  )}
+                                </div>
+                              ) : note.note_type === 'dap' && note.note_data ? (
+                                <div className="space-y-2 text-sm">
+                                  {[['d','D — Data'],['a','A — Assessment'],['p','P — Plan']].map(([k, label]) =>
+                                    note.note_data[k] ? (
+                                      <div key={k}>
+                                        <p className="text-xs font-semibold text-gray-500">{label}</p>
+                                        <p className="text-gray-800 whitespace-pre-wrap">{note.note_data[k]}</p>
+                                      </div>
+                                    ) : null
+                                  )}
+                                </div>
+                              ) : (
+                                <p className="text-sm text-gray-800 whitespace-pre-wrap">{note.content}</p>
+                              )}
                             </div>
                             <div className="flex gap-1 flex-shrink-0">
-                              <button
-                                onClick={() => { setEditingNote(note.id); setEditNoteContent(note.content); }}
-                                className="text-xs text-gray-400 hover:text-blue-600 px-2 py-1 rounded hover:bg-blue-50 transition-colors"
-                              >Edit</button>
+                              {(note.note_type === 'soap' || note.note_type === 'dap') ? (
+                                <button onClick={() => handlePrintNote(note)}
+                                  className="text-xs text-violet-600 hover:text-violet-800 px-2 py-1 rounded hover:bg-violet-50 transition-colors">Print</button>
+                              ) : (
+                                <button onClick={() => { setEditingNote(note.id); setEditNoteContent(note.content); }}
+                                  className="text-xs text-gray-400 hover:text-blue-600 px-2 py-1 rounded hover:bg-blue-50 transition-colors">Edit</button>
+                              )}
                               <button
                                 onClick={async () => {
                                   if (!window.confirm('Delete this note?')) return;
@@ -1520,6 +1680,104 @@ export default function KaunslorClientFilePage() {
                 scores={viewingResult.scores}
                 interpretation={viewingResult.interpretation}
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Document Generation Modal */}
+      {showDocModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b flex-shrink-0">
+              <h3 className="text-lg font-semibold text-gray-900">Generate Clinical Document</h3>
+              <button onClick={() => setShowDocModal(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+            </div>
+            <div className="overflow-y-auto flex-1 p-6 space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block">Document Type</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    ['employment','💼 Employment Support Letter'],
+                    ['court','⚖️ Court Support Letter'],
+                    ['school','🎓 Academic Support Letter'],
+                    ['insurance','📊 Insurance Progress Report'],
+                  ].map(([t, label]) => (
+                    <button key={t} onClick={() => setDocType(t)}
+                      className={`p-3 rounded-xl border-2 text-left text-sm font-medium transition-all ${docType === t ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-gray-200 hover:border-violet-200 text-gray-700'}`}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+                  Additional Context <span className="text-gray-300 font-normal normal-case">(optional)</span>
+                </label>
+                <textarea value={docContext} onChange={e => setDocContext(e.target.value)} rows={3}
+                  placeholder="e.g. Client needs letter for employer regarding anxiety leave; return to work planned next month..."
+                  className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
+              </div>
+              {!generatedDoc && (
+                <Button loading={generatingDoc} onClick={async () => {
+                  setGeneratingDoc(true);
+                  try {
+                    const counselorName = user?.user_metadata?.full_name || 'Registered Counselor';
+                    const lastSess = sessions[0];
+                    const firstSess = sessions[sessions.length - 1];
+                    const result = await generateDocument({
+                      letter_type: docType,
+                      client_name: client.name,
+                      client_ic: client.ic_number || '',
+                      presenting_issue: client.presenting_issue || '',
+                      counselor_name: counselorName,
+                      context: docContext,
+                      session_count: sessions.length,
+                      date_first: firstSess ? format(parseISO(firstSess.created_at), 'dd MMMM yyyy') : '',
+                      date_last: lastSess ? format(parseISO(lastSess.created_at), 'dd MMMM yyyy') : '',
+                    });
+                    setGeneratedDoc(result.letter || '');
+                  } catch (err) {
+                    toast.error(err.message || 'Failed to generate document.');
+                  } finally { setGeneratingDoc(false); }
+                }} className="w-full bg-violet-600 hover:bg-violet-700">
+                  ✦ Generate with AI
+                </Button>
+              )}
+              {generatedDoc && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Generated Document</label>
+                    <button onClick={() => setGeneratedDoc('')} className="text-xs text-gray-400 hover:text-gray-600">↺ Regenerate</button>
+                  </div>
+                  <textarea value={generatedDoc} onChange={e => setGeneratedDoc(e.target.value)} rows={12}
+                    className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none font-mono" />
+                  <Button className="w-full" onClick={() => {
+                    const docLabels = { employment: 'Employment Support Letter', court: 'Court Support Letter', school: 'Academic Support Letter', insurance: 'Insurance Progress Report' };
+                    const win = window.open('', '_blank', 'width=794,height=1123');
+                    win.document.write(`<!DOCTYPE html><html><head>
+                      <title>${docLabels[docType]||'Clinical Document'} — ${client.name}</title>
+                      <style>
+                        body{font-family:Arial,sans-serif;font-size:11.5px;padding:50px;color:#111;line-height:1.8;max-width:720px;margin:0 auto}
+                        .header{text-align:center;border-bottom:2px solid #333;padding-bottom:12px;margin-bottom:24px}
+                        .header h1{font-size:14px;text-transform:uppercase;margin:0 0 2px;letter-spacing:0.5px}
+                        .header p{font-size:10px;color:#555;margin:0}
+                        pre{font-family:Arial,sans-serif;white-space:pre-wrap;font-size:11.5px;line-height:1.8;margin:0}
+                        .footer{margin-top:30px;font-size:8px;color:#888;text-align:center;border-top:1px solid #eee;padding-top:8px}
+                        @media print{body{padding:25px}}
+                      </style></head><body>
+                      <div class="header">
+                        <h1>Counseling Unit — ${docLabels[docType]||'Clinical Document'}</h1>
+                        <p>kaunselor.app · STRICTLY CONFIDENTIAL</p>
+                      </div>
+                      <pre>${generatedDoc.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>
+                      <div class="footer">STRICTLY CONFIDENTIAL — Kaunselor Platform — kaunselor.app — ${format(new Date(),'dd/MM/yyyy HH:mm')}</div>
+                      <script>window.onload=function(){window.print()}</script>
+                    </body></html>`);
+                    win.document.close();
+                  }}>🖨 Print / Save as PDF</Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
