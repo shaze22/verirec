@@ -11,6 +11,7 @@ import { importFromStoragePath, pollDiarization } from '../../api/whisper.js';
 import { generateReport } from '../../api/claude.js';
 import { updateSession } from '../../api/sessions.js';
 import toast from 'react-hot-toast';
+import { ASSESSMENTS, ASSESSMENT_LIST, BADGE_COLORS } from '../../data/assessments.js';
 
 const PROBLEM_TYPES = [
   'Emotional', 'Social Relationships', 'Career Development', 'Family/Home',
@@ -69,6 +70,11 @@ export default function KaunslorClientFilePage() {
   const [transcribingRec, setTranscribingRec] = useState(null); // rec currently being processed
   const [transcribeStep, setTranscribeStep] = useState(''); // creating|transcribing|generating|done
   const [transcribeDetail, setTranscribeDetail] = useState('');
+  const [clientAssessments, setClientAssessments] = useState([]);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [assignTestType, setAssignTestType] = useState('phq9');
+  const [assigning, setAssigning] = useState(false);
+  const [viewingResult, setViewingResult] = useState(null);
 
   useEffect(() => {
     if (!user) return;
@@ -103,6 +109,14 @@ export default function KaunslorClientFilePage() {
     supabase.from('team_members').select('email, role')
       .eq('status', 'active')
       .then(({ data }) => setTeamMembers(data || []));
+
+    // Fetch assessments assigned to this client
+    supabase.from('client_assessments')
+      .select('*')
+      .eq('subject_id', id)
+      .eq('user_id', user.id)
+      .order('assigned_at', { ascending: false })
+      .then(({ data }) => setClientAssessments(data || []));
   }, [id, user]);
 
   // Resolve signed URLs lazily when user opens Sessions or Recordings tab
@@ -143,20 +157,7 @@ export default function KaunslorClientFilePage() {
   };
 
   const startNewSession = () => {
-    const today = new Date().toISOString().slice(0, 10);
-    const todayAppt = appointments.find(a =>
-      a.status === 'confirmed' && a.confirmed_date === today
-    );
-    sessionStorage.setItem('session_setup', JSON.stringify({
-      profession: 'counselor',
-      subject_name: client.name,
-      subject_id: client.id,
-      interviewer: user?.user_metadata?.full_name || '',
-      title: `Session ${sessions.length + 1} — ${client.name}`,
-      context_notes: client.presenting_issue || todayAppt?.presenting_issue || '',
-      appointment_id: todayAppt?.id || null,
-    }));
-    navigate('/session/consent');
+    navigate(`/kaunselor/clients/${id}/upload-session`);
   };
 
   const updateRiskLevel = async (risk_level) => {
@@ -440,18 +441,19 @@ export default function KaunslorClientFilePage() {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white border-b">
-          <div className="grid grid-cols-6">
+        <div className="bg-white border-b overflow-x-auto">
+          <div className="flex min-w-max">
             {[
               { id: 'overview',     label: 'Overview' },
               { id: 'sessions',     label: `Sessions (${sessions.length})` },
               { id: 'appointments', label: `Appts (${appointments.length})` },
               { id: 'plans',        label: `Plans (${actionPlans.length + referrals.length})` },
               { id: 'notes',        label: `Notes (${progressNotes.length})` },
+              { id: 'assessments',  label: `Assessments (${clientAssessments.length})` },
               { id: 'recordings',   label: `Recordings (${clientRecordings.length})` },
             ].map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
-                className={`py-2.5 text-sm font-medium border-b-2 text-center transition-colors ${tab === t.id ? 'border-violet-600 text-violet-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+                className={`py-2.5 px-4 text-sm font-medium border-b-2 whitespace-nowrap transition-colors flex-shrink-0 ${tab === t.id ? 'border-violet-600 text-violet-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
                 {t.label}
               </button>
             ))}
@@ -1118,6 +1120,89 @@ export default function KaunslorClientFilePage() {
             </div>
           )}
 
+          {/* ── ASSESSMENTS TAB ── */}
+          {tab === 'assessments' && (
+            <div className="space-y-4">
+              <Button onClick={() => setShowAssignModal(true)} className="w-full bg-violet-600 hover:bg-violet-700">
+                + Assign New Assessment
+              </Button>
+
+              {clientAssessments.length === 0 ? (
+                <div className="text-center py-12 text-gray-400">
+                  <div className="text-4xl mb-3">📋</div>
+                  <p className="text-sm">No assessments assigned yet.</p>
+                  <p className="text-xs mt-1 text-gray-300">Assign a test to get a shareable link for the client.</p>
+                </div>
+              ) : clientAssessments.map(a => {
+                const test = ASSESSMENTS[a.test_type];
+                const isExpired = new Date(a.expires_at) < new Date();
+                const statusColor = a.status === 'completed' ? 'bg-green-100 text-green-700' : isExpired ? 'bg-gray-100 text-gray-500' : 'bg-amber-100 text-amber-700';
+                const statusLabel = a.status === 'completed' ? 'Completed' : isExpired ? 'Expired' : 'Pending';
+                const link = `${window.location.origin}/assess/${a.token}`;
+                let interpretation = null;
+                try { if (a.interpretation) interpretation = JSON.parse(a.interpretation); } catch {}
+
+                return (
+                  <div key={a.id} className="bg-white rounded-xl border p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-semibold border ${BADGE_COLORS[test?.badgeColor] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
+                            {test?.name || a.test_type}
+                          </span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor}`}>
+                            {statusLabel}
+                          </span>
+                        </div>
+                        <p className="text-sm font-medium text-gray-900">{test?.fullName || a.test_type}</p>
+                        <p className="text-xs text-gray-400">
+                          Assigned {format(parseISO(a.assigned_at), 'dd MMM yyyy')}
+                          {a.completed_at && ` · Completed ${format(parseISO(a.completed_at), 'dd MMM yyyy')}`}
+                        </p>
+                      </div>
+                      {a.status === 'completed' && interpretation && (
+                        <button
+                          onClick={() => setViewingResult({ assignment: a, test, interpretation, scores: a.scores })}
+                          className="text-xs text-violet-600 border border-violet-200 rounded-lg px-2.5 py-1 hover:bg-violet-50 transition-colors flex-shrink-0"
+                        >
+                          View Results
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Score summary for completed */}
+                    {a.status === 'completed' && a.scores && (
+                      <div className="bg-gray-50 rounded-lg px-3 py-2 text-xs text-gray-600">
+                        {a.test_type === 'phq9' && `PHQ-9 Score: ${a.scores.total}/27`}
+                        {a.test_type === 'gad7' && `GAD-7 Score: ${a.scores.total}/21`}
+                        {a.test_type === 'dass21' && `Depression: ${a.scores.depression} · Anxiety: ${a.scores.anxiety} · Stress: ${a.scores.stress}`}
+                        {a.test_type === 'riasec' && interpretation && `Holland Code: ${interpretation.topCode}`}
+                        {a.test_type === 'tipi' && 'Big Five profile — click View Results'}
+                      </div>
+                    )}
+
+                    {/* Copy link for pending */}
+                    {a.status === 'pending' && !isExpired && (
+                      <div className="flex items-center gap-2">
+                        <input
+                          readOnly
+                          value={link}
+                          className="flex-1 text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5 text-gray-500 font-mono truncate"
+                        />
+                        <button
+                          onClick={() => { navigator.clipboard.writeText(link); toast.success('Link copied!'); }}
+                          className="text-xs text-violet-600 border border-violet-200 rounded-lg px-2.5 py-1.5 hover:bg-violet-50 transition-colors whitespace-nowrap flex-shrink-0"
+                        >
+                          Copy Link
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           {/* ── RECORDINGS TAB ── */}
           {tab === 'recordings' && (
             <div className="space-y-4">
@@ -1351,6 +1436,95 @@ export default function KaunslorClientFilePage() {
         </div>
       </div>
 
+      {/* ── Assign Assessment Modal ── */}
+      {showAssignModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-5">
+            <h3 className="text-lg font-semibold text-gray-900">Assign Assessment</h3>
+            <div className="space-y-2">
+              {ASSESSMENT_LIST.map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => setAssignTestType(t.id)}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 text-left transition-all ${
+                    assignTestType === t.id ? 'border-violet-500 bg-violet-50' : 'border-gray-200 hover:border-violet-200'
+                  }`}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-semibold border ${BADGE_COLORS[t.badgeColor]}`}>
+                        {t.name}
+                      </span>
+                      <span className="text-xs text-gray-400">~{t.minutes} min</span>
+                    </div>
+                    <p className="text-sm text-gray-700 truncate">{t.fullName}</p>
+                    <p className="text-xs text-gray-400">{t.description}</p>
+                  </div>
+                  {assignTestType === t.id && (
+                    <div className="w-5 h-5 rounded-full bg-violet-500 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-gray-400">
+              A secure link will be generated. The client can take the test on their phone or computer without logging in. Link expires in 14 days.
+            </p>
+            <div className="flex gap-3">
+              <Button variant="secondary" className="flex-1" onClick={() => setShowAssignModal(false)}>Cancel</Button>
+              <Button
+                className="flex-1 bg-violet-600 hover:bg-violet-700"
+                loading={assigning}
+                onClick={async () => {
+                  setAssigning(true);
+                  try {
+                    const { data, error } = await supabase.from('client_assessments').insert({
+                      user_id: user.id,
+                      subject_id: id,
+                      subject_name: client.name,
+                      test_type: assignTestType,
+                    }).select().single();
+                    if (error) throw error;
+                    setClientAssessments(prev => [data, ...prev]);
+                    setShowAssignModal(false);
+                    toast.success('Assessment assigned! Copy the link to send to client.');
+                    setTab('assessments');
+                  } catch { toast.error('Failed to assign assessment.'); }
+                  finally { setAssigning(false); }
+                }}
+              >
+                Assign & Get Link
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── View Assessment Result Modal ── */}
+      {viewingResult && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b flex-shrink-0">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">{viewingResult.test?.name} Results</h3>
+                <p className="text-xs text-gray-400">{client?.name} · {format(parseISO(viewingResult.assignment.completed_at), 'dd MMM yyyy')}</p>
+              </div>
+              <button onClick={() => setViewingResult(null)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+            </div>
+            <div className="overflow-y-auto flex-1 p-6 space-y-4">
+              <AssessmentResultDetail
+                test={viewingResult.test}
+                scores={viewingResult.scores}
+                interpretation={viewingResult.interpretation}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Team Referral Modal */}
       {showTeamReferral && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -1421,4 +1595,113 @@ export default function KaunslorClientFilePage() {
       )}
     </div>
   );
+}
+
+function AssessmentResultDetail({ test, scores, interpretation }) {
+  if (!test || !scores || !interpretation) return null;
+
+  const levelColor = {
+    green:  'text-green-700 bg-green-50',
+    yellow: 'text-yellow-700 bg-yellow-50',
+    orange: 'text-orange-700 bg-orange-50',
+    red:    'text-red-700 bg-red-50',
+  };
+
+  if (test.id === 'phq9') return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-gray-600">Total Score</span>
+        <span className="text-2xl font-black text-gray-900">{scores.total}<span className="text-sm font-normal text-gray-400">/27</span></span>
+      </div>
+      <div className="w-full bg-gray-100 rounded-full h-3">
+        <div className="bg-violet-500 h-3 rounded-full" style={{ width: `${(scores.total / 27) * 100}%` }} />
+      </div>
+      <div className={`rounded-xl px-4 py-3 ${levelColor[interpretation.color] || 'bg-gray-50 text-gray-700'}`}>
+        <p className="font-semibold">{interpretation.level}</p>
+        <p className="text-xs mt-0.5">{interpretation.note}</p>
+      </div>
+    </div>
+  );
+
+  if (test.id === 'gad7') return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-gray-600">Total Score</span>
+        <span className="text-2xl font-black text-gray-900">{scores.total}<span className="text-sm font-normal text-gray-400">/21</span></span>
+      </div>
+      <div className="w-full bg-gray-100 rounded-full h-3">
+        <div className="bg-violet-500 h-3 rounded-full" style={{ width: `${(scores.total / 21) * 100}%` }} />
+      </div>
+      <div className={`rounded-xl px-4 py-3 ${levelColor[interpretation.color] || 'bg-gray-50 text-gray-700'}`}>
+        <p className="font-semibold">{interpretation.level}</p>
+        <p className="text-xs mt-0.5">{interpretation.note}</p>
+      </div>
+    </div>
+  );
+
+  if (test.id === 'dass21') return (
+    <div className="space-y-3">
+      {[['depression','Depression',42],['anxiety','Anxiety',42],['stress','Stress',42]].map(([k, label, max]) => (
+        <div key={k} className="bg-gray-50 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-semibold text-gray-700">{label}</span>
+            <span className="text-lg font-bold text-gray-900">{interpretation[k]?.score}<span className="text-xs font-normal text-gray-400">/{max}</span></span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+            <div className="bg-violet-500 h-2 rounded-full" style={{ width: `${((interpretation[k]?.score || 0) / max) * 100}%` }} />
+          </div>
+          <span className="text-xs font-medium text-gray-500">{interpretation[k]?.level}</span>
+        </div>
+      ))}
+    </div>
+  );
+
+  if (test.id === 'riasec') return (
+    <div className="space-y-4">
+      <div className="text-center bg-violet-50 rounded-xl p-4">
+        <p className="text-xs text-gray-500 mb-1">Holland Code</p>
+        <p className="text-4xl font-black text-violet-600 tracking-widest">{interpretation.topCode}</p>
+      </div>
+      <div className="space-y-2">
+        {interpretation.sorted.map(([k, v]) => (
+          <div key={k} className="flex items-center gap-3">
+            <span className="w-4 text-xs font-bold text-violet-600">{k}</span>
+            <div className="flex-1 bg-gray-100 rounded-full h-2">
+              <div className="bg-violet-500 h-2 rounded-full" style={{ width: `${(v / 30) * 100}%` }} />
+            </div>
+            <span className="text-xs text-gray-500 w-6 text-right">{v}</span>
+          </div>
+        ))}
+      </div>
+      <div className="space-y-1 text-xs text-gray-600">
+        {interpretation.sorted.slice(0, 3).map(([k]) => (
+          <p key={k}><strong className="text-violet-700">{k}:</strong> {interpretation.desc?.[k]}</p>
+        ))}
+      </div>
+    </div>
+  );
+
+  if (test.id === 'tipi') {
+    const labels = { extraversion: 'Extraversion', agreeableness: 'Agreeableness', conscientiousness: 'Conscientiousness', emotionalStability: 'Emotional Stability', openness: 'Openness' };
+    return (
+      <div className="space-y-3">
+        {Object.entries(interpretation).map(([key, val]) => (
+          <div key={key} className="bg-gray-50 rounded-xl p-3">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-sm font-medium text-gray-700">{labels[key]}</span>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${val.level === 'High' ? 'bg-violet-100 text-violet-700' : val.level === 'Moderate' ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-600'}`}>
+                {val.level} ({val.score})
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-1.5 mb-1.5">
+              <div className="bg-violet-500 h-1.5 rounded-full" style={{ width: `${((val.score - 1) / 6) * 100}%` }} />
+            </div>
+            <p className="text-xs text-gray-500">{val.desc}</p>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return null;
 }

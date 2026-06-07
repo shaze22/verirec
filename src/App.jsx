@@ -35,6 +35,7 @@ const AudioLibraryPage      = lazy(() => import('./pages/AudioLibraryPage.jsx'))
 const NotFoundPage          = lazy(() => import('./pages/NotFoundPage.jsx'));
 const LogoutPage            = lazy(() => import('./pages/LogoutPage.jsx'));
 const SharedReportPage      = lazy(() => import('./pages/SharedReportPage.jsx'));
+const PublicAssessmentPage  = lazy(() => import('./pages/PublicAssessmentPage.jsx'));
 const QuestionTemplatesPage   = lazy(() => import('./pages/QuestionTemplatesPage.jsx'));
 const ImportSessionPage       = lazy(() => import('./pages/ImportSessionPage.jsx'));
 const SchedulePage            = lazy(() => import('./pages/SchedulePage.jsx'));
@@ -44,6 +45,7 @@ const KaunslorAppointmentsPage = lazy(() => import('./pages/kaunselor/KaunslorAp
 const KaunslorClientsPage     = lazy(() => import('./pages/kaunselor/KaunslorClientsPage.jsx'));
 const KaunslorClientFilePage  = lazy(() => import('./pages/kaunselor/KaunslorClientFilePage.jsx'));
 const KaunslorCalendarPage    = lazy(() => import('./pages/kaunselor/KaunslorCalendarPage.jsx'));
+const KaunslorUploadSessionPage = lazy(() => import('./pages/kaunselor/KaunslorUploadSessionPage.jsx'));
 const CounselorLandingPage    = lazy(() => import('./pages/CounselorLandingPage.jsx'));
 
 function PageTracker() {
@@ -272,6 +274,9 @@ export default function App() {
               {/* Public shared report — no auth required */}
               <Route path="/laporan/:token" element={<SharedReportPage />} />
 
+              {/* Public assessment — no auth required */}
+              <Route path="/assess/:token" element={<PublicAssessmentPage />} />
+
               {/* Public booking — no auth required */}
               <Route path="/book/:code" element={<PublicBookingPage />} />
 
@@ -281,6 +286,7 @@ export default function App() {
               <Route path="/kaunselor/calendar" element={<ProtectedRoute><AppLayout><KaunslorCalendarPage /></AppLayout></ProtectedRoute>} />
               <Route path="/kaunselor/clients" element={<ProtectedRoute><AppLayout><KaunslorClientsPage /></AppLayout></ProtectedRoute>} />
               <Route path="/kaunselor/clients/:id" element={<ProtectedRoute><AppLayout><KaunslorClientFilePage /></AppLayout></ProtectedRoute>} />
+              <Route path="/kaunselor/clients/:id/upload-session" element={<ProtectedRoute><AppLayout><KaunslorUploadSessionPage /></AppLayout></ProtectedRoute>} />
 
               {/* Session flow — full screen, no sidebar/nav */}
               <Route path="/session/consent" element={

@@ -323,7 +323,7 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - "Appointments" shortened to "Appts" in grid to fit cleanly
 - New Session bug fixed: `navigate('/session/setup/counselor')` → `navigate('/session/consent')` — ProfessionalRoute was blocking /session/setup on counselor subdomain
 
-**Latest deploy:** commit `bb80c18` — 2026-06-05
+**Latest deploy:** commit `bb80c18` — 2026-06-05 (Fasa 1+2 deployed via Vercel CLI, uncommitted locally)
 
 **Generate Memo fix (commit `512d2a5` — 2026-06-03):**
 - Regression from tab merge: "🖨 Memo" button was dropped from referral cards in Plans tab
@@ -419,6 +419,35 @@ www.verirec.app/**, counselor.verirec.app/**, kaunselor.app/**, www.kaunselor.ap
 - **PWA precache:** 2.2MB (86 entries) → **157kB (20 entries)** — removed all JS chunks from globPatterns; JS now uses StaleWhileRevalidate at runtime
 - **Sentry deferred:** `main.jsx` uses `requestIdleCallback(() => import('@sentry/react'))` — no longer blocks initial render
 - **QRCode lazy:** `KaunslorAppointmentsPage` static import → dynamic `import('qrcode')` inside useEffect
+
+## Features Baru (2026-06-07 — Fasa 1 + Fasa 2)
+
+**Fasa 1 — Upload-based Session Workflow:**
+- `src/pages/kaunselor/KaunslorUploadSessionPage.jsx` (NEW) — `/kaunselor/clients/:id/upload-session`
+- Replaces live browser recording for counselors (was unreliable)
+- Two modes: "Upload Audio Recording" (MP3/M4A/WAV → Supabase → AssemblyAI diarize) and "Import Transcript (.txt)" (Plaud Note format)
+- `.txt` parser: `/^([A-Za-z][A-Za-z\s]{0,25}):\s+(.+)/` detects "Speaker: text" lines
+- Step progress UI: uploading → transcribing → generating → done
+- `KaunslorClientFilePage`: `startNewSession()` now navigates to `/kaunselor/clients/:id/upload-session`
+- Route added in `App.jsx`: protected, wrapped in AppLayout
+
+**Fasa 2 — Psychology Assessment System:**
+- `src/data/assessments.js` (NEW) — 5 test definitions, all public domain / free for clinical use:
+  - PHQ-9 (9Q, depression severity, score 0-27)
+  - GAD-7 (7Q, anxiety severity, score 0-21)
+  - DASS-21 (21Q, depression+anxiety+stress, 3 subscales)
+  - RIASEC (36Q, Holland career interest, 6 dimensions)
+  - TIPI/Big Five (10Q, personality, 5 dimensions with reverse-scoring)
+- `src/pages/PublicAssessmentPage.jsx` (NEW) — `/assess/:token` — no auth required
+  - Uses `supabaseAnon` (anon key + RLS)
+  - Client-side scoring — all `score()` + `interpret()` in browser, results stored in DB
+  - Question-by-question nav + numbered dot overview
+- `KaunslorClientFilePage`: new "Assessments" tab (7th tab, flex overflow-x-auto)
+  - Assign modal: select test → creates `client_assessments` row with 40-char hex token
+  - Copy shareable link → send to client (no login required)
+  - View results: scores + interpretation inline
+- Supabase: `client_assessments` table with RLS (owner all, anon read by token, anon update pending→completed)
+- No new API functions added — stays at 12/12 Vercel limit
 
 ## Hobby Plan — 12 Serverless Functions (HARD LIMIT)
 Jangan tambah function baru tanpa remove/merge yang lain dulu.
@@ -596,6 +625,12 @@ Frontend hantar `window.location.origin` — jangan hardcode `VITE_APP_URL`.
 
 **4. `toFormBody()` mesti preserve `{}`**
 Replace `%7B/%7D` balik ke `{}` supaya Stripe template vars berfungsi.
+
+**5. FPX payment — pending MYR prices (2026-06-06)**
+- FPX enabled dalam Stripe dashboard ✅
+- `stripe-checkout.js` dah guna `automatic_payment_methods[enabled]: true` (commit ccd06f1) — no longer hardcodes `card` only
+- FPX requires MYR currency — current prices are USD. FPX akan muncul otomatik bila MYR prices dibuat dalam Stripe dan dipilih
+- FPX tidak support recurring subscriptions — boleh untuk top-up (payment mode) sahaja
 
 ## Email Domain (verirec.app)
 - FROM: `noreply@verirec.app` dalam `api/_mailer.js`
