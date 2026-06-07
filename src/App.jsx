@@ -36,6 +36,7 @@ const NotFoundPage          = lazy(() => import('./pages/NotFoundPage.jsx'));
 const LogoutPage            = lazy(() => import('./pages/LogoutPage.jsx'));
 const SharedReportPage      = lazy(() => import('./pages/SharedReportPage.jsx'));
 const PublicAssessmentPage  = lazy(() => import('./pages/PublicAssessmentPage.jsx'));
+const PublicIntakePage      = lazy(() => import('./pages/PublicIntakePage.jsx'));
 const QuestionTemplatesPage   = lazy(() => import('./pages/QuestionTemplatesPage.jsx'));
 const ImportSessionPage       = lazy(() => import('./pages/ImportSessionPage.jsx'));
 const SchedulePage            = lazy(() => import('./pages/SchedulePage.jsx'));
@@ -276,6 +277,9 @@ export default function App() {
 
               {/* Public assessment — no auth required */}
               <Route path="/assess/:token" element={<PublicAssessmentPage />} />
+
+              {/* Public intake form — no auth required */}
+              <Route path="/intake/:token" element={<PublicIntakePage />} />
 
               {/* Public booking — no auth required */}
               <Route path="/book/:code" element={<PublicBookingPage />} />

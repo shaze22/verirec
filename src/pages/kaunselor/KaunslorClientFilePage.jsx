@@ -83,6 +83,12 @@ export default function KaunslorClientFilePage() {
   const [docContext, setDocContext] = useState('');
   const [generatingDoc, setGeneratingDoc] = useState(false);
   const [generatedDoc, setGeneratedDoc] = useState('');
+  // Fasa 4
+  const [clientIntakeForms, setClientIntakeForms] = useState([]);
+  const [homework, setHomework] = useState([]);
+  const [showAddHomework, setShowAddHomework] = useState(false);
+  const [homeworkForm, setHomeworkForm] = useState({ title: '', description: '', due_date: '' });
+  const [savingHomework, setSavingHomework] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -125,6 +131,21 @@ export default function KaunslorClientFilePage() {
       .eq('user_id', user.id)
       .order('assigned_at', { ascending: false })
       .then(({ data }) => setClientAssessments(data || []));
+
+    // Fasa 4 — intake forms and homework
+    supabase.from('client_intake_forms')
+      .select('*')
+      .eq('subject_id', id)
+      .eq('user_id', user.id)
+      .order('assigned_at', { ascending: false })
+      .then(({ data }) => setClientIntakeForms(data || []));
+
+    supabase.from('client_homework')
+      .select('*')
+      .eq('subject_id', id)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => setHomework(data || []));
   }, [id, user]);
 
   // Resolve signed URLs lazily when user opens Sessions or Recordings tab
@@ -549,6 +570,8 @@ export default function KaunslorClientFilePage() {
               { id: 'plans',        label: `Plans (${actionPlans.length + referrals.length})` },
               { id: 'notes',        label: `Notes (${progressNotes.length})` },
               { id: 'assessments',  label: `Assessments (${clientAssessments.length})` },
+              { id: 'homework',     label: `Homework (${homework.length})` },
+              { id: 'intake',       label: `Intake` },
               { id: 'recordings',   label: `Recordings (${clientRecordings.length})` },
             ].map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
@@ -1593,8 +1616,232 @@ export default function KaunslorClientFilePage() {
               )}
             </div>
           )}
+
+          {/* ── HOMEWORK TAB ── */}
+          {tab === 'homework' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-gray-900">Assigned Homework</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">Tasks for the client to work on between sessions</p>
+                </div>
+                <Button size="sm" onClick={() => { setHomeworkForm({ title: '', description: '', due_date: '' }); setShowAddHomework(true); }}>+ Add Task</Button>
+              </div>
+
+              {homework.length === 0 ? (
+                <div className="text-center py-12 text-gray-400">
+                  <div className="text-4xl mb-3">📝</div>
+                  <p className="text-sm">No homework assigned yet.</p>
+                  <p className="text-xs mt-1">Assign tasks for the client to work on between sessions.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {homework.map(hw => (
+                    <div key={hw.id} className={`bg-white rounded-xl border p-4 ${hw.status === 'completed' ? 'opacity-70' : ''}`}>
+                      <div className="flex items-start gap-3">
+                        <button
+                          onClick={async () => {
+                            const newStatus = hw.status === 'completed' ? 'pending' : 'completed';
+                            await supabase.from('client_homework').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', hw.id);
+                            setHomework(prev => prev.map(h => h.id === hw.id ? { ...h, status: newStatus } : h));
+                          }}
+                          className={`mt-0.5 w-5 h-5 rounded border-2 flex-shrink-0 flex items-center justify-center transition-colors ${
+                            hw.status === 'completed' ? 'bg-violet-500 border-violet-500' : 'border-gray-300 hover:border-violet-400'
+                          }`}
+                        >
+                          {hw.status === 'completed' && (
+                            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </button>
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-medium text-sm ${hw.status === 'completed' ? 'line-through text-gray-400' : 'text-gray-900'}`}>{hw.title}</p>
+                          {hw.description && <p className="text-xs text-gray-500 mt-0.5">{hw.description}</p>}
+                          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                            {hw.due_date && (
+                              <span className="text-xs text-gray-400">Due: {format(new Date(hw.due_date + 'T00:00:00'), 'dd MMM yyyy')}</span>
+                            )}
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                              hw.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                            }`}>
+                              {hw.status === 'completed' ? '✓ Completed' : 'Pending'}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={async () => {
+                            await supabase.from('client_homework').delete().eq('id', hw.id);
+                            setHomework(prev => prev.filter(h => h.id !== hw.id));
+                            toast.success('Task removed.');
+                          }}
+                          className="text-xs text-gray-300 hover:text-red-400 transition-colors flex-shrink-0 px-1 py-0.5"
+                        >Delete</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── INTAKE TAB ── */}
+          {tab === 'intake' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-gray-900">Digital Intake Form</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">Send a secure link for the client to fill digitally</p>
+                </div>
+                <Button size="sm" onClick={async () => {
+                  try {
+                    const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+                    const { data, error } = await supabase.from('client_intake_forms').insert({
+                      user_id: user.id,
+                      subject_id: id,
+                      subject_name: client.name,
+                      expires_at: expiresAt,
+                    }).select().single();
+                    if (error) throw error;
+                    setClientIntakeForms(prev => [data, ...prev]);
+                    toast.success('Intake form link created! Copy and send to client.');
+                  } catch { toast.error('Failed to create intake form.'); }
+                }}>+ New Intake Link</Button>
+              </div>
+
+              {clientIntakeForms.length === 0 ? (
+                <div className="text-center py-12 text-gray-400">
+                  <div className="text-4xl mb-3">📋</div>
+                  <p className="text-sm">No intake forms sent yet.</p>
+                  <p className="text-xs mt-1">Create a link and share with the client before their first session.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {clientIntakeForms.map(intake => {
+                    const link = `${window.location.origin}/intake/${intake.token}`;
+                    const isExpired = new Date(intake.expires_at) < new Date();
+                    return (
+                      <div key={intake.id} className="bg-white rounded-xl border p-4 space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                                intake.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                isExpired ? 'bg-gray-100 text-gray-500' : 'bg-amber-100 text-amber-700'
+                              }`}>
+                                {intake.status === 'completed' ? '✓ Completed' : isExpired ? 'Expired' : 'Pending'}
+                              </span>
+                              <span className="text-xs text-gray-400">
+                                {format(parseISO(intake.assigned_at), 'dd MMM yyyy')}
+                              </span>
+                            </div>
+                            {intake.completed_at && (
+                              <p className="text-xs text-gray-400 mt-1">Completed {format(parseISO(intake.completed_at), 'dd MMM yyyy, HH:mm')}</p>
+                            )}
+                            {!isExpired && intake.status !== 'completed' && (
+                              <p className="text-xs text-gray-400 mt-1">Expires {format(parseISO(intake.expires_at), 'dd MMM yyyy')}</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {intake.status !== 'completed' && !isExpired && (
+                          <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+                            <p className="text-xs text-gray-500 flex-1 truncate font-mono">{link}</p>
+                            <button
+                              onClick={() => { navigator.clipboard.writeText(link); toast.success('Link copied!'); }}
+                              className="text-xs text-violet-600 hover:text-violet-800 font-medium flex-shrink-0 px-2 py-1 rounded hover:bg-violet-50 transition-colors"
+                            >Copy</button>
+                          </div>
+                        )}
+
+                        {intake.status === 'completed' && intake.form_answers && (
+                          <IntakeResponseView
+                            answers={intake.form_answers}
+                            onApply={async (fields) => {
+                              try {
+                                const { error } = await supabase.from('subjects').update({ ...fields, updated_at: new Date().toISOString() }).eq('id', id);
+                                if (error) throw error;
+                                setClient(c => ({ ...c, ...fields }));
+                                setEditForm(f => ({ ...f, ...fields }));
+                                toast.success('Client profile updated from intake responses.');
+                              } catch { toast.error('Failed to update profile.'); }
+                            }}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
         </div>
       </div>
+
+      {/* ── Add Homework Modal ── */}
+      {showAddHomework && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">Add Homework Task</h3>
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block font-medium uppercase tracking-wide">Task Title *</label>
+              <input
+                type="text"
+                value={homeworkForm.title}
+                onChange={e => setHomeworkForm(f => ({ ...f, title: e.target.value }))}
+                placeholder="e.g. Daily mood journaling, Breathing exercise..."
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block font-medium uppercase tracking-wide">Instructions / Details</label>
+              <textarea
+                value={homeworkForm.description}
+                onChange={e => setHomeworkForm(f => ({ ...f, description: e.target.value }))}
+                rows={3}
+                placeholder="Describe what the client should do, how often, etc."
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block font-medium uppercase tracking-wide">Due Date (optional)</label>
+              <input
+                type="date"
+                value={homeworkForm.due_date}
+                onChange={e => setHomeworkForm(f => ({ ...f, due_date: e.target.value }))}
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              />
+            </div>
+            <div className="flex gap-3 pt-1">
+              <Button variant="secondary" className="flex-1" onClick={() => setShowAddHomework(false)}>Cancel</Button>
+              <Button
+                className="flex-1 bg-violet-600 hover:bg-violet-700"
+                loading={savingHomework}
+                disabled={!homeworkForm.title.trim()}
+                onClick={async () => {
+                  if (!homeworkForm.title.trim()) return;
+                  setSavingHomework(true);
+                  try {
+                    const { data, error } = await supabase.from('client_homework').insert({
+                      subject_id: id,
+                      user_id: user.id,
+                      title: homeworkForm.title.trim(),
+                      description: homeworkForm.description.trim() || null,
+                      due_date: homeworkForm.due_date || null,
+                    }).select().single();
+                    if (error) throw error;
+                    setHomework(prev => [data, ...prev]);
+                    setShowAddHomework(false);
+                    toast.success('Homework task added.');
+                  } catch { toast.error('Failed to add task.'); }
+                  finally { setSavingHomework(false); }
+                }}
+              >Add Task</Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Assign Assessment Modal ── */}
       {showAssignModal && (
@@ -1962,4 +2209,103 @@ function AssessmentResultDetail({ test, scores, interpretation }) {
   }
 
   return null;
+}
+
+function IntakeResponseView({ answers, onApply }) {
+  const [expanded, setExpanded] = useState(false);
+  const [applying, setApplying] = useState(false);
+
+  const rows = [
+    ['Full Name', answers.full_name],
+    ['IC / Passport', answers.ic_passport],
+    ['Phone', answers.phone],
+    ['Email', answers.email],
+    ['Date of Birth', answers.date_of_birth],
+    ['Gender', answers.gender],
+    ['Marital Status', answers.marital_status],
+    ['Race', answers.race],
+    ['Religion', answers.religion],
+    ['Occupation', answers.occupation],
+    ['Address', answers.address],
+    ['Emergency Contact', answers.emergency_name ? `${answers.emergency_name}${answers.emergency_relationship ? ` (${answers.emergency_relationship})` : ''} — ${answers.emergency_phone || ''}` : ''],
+  ].filter(([, v]) => v);
+
+  const clinical = [
+    ['Presenting Concern', answers.presenting_concern],
+    ['Concern Duration', answers.concern_duration],
+    ['Counseling Goals', answers.counseling_goals],
+    ['Previous Counseling', answers.previous_counseling === 'yes' ? `Yes — ${answers.previous_counseling_details || ''}` : answers.previous_counseling === 'no' ? 'No' : ''],
+    ['Current Medications', answers.current_medications === 'yes' ? `Yes — ${answers.current_medications_details || ''}` : answers.current_medications === 'no' ? 'No' : ''],
+    ['Medical Conditions', answers.medical_conditions],
+    ['Self-Harm Thoughts', answers.self_harm_thoughts === 'no' ? 'No' : answers.self_harm_thoughts === 'yes_passive' ? 'Yes (passive)' : answers.self_harm_thoughts === 'yes_active' ? '⚠️ Yes (active — with plan)' : ''],
+    ['Suicidal Thoughts', answers.suicidal_thoughts === 'no' ? 'No' : answers.suicidal_thoughts === 'yes_passive' ? 'Yes (passive)' : answers.suicidal_thoughts === 'yes_active' ? '⚠️ Yes (active — with plan)' : ''],
+    ['Substance Use', answers.substance_use === 'no' ? 'No' : answers.substance_use === 'occasionally' ? 'Occasionally' : answers.substance_use === 'regularly' ? 'Regularly' : ''],
+  ].filter(([, v]) => v);
+
+  const handleApply = async () => {
+    setApplying(true);
+    const fields = {};
+    if (answers.full_name) fields.name = answers.full_name;
+    if (answers.ic_passport) fields.ic_number = answers.ic_passport;
+    if (answers.phone) fields.phone = answers.phone;
+    if (answers.email) fields.email = answers.email;
+    if (answers.date_of_birth) fields.date_of_birth = answers.date_of_birth;
+    if (answers.gender) fields.gender = answers.gender;
+    if (answers.marital_status) fields.marital_status = answers.marital_status.toLowerCase();
+    if (answers.race) fields.race = answers.race;
+    if (answers.religion) fields.religion = answers.religion;
+    if (answers.occupation) fields.occupation = answers.occupation;
+    if (answers.address) fields.address = answers.address;
+    if (answers.emergency_name) fields.emergency_contact_name = answers.emergency_name;
+    if (answers.emergency_phone) fields.emergency_contact_phone = answers.emergency_phone;
+    if (answers.presenting_concern) fields.presenting_issue = answers.presenting_concern;
+    try {
+      await onApply(fields);
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <button
+          onClick={() => setExpanded(e => !e)}
+          className="text-sm font-medium text-violet-600 hover:text-violet-800"
+        >
+          {expanded ? '▲ Hide Responses' : '▼ View Responses'}
+        </button>
+        <Button size="sm" loading={applying} onClick={handleApply} className="bg-violet-600 hover:bg-violet-700 text-xs">
+          Apply to Profile
+        </Button>
+      </div>
+
+      {expanded && (
+        <div className="space-y-3">
+          {rows.length > 0 && (
+            <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Personal Information</p>
+              {rows.map(([label, value]) => (
+                <div key={label} className="flex gap-2 text-xs">
+                  <span className="text-gray-400 w-28 flex-shrink-0">{label}</span>
+                  <span className="text-gray-800 font-medium">{value}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {clinical.length > 0 && (
+            <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Clinical & Presenting</p>
+              {clinical.map(([label, value]) => (
+                <div key={label} className="text-xs space-y-0.5">
+                  <span className="text-gray-400 block">{label}</span>
+                  <span className="text-gray-800 font-medium">{value}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
