@@ -323,7 +323,7 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - "Appointments" shortened to "Appts" in grid to fit cleanly
 - New Session bug fixed: `navigate('/session/setup/counselor')` → `navigate('/session/consent')` — ProfessionalRoute was blocking /session/setup on counselor subdomain
 
-**Latest deploy:** commit `214a6a7` — 2026-06-07 (Fasa 1+2+3+4 live)
+**Latest deploy:** commit `f0830f6` — 2026-06-07 (Fasa 1+2+3+4+5 live)
 
 **Generate Memo fix (commit `512d2a5` — 2026-06-03):**
 - Regression from tab merge: "🖨 Memo" button was dropped from referral cards in Plans tab
@@ -490,6 +490,22 @@ www.verirec.app/**, counselor.verirec.app/**, kaunselor.app/**, www.kaunselor.ap
 - Delete per task
 - Print: formatted HTML letterhead (`kaunselor.app · STRICTLY CONFIDENTIAL`)
 - **Still at 12/12 functions** — no new API functions
+
+## Features Baru (2026-06-07 — Fasa 5)
+
+**Supervision Log (`/kaunselor/supervision`):**
+- `supervision_sessions` table: `date`, `supervisor_name`, `supervisor_reg_no`, `duration_minutes`, `session_type` (individual/group/peer), `topics_discussed`, `notes`
+- RLS: counselor only
+- `KaunslorSupervisionPage.jsx`: stats (hours this year, lifetime hours), year filter tabs, session list with badge by type
+- Add Session modal: date, duration (30min–3hr), supervisor name + reg no., session type, topics, notes
+- "🖨 Print Log" → LPK-format HTML report: counselor info, all sessions table, total hours, dual signature block
+- Sidebar: "Supervision" nav item added to COUNSELOR_ITEMS
+
+**Anonymous Case Summary (KaunslorClientFilePage → Plans tab):**
+- "🔒 Generate Anonymous Case Summary" button
+- Replaces client name/IC with case reference `Client-XXXXXX`
+- Includes: case overview, risk level, problem types, presenting issue, latest session note, current action plan
+- Formatted HTML print with supervision disclaimer and dual signature block
 
 ## Hobby Plan — 12 Serverless Functions (HARD LIMIT)
 Jangan tambah function baru tanpa remove/merge yang lain dulu.
