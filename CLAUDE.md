@@ -323,7 +323,7 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - "Appointments" shortened to "Appts" in grid to fit cleanly
 - New Session bug fixed: `navigate('/session/setup/counselor')` → `navigate('/session/consent')` — ProfessionalRoute was blocking /session/setup on counselor subdomain
 
-**Latest deploy:** commit `9bf8c29` — 2026-06-07 (Fasa 1+2+3 live)
+**Latest deploy:** commit `214a6a7` — 2026-06-07 (Fasa 1+2+3+4 live)
 
 **Generate Memo fix (commit `512d2a5` — 2026-06-03):**
 - Regression from tab merge: "🖨 Memo" button was dropped from referral cards in Plans tab
@@ -466,6 +466,28 @@ www.verirec.app/**, counselor.verirec.app/**, kaunselor.app/**, www.kaunselor.ap
 - Counselor adds optional context → "✦ Generate with AI" → editable textarea preview → Print/Save PDF
 - `doc_letter` mode in `api/suggest.js` — Claude `claude-opus-4-7` generates formal letter, Gemini fallback
 - `generateDocument()` added to `src/api/claude.js` — reuses `/api/suggest` endpoint (no new function)
+
+## Features Baru (2026-06-07 — Fasa 4)
+
+**Digital Intake Form (`/intake/:token`):**
+- `client_intake_forms` table: `token`, `subject_id`, `user_id`, `subject_name`, `status`, `expires_at`, `assigned_at`, `completed_at`, `form_answers JSONB`
+- RLS: counselor owns all; anon can SELECT (to view) + UPDATE (to submit)
+- `src/pages/PublicIntakePage.jsx` at `/intake/:token` — no auth required, 3-step form:
+  - Step 1: Personal (name, IC, phone, email, dob, gender, marital, race, religion, occupation, address, emergency contact)
+  - Step 2: Presenting concern, duration, goals, previous counseling, medications, medical conditions
+  - Step 3: Risk check (self-harm/suicidal — 3-level), consent checkbox, submit
+- Counselor Intake tab in KaunslorClientFilePage:
+  - "+ New Intake Link" → inserts row, shows copyable `window.location.origin + /intake/TOKEN`
+  - 14-day expiry shown, status badge (Pending/Completed/Expired)
+  - Completed forms: "View Responses" (expandable) + "Apply to Profile" button
+  - `Apply to Profile`: maps form_answers fields to `subjects` table columns
+
+**Homework Tracker (Homework tab in KaunslorClientFilePage):**
+- `client_homework` table: `title`, `description`, `due_date`, `status (pending/completed)`, `subject_id`, `user_id`
+- RLS: counselor only
+- Homework tab: shows task list with checkbox to toggle done/pending, due date, status badge
+- "+ Add Task" modal: title (required), instructions/details, due date
+- Delete per task
 - Print: formatted HTML letterhead (`kaunselor.app · STRICTLY CONFIDENTIAL`)
 - **Still at 12/12 functions** — no new API functions
 
