@@ -46,7 +46,8 @@ const KaunslorAppointmentsPage = lazy(() => import('./pages/kaunselor/KaunslorAp
 const KaunslorClientsPage     = lazy(() => import('./pages/kaunselor/KaunslorClientsPage.jsx'));
 const KaunslorClientFilePage  = lazy(() => import('./pages/kaunselor/KaunslorClientFilePage.jsx'));
 const KaunslorCalendarPage    = lazy(() => import('./pages/kaunselor/KaunslorCalendarPage.jsx'));
-const KaunslorUploadSessionPage = lazy(() => import('./pages/kaunselor/KaunslorUploadSessionPage.jsx'));
+const KaunslorUploadSessionPage  = lazy(() => import('./pages/kaunselor/KaunslorUploadSessionPage.jsx'));
+const KaunslorSupervisionPage    = lazy(() => import('./pages/kaunselor/KaunslorSupervisionPage.jsx'));
 const CounselorLandingPage    = lazy(() => import('./pages/CounselorLandingPage.jsx'));
 
 function PageTracker() {
@@ -291,6 +292,7 @@ export default function App() {
               <Route path="/kaunselor/clients" element={<ProtectedRoute><AppLayout><KaunslorClientsPage /></AppLayout></ProtectedRoute>} />
               <Route path="/kaunselor/clients/:id" element={<ProtectedRoute><AppLayout><KaunslorClientFilePage /></AppLayout></ProtectedRoute>} />
               <Route path="/kaunselor/clients/:id/upload-session" element={<ProtectedRoute><AppLayout><KaunslorUploadSessionPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/kaunselor/supervision" element={<ProtectedRoute><AppLayout><KaunslorSupervisionPage /></AppLayout></ProtectedRoute>} />
 
               {/* Session flow — full screen, no sidebar/nav */}
               <Route path="/session/consent" element={

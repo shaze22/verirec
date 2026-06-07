@@ -1129,6 +1129,86 @@ export default function KaunslorClientFilePage() {
                 <Button onClick={() => { setShowDocModal(true); setGeneratedDoc(''); setDocContext(''); }} className="w-full">
                   📄 Generate Support Letter / Report
                 </Button>
+                <Button variant="secondary" className="w-full" onClick={() => {
+                  const caseRef = `Client-${id.slice(0, 6).toUpperCase()}`;
+                  const counselorName = user?.user_metadata?.full_name || 'Counselor';
+                  const today = format(new Date(), 'dd MMMM yyyy');
+                  const riskLabel = { none: 'None', mental_health: 'Mental Health Issue', self_harm: 'Self-Harm Tendency', suicidal: 'Suicidal Tendency' }[client.risk_level || 'none'] || 'None';
+                  const problemList = (client.problem_types || []).join(', ') || '—';
+                  const sessionCount = sessions.length;
+                  const firstDate = sessions.length ? format(parseISO(sessions[sessions.length - 1].created_at), 'dd MMM yyyy') : '—';
+                  const lastDate  = sessions.length ? format(parseISO(sessions[0].created_at), 'dd MMM yyyy') : '—';
+                  const latestNote = progressNotes.find(n => n.note_type === 'soap' || n.note_type === 'dap' || n.note_type === 'free');
+                  const latestPlan = actionPlans[0];
+                  const win = window.open('', '_blank', 'width=794,height=1000');
+                  win.document.write(`<!DOCTYPE html><html><head>
+                    <title>Anonymous Case Summary — ${caseRef}</title>
+                    <style>
+                      body{font-family:Arial,sans-serif;font-size:11px;padding:36px;color:#111;line-height:1.6}
+                      h1{font-size:13px;text-transform:uppercase;text-align:center;margin:0 0 2px;letter-spacing:0.5px}
+                      h2{font-size:10px;text-align:center;color:#666;margin:0 0 18px}
+                      .badge{display:inline-block;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:20px;padding:2px 8px;font-size:9px;font-weight:bold;text-transform:uppercase;letter-spacing:0.5px;color:#374151;margin-bottom:14px}
+                      .section{margin-bottom:14px}
+                      .sec-title{font-size:9px;font-weight:bold;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;border-bottom:1px solid #e5e7eb;padding-bottom:3px;margin-bottom:8px}
+                      .grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px}
+                      .field{margin-bottom:4px}
+                      .label{font-size:9px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.3px}
+                      .value{font-size:11px;font-weight:600;color:#111}
+                      .note-body{font-size:11px;line-height:1.7;color:#374151;margin-top:4px;white-space:pre-wrap}
+                      .footer{margin-top:24px;font-size:8px;color:#9ca3af;text-align:center;border-top:1px solid #e5e7eb;padding-top:6px}
+                      .warning{font-size:9px;background:#fef3c7;border:1px solid #fcd34d;border-radius:4px;padding:4px 8px;color:#92400e;margin-bottom:12px}
+                      @media print{body{padding:20px}}
+                    </style></head><body>
+                    <h1>Anonymous Case Summary</h1>
+                    <h2>For Clinical Supervision Use Only — STRICTLY CONFIDENTIAL</h2>
+                    <div class="warning">⚠ All identifying information has been removed. Do not share this document beyond supervision context.</div>
+                    <div style="text-align:center"><span class="badge">Case Reference: ${caseRef}</span></div>
+                    <div class="section">
+                      <div class="sec-title">Case Overview</div>
+                      <div class="grid">
+                        <div class="field"><div class="label">Case Reference</div><div class="value">${caseRef}</div></div>
+                        <div class="field"><div class="label">Total Sessions</div><div class="value">${sessionCount}</div></div>
+                        <div class="field"><div class="label">First Session</div><div class="value">${firstDate}</div></div>
+                        <div class="field"><div class="label">Last Session</div><div class="value">${lastDate}</div></div>
+                        <div class="field"><div class="label">Risk Level</div><div class="value">${riskLabel}</div></div>
+                        <div class="field"><div class="label">Gender</div><div class="value">${client.gender || '—'}</div></div>
+                        <div class="field"><div class="label">Marital Status</div><div class="value">${client.marital_status || '—'}</div></div>
+                        <div class="field"><div class="label">Occupation</div><div class="value">${client.occupation || '—'}</div></div>
+                      </div>
+                    </div>
+                    <div class="section">
+                      <div class="sec-title">Presenting Issues</div>
+                      <div class="field"><div class="label">Problem Types</div><div class="value">${problemList}</div></div>
+                      <div class="field" style="margin-top:6px"><div class="label">Presenting Issue</div><div class="note-body">${client.presenting_issue || '—'}</div></div>
+                    </div>
+                    ${latestNote ? `<div class="section">
+                      <div class="sec-title">Latest Session Note</div>
+                      <div class="field"><div class="label">Note Type</div><div class="value">${(latestNote.note_type || 'free').toUpperCase()}</div></div>
+                      <div class="note-body">${
+                        latestNote.note_type === 'soap' && latestNote.note_data
+                          ? `S: ${latestNote.note_data.s || ''}\nO: ${latestNote.note_data.o || ''}\nA: ${latestNote.note_data.a || ''}\nP: ${latestNote.note_data.p || ''}`
+                          : latestNote.note_type === 'dap' && latestNote.note_data
+                          ? `D: ${latestNote.note_data.d || ''}\nA: ${latestNote.note_data.a || ''}\nP: ${latestNote.note_data.p || ''}`
+                          : (latestNote.content || '')
+                      }</div>
+                    </div>` : ''}
+                    ${latestPlan ? `<div class="section">
+                      <div class="sec-title">Current Action Plan</div>
+                      ${latestPlan.goals?.length ? `<div class="field"><div class="label">Goals</div><div class="note-body">${latestPlan.goals.map(g => `• ${g.goal} [${g.status}]`).join('\n')}</div></div>` : ''}
+                      ${latestPlan.interventions?.length ? `<div class="field" style="margin-top:6px"><div class="label">Interventions</div><div class="note-body">${latestPlan.interventions.map(i => `• ${i}`).join('\n')}</div></div>` : ''}
+                      ${latestPlan.notes ? `<div class="field" style="margin-top:6px"><div class="label">Notes</div><div class="note-body">${latestPlan.notes}</div></div>` : ''}
+                    </div>` : ''}
+                    <div style="margin-top:32px;display:flex;gap:40px">
+                      <div style="flex:1;border-top:1px solid #333;padding-top:4px;margin-top:40px;font-size:10px"><strong>${counselorName}</strong><br/>Counselor<br/><span style="font-size:9px">Date: ${today}</span></div>
+                      <div style="flex:1;border-top:1px solid #333;padding-top:4px;margin-top:40px;font-size:10px">Supervisor<br/>Name: _______________<br/>Date: _______________</div>
+                    </div>
+                    <div class="footer">ANONYMOUS CASE SUMMARY · For Supervision Only · kaunselor.app</div>
+                    <script>window.onload=function(){window.print()}</script>
+                  </body></html>`);
+                  win.document.close();
+                }}>
+                  🔒 Generate Anonymous Case Summary
+                </Button>
               </div>
             </div>
           )}
