@@ -323,7 +323,7 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - "Appointments" shortened to "Appts" in grid to fit cleanly
 - New Session bug fixed: `navigate('/session/setup/counselor')` → `navigate('/session/consent')` — ProfessionalRoute was blocking /session/setup on counselor subdomain
 
-**Latest deploy:** commit `bb80c18` — 2026-06-05 (Fasa 1+2 deployed via Vercel CLI, uncommitted locally)
+**Latest deploy:** commit `9bf8c29` — 2026-06-07 (Fasa 1+2+3 live)
 
 **Generate Memo fix (commit `512d2a5` — 2026-06-03):**
 - Regression from tab merge: "🖨 Memo" button was dropped from referral cards in Plans tab
@@ -448,6 +448,26 @@ www.verirec.app/**, counselor.verirec.app/**, kaunselor.app/**, www.kaunselor.ap
   - View results: scores + interpretation inline
 - Supabase: `client_assessments` table with RLS (owner all, anon read by token, anon update pending→completed)
 - No new API functions added — stays at 12/12 Vercel limit
+
+## Features Baru (2026-06-07 — Fasa 3)
+
+**SOAP/DAP Structured Notes (Notes tab):**
+- Type selector: Free / SOAP / DAP toggle buttons in New Note form
+- SOAP fields: Subjective (blue) · Objective (green) · Assessment (violet) · Plan (amber)
+- DAP fields: Data (blue) · Assessment (violet) · Plan (amber)
+- `handleSaveNote()`: saves `note_type` ('soap'/'dap'/'free') + `note_data` JSONB
+- `handlePrintNote()`: formatted HTML print — SOAP/DAP/Free format header, client info, signature block
+- Display: structured notes render per-section with labeled headers; Print button (no Edit) for structured notes
+- DB migration: `progress_notes.note_type TEXT DEFAULT 'free'` + `progress_notes.note_data JSONB`
+
+**AI Clinical Document Generator (Plans tab):**
+- "📄 Generate Support Letter / Report" button → Document Modal
+- 4 document types: Employment Support / Court Support / Academic Support / Insurance Progress Report
+- Counselor adds optional context → "✦ Generate with AI" → editable textarea preview → Print/Save PDF
+- `doc_letter` mode in `api/suggest.js` — Claude `claude-opus-4-7` generates formal letter, Gemini fallback
+- `generateDocument()` added to `src/api/claude.js` — reuses `/api/suggest` endpoint (no new function)
+- Print: formatted HTML letterhead (`kaunselor.app · STRICTLY CONFIDENTIAL`)
+- **Still at 12/12 functions** — no new API functions
 
 ## Hobby Plan — 12 Serverless Functions (HARD LIMIT)
 Jangan tambah function baru tanpa remove/merge yang lain dulu.
