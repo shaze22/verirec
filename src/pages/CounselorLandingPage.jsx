@@ -12,11 +12,14 @@ const Logo = () => (
 
 const features = [
   { icon: '📅', title: 'QR Booking', desc: 'Clients book themselves via your personal QR link. Slots, confirmations, and reminders handled automatically.' },
-  { icon: '🗂️', title: 'Digital Client Files', desc: 'Full profile, risk tiers, action plans, referrals, session history — all in one organised place.' },
+  { icon: '🗂️', title: 'Digital Client Files', desc: 'Full profile, risk tiers, action plans, referrals, progress notes, session history — all in one organised place.' },
   { icon: '🔴', title: 'AI Red Flag Detection', desc: 'Detects suicide risk, self-harm signals, and crisis indicators in real time during the session.' },
-  { icon: '📝', title: 'SOP Session Notes', desc: 'Auto-generates Case Session Notes in Counseling Unit SOP format. Print-ready PDF in seconds.' },
+  { icon: '📝', title: 'SOAP/DAP Session Notes', desc: 'Structured SOAP & DAP note templates with colour-coded fields. Print-ready clinical format, plus free-text notes.' },
   { icon: '🎙️', title: 'Recording Transcription', desc: 'Upload any audio or video recording. AI transcribes, diarizes speakers, and generates a full session report automatically.' },
-  { icon: '📊', title: 'MBTI & RIASEC', desc: 'Built-in assessment panel inside every session. Auto-scored, saved to client files automatically.' },
+  { icon: '📊', title: 'Clinical Assessments', desc: 'Built-in PHQ-9, GAD-7, DASS-21, RIASEC, and Big Five panels. Send secure links to clients. Auto-scored and saved to their file.' },
+  { icon: '📋', title: 'Digital Intake Form', desc: 'Send a shareable intake link before the first session. Clients fill in personal details, presenting concern, and risk info — auto-populates their profile.' },
+  { icon: '📄', title: 'AI Clinical Documents', desc: 'Generate Employment, Court, Academic, or Insurance support letters in seconds. Edit, print, or save as PDF.' },
+  { icon: '🔐', title: 'Supervision Log', desc: 'Log LPK-compliant supervision sessions, track hours, and print your annual supervision report for submission.' },
 ];
 
 const DEMO_TABS = [
@@ -284,8 +287,8 @@ export default function CounselorLandingPage() {
     <>
       <Helmet>
         <title>Kaunselor — Digital Counselling Platform</title>
-        <meta name="description" content="Kaunselor is a digital counseling platform meeting global and local standards — QR booking, client files, AI session notes, MBTI & RIASEC assessments. Built for counselors everywhere." />
-        <meta name="keywords" content="counseling platform, digital counseling, kaunselor, counseling session management, AI session notes, MBTI RIASEC, PDPA compliant counseling" />
+        <meta name="description" content="Kaunselor is a digital counseling platform — QR booking, digital client files, SOAP/DAP notes, PHQ-9/GAD-7/DASS-21 assessments, AI clinical letters, supervision log. PDPA & Counselors Act 1998 compliant." />
+        <meta name="keywords" content="counseling platform, digital counseling, kaunselor, SOAP DAP notes, PHQ-9 GAD-7 DASS-21, RIASEC Big Five, LPK supervision log, PDPA compliant counseling, AI session notes" />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://kaunselor.app" />
         <meta property="og:type" content="website" />
@@ -358,7 +361,7 @@ export default function CounselorLandingPage() {
             <div className="grid grid-cols-3 gap-6 max-w-xl mx-auto border-t border-gray-800 pt-10">
               {[
                 { val: 'AI', label: 'Red Flag Detection', sub: 'Real-time during session' },
-                { val: 'SOP', label: 'Session Notes', sub: 'Counselors Act 1998 compliant' },
+                { val: '5', label: 'Assessment Tools', sub: 'PHQ-9 · GAD-7 · DASS-21 · RIASEC · Big Five' },
                 { val: 'QR', label: 'Client Booking', sub: 'Fully automated' },
               ].map(({ val, label, sub }) => (
                 <div key={label} className="text-center">
@@ -527,7 +530,7 @@ export default function CounselorLandingPage() {
                   role: 'Private Practice Counselor, KL',
                   avatar: 'A',
                   rating: 5,
-                  text: 'My clients love the online booking. They get a confirmation email, I get a notification. No more back-and-forth on WhatsApp. The MBTI built right into sessions is a huge plus.',
+                  text: 'My clients love the online booking. They get a confirmation email, I get a notification. No more back-and-forth on WhatsApp. The PHQ-9 and GAD-7 assessments built right into the client file are a huge plus.',
                 },
                 {
                   name: 'Nurul Hafizah Othman',
@@ -583,12 +586,15 @@ export default function CounselorLandingPage() {
                   '5 counseling sessions / month',
                   'Digital client files (unlimited clients)',
                   'Automated QR booking system',
-                  'SOP-format session notes PDF',
+                  'SOAP / DAP structured session notes',
                   'AI red flag & crisis detection',
-                  'MBTI + RIASEC assessment tools',
+                  'PHQ-9, GAD-7, DASS-21, RIASEC, Big Five assessments',
+                  'Digital intake forms (shareable client links)',
+                  'AI clinical letter generator (employment, court, academic, insurance)',
                   'Recording transcription (AI speaker diarization)',
+                  'Supervision log + LPK annual report',
                   'Top-up sessions when needed',
-                  'GDPR & compliance ready',
+                  'PDPA 2010 & Counselors Act 1998 compliant',
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-3 text-sm text-gray-700">
                     <svg className="w-4 h-4 text-violet-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
