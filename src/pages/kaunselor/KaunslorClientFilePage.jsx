@@ -542,47 +542,90 @@ export default function KaunslorClientFilePage() {
   return (
     <div className="flex flex-col h-screen">
       <TopBar title={client.name} onBack={() => navigate('/kaunselor/clients')} />
-      <div className="flex-1 overflow-auto">
-        {/* Client header */}
-        <div className="bg-white border-b px-6 py-4">
-          <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xl">
+      <div className="flex flex-1 overflow-hidden">
+
+        {/* ── LEFT SIDEBAR NAV — desktop only ── */}
+        <aside className="hidden md:flex flex-col w-48 border-r bg-white flex-shrink-0">
+          <div className="px-3 py-4 border-b">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-violet-700 font-bold text-sm flex-shrink-0">
                 {client.name?.charAt(0).toUpperCase()}
               </div>
-              <div>
-                <h2 className="font-bold text-gray-900 text-lg">{client.name}</h2>
-                <p className="text-sm text-gray-500">{client.phone} · {client.email}</p>
-                <p className="text-xs text-gray-400">{sessions.length} sessions · {Math.round(totalDuration / 60)} total minutes</p>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-gray-900 truncate">{client.name}</p>
+                <p className="text-xs text-gray-400">{sessions.length} sessions</p>
               </div>
             </div>
-            <Button onClick={startNewSession} className="flex-shrink-0">+ New Session</Button>
           </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="bg-white border-b overflow-x-auto">
-          <div className="flex min-w-max">
+          <nav className="flex-1 overflow-y-auto py-1">
             {[
-              { id: 'overview',     label: 'Overview' },
-              { id: 'sessions',     label: `Sessions (${sessions.length})` },
-              { id: 'appointments', label: `Appts (${appointments.length})` },
-              { id: 'plans',        label: `Plans (${actionPlans.length + referrals.length})` },
-              { id: 'notes',        label: `Notes (${progressNotes.length})` },
-              { id: 'assessments',  label: `Assessments (${clientAssessments.length})` },
-              { id: 'homework',     label: `Homework (${homework.length})` },
-              { id: 'intake',       label: `Intake` },
-              { id: 'recordings',   label: `Recordings (${clientRecordings.length})` },
+              { id: 'overview',     icon: '🏠', label: 'Overview',     count: 0 },
+              { id: 'sessions',     icon: '🎙️', label: 'Sessions',     count: sessions.length },
+              { id: 'appointments', icon: '📅', label: 'Appointments', count: appointments.length },
+              { id: 'plans',        icon: '📌', label: 'Plans',        count: actionPlans.length + referrals.length },
+              { id: 'notes',        icon: '📝', label: 'Notes',        count: progressNotes.length },
+              { id: 'assessments',  icon: '📊', label: 'Assessments',  count: clientAssessments.length },
+              { id: 'homework',     icon: '✅', label: 'Homework',     count: homework.length },
+              { id: 'intake',       icon: '📋', label: 'Intake',       count: 0 },
+              { id: 'recordings',   icon: '🎞️', label: 'Recordings',   count: clientRecordings.length },
             ].map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
-                className={`py-2.5 px-4 text-sm font-medium border-b-2 whitespace-nowrap transition-colors flex-shrink-0 ${tab === t.id ? 'border-violet-600 text-violet-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
-                {t.label}
+                className={`relative w-full flex items-center gap-2.5 px-3 py-2.5 text-sm transition-colors text-left ${
+                  tab === t.id ? 'bg-violet-50 text-violet-700 font-semibold' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800 font-medium'
+                }`}>
+                {tab === t.id && <span className="absolute left-0 top-1 bottom-1 w-0.5 bg-violet-600 rounded-r" />}
+                <span className="leading-none flex-shrink-0">{t.icon}</span>
+                <span className="flex-1 truncate">{t.label}</span>
+                {t.count > 0 && <span className="text-xs tabular-nums text-gray-400 font-normal flex-shrink-0">{t.count}</span>}
               </button>
             ))}
+          </nav>
+          <div className="p-3 border-t">
+            <Button onClick={startNewSession} className="w-full text-xs">+ New Session</Button>
           </div>
-        </div>
+        </aside>
 
-        <div className="p-6 max-w-2xl mx-auto space-y-4">
+        {/* ── RIGHT COLUMN — scrollable ── */}
+        <div className="flex-1 overflow-auto flex flex-col min-w-0">
+
+          {/* Client header */}
+          <div className="bg-white border-b px-4 py-3 flex-shrink-0">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="md:hidden w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center text-violet-700 font-bold text-base flex-shrink-0">
+                  {client.name?.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h2 className="font-bold text-gray-900 text-base">{client.name}</h2>
+                  <p className="text-xs text-gray-400">{[client.phone, client.email].filter(Boolean).join(' · ')} · {sessions.length} sessions · {Math.round(totalDuration / 60)} min</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Button onClick={startNewSession} className="hidden md:flex">+ New Session</Button>
+                <Button onClick={startNewSession} className="md:hidden text-sm py-1.5 px-3">+ New</Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile tab selector */}
+          <div className="md:hidden bg-white border-b px-4 py-2.5 flex-shrink-0">
+            <select value={tab} onChange={e => setTab(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500">
+              {[
+                { id: 'overview',     label: 'Overview' },
+                { id: 'sessions',     label: `Sessions (${sessions.length})` },
+                { id: 'appointments', label: `Appointments (${appointments.length})` },
+                { id: 'plans',        label: `Plans (${actionPlans.length + referrals.length})` },
+                { id: 'notes',        label: `Notes (${progressNotes.length})` },
+                { id: 'assessments',  label: `Assessments (${clientAssessments.length})` },
+                { id: 'homework',     label: `Homework (${homework.length})` },
+                { id: 'intake',       label: 'Intake' },
+                { id: 'recordings',   label: `Recordings (${clientRecordings.length})` },
+              ].map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+            </select>
+          </div>
+
+          <div className="p-5 max-w-2xl space-y-4">
 
           {/* ── OVERVIEW TAB ── */}
           {tab === 'overview' && (
@@ -1856,6 +1899,7 @@ export default function KaunslorClientFilePage() {
             </div>
           )}
 
+          </div>
         </div>
       </div>
 
