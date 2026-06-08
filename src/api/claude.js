@@ -82,3 +82,7 @@ export async function generateReport(params) {
 export function generateDocument(params) {
   return authFetch(CONFIG.api.suggest, { mode: 'doc_letter', ...params });
 }
+
+export function analyseContradictions(params) {
+  return authFetch(CONFIG.api.suggest, { mode: 'contradiction', ...params });
+}

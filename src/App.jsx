@@ -39,6 +39,8 @@ const PublicAssessmentPage  = lazy(() => import('./pages/PublicAssessmentPage.js
 const PublicIntakePage      = lazy(() => import('./pages/PublicIntakePage.jsx'));
 const PublicConsentPage     = lazy(() => import('./pages/PublicConsentPage.jsx'));
 const PublicStatementPage   = lazy(() => import('./pages/PublicStatementPage.jsx'));
+const PublicCounselorConsentPage = lazy(() => import('./pages/PublicCounselorConsentPage.jsx'));
+const PublicCounselorAckPage     = lazy(() => import('./pages/PublicCounselorAckPage.jsx'));
 const QuestionTemplatesPage   = lazy(() => import('./pages/QuestionTemplatesPage.jsx'));
 const ImportSessionPage       = lazy(() => import('./pages/ImportSessionPage.jsx'));
 const SchedulePage            = lazy(() => import('./pages/SchedulePage.jsx'));
@@ -300,6 +302,12 @@ export default function App() {
 
               {/* Post-session statement acknowledgement — no auth required */}
               <Route path="/statement/:token" element={<PublicStatementPage />} />
+
+              {/* Counselor pre-session consent — no auth required */}
+              <Route path="/counselor-consent/:token" element={<PublicCounselorConsentPage />} />
+
+              {/* Counselor post-session acknowledgement — no auth required */}
+              <Route path="/counselor-ack/:token" element={<PublicCounselorAckPage />} />
 
               {/* Public booking — no auth required */}
               <Route path="/book/:code" element={<PublicBookingPage />} />

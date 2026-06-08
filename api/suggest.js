@@ -253,7 +253,52 @@ export default async function handler(req, res) {
     }
 
     const body = await readBody(req);
-    const { mode, profession, phase, question, recent_transcript = [], transcript = [], case_summaries = [], case_title = '' } = body;
+    const { mode, profession, phase, question, recent_transcript = [], transcript = [], case_summaries = [], case_title = '', sessions: sessionsList = [] } = body;
+
+    if (mode === 'contradiction') {
+      if (!sessionsList.length) return res.status(400).json({ error: 'No sessions provided' });
+      const sessionText = sessionsList.map(s => {
+        const entries = (s.entries || []).slice(0, 80).map(u => `  [${u.speaker || 'Unknown'}]: ${String(u.text || '').slice(0, 300)}`).join('\n');
+        return `=== Session: ${s.date} — "${s.title}" ===\n${entries}`;
+      }).join('\n\n');
+      const prompt = `You are a clinical assistant reviewing counseling session transcripts from multiple sessions with the same client.
+
+Identify any significant contradictions or inconsistencies in what the client has said across different sessions. Focus on factual statements (relationships, events, timelines, stated facts) — not opinion changes or normal therapeutic progress.
+
+For each contradiction found, cite the session date and the specific client quote from each session. If no significant contradictions are found, say so clearly.
+
+Sessions (oldest to newest):
+${sessionText}
+
+Respond in JSON only:
+{
+  "contradictions": [
+    {
+      "topic": "brief topic label",
+      "session_a": { "date": "dd MMM yyyy", "quote": "exact quote from client" },
+      "session_b": { "date": "dd MMM yyyy", "quote": "contradicting quote from client" }
+    }
+  ]
+}
+If no contradictions: { "contradictions": [] }`;
+      let text;
+      let provider = 'gemini';
+      try {
+        text = await callGeminiFallback(prompt);
+      } catch {
+        const message = await anthropic.messages.create({
+          model: 'claude-opus-4-7',
+          max_tokens: 1200,
+          messages: [{ role: 'user', content: prompt }],
+        });
+        text = message.content[0].text.trim();
+        provider = 'claude';
+      }
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) return res.status(502).json({ error: 'Invalid AI response' });
+      const data = JSON.parse(jsonMatch[0]);
+      return res.status(200).json({ ...data, mode: 'contradiction', provider });
+    }
 
     if (mode === 'doc_letter') {
       const { letter_type, client_name, client_ic, counselor_name, context: docCtx, session_count, date_first, date_last, presenting_issue } = body;

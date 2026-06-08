@@ -8,7 +8,7 @@ import { Button } from '../../components/ui/Button.jsx';
 import { Badge } from '../../components/ui/Badge.jsx';
 import { format, parseISO } from 'date-fns';
 import { importFromStoragePath } from '../../api/whisper.js';
-import { generateReport, generateDocument } from '../../api/claude.js';
+import { generateReport, generateDocument, analyseContradictions } from '../../api/claude.js';
 import { updateSession } from '../../api/sessions.js';
 import toast from 'react-hot-toast';
 import { ASSESSMENTS, ASSESSMENT_LIST, BADGE_COLORS } from '../../data/assessments.js';
@@ -94,6 +94,12 @@ export default function KaunslorClientFilePage() {
   const [allResources, setAllResources] = useState([]);
   const [showAssignResource, setShowAssignResource] = useState(false);
   const [assigningResource, setAssigningResource] = useState(false);
+  // New features
+  const [sendingConsentId, setSendingConsentId] = useState(null);
+  const [sendingAckId, setSendingAckId] = useState(null);
+  const [insightsResult, setInsightsResult] = useState(null);
+  const [analysingInsights, setAnalysingInsights] = useState(false);
+  const [insightsAnalysedAt, setInsightsAnalysedAt] = useState(null);
 
   useEffect(() => {
     if (!user) return;
@@ -512,6 +518,96 @@ export default function KaunslorClientFilePage() {
     }
   };
 
+  const handleSendReminder = (appt) => {
+    const displayDate = appt.confirmed_date || appt.requested_date;
+    const displayTime = appt.confirmed_time || appt.requested_time;
+    const counselorName = user?.user_metadata?.full_name || 'Your Counselor';
+    const dateStr = displayDate ? format(parseISO(displayDate), 'EEEE, d MMMM yyyy') : 'the scheduled date';
+    const timeStr = displayTime ? displayTime.slice(0, 5) : 'the scheduled time';
+    const msg = `Dear ${client.name},\n\nThis is a reminder for your counseling session:\n\nDate: ${dateStr}\nTime: ${timeStr}\nCounselor: ${counselorName}\n\nPlease be on time. Reply if you need to reschedule.\n\n— ${counselorName}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
+  const handleSendConsentForm = async (appt) => {
+    setSendingConsentId(appt.id);
+    try {
+      const counselorName = user?.user_metadata?.full_name || 'Your Counselor';
+      const { data, error } = await supabase.from('counselor_consent_requests').insert({
+        user_id: user.id,
+        appointment_id: appt.id,
+        subject_name: client.name,
+        counselor_name: counselorName,
+        purpose: 'Counseling Session',
+      }).select('token').single();
+      if (error) throw error;
+      const link = `${window.location.origin}/counselor-consent/${data.token}`;
+      const msg = `Dear ${client.name},\n\nPlease complete your consent form before our session:\n\n${link}\n\nThis link expires in 7 days.\n\n— ${counselorName}`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    } catch {
+      toast.error('Failed to create consent form. Please try again.');
+    } finally {
+      setSendingConsentId(null);
+    }
+  };
+
+  const handleSendAck = async (session) => {
+    setSendingAckId(session.id);
+    try {
+      const counselorName = user?.user_metadata?.full_name || 'Your Counselor';
+      const sessionSummary = session.report?.summary ||
+        (session.report?.caseSessionNote?.presentedIssue ? `Presented issue: ${session.report.caseSessionNote.presentedIssue}` : 'Session completed.');
+      const { data, error } = await supabase.from('counselor_session_acks').insert({
+        user_id: user.id,
+        session_id: session.id,
+        client_name: client.name,
+        session_summary: sessionSummary,
+      }).select('token').single();
+      if (error) throw error;
+      const link = `${window.location.origin}/counselor-ack/${data.token}`;
+      const msg = `Dear ${client.name},\n\nPlease review your session summary and acknowledge:\n\n${link}\n\nThis link is valid for 30 days.\n\n— ${counselorName}`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    } catch {
+      toast.error('Failed to create acknowledgement. Please try again.');
+    } finally {
+      setSendingAckId(null);
+    }
+  };
+
+  const handleAnalyseContradictions = async () => {
+    setAnalysingInsights(true);
+    setInsightsResult(null);
+    try {
+      const { data: sessionsWithTranscripts, error } = await supabase
+        .from('sessions')
+        .select('id, title, created_at, transcript')
+        .eq('subject_id', id)
+        .not('transcript', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(5);
+      if (error) throw error;
+      const valid = (sessionsWithTranscripts || [])
+        .filter(s => Array.isArray(s.transcript) && s.transcript.length > 0)
+        .reverse();
+      if (valid.length < 2) {
+        toast.error('Need at least 2 sessions with transcripts to analyse.');
+        return;
+      }
+      const result = await analyseContradictions({
+        sessions: valid.map(s => ({
+          date: format(parseISO(s.created_at), 'dd MMM yyyy'),
+          title: s.title,
+          entries: s.transcript,
+        })),
+      });
+      setInsightsResult(result);
+      setInsightsAnalysedAt(new Date().toISOString());
+    } catch (err) {
+      toast.error(err.message || 'Analysis failed. Please try again.');
+    } finally {
+      setAnalysingInsights(false);
+    }
+  };
+
   if (loading) return (
     <div className="flex flex-col h-screen animate-pulse">
       <div className="h-14 bg-white border-b px-4 flex items-center gap-3">
@@ -578,6 +674,7 @@ export default function KaunslorClientFilePage() {
               { id: 'plans',        icon: '📌', label: 'Plans',        count: actionPlans.length + referrals.length },
               { id: 'notes',        icon: '📝', label: 'Notes',        count: progressNotes.length },
               { id: 'assessments',  icon: '📊', label: 'Assessments',  count: clientAssessments.length },
+              { id: 'insights',     icon: '🔍', label: 'Insights',     count: 0 },
               { id: 'homework',     icon: '✅', label: 'Homework',     count: homework.length },
               { id: 'intake',       icon: '📋', label: 'Intake',       count: 0 },
               { id: 'resources',    icon: '📚', label: 'Resources',    count: clientResources.length },
@@ -632,6 +729,7 @@ export default function KaunslorClientFilePage() {
                 { id: 'plans',        label: `Plans (${actionPlans.length + referrals.length})` },
                 { id: 'notes',        label: `Notes (${progressNotes.length})` },
                 { id: 'assessments',  label: `Assessments (${clientAssessments.length})` },
+                { id: 'insights',     label: 'Insights' },
                 { id: 'homework',     label: `Homework (${homework.length})` },
                 { id: 'intake',       label: 'Intake' },
                 { id: 'resources',    label: `Resources (${clientResources.length})` },
@@ -974,6 +1072,17 @@ export default function KaunslorClientFilePage() {
                         <source src={audioMap[s.id].url} type="audio/webm" />
                         <source src={audioMap[s.id].url} type="audio/mp4" />
                       </audio>
+                    </div>
+                  )}
+                  {s.report?.summary && (
+                    <div className="px-4 pb-3 pt-2 border-t border-gray-50 flex justify-end">
+                      <button
+                        onClick={() => handleSendAck(s)}
+                        disabled={sendingAckId === s.id}
+                        className="text-xs text-violet-600 hover:text-violet-800 border border-violet-200 hover:bg-violet-50 px-2.5 py-1 rounded-lg transition-colors disabled:opacity-40 flex items-center gap-1.5"
+                      >
+                        {sendingAckId === s.id ? 'Sending...' : '📨 Send for Acknowledgement'}
+                      </button>
                     </div>
                   )}
                 </div>
@@ -1861,6 +1970,23 @@ export default function KaunslorClientFilePage() {
                       </div>
                       <Badge color={badgeColor}>{badgeLabel}</Badge>
                     </div>
+                    {(a.status === 'confirmed' || a.status === 'pending') && (
+                      <div className="mt-3 pt-3 border-t border-gray-100 flex gap-2 flex-wrap">
+                        <button
+                          onClick={() => handleSendReminder(a)}
+                          className="text-xs text-green-700 border border-green-200 bg-green-50 hover:bg-green-100 px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
+                        >
+                          📲 Send Reminder
+                        </button>
+                        <button
+                          onClick={() => handleSendConsentForm(a)}
+                          disabled={sendingConsentId === a.id}
+                          className="text-xs text-violet-600 border border-violet-200 hover:bg-violet-50 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-40 flex items-center gap-1.5"
+                        >
+                          {sendingConsentId === a.id ? 'Creating...' : '📋 Send Consent Form'}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -1914,6 +2040,77 @@ export default function KaunslorClientFilePage() {
                       </div>
                     );
                   })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── INSIGHTS TAB ── */}
+          {tab === 'insights' && (
+            <div className="space-y-4">
+              <div className="bg-white rounded-xl border p-5">
+                <h3 className="font-semibold text-gray-900 mb-1">Narrative Consistency</h3>
+                <p className="text-xs text-gray-400 mb-4">Analyse the last 5 sessions for factual contradictions in what the client has stated across different sessions.</p>
+                <button
+                  onClick={handleAnalyseContradictions}
+                  disabled={analysingInsights || sessions.filter(s => s.report).length < 2}
+                  className="w-full py-2.5 text-sm font-semibold rounded-xl bg-violet-600 hover:bg-violet-700 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {analysingInsights ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Analysing...
+                    </>
+                  ) : '🔍 Analyse Across Sessions'}
+                </button>
+                {sessions.filter(s => s.report).length < 2 && (
+                  <p className="text-xs text-gray-400 text-center mt-2">Need at least 2 completed sessions to analyse.</p>
+                )}
+              </div>
+
+              {insightsAnalysedAt && (
+                <p className="text-xs text-gray-400 text-center">Last analysed: {format(parseISO(insightsAnalysedAt), 'dd MMM yyyy, HH:mm')}</p>
+              )}
+
+              {insightsResult && (
+                <div className="space-y-3">
+                  {insightsResult.contradictions?.length === 0 ? (
+                    <div className="bg-green-50 border border-green-200 rounded-xl p-5 flex items-start gap-3">
+                      <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div>
+                        <p className="text-sm font-semibold text-green-800">No significant contradictions detected</p>
+                        <p className="text-xs text-green-700 mt-0.5">The client's statements across the analysed sessions appear consistent.</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">{insightsResult.contradictions.length} contradiction{insightsResult.contradictions.length !== 1 ? 's' : ''} found</p>
+                      {insightsResult.contradictions.map((c, i) => (
+                        <div key={i} className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-3">
+                          <p className="text-sm font-semibold text-amber-900">{c.topic}</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="bg-white rounded-lg border border-amber-100 p-3">
+                              <p className="text-xs font-semibold text-gray-400 mb-1">{c.session_a?.date}</p>
+                              <p className="text-sm text-gray-700 italic">"{c.session_a?.quote}"</p>
+                            </div>
+                            <div className="bg-white rounded-lg border border-amber-100 p-3">
+                              <p className="text-xs font-semibold text-gray-400 mb-1">{c.session_b?.date}</p>
+                              <p className="text-sm text-gray-700 italic">"{c.session_b?.quote}"</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                  <button
+                    onClick={handleAnalyseContradictions}
+                    disabled={analysingInsights}
+                    className="w-full py-2 text-sm text-violet-600 border border-violet-200 rounded-xl hover:bg-violet-50 transition-colors disabled:opacity-40"
+                  >
+                    Re-analyse
+                  </button>
                 </div>
               )}
             </div>
