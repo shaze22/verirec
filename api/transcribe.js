@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import Busboy from 'busboy';
 import { checkRateLimit } from './_rateLimit.js';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const supabaseAdmin = createClient(
   process.env.VITE_SUPABASE_URL,
@@ -126,28 +127,102 @@ async function handlePoll(req, res) {
   }
 }
 
+const MIME_MAP = {
+  mp3: 'audio/mpeg', m4a: 'audio/mp4', mp4: 'audio/mp4', wav: 'audio/wav',
+  webm: 'audio/webm', ogg: 'audio/ogg', flac: 'audio/flac', aac: 'audio/aac', mov: 'video/quicktime',
+};
+
+const TRANSCRIBE_PROMPT =
+  'Transcribe this counseling session audio. Return ONLY a JSON array of speaker turns:\n' +
+  '[{"speaker":"A","text":"..."},{"speaker":"B","text":"..."}]\n' +
+  'A = first speaker (counselor), B = second speaker (client). ' +
+  'Transcribe in the original language (Bahasa Malaysia, English, or mixed BM/EN). ' +
+  'Merge consecutive turns by the same speaker into one entry. No markdown, no explanation — JSON array only.';
+
 async function handleImport(res, body) {
   const { storage_path, interviewer, subject_name } = body;
   if (!storage_path) return res.status(400).json({ error: 'Missing storage_path' });
-  if (!process.env.ASSEMBLYAI_API_KEY) return res.status(503).json({ error: 'AssemblyAI not configured' });
+  if (!process.env.GEMINI_API_KEY) return res.status(503).json({ error: 'Gemini not configured' });
 
   const { data, error } = await supabaseAdmin.storage.from('recordings').createSignedUrl(storage_path, 7200);
   if (error || !data?.signedUrl) return res.status(400).json({ error: 'Could not access file' });
 
-  const transcriptRes = await fetch('https://api.assemblyai.com/v2/transcript', {
-    method: 'POST',
-    headers: { Authorization: process.env.ASSEMBLYAI_API_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      audio_url: data.signedUrl,
-      speech_model: 'universal',
-      speaker_labels: true,
-      speakers_expected: 2,
-      language_detection: true,
-    }),
-  });
-  if (!transcriptRes.ok) throw new Error('AssemblyAI job submission failed');
-  const { id } = await transcriptRes.json();
-  return res.status(200).json({ job_id: id, status: 'processing' });
+  const audioRes = await fetch(data.signedUrl);
+  if (!audioRes.ok) throw new Error('Failed to download audio from storage');
+  const audioBuffer = Buffer.from(await audioRes.arrayBuffer());
+
+  const ext = (storage_path.split('.').pop() || 'mp3').toLowerCase();
+  const mimeType = MIME_MAP[ext] || 'audio/mpeg';
+
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+  let geminiParts;
+
+  if (audioBuffer.length <= 15 * 1024 * 1024) {
+    // Small file: inline base64
+    geminiParts = [TRANSCRIBE_PROMPT, { inlineData: { data: audioBuffer.toString('base64'), mimeType } }];
+  } else {
+    // Large file: Gemini Files API
+    const uploadRes = await fetch(
+      `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: {
+          'X-Goog-Upload-Protocol': 'raw',
+          'X-Goog-Upload-File-Name': `session.${ext}`,
+          'Content-Type': mimeType,
+        },
+        body: audioBuffer,
+      }
+    );
+    if (!uploadRes.ok) throw new Error('Gemini file upload failed');
+    const { file } = await uploadRes.json();
+
+    // Poll until file is ACTIVE (usually immediate for audio)
+    let state = file.state;
+    for (let i = 0; state !== 'ACTIVE' && i < 20; i++) {
+      await new Promise(r => setTimeout(r, 2000));
+      const checkRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/${file.name}?key=${process.env.GEMINI_API_KEY}`
+      );
+      state = (await checkRes.json()).state;
+    }
+
+    geminiParts = [TRANSCRIBE_PROMPT, { fileData: { fileUri: file.uri, mimeType } }];
+
+    // Cleanup uploaded file (non-fatal)
+    fetch(`https://generativelanguage.googleapis.com/v1beta/${file.name}?key=${process.env.GEMINI_API_KEY}`, {
+      method: 'DELETE',
+    }).catch(() => {});
+  }
+
+  const result = await model.generateContent(geminiParts);
+  const raw = result.response.text().trim();
+
+  let utterances = [];
+  try {
+    const jsonStr = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+    const parsed = JSON.parse(jsonStr);
+    if (Array.isArray(parsed)) {
+      utterances = parsed.map(u => ({
+        speaker: String(u.speaker || 'A'),
+        text: String(u.text || ''),
+        start: 0,
+        end: 0,
+      }));
+    }
+  } catch {
+    // Fallback: wrap entire transcript as one utterance
+    utterances = [{ speaker: 'A', text: raw, start: 0, end: 0 }];
+  }
+
+  if (interviewer || subject_name) {
+    const nameMap = { A: interviewer || 'Counselor', B: subject_name || 'Client' };
+    utterances = utterances.map(u => ({ ...u, identified_name: nameMap[u.speaker] ?? null }));
+  }
+
+  return res.status(200).json({ status: 'completed', utterances });
 }
 
 export default async function handler(req, res) {

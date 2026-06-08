@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore.js';
 import { useBillingStore } from '../../store/billingStore.js';
 import { supabase } from '../../lib/supabase.js';
-import { importFromStoragePath, pollDiarization } from '../../api/whisper.js';
+import { importFromStoragePath } from '../../api/whisper.js';
 import { generateReport } from '../../api/claude.js';
 import { updateSession } from '../../api/sessions.js';
 import { TopBar } from '../../components/layout/TopBar.jsx';
@@ -206,22 +206,15 @@ export default function KaunslorUploadSessionPage() {
           title,
         }).catch(() => {});
 
-        // Transcribe with AssemblyAI
+        // Transcribe with Gemini AI
         setCurrentStep('transcribing');
-        setStepDetail('Submitting to AssemblyAI...');
-        const jobId = await importFromStoragePath({
+        setStepDetail('Transcribing with Gemini AI — this may take a few minutes for long recordings...');
+        const utterances = await importFromStoragePath({
           storagePath,
           interviewer: counselorName.trim(),
           subject_name: client.name,
         });
-
-        setStepDetail('Processing audio — this may take a few minutes for long recordings...');
-        const utterances = await pollDiarization(jobId, {
-          interviewer: counselorName.trim(),
-          subject_name: client.name,
-          onProgress: (status) => setStepDetail(`AssemblyAI: ${status}`),
-          maxWaitMs: 600_000,
-        });
+        setStepDetail('');
 
         const speakers = [...new Set(utterances.map(u => u.speaker))].sort();
         const speakerMap = {};
@@ -440,7 +433,7 @@ export default function KaunslorUploadSessionPage() {
                   <StepRow label="Uploading recording to secure storage" status={stepStatus('uploading')} />
                 )}
                 <StepRow
-                  label={mode === 'txt' ? 'Parsing transcript' : 'Transcribing with AI speaker diarization'}
+                  label={mode === 'txt' ? 'Parsing transcript' : 'Transcribing with Gemini AI'}
                   status={stepStatus('transcribing')}
                 />
                 <StepRow label="Generating session report" status={stepStatus('generating')} />
@@ -469,7 +462,7 @@ export default function KaunslorUploadSessionPage() {
 
           <p className="text-xs text-center text-gray-400 pb-6">
             {mode === 'audio'
-              ? 'Audio is transcribed by AssemblyAI with speaker diarization. Long recordings (1+ hour) may take several minutes.'
+              ? 'Audio is transcribed by Gemini AI. Long recordings (1+ hour) may take a few minutes.'
               : 'Transcript will be processed directly — no transcription wait time.'}
           </p>
         </div>

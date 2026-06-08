@@ -51,7 +51,7 @@ export async function pollDiarization(jobId, { onProgress, maxWaitMs = 180_000, 
   throw new Error('diarize_timeout');
 }
 
-// Submit an already-uploaded file (Supabase storage path) to AssemblyAI for transcription.
+// Transcribe an already-uploaded file (Supabase storage path) via Gemini. Returns utterances[].
 export async function importFromStoragePath({ storagePath, interviewer, subject_name }) {
   const token = await getToken();
   const res = await fetch(CONFIG.api.transcribe, {
@@ -64,7 +64,7 @@ export async function importFromStoragePath({ storagePath, interviewer, subject_
     throw new Error(err.error || 'import_failed');
   }
   const data = await res.json();
-  return data.job_id;
+  return data.utterances || [];
 }
 
 export function createWhisperClient({ onTranscript, onError, onStatus, lang = 'auto' } = {}) {
