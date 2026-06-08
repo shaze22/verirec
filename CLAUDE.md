@@ -323,7 +323,7 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - "Appointments" shortened to "Appts" in grid to fit cleanly
 - New Session bug fixed: `navigate('/session/setup/counselor')` → `navigate('/session/consent')` — ProfessionalRoute was blocking /session/setup on counselor subdomain
 
-**Latest deploy:** commit `f53c01c` — 2026-06-08 (global copywriting, free tier, onboarding checklist, WhatsApp share, em dash cleanup)
+**Latest deploy:** commit `15a56bc` — 2026-06-08 (landing page UX: 9→6 features, cookie banner corner widget, Tamper-Proof Records, who-is-this-for hero line)
 
 **Generate Memo fix (commit `512d2a5` — 2026-06-03):**
 - Regression from tab merge: "🖨 Memo" button was dropped from referral cards in Plans tab
