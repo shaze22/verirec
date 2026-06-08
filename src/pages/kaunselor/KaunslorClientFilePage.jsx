@@ -94,6 +94,15 @@ export default function KaunslorClientFilePage() {
   const [allResources, setAllResources] = useState([]);
   const [showAssignResource, setShowAssignResource] = useState(false);
   const [assigningResource, setAssigningResource] = useState(false);
+  // Messages
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const messagesLoadedRef = useRef(false);
+  // Activity log
+  const [activityLog, setActivityLog] = useState([]);
+  // Reschedule requests
+  const [rescheduleRequests, setRescheduleRequests] = useState([]);
   // New features
   const [sendingConsentId, setSendingConsentId] = useState(null);
   const [sendingAckId, setSendingAckId] = useState(null);
@@ -114,7 +123,9 @@ export default function KaunslorClientFilePage() {
       supabase.from('audio_library').select('id, session_id, storage_path, file_name, duration, created_at, mime_type').eq('subject_id', id),
       supabase.from('progress_notes').select('*').eq('subject_id', id).order('note_date', { ascending: false }).order('created_at', { ascending: false }),
       supabase.from('team_referrals').select('*').eq('subject_id', id).eq('from_user_id', user.id).order('created_at', { ascending: false }),
-    ]).then(([{ data: c }, { data: s }, { data: a }, { data: plans }, { data: refs }, { data: audios }, { data: notes }, { data: trefs }]) => {
+      supabase.from('kaunselor_audit_logs').select('action,metadata,created_at').eq('subject_id', id).eq('user_id', user.id).order('created_at', { ascending: false }).limit(20),
+      supabase.from('reschedule_requests').select('*').eq('subject_id', id).eq('user_id', user.id).eq('status', 'pending').order('created_at', { ascending: false }),
+    ]).then(([{ data: c }, { data: s }, { data: a }, { data: plans }, { data: refs }, { data: audios }, { data: notes }, { data: trefs }, { data: alogs }, { data: rreqs }]) => {
       if (!c) { navigate('/kaunselor/clients'); return; }
       setClient(c);
       setEditForm(c);
@@ -124,6 +135,8 @@ export default function KaunslorClientFilePage() {
       setReferrals(refs || []);
       setProgressNotes(notes || []);
       setTeamReferrals(trefs || []);
+      setActivityLog(alogs || []);
+      setRescheduleRequests(rreqs || []);
       // Store raw metadata; resolve signed URLs lazily when user opens Sessions/Recordings tab
       rawAudiosRef.current = audios || [];
       // Show count in tab without URLs
@@ -206,6 +219,7 @@ export default function KaunslorClientFilePage() {
       if (error) throw error;
       setClient(editForm);
       setEditing(false);
+      logActivity('client_updated');
       toast.success('Client information updated.');
     } catch { toast.error('Failed to save.'); }
     finally { setSaving(false); }
@@ -246,6 +260,7 @@ export default function KaunslorClientFilePage() {
       setActionPlans(prev => [data, ...prev]);
       setPlanForm({ goals: '', interventions: '', follow_up_date: '', notes: '' });
       setShowAddPlan(false);
+      logActivity('plan_created');
       toast.success('Action plan added.');
     } catch { toast.error('Failed to save.'); }
     finally { setSavingPlan(false); }
@@ -265,6 +280,7 @@ export default function KaunslorClientFilePage() {
       setReferrals(prev => [data, ...prev]);
       setReferralForm({ referred_to: '', referral_type: 'other', reason: '' });
       setShowAddReferral(false);
+      logActivity('referral_created', { referred_to: referralForm.referred_to });
       toast.success('Referral added.');
     } catch { toast.error('Failed to save.'); }
     finally { setSavingReferral(false); }
@@ -300,6 +316,7 @@ export default function KaunslorClientFilePage() {
       setNoteDate(new Date().toISOString().slice(0, 10));
       setSoapForm({ s: '', o: '', a: '', p: '' });
       setDapForm({ d: '', a: '', p: '' });
+      logActivity('note_created', { note_type: note_type });
       toast.success('Note saved.');
     } catch { toast.error('Failed to save note.'); }
     finally { setSavingNote(false); }
@@ -518,6 +535,53 @@ export default function KaunslorClientFilePage() {
     }
   };
 
+  // Fire-and-forget audit logger
+  const logActivity = (action, metadata = {}) => {
+    if (!user || !id) return;
+    supabase.from('kaunselor_audit_logs').insert({ user_id: user.id, subject_id: id, action, metadata }).then(() => {}).catch(() => {});
+  };
+
+  // Lazy-load messages when tab opens
+  useEffect(() => {
+    if (tab !== 'messages' || messagesLoadedRef.current || !user) return;
+    messagesLoadedRef.current = true;
+    supabase.from('portal_messages')
+      .select('*').eq('subject_id', id).eq('user_id', user.id)
+      .order('created_at', { ascending: true })
+      .then(({ data }) => {
+        setMessages(data || []);
+        const unreadIds = (data || []).filter(m => m.sender_role === 'client' && !m.read_at).map(m => m.id);
+        if (unreadIds.length) {
+          supabase.from('portal_messages').update({ read_at: new Date().toISOString() }).in('id', unreadIds).then(() => {}).catch(() => {});
+        }
+      });
+  }, [tab, id, user]);
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || sendingMessage) return;
+    setSendingMessage(true);
+    try {
+      const { data, error } = await supabase.from('portal_messages').insert({
+        subject_id: id,
+        user_id: user.id,
+        sender_role: 'counselor',
+        message: newMessage.trim(),
+      }).select().single();
+      if (error) throw error;
+      setMessages(prev => [...prev, data]);
+      setNewMessage('');
+    } catch { toast.error('Failed to send message.'); }
+    finally { setSendingMessage(false); }
+  };
+
+  const handleHandleReschedule = async (reqId) => {
+    try {
+      await supabase.from('reschedule_requests').update({ status: 'handled' }).eq('id', reqId);
+      setRescheduleRequests(prev => prev.filter(r => r.id !== reqId));
+      toast.success('Request marked as handled.');
+    } catch { toast.error('Failed to update.'); }
+  };
+
   const handleSendReminder = (appt) => {
     const displayDate = appt.confirmed_date || appt.requested_date;
     const displayTime = appt.confirmed_time || appt.requested_time;
@@ -577,28 +641,51 @@ export default function KaunslorClientFilePage() {
     setAnalysingInsights(true);
     setInsightsResult(null);
     try {
-      const { data: sessionsWithTranscripts, error } = await supabase
+      // Fetch sessions with transcripts
+      const { data: sessionsWithTranscripts } = await supabase
         .from('sessions')
         .select('id, title, created_at, transcript')
         .eq('subject_id', id)
         .not('transcript', 'is', null)
         .order('created_at', { ascending: false })
         .limit(5);
-      if (error) throw error;
-      const valid = (sessionsWithTranscripts || [])
+
+      const transcriptSessions = (sessionsWithTranscripts || [])
         .filter(s => Array.isArray(s.transcript) && s.transcript.length > 0)
-        .reverse();
-      if (valid.length < 2) {
-        toast.error('Need at least 2 sessions with transcripts to analyse.');
-        return;
-      }
-      const result = await analyseContradictions({
-        sessions: valid.map(s => ({
+        .reverse()
+        .map(s => ({
           date: format(parseISO(s.created_at), 'dd MMM yyyy'),
           title: s.title,
           entries: s.transcript,
-        })),
-      });
+        }));
+
+      // Build pseudo-sessions from progress notes when transcripts are scarce
+      const noteSessions = progressNotes.slice(0, 10).reverse().map(note => {
+        let text = note.content || '';
+        if (note.note_type === 'soap' && note.note_data) {
+          const { s, o, a, p } = note.note_data;
+          text = [s && `S: ${s}`, o && `O: ${o}`, a && `A: ${a}`, p && `P: ${p}`].filter(Boolean).join('\n');
+        } else if (note.note_type === 'dap' && note.note_data) {
+          const { d, a, p } = note.note_data;
+          text = [d && `D: ${d}`, a && `A: ${a}`, p && `P: ${p}`].filter(Boolean).join('\n');
+        }
+        return text.trim() ? {
+          date: note.note_date,
+          title: `Progress Note (${(note.note_type || 'free').toUpperCase()})`,
+          entries: [{ speaker: 'Client', text }],
+        } : null;
+      }).filter(Boolean);
+
+      const allSources = [...transcriptSessions, ...noteSessions]
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .slice(-8);
+
+      if (allSources.length < 2) {
+        toast.error('Need at least 2 sessions or progress notes to analyse.');
+        return;
+      }
+
+      const result = await analyseContradictions({ sessions: allSources });
       setInsightsResult(result);
       setInsightsAnalysedAt(new Date().toISOString());
     } catch (err) {
@@ -675,6 +762,7 @@ export default function KaunslorClientFilePage() {
               { id: 'notes',        icon: '📝', label: 'Notes',        count: progressNotes.length },
               { id: 'assessments',  icon: '📊', label: 'Assessments',  count: clientAssessments.length },
               { id: 'insights',     icon: '🔍', label: 'Insights',     count: 0 },
+              { id: 'messages',     icon: '💬', label: 'Messages',     count: 0 },
               { id: 'homework',     icon: '✅', label: 'Homework',     count: homework.length },
               { id: 'intake',       icon: '📋', label: 'Intake',       count: 0 },
               { id: 'resources',    icon: '📚', label: 'Resources',    count: clientResources.length },
@@ -730,6 +818,7 @@ export default function KaunslorClientFilePage() {
                 { id: 'notes',        label: `Notes (${progressNotes.length})` },
                 { id: 'assessments',  label: `Assessments (${clientAssessments.length})` },
                 { id: 'insights',     label: 'Insights' },
+                { id: 'messages',     label: 'Messages' },
                 { id: 'homework',     label: `Homework (${homework.length})` },
                 { id: 'intake',       label: 'Intake' },
                 { id: 'resources',    label: `Resources (${clientResources.length})` },
@@ -986,6 +1075,33 @@ export default function KaunslorClientFilePage() {
                   ))}
                 </div>
               </div>
+
+              {/* Activity log */}
+              {activityLog.length > 0 && (
+                <div className="bg-white rounded-xl border p-5">
+                  <h3 className="font-semibold text-gray-900 mb-3">Recent Activity</h3>
+                  <div className="space-y-2">
+                    {activityLog.slice(0, 8).map((log, i) => {
+                      const labels = {
+                        note_created: `📝 Progress note added${log.metadata?.note_type ? ` (${log.metadata.note_type.toUpperCase()})` : ''}`,
+                        note_deleted: '🗑 Progress note deleted',
+                        session_created: '🎙 Session recorded',
+                        client_updated: '✏️ Client profile updated',
+                        plan_created: '📌 Action plan added',
+                        referral_created: `🏥 Referral created${log.metadata?.referred_to ? ` → ${log.metadata.referred_to}` : ''}`,
+                        consent_sent: '📋 Consent form sent',
+                        ack_sent: '📨 Acknowledgement sent',
+                      };
+                      return (
+                        <div key={i} className="flex items-center justify-between gap-3">
+                          <p className="text-xs text-gray-600">{labels[log.action] || log.action}</p>
+                          <p className="text-xs text-gray-400 flex-shrink-0">{format(new Date(log.created_at), 'dd MMM, HH:mm')}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Last session summary */}
               {lastSession?.report && (
@@ -1534,6 +1650,7 @@ export default function KaunslorClientFilePage() {
                                     const { error } = await supabase.from('progress_notes').delete().eq('id', note.id);
                                     if (error) throw error;
                                     setProgressNotes(prev => prev.filter(n => n.id !== note.id));
+                                    logActivity('note_deleted');
                                     toast.success('Note deleted.');
                                   } catch { toast.error('Failed to delete note.'); }
                                 }}
@@ -1947,9 +2064,73 @@ export default function KaunslorClientFilePage() {
             </div>
           )}
 
+          {/* ── MESSAGES TAB ── */}
+          {tab === 'messages' && (
+            <div className="space-y-4">
+              {/* Message thread */}
+              <div className="bg-white rounded-xl border p-4 space-y-3 min-h-48 max-h-96 overflow-y-auto flex flex-col">
+                {messages.length === 0 ? (
+                  <div className="flex-1 flex flex-col items-center justify-center text-gray-400 py-8">
+                    <div className="text-4xl mb-2">💬</div>
+                    <p className="text-sm">No messages yet. Start the conversation.</p>
+                  </div>
+                ) : messages.map(m => (
+                  <div key={m.id} className={`flex ${m.sender_role === 'counselor' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[80%] rounded-xl px-3 py-2 ${m.sender_role === 'counselor' ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
+                      <p className="text-xs font-semibold opacity-60 mb-0.5">{m.sender_role === 'counselor' ? 'You' : client.name}</p>
+                      <p className="text-sm leading-relaxed">{m.message}</p>
+                      <p className={`text-[10px] mt-1 opacity-50 text-right`}>{format(new Date(m.created_at), 'dd MMM, HH:mm')}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Input */}
+              <div className="flex gap-2">
+                <textarea
+                  value={newMessage}
+                  onChange={e => setNewMessage(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
+                  rows={2}
+                  placeholder="Type a message to client..."
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
+                />
+                <button
+                  onClick={handleSendMessage}
+                  disabled={sendingMessage || !newMessage.trim()}
+                  className="px-4 py-2 bg-violet-600 text-white rounded-xl text-sm font-semibold hover:bg-violet-700 transition-colors disabled:opacity-40 self-end"
+                >
+                  {sendingMessage ? '...' : 'Send'}
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 text-center">Client sees messages in their portal. Press Enter to send.</p>
+            </div>
+          )}
+
           {/* ── APPOINTMENTS TAB (includes consent forms) ── */}
           {tab === 'appointments' && (
             <div className="space-y-3">
+              {/* Reschedule requests */}
+              {rescheduleRequests.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">Reschedule Requests</p>
+                  {rescheduleRequests.map(req => (
+                    <div key={req.id} className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-amber-900">{client.name} requested a reschedule</p>
+                          {req.preferred_date && <p className="text-xs text-amber-800 mt-0.5">Preferred: {format(new Date(req.preferred_date), 'dd MMM yyyy')}{req.preferred_time ? ` at ${String(req.preferred_time).slice(0,5)}` : ''}</p>}
+                          {req.reason && <p className="text-xs text-amber-700 mt-1 italic">"{req.reason}"</p>}
+                          <p className="text-xs text-amber-500 mt-1">{format(new Date(req.created_at), 'dd MMM, HH:mm')}</p>
+                        </div>
+                        <button onClick={() => handleHandleReschedule(req.id)}
+                          className="text-xs text-amber-700 border border-amber-300 rounded-lg px-2.5 py-1 hover:bg-amber-100 transition-colors flex-shrink-0">
+                          Mark Handled
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
               {appointments.length === 0 ? (
                 <div className="text-center py-12 text-gray-400">
                   <div className="text-4xl mb-3">📅</div>
@@ -2053,7 +2234,7 @@ export default function KaunslorClientFilePage() {
                 <p className="text-xs text-gray-400 mb-4">Analyse the last 5 sessions for factual contradictions in what the client has stated across different sessions.</p>
                 <button
                   onClick={handleAnalyseContradictions}
-                  disabled={analysingInsights || sessions.filter(s => s.report).length < 2}
+                  disabled={analysingInsights || (sessions.filter(s => s.report).length < 2 && progressNotes.length < 2)}
                   className="w-full py-2.5 text-sm font-semibold rounded-xl bg-violet-600 hover:bg-violet-700 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {analysingInsights ? (
@@ -2063,8 +2244,8 @@ export default function KaunslorClientFilePage() {
                     </>
                   ) : '🔍 Analyse Across Sessions'}
                 </button>
-                {sessions.filter(s => s.report).length < 2 && (
-                  <p className="text-xs text-gray-400 text-center mt-2">Need at least 2 completed sessions to analyse.</p>
+                {sessions.filter(s => s.report).length < 2 && progressNotes.length < 2 && (
+                  <p className="text-xs text-gray-400 text-center mt-2">Need at least 2 completed sessions or progress notes to analyse.</p>
                 )}
               </div>
 

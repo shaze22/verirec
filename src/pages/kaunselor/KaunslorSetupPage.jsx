@@ -34,6 +34,7 @@ export default function KaunslorSetupPage() {
     session_duration_minutes: 60,
     is_accepting_appointments: true,
     booking_code: '',
+    payment_url: '',
   });
 
   useEffect(() => {
@@ -160,6 +161,12 @@ export default function KaunslorSetupPage() {
                 <p className="text-xs text-gray-500 mb-1">Your Booking Code</p>
                 <p className="font-mono font-bold text-gray-900 text-lg">{form.booking_code}</p>
                 <p className="text-xs text-gray-400 mt-1">URL: kaunselor.app/book/{form.booking_code}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Online Payment Link</label>
+                <Input value={form.payment_url || ''} onChange={set('payment_url')}
+                  placeholder="https://buy.stripe.com/... or any payment link" />
+                <p className="text-xs text-gray-400 mt-1">Clients will see a "Pay Now" button in their portal linking here.</p>
               </div>
             </div>
 

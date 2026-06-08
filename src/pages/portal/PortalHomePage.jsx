@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '../../store/authStore.js';
 import { supabase } from '../../lib/supabase.js';
 import { format, parseISO, isPast } from 'date-fns';
@@ -14,6 +14,15 @@ export default function PortalHomePage() {
   const [assessments, setAssessments] = useState([]);
   const [resources, setResources] = useState([]);
   const [tab, setTab] = useState('overview');
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [invoices, setInvoices] = useState([]);
+  const [counselorPaymentUrl, setCounselorPaymentUrl] = useState('');
+  const [rescheduleModal, setRescheduleModal] = useState(null); // appointment to reschedule
+  const [rescheduleForm, setRescheduleForm] = useState({ preferred_date: '', preferred_time: '', reason: '' });
+  const [submittingReschedule, setSubmittingReschedule] = useState(false);
+  const messagesLoadedRef = useRef(false);
 
   useEffect(() => {
     if (!user) return;
@@ -65,12 +74,67 @@ export default function PortalHomePage() {
       setHomework(hw || []);
       setAssessments(asmt || []);
       setResources(res || []);
+
+      // Load invoices + counselor payment URL
+      const [{ data: invData }, { data: profileData }] = await Promise.all([
+        supabase.from('counselor_invoices').select('*').eq('subject_id', sub.id).order('invoice_date', { ascending: false }).limit(20),
+        supabase.from('counselor_profiles').select('payment_url').eq('user_id', sub.user_id).single(),
+      ]);
+      setInvoices(invData || []);
+      setCounselorPaymentUrl(profileData?.payment_url || '');
     } catch (err) {
       console.error('Portal load error:', err);
       toast.error('Failed to load your data.');
     } finally {
       setLoading(false);
     }
+  };
+
+  // Lazy-load messages when messages tab opens
+  useEffect(() => {
+    if (tab !== 'messages' || messagesLoadedRef.current || !subject) return;
+    messagesLoadedRef.current = true;
+    supabase.from('portal_messages')
+      .select('*').eq('subject_id', subject.id).eq('user_id', subject.user_id)
+      .order('created_at', { ascending: true })
+      .then(({ data }) => setMessages(data || []));
+  }, [tab, subject]);
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || sendingMessage || !subject) return;
+    setSendingMessage(true);
+    try {
+      const { data, error } = await supabase.from('portal_messages').insert({
+        subject_id: subject.id,
+        user_id: subject.user_id,
+        sender_role: 'client',
+        message: newMessage.trim(),
+      }).select().single();
+      if (error) throw error;
+      setMessages(prev => [...prev, data]);
+      setNewMessage('');
+    } catch { toast.error('Failed to send message.'); }
+    finally { setSendingMessage(false); }
+  };
+
+  const handleRequestReschedule = async () => {
+    if (!rescheduleModal || !subject) return;
+    setSubmittingReschedule(true);
+    try {
+      const { error } = await supabase.from('reschedule_requests').insert({
+        appointment_id: rescheduleModal.id,
+        subject_id: subject.id,
+        user_id: subject.user_id,
+        preferred_date: rescheduleForm.preferred_date || null,
+        preferred_time: rescheduleForm.preferred_time || null,
+        reason: rescheduleForm.reason || null,
+      });
+      if (error) throw error;
+      toast.success('Reschedule request sent to your counselor.');
+      setRescheduleModal(null);
+      setRescheduleForm({ preferred_date: '', preferred_time: '', reason: '' });
+    } catch { toast.error('Failed to send request.'); }
+    finally { setSubmittingReschedule(false); }
   };
 
   const markResourceViewed = async (r) => {
@@ -102,12 +166,16 @@ export default function PortalHomePage() {
   const pendingHw = homework.filter(h => h.status === 'pending');
   const pendingAsmt = assessments.filter(a => a.status === 'pending' && new Date(a.expires_at) > new Date());
 
+  const unpaidInvoices = invoices.filter(i => i.status === 'sent' || i.status === 'draft');
+
   const TABS = [
     { id: 'overview',     label: 'Overview' },
     { id: 'appointments', label: `Appointments (${appointments.length})` },
     { id: 'homework',     label: `Tasks (${homework.length})` },
     { id: 'assessments',  label: `Assessments (${pendingAsmt.length})` },
     { id: 'resources',    label: `Resources (${resources.length})` },
+    { id: 'messages',     label: 'Messages' },
+    { id: 'invoices',     label: `Invoices${unpaidInvoices.length ? ` (${unpaidInvoices.length})` : ''}` },
   ];
 
   return (
@@ -253,6 +321,12 @@ export default function PortalHomePage() {
                     'bg-amber-100 text-amber-700'
                   }`}>{a.status}</span>
                 </div>
+                {a.status === 'confirmed' && (
+                  <button onClick={() => { setRescheduleModal(a); setRescheduleForm({ preferred_date: '', preferred_time: '', reason: '' }); }}
+                    className="mt-3 w-full py-1.5 text-xs text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-50 transition-colors">
+                    Request Reschedule
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -363,7 +437,124 @@ export default function PortalHomePage() {
             })}
           </div>
         )}
+        {/* Messages */}
+        {tab === 'messages' && (
+          <div className="space-y-4">
+            <div className="bg-white rounded-xl border p-4 min-h-48 max-h-96 overflow-y-auto flex flex-col space-y-3">
+              {messages.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-gray-400 py-8">
+                  <div className="text-4xl mb-2">💬</div>
+                  <p className="text-sm">No messages yet.</p>
+                </div>
+              ) : messages.map(m => (
+                <div key={m.id} className={`flex ${m.sender_role === 'client' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[80%] rounded-xl px-3 py-2 ${m.sender_role === 'client' ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
+                    <p className="text-xs font-semibold opacity-60 mb-0.5">{m.sender_role === 'client' ? 'You' : 'Counselor'}</p>
+                    <p className="text-sm leading-relaxed">{m.message}</p>
+                    <p className="text-[10px] mt-1 opacity-50 text-right">{format(new Date(m.created_at), 'dd MMM, HH:mm')}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <textarea
+                value={newMessage}
+                onChange={e => setNewMessage(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
+                rows={2}
+                placeholder="Message your counselor..."
+                className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
+              />
+              <button onClick={handleSendMessage} disabled={sendingMessage || !newMessage.trim()}
+                className="px-4 py-2 bg-violet-600 text-white rounded-xl text-sm font-semibold hover:bg-violet-700 disabled:opacity-40 self-end">
+                {sendingMessage ? '...' : 'Send'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Invoices */}
+        {tab === 'invoices' && (
+          <div className="space-y-3">
+            {invoices.length === 0 ? (
+              <div className="text-center py-12 text-gray-400">
+                <div className="text-4xl mb-3">🧾</div>
+                <p className="text-sm">No invoices yet.</p>
+              </div>
+            ) : invoices.map(inv => {
+              const subtotal = (inv.line_items || []).reduce((s, l) => s + (Number(l.qty) || 0) * (Number(l.unit_price) || 0), 0);
+              const tax = subtotal * ((Number(inv.tax_rate) || 0) / 100);
+              const total = subtotal + tax;
+              return (
+                <div key={inv.id} className="bg-white rounded-xl border p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{inv.invoice_number}</p>
+                      <p className="text-xs text-gray-400">{inv.invoice_date ? format(parseISO(inv.invoice_date), 'dd MMM yyyy') : '—'}</p>
+                      {inv.line_items?.map((l, i) => (
+                        <p key={i} className="text-xs text-gray-600 mt-1">{l.description} × {l.qty}</p>
+                      ))}
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-sm font-bold text-gray-900">RM {total.toFixed(2)}</p>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                        inv.status === 'paid' ? 'bg-green-100 text-green-700' :
+                        inv.status === 'cancelled' ? 'bg-gray-100 text-gray-500' :
+                        'bg-amber-100 text-amber-700'
+                      }`}>{inv.status}</span>
+                    </div>
+                  </div>
+                  {(inv.status === 'sent' || inv.status === 'draft') && counselorPaymentUrl && (
+                    <a href={counselorPaymentUrl} target="_blank" rel="noopener noreferrer"
+                      className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 transition-colors">
+                      Pay Now →
+                    </a>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
       </div>
+
+      {/* Reschedule modal */}
+      {rescheduleModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4">
+            <h3 className="text-base font-bold text-gray-900">Request Reschedule</h3>
+            <p className="text-xs text-gray-500">Let your counselor know your preferred date and time.</p>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">Preferred Date</label>
+                <input type="date" value={rescheduleForm.preferred_date} onChange={e => setRescheduleForm(f => ({ ...f, preferred_date: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">Preferred Time</label>
+                <input type="time" value={rescheduleForm.preferred_time} onChange={e => setRescheduleForm(f => ({ ...f, preferred_time: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">Reason (optional)</label>
+                <textarea value={rescheduleForm.reason} onChange={e => setRescheduleForm(f => ({ ...f, reason: e.target.value }))}
+                  rows={2} placeholder="e.g. Work conflict..."
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
+              </div>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button onClick={handleRequestReschedule} disabled={submittingReschedule}
+                className="flex-1 py-2.5 bg-violet-600 text-white text-sm font-semibold rounded-xl hover:bg-violet-700 disabled:opacity-40">
+                {submittingReschedule ? 'Sending...' : 'Send Request'}
+              </button>
+              <button onClick={() => setRescheduleModal(null)}
+                className="flex-1 py-2.5 border border-gray-200 text-sm text-gray-600 rounded-xl hover:bg-gray-50">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
