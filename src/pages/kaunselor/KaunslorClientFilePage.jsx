@@ -7,7 +7,7 @@ import { TopBar } from '../../components/layout/TopBar.jsx';
 import { Button } from '../../components/ui/Button.jsx';
 import { Badge } from '../../components/ui/Badge.jsx';
 import { format, parseISO } from 'date-fns';
-import { importFromStoragePath, pollDiarization } from '../../api/whisper.js';
+import { importFromStoragePath } from '../../api/whisper.js';
 import { generateReport, generateDocument } from '../../api/claude.js';
 import { updateSession } from '../../api/sessions.js';
 import toast from 'react-hot-toast';
@@ -89,6 +89,11 @@ export default function KaunslorClientFilePage() {
   const [showAddHomework, setShowAddHomework] = useState(false);
   const [homeworkForm, setHomeworkForm] = useState({ title: '', description: '', due_date: '' });
   const [savingHomework, setSavingHomework] = useState(false);
+  // Fasa 6D — Resources
+  const [clientResources, setClientResources] = useState([]);
+  const [allResources, setAllResources] = useState([]);
+  const [showAssignResource, setShowAssignResource] = useState(false);
+  const [assigningResource, setAssigningResource] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -146,6 +151,21 @@ export default function KaunslorClientFilePage() {
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .then(({ data }) => setHomework(data || []));
+
+    // Fasa 6D — assigned resources for this client
+    supabase.from('client_resource_assignments')
+      .select('*, psychoed_resources(*)')
+      .eq('subject_id', id)
+      .eq('user_id', user.id)
+      .order('assigned_at', { ascending: false })
+      .then(({ data }) => setClientResources(data || []));
+
+    // All resources in counselor library (for assign dropdown)
+    supabase.from('psychoed_resources')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => setAllResources(data || []));
   }, [id, user]);
 
   // Resolve signed URLs lazily when user opens Sessions or Recordings tab
@@ -423,20 +443,13 @@ export default function KaunslorClientFilePage() {
       await supabase.from('audio_library').update({ session_id: sessionId }).eq('id', rec.id).catch(() => {});
 
       setTranscribeStep('transcribing');
-      setTranscribeDetail('Submitting to AssemblyAI...');
-      const jobId = await importFromStoragePath({
+      setTranscribeDetail('Transcribing with Gemini AI — this may take a few minutes...');
+      const utterances = await importFromStoragePath({
         storagePath: rec.storage_path,
         interviewer: transcribeCounselorName.trim(),
         subject_name: client.name,
       });
-
-      setTranscribeDetail('Processing audio — this may take a few minutes...');
-      const utterances = await pollDiarization(jobId, {
-        interviewer: transcribeCounselorName.trim(),
-        subject_name: client.name,
-        onProgress: (status) => setTranscribeDetail(`AssemblyAI: ${status}`),
-        maxWaitMs: 600_000,
-      });
+      setTranscribeDetail('');
 
       const speakers = [...new Set(utterances.map(u => u.speaker))].sort();
       const speakerMap = {};
@@ -567,6 +580,7 @@ export default function KaunslorClientFilePage() {
               { id: 'assessments',  icon: '📊', label: 'Assessments',  count: clientAssessments.length },
               { id: 'homework',     icon: '✅', label: 'Homework',     count: homework.length },
               { id: 'intake',       icon: '📋', label: 'Intake',       count: 0 },
+              { id: 'resources',    icon: '📚', label: 'Resources',    count: clientResources.length },
               { id: 'recordings',   icon: '🎞️', label: 'Recordings',   count: clientRecordings.length },
             ].map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
@@ -620,6 +634,7 @@ export default function KaunslorClientFilePage() {
                 { id: 'assessments',  label: `Assessments (${clientAssessments.length})` },
                 { id: 'homework',     label: `Homework (${homework.length})` },
                 { id: 'intake',       label: 'Intake' },
+                { id: 'resources',    label: `Resources (${clientResources.length})` },
                 { id: 'recordings',   label: `Recordings (${clientRecordings.length})` },
               ].map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
             </select>
@@ -1433,6 +1448,60 @@ export default function KaunslorClientFilePage() {
                 + Assign New Assessment
               </Button>
 
+              {/* Outcome Trends */}
+              {(() => {
+                const done = clientAssessments.filter(a => a.status === 'completed');
+                const phq9  = done.filter(a => a.test_type === 'phq9').sort((a,b) => new Date(a.completed_at)-new Date(b.completed_at));
+                const gad7  = done.filter(a => a.test_type === 'gad7').sort((a,b) => new Date(a.completed_at)-new Date(b.completed_at));
+                const d21   = done.filter(a => a.test_type === 'dass21').sort((a,b) => new Date(a.completed_at)-new Date(b.completed_at));
+                if (phq9.length < 2 && gad7.length < 2 && d21.length < 2) return null;
+                return (
+                  <div className="bg-white rounded-xl border p-4 space-y-4">
+                    <p className="text-sm font-semibold text-gray-800">Progress Trends</p>
+                    {phq9.length >= 2 && (
+                      <div>
+                        <p className="text-xs font-medium text-blue-600 mb-1">PHQ-9 — Depression (0–27)</p>
+                        <TrendChart
+                          data={phq9.map(a => ({ date: a.completed_at, score: a.scores?.total ?? 0 }))}
+                          maxScore={27}
+                          color="#2563eb"
+                          zones={[{min:20,max:27,fill:'#ef4444'},{min:15,max:20,fill:'#f97316'},{min:10,max:15,fill:'#f59e0b'},{min:5,max:10,fill:'#eab308'},{min:0,max:5,fill:'#22c55e'}]}
+                        />
+                      </div>
+                    )}
+                    {gad7.length >= 2 && (
+                      <div>
+                        <p className="text-xs font-medium text-purple-600 mb-1">GAD-7 — Anxiety (0–21)</p>
+                        <TrendChart
+                          data={gad7.map(a => ({ date: a.completed_at, score: a.scores?.total ?? 0 }))}
+                          maxScore={21}
+                          color="#7c3aed"
+                          zones={[{min:15,max:21,fill:'#ef4444'},{min:10,max:15,fill:'#f97316'},{min:5,max:10,fill:'#f59e0b'},{min:0,max:5,fill:'#22c55e'}]}
+                        />
+                      </div>
+                    )}
+                    {d21.length >= 2 && (
+                      <div>
+                        <p className="text-xs font-medium text-indigo-600 mb-1">DASS-21 (0–42 per scale)</p>
+                        <MultiTrendChart
+                          data={d21.map(a => ({ date: a.completed_at, depression: a.scores?.depression??0, anxiety: a.scores?.anxiety??0, stress: a.scores?.stress??0 }))}
+                          maxScore={42}
+                          lines={[{key:'depression',color:'#1d4ed8'},{key:'anxiety',color:'#7c3aed'},{key:'stress',color:'#d97706'}]}
+                        />
+                        <div className="flex gap-3 mt-1">
+                          {[['#1d4ed8','Depression'],['#7c3aed','Anxiety'],['#d97706','Stress']].map(([c,l])=>(
+                            <div key={l} className="flex items-center gap-1">
+                              <div className="w-4 h-0.5 rounded" style={{background:c}} />
+                              <span className="text-xs text-gray-400">{l}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
               {clientAssessments.length === 0 ? (
                 <div className="text-center py-12 text-gray-400">
                   <div className="text-4xl mb-3">📋</div>
@@ -1506,6 +1575,110 @@ export default function KaunslorClientFilePage() {
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {/* ── RESOURCES TAB ── */}
+          {tab === 'resources' && (
+            <div className="space-y-4">
+              <button
+                onClick={() => setShowAssignResource(true)}
+                className="w-full py-2.5 text-sm font-semibold rounded-xl bg-violet-600 hover:bg-violet-700 text-white transition-colors"
+              >
+                + Assign Resource from Library
+              </button>
+
+              {clientResources.length === 0 ? (
+                <div className="text-center py-12 text-gray-400">
+                  <div className="text-4xl mb-3">📚</div>
+                  <p className="text-sm">No resources assigned yet.</p>
+                  <p className="text-xs mt-1 text-gray-300">Add resources to your library at the Resources page, then assign them here.</p>
+                </div>
+              ) : clientResources.map(r => {
+                const res = r.psychoed_resources;
+                return (
+                  <div key={r.id} className="bg-white rounded-xl border p-4 space-y-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs bg-violet-50 text-violet-700 border border-violet-100 px-2 py-0.5 rounded-full font-medium">{res?.category || 'General'}</span>
+                          {r.viewed_at && <span className="text-xs text-green-600 font-medium">✓ Viewed</span>}
+                        </div>
+                        <p className="text-sm font-semibold text-gray-900">{res?.title}</p>
+                        {res?.description && <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{res.description}</p>}
+                        <p className="text-xs text-gray-400 mt-1">Assigned {format(parseISO(r.assigned_at), 'dd MMM yyyy')}</p>
+                      </div>
+                      <button
+                        onClick={async () => {
+                          if (!window.confirm('Remove this resource assignment?')) return;
+                          await supabase.from('client_resource_assignments').delete().eq('id', r.id);
+                          setClientResources(prev => prev.filter(x => x.id !== r.id));
+                        }}
+                        className="text-xs text-red-400 hover:text-red-600 flex-shrink-0 mt-1"
+                      >Remove</button>
+                    </div>
+                    {res?.url && (
+                      <a href={res.url} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-xs text-violet-600 hover:text-violet-800 font-medium">
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        Open Resource
+                      </a>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* Assign Resource Modal */}
+              {showAssignResource && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                  <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+                    <h3 className="text-base font-bold text-gray-900 mb-4">Assign Resource</h3>
+                    {allResources.length === 0 ? (
+                      <div className="text-center py-8">
+                        <p className="text-sm text-gray-500">No resources in library yet.</p>
+                        <p className="text-xs text-gray-400 mt-1">Go to Resources in the sidebar to add some.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 max-h-64 overflow-y-auto">
+                        {allResources.filter(r => !clientResources.some(cr => cr.resource_id === r.id)).map(r => (
+                          <button
+                            key={r.id}
+                            disabled={assigningResource}
+                            onClick={async () => {
+                              setAssigningResource(true);
+                              try {
+                                const { data, error } = await supabase.from('client_resource_assignments').insert({
+                                  resource_id: r.id,
+                                  subject_id: id,
+                                  user_id: user.id,
+                                }).select('*, psychoed_resources(*)').single();
+                                if (error) throw error;
+                                setClientResources(prev => [data, ...prev]);
+                                setShowAssignResource(false);
+                                toast.success('Resource assigned!');
+                              } catch { toast.error('Failed to assign resource.'); }
+                              finally { setAssigningResource(false); }
+                            }}
+                            className="w-full text-left px-4 py-3 rounded-xl border hover:border-violet-400 hover:bg-violet-50 transition-colors"
+                          >
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{r.category}</span>
+                            </div>
+                            <p className="text-sm font-medium text-gray-900">{r.title}</p>
+                            {r.description && <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{r.description}</p>}
+                          </button>
+                        ))}
+                        {allResources.filter(r => !clientResources.some(cr => cr.resource_id === r.id)).length === 0 && (
+                          <p className="text-sm text-center text-gray-400 py-4">All resources already assigned.</p>
+                        )}
+                      </div>
+                    )}
+                    <button onClick={() => setShowAssignResource(false)} className="mt-4 w-full py-2 text-sm text-gray-500 hover:text-gray-700">Cancel</button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -2431,5 +2604,66 @@ function IntakeResponseView({ answers, onApply }) {
         </div>
       )}
     </div>
+  );
+}
+
+// ── Fasa 6A: Trend chart components ──────────────────────────────────────────
+
+function TrendChart({ data, maxScore, color, zones }) {
+  if (!data || data.length < 2) return null;
+  const W = 260, H = 90, PL = 28, PR = 8, PT = 16, PB = 22;
+  const cW = W - PL - PR, cH = H - PT - PB;
+  const x = i => PL + (i / (data.length - 1)) * cW;
+  const y = s => PT + (1 - Math.min(s, maxScore) / maxScore) * cH;
+  const pts = data.map((d, i) => ({ x: x(i), y: y(d.score), ...d }));
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+      {zones?.map((z, i) => (
+        <rect key={i} x={PL} y={y(z.max ?? maxScore)} width={cW}
+          height={Math.max(0, y(z.min ?? 0) - y(z.max ?? maxScore))} fill={z.fill} opacity={0.13} />
+      ))}
+      <line x1={PL} y1={PT} x2={PL} y2={PT + cH} stroke="#e5e7eb" strokeWidth={1} />
+      <text x={PL - 3} y={PT + 4} textAnchor="end" fontSize={8} fill="#9ca3af">{maxScore}</text>
+      <text x={PL - 3} y={PT + cH + 1} textAnchor="end" fontSize={8} fill="#9ca3af">0</text>
+      <polyline points={pts.map(p => `${p.x},${p.y}`).join(' ')} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" />
+      {pts.map((p, i) => (
+        <g key={i}>
+          <circle cx={p.x} cy={p.y} r={4} fill={color} />
+          <text x={p.x} y={p.y - 6} textAnchor="middle" fontSize={9} fill="#111827" fontWeight="600">{p.score}</text>
+          <text x={p.x} y={H - 3} textAnchor="middle" fontSize={8} fill="#9ca3af">
+            {new Date(p.date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })}
+          </text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+function MultiTrendChart({ data, maxScore, lines }) {
+  if (!data || data.length < 2) return null;
+  const W = 260, H = 90, PL = 28, PR = 8, PT = 16, PB = 22;
+  const cW = W - PL - PR, cH = H - PT - PB;
+  const x = i => PL + (i / (data.length - 1)) * cW;
+  const y = s => PT + (1 - Math.min(s, maxScore) / maxScore) * cH;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+      <line x1={PL} y1={PT} x2={PL} y2={PT + cH} stroke="#e5e7eb" strokeWidth={1} />
+      <text x={PL - 3} y={PT + 4} textAnchor="end" fontSize={8} fill="#9ca3af">{maxScore}</text>
+      <text x={PL - 3} y={PT + cH + 1} textAnchor="end" fontSize={8} fill="#9ca3af">0</text>
+      {lines.map(line => {
+        const pts = data.map((d, i) => ({ x: x(i), y: y(d[line.key] ?? 0) }));
+        return (
+          <g key={line.key}>
+            <polyline points={pts.map(p => `${p.x},${p.y}`).join(' ')} fill="none" stroke={line.color} strokeWidth={1.8} strokeLinejoin="round" />
+            {pts.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={3} fill={line.color} />)}
+          </g>
+        );
+      })}
+      {data.map((d, i) => (
+        <text key={i} x={x(i)} y={H - 3} textAnchor="middle" fontSize={8} fill="#9ca3af">
+          {new Date(d.date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })}
+        </text>
+      ))}
+    </svg>
   );
 }

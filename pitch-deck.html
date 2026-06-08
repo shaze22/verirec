@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaunselor — Investor Pitch Deck 2026</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --v:  #8b5cf6;
+    --v1: #7c3aed;
+    --v2: #a78bfa;
+    --v3: #c4b5fd;
+    --v4: #ede9fe;
+    --g950: #09090f;
+    --g900: #0f0e17;
+    --g800: #1a1828;
+    --g700: #2d2b40;
+    --g400: #9ca3af;
+    --g200: #e5e7eb;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: #000;
+    overflow: hidden;
+    color: #fff;
+  }
+
+  #deck { width: 100vw; height: 100vh; position: relative; overflow: hidden; }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    padding: 56px 80px;
+    opacity: 0; transform: translateX(64px);
+    transition: opacity .42s cubic-bezier(.4,0,.2,1), transform .42s cubic-bezier(.4,0,.2,1);
+    pointer-events: none;
+  }
+  .slide.active  { opacity: 1; transform: translateX(0); pointer-events: all; }
+  .slide.exit    { opacity: 0; transform: translateX(-64px); }
+
+  /* backgrounds */
+  .bg-ink    { background: var(--g950); }
+  .bg-deep   { background: linear-gradient(150deg, #0c0a1e 0%, #1a0e38 100%); }
+  .bg-mid    { background: linear-gradient(150deg, #0f0e17 0%, #1e1b4b 100%); }
+  .bg-glow   { background: linear-gradient(150deg, #130f2a 0%, #2e1065 100%); }
+  .bg-slate  { background: linear-gradient(150deg, #0f0e17 0%, #1a1828 100%); }
+  .bg-teal   { background: linear-gradient(150deg, #042f2e 0%, #0f172a 100%); }
+
+  /* grid overlay */
+  .bg-ink::before,.bg-deep::before,.bg-mid::before,.bg-glow::before,.bg-slate::before,.bg-teal::before {
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(139,92,246,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(139,92,246,.04) 1px, transparent 1px);
+    background-size: 56px 56px;
+  }
+
+  /* glows */
+  .glow-tl, .glow-br {
+    position: absolute; border-radius: 50%; pointer-events: none;
+  }
+  .glow-tl {
+    width: 600px; height: 600px; top: -180px; left: -120px;
+    background: radial-gradient(circle, rgba(139,92,246,.18) 0%, transparent 68%);
+  }
+  .glow-br {
+    width: 500px; height: 500px; bottom: -160px; right: -100px;
+    background: radial-gradient(circle, rgba(109,40,217,.14) 0%, transparent 68%);
+  }
+
+  /* inner */
+  .inner { width: 100%; max-width: 1080px; position: relative; z-index: 1; }
+
+  /* type */
+  .kicker {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 10px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase;
+    padding: 5px 13px; border-radius: 999px; margin-bottom: 18px;
+    background: rgba(139,92,246,.18); color: var(--v3);
+    border: 1px solid rgba(139,92,246,.3);
+  }
+  h1 { font-size: clamp(38px,5.5vw,68px); font-weight: 900; line-height: 1.07; letter-spacing: -.035em; }
+  h2 { font-size: clamp(26px,3.2vw,46px); font-weight: 800; line-height: 1.12; letter-spacing: -.03em; }
+  h3 { font-size: clamp(16px,1.8vw,24px); font-weight: 700; }
+  h4 { font-size: 14px; font-weight: 700; }
+  p  { font-size: clamp(13px,1.3vw,17px); line-height: 1.65; }
+  .muted { color: var(--g400); }
+
+  .vgrad { background: linear-gradient(135deg, #a78bfa, #e879f9); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  .wgrad { background: linear-gradient(135deg, #c4b5fd, #fff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  .tgrad { background: linear-gradient(135deg, #5eead4, #a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+
+  /* layout */
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; align-items: start; }
+  .g3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+  .g4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+  .mb6  { margin-bottom:6px; }
+  .mb10 { margin-bottom:10px; }
+  .mb14 { margin-bottom:14px; }
+  .mb20 { margin-bottom:20px; }
+  .mb28 { margin-bottom:28px; }
+  .mb36 { margin-bottom:36px; }
+  .mb44 { margin-bottom:44px; }
+
+  /* card */
+  .card {
+    background: rgba(139,92,246,.07);
+    border: 1px solid rgba(139,92,246,.18);
+    border-radius: 16px; padding: 24px 20px;
+  }
+  .card.hi { border-color: rgba(139,92,246,.4); box-shadow: 0 0 32px rgba(139,92,246,.12); }
+  .card.white { background:#fff; color:#111827; border-color:transparent; }
+  .card.dark  { background: rgba(0,0,0,.3); border-color: rgba(255,255,255,.08); }
+
+  /* stat */
+  .stat { text-align:center; }
+  .stat-n { font-size: clamp(28px,3.5vw,52px); font-weight:900; line-height:1; letter-spacing:-.04em; color:var(--v2); }
+  .stat-l { font-size:12px; color:var(--g400); margin-top:5px; font-weight:500; line-height:1.4; }
+
+  /* check */
+  .chk li { list-style:none; display:flex; gap:9px; align-items:flex-start; font-size:13px; line-height:1.6; margin-bottom:7px; color:#d1d5db; }
+  .chk li::before { content:'✓'; color:#a78bfa; font-weight:800; flex-shrink:0; margin-top:1px; }
+
+  /* prob */
+  .prob {
+    display:flex; gap:14px; align-items:flex-start;
+    padding:15px 16px; border-radius:12px; margin-bottom:10px;
+    background:rgba(239,68,68,.06); border:1px solid rgba(239,68,68,.14);
+  }
+  .prob-ico { font-size:20px; flex-shrink:0; margin-top:2px; }
+  .prob h4  { color:#fca5a5; margin-bottom:2px; font-size:13px; }
+  .prob p   { font-size:12px; color:var(--g400); line-height:1.5; }
+
+  /* pricing */
+  .pc { border-radius:16px; padding:24px 20px; display:flex; flex-direction:column; }
+  .pc.free  { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); }
+  .pc.pro   { background:linear-gradient(160deg,#2e1065,#1e1b4b); border:1px solid rgba(139,92,246,.45); box-shadow:0 0 40px rgba(139,92,246,.15); }
+  .pc.top   { background:rgba(139,92,246,.08); border:1px solid rgba(139,92,246,.22); }
+  .pbadge { font-size:10px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; padding:3px 10px; border-radius:999px; display:inline-block; margin-bottom:10px; }
+  .pbadge-pop { background:var(--v); color:#fff; }
+  .pbadge-new { background:rgba(139,92,246,.25); color:var(--v3); border:1px solid rgba(139,92,246,.3); }
+  .pamount { font-size:38px; font-weight:900; letter-spacing:-.04em; }
+  .pper    { font-size:12px; color:var(--g400); margin-top:2px; }
+  .pdiv    { border-top:1px solid rgba(255,255,255,.08); margin:16px 0; }
+
+  /* comp table */
+  .ct { width:100%; border-collapse:collapse; font-size:13px; }
+  .ct th { padding:9px 14px; text-align:left; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#6b7280; border-bottom:1px solid rgba(255,255,255,.07); }
+  .ct td { padding:10px 14px; border-bottom:1px solid rgba(255,255,255,.05); }
+  .ct tr:last-child td { border:none; }
+  .yes { color:#a78bfa; font-weight:700; }
+  .no  { color:#4b5563; }
+  .ct .hl td { background:rgba(139,92,246,.1); }
+  .ct .hl td:first-child { border-left:3px solid var(--v); padding-left:11px; }
+
+  /* timeline */
+  .tl { display:flex; position:relative; }
+  .tl::before { content:''; position:absolute; top:18px; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--v1),var(--v2),var(--v1)); }
+  .tl-col { flex:1; padding-top:36px; padding-right:12px; position:relative; }
+  .tl-dot { position:absolute; top:10px; left:0; width:16px; height:16px; border-radius:50%; background:var(--v1); border:3px solid var(--v2); box-shadow:0 0 12px rgba(139,92,246,.55); }
+  .tl-col.done .tl-dot { background:#10b981; border-color:#6ee7b7; box-shadow:0 0 12px rgba(16,185,129,.5); }
+  .tl-col.soon .tl-dot { background:#374151; border-color:#4b5563; box-shadow:none; }
+  .tl-q { font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--v2); margin-bottom:5px; }
+  .tl-col.done .tl-q { color:#6ee7b7; }
+  .tl-col.soon .tl-q { color:#4b5563; }
+  .tl-t { font-size:12px; color:#9ca3af; line-height:1.5; }
+  .tl-col.soon .tl-t { color:#4b5563; }
+
+  /* bar */
+  .bar-wrap { margin-bottom:14px; }
+  .bar-row  { display:flex; justify-content:space-between; font-size:13px; margin-bottom:5px; }
+  .bar-bg   { height:8px; border-radius:4px; background:rgba(255,255,255,.07); overflow:hidden; }
+  .bar-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--v1),var(--v2)); }
+
+  /* ask item */
+  .aitem { display:flex; gap:14px; align-items:flex-start; padding:16px 18px; border-radius:12px; margin-bottom:10px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07); }
+  .anum  { width:32px; height:32px; border-radius:50%; flex-shrink:0; background:linear-gradient(135deg,var(--v1),#9333ea); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; }
+
+  /* pill */
+  .pill { display:inline-flex; align-items:center; gap:7px; padding:8px 13px; border-radius:999px; font-size:12px; font-weight:600; background:rgba(139,92,246,.1); border:1px solid rgba(139,92,246,.22); margin:3px; }
+
+  /* nav */
+  #nprev,#nnext { position:fixed; top:50%; transform:translateY(-50%); width:42px; height:42px; border-radius:50%; background:rgba(139,92,246,.12); border:1px solid rgba(139,92,246,.25); color:rgba(255,255,255,.55); font-size:18px; cursor:pointer; z-index:100; display:flex; align-items:center; justify-content:center; transition:all .2s; backdrop-filter:blur(8px); }
+  #nprev { left:18px; } #nnext { right:18px; }
+  #nprev:hover,#nnext:hover { background:rgba(139,92,246,.28); color:#fff; }
+  #ctr { position:fixed; bottom:22px; right:28px; font-size:11px; font-weight:600; color:rgba(255,255,255,.3); letter-spacing:.06em; z-index:100; }
+  #dots { position:fixed; bottom:22px; left:50%; transform:translateX(-50%); display:flex; gap:6px; z-index:100; }
+  .dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.18); cursor:pointer; transition:all .25s; border:none; }
+  .dot.on { background:var(--v); width:18px; border-radius:3px; }
+
+  @media(max-width:860px){
+    .slide{padding:36px 28px;}
+    .g2,.g3,.g4{grid-template-columns:1fr;gap:14px;}
+    #nprev,#nnext{display:none;}
+  }
+</style>
+</head>
+<body>
+<div id="deck">
+
+<!-- ══════════════════════════════════════
+     1 · COVER
+══════════════════════════════════════ -->
+<div class="slide bg-glow active" id="s0">
+  <div class="glow-tl"></div><div class="glow-br"></div>
+  <div class="inner" style="max-width:800px;">
+
+    <div style="width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,var(--v1),#9333ea);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;margin-bottom:28px;box-shadow:0 8px 32px rgba(139,92,246,.45);">K</div>
+
+    <div class="mb20"><span class="kicker">Investor Pitch · Seed Round · 2026</span></div>
+
+    <h1 class="mb20">Less Admin.<br><span class="vgrad">More Counseling.</span></h1>
+
+    <p class="muted mb44" style="max-width:500px;font-size:19px;line-height:1.65;">
+      Malaysia's first AI-powered counseling practice platform — built for compliance, designed for counselors.
+    </p>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:52px;">
+      <div class="pill">🛡️ PDPA Compliant</div>
+      <div class="pill">⚖️ Counselors Act 1998</div>
+      <div class="pill">🤖 AI Session Analysis</div>
+      <div class="pill">📱 PWA — No App Store</div>
+      <div class="pill">💳 Stripe Live</div>
+    </div>
+
+    <div style="display:flex;gap:44px;flex-wrap:wrap;">
+      <div><div style="font-size:12px;color:#6b7280;margin-bottom:3px;">Platform</div><div style="font-size:15px;font-weight:700;">kaunselor.app</div></div>
+      <div><div style="font-size:12px;color:#6b7280;margin-bottom:3px;">Stage</div><div style="font-size:15px;font-weight:700;">Live · Seeking Seed</div></div>
+      <div><div style="font-size:12px;color:#6b7280;margin-bottom:3px;">Ask</div><div style="font-size:15px;font-weight:700;">$300K USD</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     2 · PROBLEM
+══════════════════════════════════════ -->
+<div class="slide bg-slate" id="s1">
+  <div class="glow-br"></div>
+  <div class="inner">
+    <div class="mb20"><span class="kicker">The Problem</span></div>
+    <h2 class="mb10">Counselors in Malaysia are <span class="vgrad">drowning in admin</span> and compliance risk.</h2>
+    <p class="muted mb28" style="max-width:640px;">Thousands of registered counselors have no proper digital system. They work with notebooks, WhatsApp, and generic software that wasn't built for them.</p>
+
+    <div class="g2" style="gap:14px;">
+      <div>
+        <div class="prob"><div class="prob-ico">📋</div><div><h4>No Structured Client Records</h4><p>Session notes in paper notebooks or WhatsApp — not secure, not searchable, not PDPA-compliant.</p></div></div>
+        <div class="prob"><div class="prob-ico">📅</div><div><h4>Manual Appointment Chaos</h4><p>Clients book via WhatsApp text. No automated reminders. Double bookings happen. No-shows not tracked.</p></div></div>
+        <div class="prob"><div class="prob-ico">⚖️</div><div><h4>Counselors Act Exposure</h4><p>Counselors Act 1998 requires proper records. Non-compliance risks license revocation — yet no tools enforce it.</p></div></div>
+      </div>
+      <div>
+        <div class="prob"><div class="prob-ico">🛡️</div><div><h4>PDPA Blind Spot</h4><p>Client data in Gmail, phone notes, spreadsheets. Zero consent trail. A complaint could end a practice.</p></div></div>
+        <div class="prob"><div class="prob-ico">⏱️</div><div><h4>Hours Lost to Paperwork</h4><p>Writing session notes, generating referral memos, preparing reports — up to 40% of a counselor's day, wasted.</p></div></div>
+        <div class="card hi" style="padding:20px;text-align:center;margin-top:4px;">
+          <div style="font-size:46px;font-weight:900;color:var(--v2);letter-spacing:-.04em;">3,800+</div>
+          <div style="font-size:13px;color:var(--v3);font-weight:600;margin-bottom:4px;">Registered Counselors in Malaysia</div>
+          <div style="font-size:12px;color:var(--g400);">Source: LPK Malaysia (Lembaga Kaunselor). Zero have a purpose-built digital platform.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     3 · SOLUTION
+══════════════════════════════════════ -->
+<div class="slide bg-glow" id="s2">
+  <div class="glow-tl"></div>
+  <div class="inner">
+    <div class="mb20"><span class="kicker">The Solution</span></div>
+    <h2 class="mb10"><span class="wgrad">Kaunselor</span> — the complete digital practice<br>for Malaysian counselors.</h2>
+    <p class="muted mb32" style="max-width:600px;">One platform that handles everything: client files, appointments, AI session analysis, consent, treatment plans — fully compliant from day one.</p>
+
+    <div class="g3" style="margin-bottom:24px;">
+      <div class="card hi" style="padding:22px 18px;">
+        <div style="font-size:26px;margin-bottom:10px;">👥</div>
+        <h4 class="mb6">Client Management</h4>
+        <p style="font-size:13px;color:var(--g400);">Full client files: profile, presenting issue, risk level, session history, assessments, notes — all in one place.</p>
+      </div>
+      <div class="card hi" style="padding:22px 18px;">
+        <div style="font-size:26px;margin-bottom:10px;">📅</div>
+        <h4 class="mb6">Smart Appointments</h4>
+        <p style="font-size:13px;color:var(--g400);">Public booking page + QR code. Clients self-book. Auto email confirmations. Counselor approves or rejects.</p>
+      </div>
+      <div class="card hi" style="padding:22px 18px;">
+        <div style="font-size:26px;margin-bottom:10px;">🎙️</div>
+        <h4 class="mb6">AI Session Recording</h4>
+        <p style="font-size:13px;color:var(--g400);">Record session. Real-time transcription. AI generates structured summary, risk score, and recommendations.</p>
+      </div>
+      <div class="card hi" style="padding:22px 18px;">
+        <div style="font-size:26px;margin-bottom:10px;">🛡️</div>
+        <h4 class="mb6">PDPA + Consent</h4>
+        <p style="font-size:13px;color:var(--g400);">Digital consent forms in BM. Immutable audit trail. Consent data can never be deleted. Fully compliant.</p>
+      </div>
+      <div class="card hi" style="padding:22px 18px;">
+        <div style="font-size:26px;margin-bottom:10px;">📝</div>
+        <h4 class="mb6">Treatment Plans</h4>
+        <p style="font-size:13px;color:var(--g400);">Create treatment plans, referral memos, and progress notes. Print-ready PDF output for physical records.</p>
+      </div>
+      <div class="card hi" style="padding:22px 18px;">
+        <div style="font-size:26px;margin-bottom:10px;">🧠</div>
+        <h4 class="mb6">MBTI + RIASEC</h4>
+        <p style="font-size:13px;color:var(--g400);">Built-in assessment tools. Results saved to client file, cross-referenced with session insights.</p>
+      </div>
+    </div>
+
+    <div class="card dark" style="padding:16px 22px;">
+      <div style="display:flex;gap:28px;flex-wrap:wrap;align-items:center;">
+        <div class="pill" style="background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.25);color:#6ee7b7;">✓ Counselors Act 1998</div>
+        <div class="pill" style="background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.25);color:#6ee7b7;">✓ PDPA Malaysia</div>
+        <div class="pill" style="background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.25);color:#6ee7b7;">✓ SHA-256 Session Integrity</div>
+        <div class="pill" style="background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.25);color:#6ee7b7;">✓ Offline-Capable PWA</div>
+        <div class="pill" style="background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.25);color:#6ee7b7;">✓ BM + English</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     4 · MARKET
+══════════════════════════════════════ -->
+<div class="slide bg-ink" id="s3">
+  <div class="glow-tl"></div><div class="glow-br"></div>
+  <div class="inner">
+    <div class="mb20"><span class="kicker">Market Opportunity</span></div>
+    <h2 class="mb10">A regulated, <span class="vgrad">untouched</span> market.</h2>
+    <p class="muted mb28" style="max-width:600px;">Mental health awareness is surging in Malaysia. Government mandates are coming. No purpose-built SaaS exists for Malaysian counselors.</p>
+
+    <div class="g2" style="gap:36px;align-items:center;">
+      <div>
+        <div style="padding:20px;border-radius:14px;margin-bottom:12px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.18);">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--v3);margin-bottom:6px;">TAM — SEA Mental Health SaaS</div>
+          <div style="font-size:36px;font-weight:900;letter-spacing:-.04em;color:var(--v2);">$940M</div>
+          <div style="font-size:13px;color:var(--g400);">Telehealth, counseling platforms, practice management across SEA</div>
+        </div>
+        <div style="padding:20px;border-radius:14px;margin-bottom:12px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.18);">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--v3);margin-bottom:6px;">SAM — Malaysia Counseling Market</div>
+          <div style="font-size:36px;font-weight:900;letter-spacing:-.04em;color:var(--v2);">$62M</div>
+          <div style="font-size:13px;color:var(--g400);">Private practices, school counselors, corporate EAP, clinic-based counseling</div>
+        </div>
+        <div style="padding:20px;border-radius:14px;background:rgba(139,92,246,.16);border:1px solid rgba(139,92,246,.4);box-shadow:0 0 28px rgba(139,92,246,.12);">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--v3);margin-bottom:6px;">SOM — Year 3 Target</div>
+          <div style="font-size:36px;font-weight:900;letter-spacing:-.04em;color:#e9d5ff;">$5.5M</div>
+          <div style="font-size:13px;color:var(--v3);">1,500 paying counselors × $30 ARPU × 12 months</div>
+        </div>
+      </div>
+
+      <div>
+        <h4 class="mb14" style="color:var(--g400);font-size:11px;text-transform:uppercase;letter-spacing:.1em;">Why now?</h4>
+        <div class="card" style="margin-bottom:12px;padding:18px;">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="font-size:20px;">📈</div>
+            <div><h4 class="mb4" style="font-size:13px;">Mental Health Demand Surge</h4><p style="font-size:12px;color:var(--g400);">Post-pandemic, Malaysian mental health services grew 300%. Government is funding more counselors in schools, clinics, prisons.</p></div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px;padding:18px;">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="font-size:20px;">⚖️</div>
+            <div><h4 class="mb4" style="font-size:13px;">Regulatory Pressure</h4><p style="font-size:12px;color:var(--g400);">LPK tightening compliance requirements. PDPA enforcement expanding. Counselors urgently need proper systems.</p></div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px;padding:18px;">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="font-size:20px;">🏫</div>
+            <div><h4 class="mb4" style="font-size:13px;">School + Corporate Push</h4><p style="font-size:12px;color:var(--g400);">Every Malaysian school must have a licensed counselor. Corporate EAP programmes expanding. Bulk licensing opportunity.</p></div>
+          </div>
+        </div>
+        <div class="card" style="padding:18px;">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="font-size:20px;">🌏</div>
+            <div><h4 class="mb4" style="font-size:13px;">SEA Expansion Ready</h4><p style="font-size:12px;color:var(--g400);">Similar regulatory gaps exist in Singapore, Indonesia, Thailand. Platform architecture is multi-country ready.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     5 · PRODUCT DEEP DIVE
+══════════════════════════════════════ -->
+<div class="slide bg-mid" id="s4">
+  <div class="glow-br"></div>
+  <div class="inner">
+    <div class="mb20"><span class="kicker">Product</span></div>
+    <h2 class="mb10">A full session lifecycle, <span class="vgrad">automated.</span></h2>
+    <p class="muted mb28" style="max-width:600px;">From client first contact to session report — Kaunselor handles every step. Counselors spend time counseling, not administrating.</p>
+
+    <div class="g2" style="gap:32px;align-items:start;">
+      <div>
+        <h4 style="font-size:11px;color:var(--g400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;">Client Journey</h4>
+        <div style="position:relative;padding-left:28px;">
+          <div style="position:absolute;left:8px;top:8px;bottom:8px;width:2px;background:linear-gradient(180deg,var(--v1),var(--v2),transparent);border-radius:1px;"></div>
+
+          <div style="margin-bottom:18px;position:relative;">
+            <div style="position:absolute;left:-24px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--v1);border:2px solid var(--v2);"></div>
+            <div style="font-size:11px;font-weight:700;color:var(--v2);margin-bottom:3px;letter-spacing:.06em;">STEP 1</div>
+            <div style="font-size:14px;font-weight:600;color:#e5e7eb;margin-bottom:3px;">Client books via QR / link</div>
+            <div style="font-size:12px;color:var(--g400);">Public booking page — no login needed. Auto email confirmation sent.</div>
+          </div>
+          <div style="margin-bottom:18px;position:relative;">
+            <div style="position:absolute;left:-24px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--v1);border:2px solid var(--v2);"></div>
+            <div style="font-size:11px;font-weight:700;color:var(--v2);margin-bottom:3px;letter-spacing:.06em;">STEP 2</div>
+            <div style="font-size:14px;font-weight:600;color:#e5e7eb;margin-bottom:3px;">Counselor approves + consent sent</div>
+            <div style="font-size:12px;color:var(--g400);">Digital PDPA consent form in BM. Signed consent stored permanently.</div>
+          </div>
+          <div style="margin-bottom:18px;position:relative;">
+            <div style="position:absolute;left:-24px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--v1);border:2px solid var(--v2);"></div>
+            <div style="font-size:11px;font-weight:700;color:var(--v2);margin-bottom:3px;letter-spacing:.06em;">STEP 3</div>
+            <div style="font-size:14px;font-weight:600;color:#e5e7eb;margin-bottom:3px;">Session recorded + transcribed live</div>
+            <div style="font-size:12px;color:var(--g400);">OpenAI Whisper transcribes in real-time. Speaker identified automatically.</div>
+          </div>
+          <div style="margin-bottom:18px;position:relative;">
+            <div style="position:absolute;left:-24px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--v1);border:2px solid var(--v2);"></div>
+            <div style="font-size:11px;font-weight:700;color:var(--v2);margin-bottom:3px;letter-spacing:.06em;">STEP 4</div>
+            <div style="font-size:14px;font-weight:600;color:#e5e7eb;margin-bottom:3px;">AI generates session report</div>
+            <div style="font-size:12px;color:var(--g400);">Claude AI produces structured notes: risk score, key themes, recommendations, follow-up plan.</div>
+          </div>
+          <div style="position:relative;">
+            <div style="position:absolute;left:-24px;top:4px;width:10px;height:10px;border-radius:50%;background:#10b981;border:2px solid #6ee7b7;box-shadow:0 0 8px rgba(16,185,129,.4);"></div>
+            <div style="font-size:11px;font-weight:700;color:#6ee7b7;margin-bottom:3px;letter-spacing:.06em;">DONE</div>
+            <div style="font-size:14px;font-weight:600;color:#e5e7eb;margin-bottom:3px;">Report saved to client file</div>
+            <div style="font-size:12px;color:var(--g400);">SHA-256 hashed. Permanently on record. Ready for audit if needed.</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h4 style="font-size:11px;color:var(--g400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;">Platform Features</h4>
+        <div class="g2" style="gap:12px;grid-template-columns:1fr 1fr;">
+          <div class="card" style="padding:16px 14px;">
+            <div style="font-size:20px;margin-bottom:8px;">🔔</div>
+            <h4 style="font-size:13px;margin-bottom:4px;">Telegram + Email Alerts</h4>
+            <p style="font-size:12px;color:var(--g400);">New booking alerts, follow-up reminders via Telegram or email.</p>
+          </div>
+          <div class="card" style="padding:16px 14px;">
+            <div style="font-size:20px;margin-bottom:8px;">📊</div>
+            <h4 style="font-size:13px;margin-bottom:4px;">Practice Dashboard</h4>
+            <p style="font-size:12px;color:var(--g400);">Session stats, client count, upcoming schedule, risk distribution.</p>
+          </div>
+          <div class="card" style="padding:16px 14px;">
+            <div style="font-size:20px;margin-bottom:8px;">🎵</div>
+            <h4 style="font-size:13px;margin-bottom:4px;">Recording Import</h4>
+            <p style="font-size:12px;color:var(--g400);">Upload audio/video from external devices. Auto-transcribed and saved to client file.</p>
+          </div>
+          <div class="card" style="padding:16px 14px;">
+            <div style="font-size:20px;margin-bottom:8px;">📱</div>
+            <h4 style="font-size:13px;margin-bottom:4px;">Mobile PWA</h4>
+            <p style="font-size:12px;color:var(--g400);">Install on iPhone or Android. No App Store needed. Works offline.</p>
+          </div>
+          <div class="card" style="padding:16px 14px;">
+            <div style="font-size:20px;margin-bottom:8px;">🖨️</div>
+            <h4 style="font-size:13px;margin-bottom:4px;">Referral Memos</h4>
+            <p style="font-size:12px;color:var(--g400);">Print-ready PDF referral letters and treatment summaries in seconds.</p>
+          </div>
+          <div class="card" style="padding:16px 14px;">
+            <div style="font-size:20px;margin-bottom:8px;">🔐</div>
+            <h4 style="font-size:13px;margin-bottom:4px;">Zero-Trust Security</h4>
+            <p style="font-size:12px;color:var(--g400);">Row-level security. No API keys in browser. All AI calls server-side only.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     6 · BUSINESS MODEL
+══════════════════════════════════════ -->
+<div class="slide bg-ink" id="s5">
+  <div class="glow-tl"></div>
+  <div class="inner">
+    <div class="mb20"><span class="kicker">Business Model</span></div>
+    <h2 class="mb10">Subscription + <span class="vgrad">top-up credits.</span></h2>
+    <p class="muted mb28" style="max-width:580px;">Predictable monthly recurring revenue with usage-based upsell. Start free, upgrade when your practice grows.</p>
+
+    <div class="g3" style="margin-bottom:24px;">
+      <div class="pc free">
+        <div class="pbadge" style="background:rgba(255,255,255,.07);color:#6b7280;border:1px solid rgba(255,255,255,.1);">Free Forever</div>
+        <div class="pamount">$0</div>
+        <div class="pper">per month</div>
+        <div class="pdiv"></div>
+        <ul class="chk" style="flex:1;">
+          <li>3 sessions / month</li>
+          <li>Basic transcription</li>
+          <li>AI session summary</li>
+          <li>Client file (up to 5)</li>
+          <li>Booking page</li>
+        </ul>
+        <div style="font-size:11px;color:#4b5563;margin-top:14px;">Top-of-funnel acquisition</div>
+      </div>
+
+      <div class="pc pro">
+        <div class="pbadge pbadge-pop">Most Popular</div>
+        <div class="pamount">$25</div>
+        <div class="pper">per month</div>
+        <div class="pdiv" style="border-color:rgba(139,92,246,.25);"></div>
+        <ul class="chk" style="flex:1;">
+          <li>5 sessions / month</li>
+          <li>Full AI suite</li>
+          <li>Unlimited client files</li>
+          <li>Appointments + booking</li>
+          <li>Treatment plans + referrals</li>
+          <li>MBTI / RIASEC assessments</li>
+          <li>Telegram + email alerts</li>
+          <li>Recording import</li>
+        </ul>
+        <div style="font-size:11px;color:var(--v3);margin-top:14px;">Core revenue driver</div>
+      </div>
+
+      <div class="pc top">
+        <div class="pbadge pbadge-new">Top-Up Credits</div>
+        <div class="pamount" style="color:var(--v2);">Pay-as-you-go</div>
+        <div class="pper">one-time</div>
+        <div class="pdiv"></div>
+        <div style="flex:1;">
+          <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:14px;">
+            <span style="color:var(--g400);">1 session</span><span style="font-weight:800;color:var(--v3);">$3</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:14px;">
+            <span style="color:var(--g400);">5 sessions</span><span style="font-weight:800;color:var(--v3);">$12 <span style="font-size:11px;opacity:.6;">($2.40 ea)</span></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:9px 0;font-size:14px;">
+            <span style="color:var(--g400);">10 sessions</span><span style="font-weight:800;color:var(--v3);">$22 <span style="font-size:11px;opacity:.6;">($2.20 ea)</span></span>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--v3);margin-top:14px;">High-margin upsell</div>
+      </div>
+    </div>
+
+    <div class="card dark" style="padding:18px 24px;">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center;">
+        <div><div style="font-size:10px;color:#6b7280;margin-bottom:5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">Gross Margin</div><div style="font-size:28px;font-weight:900;color:#6ee7b7;">~82%</div></div>
+        <div><div style="font-size:10px;color:#6b7280;margin-bottom:5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">ARPU Target</div><div style="font-size:28px;font-weight:900;color:var(--v2);">$30–38</div></div>
+        <div><div style="font-size:10px;color:#6b7280;margin-bottom:5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">Churn Target</div><div style="font-size:28px;font-weight:900;color:#fbbf24;">&lt;5%</div></div>
+        <div><div style="font-size:10px;color:#6b7280;margin-bottom:5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">LTV : CAC</div><div style="font-size:28px;font-weight:900;color:var(--v3);">8 : 1</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     7 · COMPETITION
+══════════════════════════════════════ -->
+<div class="slide bg-slate" id="s6">
+  <div class="glow-br"></div>
+  <div class="inner">
+    <div class="mb20"><span class="kicker">Competition</span></div>
+    <h2 class="mb10">No one in Malaysia is doing <span class="vgrad">all of this.</span></h2>
+    <p class="muted mb28" style="max-width:600px;">Global tools lack Malaysian compliance. Local tools are generic. No counseling-specific platform exists in this market.</p>
+
+    <div style="overflow-x:auto;margin-bottom:24px;">
+      <table class="ct">
+        <thead>
+          <tr>
+            <th>Platform</th>
+            <th>AI Transcription</th>
+            <th>PDPA Compliant</th>
+            <th>Counselors Act</th>
+            <th>Booking System</th>
+            <th>Session Recording</th>
+            <th>BM Language</th>
+            <th>MYR / Local</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="hl">
+            <td><strong>Kaunselor ✦</strong></td>
+            <td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td>
+            <td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td>
+          </tr>
+          <tr>
+            <td>Simple Practice (US)</td>
+            <td class="no">✗</td><td class="no">US-only</td><td class="no">✗</td>
+            <td class="yes">✓</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td>
+          </tr>
+          <tr>
+            <td>Otter.ai / Fireflies</td>
+            <td class="yes">✓</td><td class="no">✗</td><td class="no">✗</td>
+            <td class="no">✗</td><td class="yes">✓</td><td class="no">✗</td><td class="no">✗</td>
+          </tr>
+          <tr>
+            <td>Google Forms / Drive</td>
+            <td class="no">✗</td><td class="no">✗</td><td class="no">✗</td>
+            <td class="no">Basic</td><td class="no">✗</td><td class="no">✗</td><td class="yes">✓</td>
+          </tr>
+          <tr>
+            <td>Paper / WhatsApp</td>
+            <td class="no">✗</td><td class="no">✗</td><td class="no">✗</td>
+            <td class="no">✗</td><td class="no">✗</td><td class="yes">✓</td><td class="yes">✓</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="g3" style="gap:16px;">
+      <div class="card" style="padding:18px;text-align:center;">
+        <div style="font-size:22px;margin-bottom:8px;">🇲🇾</div>
+        <h4 style="font-size:13px;margin-bottom:6px;">Built for Malaysia First</h4>
+        <p style="font-size:12px;color:var(--g400);">BM consent forms. PDPA trail. Counselors Act aligned. Local compliance isn't an afterthought — it's the foundation.</p>
+      </div>
+      <div class="card" style="padding:18px;text-align:center;">
+        <div style="font-size:22px;margin-bottom:8px;">🔒</div>
+        <h4 style="font-size:13px;margin-bottom:6px;">Switching Cost is High</h4>
+        <p style="font-size:12px;color:var(--g400);">All client history, session records, and consent forms live on the platform. Counselors don't leave — they accumulate.</p>
+      </div>
+      <div class="card" style="padding:18px;text-align:center;">
+        <div style="font-size:22px;margin-bottom:8px;">📢</div>
+        <h4 style="font-size:13px;margin-bottom:6px;">Viral Booking Loop</h4>
+        <p style="font-size:12px;color:var(--g400);">Every counselor's public booking page shows "Powered by Kaunselor." Every client becomes a potential referral.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     8 · TECHNOLOGY
+══════════════════════════════════════ -->
+<div class="slide bg-deep" id="s7">
+  <div class="glow-tl"></div>
+  <div class="inner">
+    <div class="mb20"><span class="kicker">Technology</span></div>
+    <h2 class="mb10">Enterprise-grade AI. <span class="vgrad">Startup-lean infrastructure.</span></h2>
+    <p class="muted mb28" style="max-width:580px;">Three AI models working together. Built on Vercel + Supabase — scales to millions with near-zero DevOps.</p>
+
+    <div class="g2" style="gap:40px;align-items:start;">
+      <div>
+        <h4 style="font-size:11px;color:var(--g400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;">AI Pipeline</h4>
+
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div style="padding:10px 14px;border-radius:10px;font-size:13px;font-weight:700;background:rgba(139,92,246,.18);border:1px solid rgba(139,92,246,.35);color:var(--v3);">🎙 Session Recording</div>
+            <div style="color:#4b5563;font-size:16px;">→</div>
+            <div style="padding:10px 14px;border-radius:10px;font-size:13px;font-weight:700;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:#fcd34d;">⚡ OpenAI Whisper<br><span style="font-size:11px;opacity:.7;font-weight:500;">Real-time transcription</span></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div style="padding:10px 14px;border-radius:10px;font-size:13px;font-weight:700;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:#6ee7b7;">📊 AssemblyAI<br><span style="font-size:11px;opacity:.7;font-weight:500;">Speaker diarization</span></div>
+            <div style="color:#4b5563;font-size:16px;">→</div>
+            <div style="padding:10px 14px;border-radius:10px;font-size:13px;font-weight:700;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);color:#93c5fd;">🔍 LLM Name Mapping<br><span style="font-size:11px;opacity:.7;font-weight:500;">Who said what</span></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div style="padding:10px 14px;border-radius:10px;font-size:13px;font-weight:700;background:rgba(139,92,246,.18);border:1px solid rgba(139,92,246,.35);color:var(--v3);">🤖 Claude Opus<br><span style="font-size:11px;opacity:.7;font-weight:500;">Analysis + report</span></div>
+            <div style="color:#4b5563;font-size:16px;">→</div>
+            <div style="padding:10px 14px;border-radius:10px;font-size:13px;font-weight:700;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:#86efac;">⚡ Gemini Flash<br><span style="font-size:11px;opacity:.7;font-weight:500;">Automatic fallback</span></div>
+          </div>
+        </div>
+
+        <h4 style="font-size:11px;color:var(--g400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;">Stack</h4>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <div style="padding:8px 13px;border-radius:9px;font-size:12px;font-weight:600;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);">▲ Vercel</div>
+          <div style="padding:8px 13px;border-radius:9px;font-size:12px;font-weight:600;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);">⚡ Supabase</div>
+          <div style="padding:8px 13px;border-radius:9px;font-size:12px;font-weight:600;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);">⚛ React + Vite</div>
+          <div style="padding:8px 13px;border-radius:9px;font-size:12px;font-weight:600;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);">💳 Stripe</div>
+          <div style="padding:8px 13px;border-radius:9px;font-size:12px;font-weight:600;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);">📧 Resend</div>
+          <div style="padding:8px 13px;border-radius:9px;font-size:12px;font-weight:600;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);">🤖 Telegram Bot</div>
+        </div>
+      </div>
+
+      <div>
+        <h4 style="font-size:11px;color:var(--g400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;">Security &amp; Compliance</h4>
+        <div class="card" style="margin-bottom:12px;padding:16px;"><div style="display:flex;gap:11px;align-items:flex-start;"><div style="font-size:18px;">🔐</div><div><h4 style="font-size:13px;margin-bottom:3px;">SHA-256 Report Integrity</h4><p style="font-size:12px;color:var(--g400);">Every session report is cryptographically hashed server-side. Tamper-evident by design.</p></div></div></div>
+        <div class="card" style="margin-bottom:12px;padding:16px;"><div style="display:flex;gap:11px;align-items:flex-start;"><div style="font-size:18px;">🛡️</div><div><h4 style="font-size:13px;margin-bottom:3px;">Immutable Consent Records</h4><p style="font-size:12px;color:var(--g400);">PDPA compliance — consent data is never deleted. Permanent audit trail, always.</p></div></div></div>
+        <div class="card" style="margin-bottom:12px;padding:16px;"><div style="display:flex;gap:11px;align-items:flex-start;"><div style="font-size:18px;">🔒</div><div><h4 style="font-size:13px;margin-bottom:3px;">Row-Level Security (RLS)</h4><p style="font-size:12px;color:var(--g400);">Supabase RLS — counselors cannot access each other's client data under any circumstance.</p></div></div></div>
+        <div class="card" style="padding:16px;"><div style="display:flex;gap:11px;align-items:flex-start;"><div style="font-size:18px;">📵</div><div><h4 style="font-size:13px;margin-bottom:3px;">No AI Keys in Browser</h4><p style="font-size:12px;color:var(--g400);">All Anthropic, OpenAI, and Gemini calls run server-side only. Zero exposure to client.</p></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     9 · TRACTION
+══════════════════════════════════════ -->
+<div class="slide bg-teal" id="s8">
+  <div class="glow-tl"></div>
+  <div class="inner">
+    <div class="mb20"><span class="kicker" style="background:rgba(16,185,129,.15);color:#6ee7b7;border-color:rgba(16,185,129,.25);">Traction</span></div>
+    <h2 class="mb10">Live in production. <span class="tgrad">Real payments. Zero excuses.</span></h2>
+    <p class="muted mb28" style="max-width:580px;">This is not a wireframe. kaunselor.app is fully deployed, Stripe is in live mode, and the AI pipeline processes real sessions today.</p>
+
+    <div class="g2" style="gap:36px;">
+      <div>
+        <div class="g2" style="gap:12px;margin-bottom:20px;grid-template-columns:1fr 1fr;">
+          <div class="card" style="text-align:center;padding:18px;border-color:rgba(16,185,129,.25);background:rgba(16,185,129,.07);">
+            <div class="stat-n" style="color:#34d399;">✓</div>
+            <div class="stat-l">Stripe Live Mode<br>Payments Active</div>
+          </div>
+          <div class="card" style="text-align:center;padding:18px;border-color:rgba(16,185,129,.25);background:rgba(16,185,129,.07);">
+            <div class="stat-n" style="color:#34d399;font-size:28px;">3 AI</div>
+            <div class="stat-l">Models Integrated<br>&amp; In Production</div>
+          </div>
+          <div class="card" style="text-align:center;padding:18px;border-color:rgba(16,185,129,.25);background:rgba(16,185,129,.07);">
+            <div class="stat-n" style="color:#34d399;font-size:28px;">PWA</div>
+            <div class="stat-l">Installable on<br>Android + iPhone</div>
+          </div>
+          <div class="card" style="text-align:center;padding:18px;border-color:rgba(16,185,129,.25);background:rgba(16,185,129,.07);">
+            <div class="stat-n" style="color:#34d399;font-size:28px;">Solo</div>
+            <div class="stat-l">Built by 1 founder<br>in &lt; 6 months</div>
+          </div>
+        </div>
+
+        <div class="card" style="padding:18px;background:rgba(16,185,129,.06);border-color:rgba(16,185,129,.18);">
+          <h4 style="font-size:12px;color:#6ee7b7;margin-bottom:12px;text-transform:uppercase;letter-spacing:.08em;">Already Built</h4>
+          <ul class="chk" style="font-size:12px;">
+            <li>Full recording + transcription pipeline</li>
+            <li>Client file management (PDPA-compliant)</li>
+            <li>Online booking + QR + email confirmation</li>
+            <li>AI session summary (Claude + Gemini)</li>
+            <li>Treatment plans + referral memo PDF</li>
+            <li>MBTI / RIASEC assessment tools</li>
+            <li>Telegram + email notifications</li>
+            <li>Recording import from external devices</li>
+            <li>Admin dashboard + usage analytics</li>
+            <li>Stripe subscriptions + top-up</li>
+          </ul>
+        </div>
+      </div>
+
+      <div>
+        <h4 style="font-size:11px;color:var(--g400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:16px;">Roadmap</h4>
+        <div class="tl" style="margin-bottom:28px;">
+          <div class="tl-col done"><div class="tl-dot"></div><div class="tl-q">Q1 2026</div><div class="tl-t">MVP · Booking · AI pipeline · Stripe</div></div>
+          <div class="tl-col done"><div class="tl-dot"></div><div class="tl-q">Q2 2026 ✓</div><div class="tl-t">PDPA · Recording import · FPX ready · Speaker ID</div></div>
+          <div class="tl-col soon"><div class="tl-dot"></div><div class="tl-q">Q3 2026</div><div class="tl-t">MYR pricing · WhatsApp reminders · Push notifications</div></div>
+          <div class="tl-col soon"><div class="tl-dot"></div><div class="tl-q">Q4 2026</div><div class="tl-t">Enterprise · API · White-label · SEA expansion</div></div>
+        </div>
+
+        <div class="card" style="padding:20px;">
+          <h4 style="font-size:12px;margin-bottom:14px;color:#e5e7eb;">Next 90 Days (with funding)</h4>
+          <ul class="chk" style="font-size:12px;">
+            <li>MYR pricing + FPX Malaysian online banking</li>
+            <li>WhatsApp appointment reminders (Twilio)</li>
+            <li>Push notifications (PWA VAPID)</li>
+            <li>LPK Malaysia partnership outreach</li>
+            <li>First 50 paying counselors</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     10 · GO-TO-MARKET
+══════════════════════════════════════ -->
+<div class="slide bg-mid" id="s9">
+  <div class="glow-br"></div>
+  <div class="inner">
+    <div class="mb20"><span class="kicker">Go-to-Market</span></div>
+    <h2 class="mb10">Community-first. <span class="vgrad">Then institutional.</span></h2>
+    <p class="muted mb28" style="max-width:580px;">Win individual counselors with a great free product. Convert them to paid. Then land their clinic, school, or agency as an account.</p>
+
+    <div class="g3" style="gap:18px;margin-bottom:24px;">
+      <div class="card hi" style="padding:22px 18px;">
+        <div style="font-size:11px;font-weight:800;color:var(--v2);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;">Phase 1 · Now</div>
+        <h4 style="font-size:14px;margin-bottom:10px;color:#e5e7eb;">Individual Counselors</h4>
+        <ul class="chk" style="font-size:12px;">
+          <li>Free tier as top-of-funnel</li>
+          <li>SEO: "platform kaunselor Malaysia"</li>
+          <li>Facebook groups (counselor communities)</li>
+          <li>LinkedIn outreach to private practitioners</li>
+          <li>Booking page viral loop — every session = exposure</li>
+          <li>Direct outreach to LPK-registered members</li>
+        </ul>
+      </div>
+      <div class="card hi" style="padding:22px 18px;">
+        <div style="font-size:11px;font-weight:800;color:var(--v2);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;">Phase 2 · 6 Months</div>
+        <h4 style="font-size:14px;margin-bottom:10px;color:#e5e7eb;">Clinics &amp; Centres</h4>
+        <ul class="chk" style="font-size:12px;">
+          <li>Multi-seat team plans</li>
+          <li>Private counseling centres (3–15 counselors)</li>
+          <li>University counseling units</li>
+          <li>EAP (Employee Assistance Programme) vendors</li>
+          <li>Integration with LPK Malaysia CPD portal</li>
+        </ul>
+      </div>
+      <div class="card hi" style="padding:22px 18px;">
+        <div style="font-size:11px;font-weight:800;color:var(--v2);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;">Phase 3 · Year 2</div>
+        <h4 style="font-size:14px;margin-bottom:10px;color:#e5e7eb;">Government &amp; Enterprise</h4>
+        <ul class="chk" style="font-size:12px;">
+          <li>MOE school counselor tender (nationwide)</li>
+          <li>Ministry of Health community clinics</li>
+          <li>Prison Dept (JBPM) counseling units</li>
+          <li>White-label for HR platforms</li>
+          <li>Singapore + Indonesia expansion</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card dark" style="padding:18px 24px;">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;text-align:center;">
+        <div>
+          <div style="font-size:10px;color:#6b7280;margin-bottom:6px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">Viral Loop</div>
+          <div style="font-size:13px;color:#e5e7eb;line-height:1.6;">Client books via counselor's page → sees "Powered by Kaunselor" → shares with friends</div>
+        </div>
+        <div style="border-left:1px solid rgba(255,255,255,.08);padding-left:20px;">
+          <div style="font-size:10px;color:#6b7280;margin-bottom:6px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">Key Partnership Target</div>
+          <div style="font-size:13px;color:#e5e7eb;line-height:1.6;">LPK Malaysia — 3,800 registered counselors. One MOU unlocks bulk licensing at agency level.</div>
+        </div>
+        <div style="border-left:1px solid rgba(255,255,255,.08);padding-left:20px;">
+          <div style="font-size:10px;color:#6b7280;margin-bottom:6px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">Moat</div>
+          <div style="font-size:13px;color:#e5e7eb;line-height:1.6;">Client history + consent trail = can't leave. Every month a counselor stays, the switching cost grows.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     11 · FINANCIALS
+══════════════════════════════════════ -->
+<div class="slide bg-ink" id="s10">
+  <div class="glow-tl"></div><div class="glow-br"></div>
+  <div class="inner">
+    <div class="mb20"><span class="kicker">Financials</span></div>
+    <h2 class="mb10">Path to <span class="vgrad">$1M ARR</span> in 36 months.</h2>
+    <p class="muted mb28" style="max-width:580px;">Conservative, bottom-up projections. No enterprise deals assumed in Year 1. Every number traceable to paying users at $25–38 ARPU.</p>
+
+    <div class="g2" style="gap:36px;align-items:start;">
+      <div>
+        <h4 style="font-size:11px;color:var(--g400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:16px;">Revenue Projections (USD)</h4>
+
+        <div class="bar-wrap">
+          <div class="bar-row"><span style="color:#e5e7eb;font-weight:600;">Year 1 — 200 paying users</span><span style="color:#fbbf24;font-weight:800;">$72K ARR</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:14%;"></div></div>
+        </div>
+        <div class="bar-wrap">
+          <div class="bar-row"><span style="color:#e5e7eb;font-weight:600;">Year 2 — 700 paying users</span><span style="color:var(--v2);font-weight:800;">$252K ARR</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:40%;"></div></div>
+        </div>
+        <div class="bar-wrap">
+          <div class="bar-row"><span style="color:#e5e7eb;font-weight:600;">Year 3 — 2,800 paying users</span><span style="color:#34d399;font-weight:800;">$1.01M ARR</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:100%;background:linear-gradient(90deg,var(--v1),#34d399);"></div></div>
+        </div>
+
+        <div class="card" style="margin-top:20px;padding:18px;">
+          <h4 style="font-size:12px;margin-bottom:12px;color:#e5e7eb;">Unit Economics</h4>
+          <div style="font-size:13px;color:var(--g400);line-height:2.1;">
+            ARPU &nbsp;→&nbsp; <strong style="color:#e5e7eb;">$30/month</strong><br>
+            Gross Margin &nbsp;→&nbsp; <strong style="color:#e5e7eb;">~82%</strong><br>
+            CAC &nbsp;→&nbsp; <strong style="color:#e5e7eb;">~$15</strong> (content + referral)<br>
+            LTV &nbsp;→&nbsp; <strong style="color:#e5e7eb;">~$360</strong> (12 months avg)<br>
+            Break-even &nbsp;→&nbsp; <strong style="color:#e5e7eb;">Month 14</strong> (at $8K MRR)
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h4 style="font-size:11px;color:var(--g400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;">Use of $300K Seed</h4>
+
+        <div class="aitem">
+          <div class="anum">1</div>
+          <div><h4 style="font-size:13px;margin-bottom:3px;color:#e5e7eb;">Sales &amp; Marketing — 40% · $120K</h4><p style="font-size:12px;color:var(--g400);">Content marketing, paid social, LPK partnership, school counselor outreach, brand collateral.</p></div>
+        </div>
+        <div class="aitem">
+          <div class="anum">2</div>
+          <div><h4 style="font-size:13px;margin-bottom:3px;color:#e5e7eb;">Product &amp; Engineering — 35% · $105K</h4><p style="font-size:12px;color:var(--g400);">First engineer hire. MYR pricing, FPX, WhatsApp, push notifications, mobile app, dark mode.</p></div>
+        </div>
+        <div class="aitem">
+          <div class="anum">3</div>
+          <div><h4 style="font-size:13px;margin-bottom:3px;color:#e5e7eb;">Operations &amp; Legal — 15% · $45K</h4><p style="font-size:12px;color:var(--g400);">Sdn Bhd incorporation, PDPA audit, Counselors Act compliance advisory, accounting.</p></div>
+        </div>
+        <div class="aitem">
+          <div class="anum">4</div>
+          <div><h4 style="font-size:13px;margin-bottom:3px;color:#e5e7eb;">Infrastructure &amp; AI — 10% · $30K</h4><p style="font-size:12px;color:var(--g400);">Anthropic, AssemblyAI, OpenAI API costs at scale. Supabase Pro, monitoring, CDN.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     12 · TEAM
+══════════════════════════════════════ -->
+<div class="slide bg-glow" id="s11">
+  <div class="glow-tl"></div>
+  <div class="inner">
+    <div class="mb20"><span class="kicker">Team</span></div>
+    <h2 class="mb10">Built by someone who <span class="vgrad">shipped it first.</span></h2>
+    <p class="muted mb36" style="max-width:560px;">Not a deck. Not a demo. A live product, live payments, live AI pipeline — delivered solo. Now looking for the right partner to scale it.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:720px;margin:0 auto 32px;">
+      <div class="card hi" style="padding:28px 24px;text-align:center;">
+        <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--v1),#9333ea);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;margin:0 auto 16px;box-shadow:0 4px 20px rgba(139,92,246,.4);">S</div>
+        <h3 style="margin-bottom:4px;">Syed Shazni</h3>
+        <div style="font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--v3);margin-bottom:12px;">Founder · CEO · CTO</div>
+        <p style="font-size:13px;color:var(--g400);line-height:1.65;">Full-stack engineer. Built kaunselor.app solo — 3 AI models, Stripe live, PDPA-compliant, production-deployed. Deep understanding of Malaysian compliance systems.</p>
+      </div>
+
+      <div class="card" style="padding:28px 24px;text-align:center;border-style:dashed;border-color:rgba(255,255,255,.12);">
+        <div style="width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 16px;color:#4b5563;">+</div>
+        <h3 style="margin-bottom:4px;color:#6b7280;">Hiring Now</h3>
+        <div style="font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#4b5563;margin-bottom:12px;">Co-Founder / CRO</div>
+        <p style="font-size:13px;color:#4b5563;line-height:1.65;">Looking for a sales-first co-founder with network in Malaysian government, healthcare, or education sectors. Counseling background is a bonus.</p>
+      </div>
+    </div>
+
+    <div class="g3" style="gap:16px;max-width:840px;margin:0 auto;">
+      <div class="card" style="padding:16px;text-align:center;">
+        <div style="font-size:20px;margin-bottom:7px;">⚡</div>
+        <h4 style="font-size:13px;margin-bottom:5px;">Execution Proof</h4>
+        <p style="font-size:12px;color:var(--g400);">Full production app in &lt;6 months. 100+ commits. 2 live domains. 3 AI integrations. Solo.</p>
+      </div>
+      <div class="card" style="padding:16px;text-align:center;">
+        <div style="font-size:20px;margin-bottom:7px;">🎯</div>
+        <h4 style="font-size:13px;margin-bottom:5px;">Seeking Advisors</h4>
+        <p style="font-size:12px;color:var(--g400);">Registered counselor + LPK credibility. Healthcare compliance. Go-to-market in education or government.</p>
+      </div>
+      <div class="card" style="padding:16px;text-align:center;">
+        <div style="font-size:20px;margin-bottom:7px;">💎</div>
+        <h4 style="font-size:13px;margin-bottom:5px;">Skin in the Game</h4>
+        <p style="font-size:12px;color:var(--g400);">Bootstrapped to live MVP. Founder is first user. Obsessed with counselor workflow problems.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     13 · THE ASK
+══════════════════════════════════════ -->
+<div class="slide bg-deep" id="s12">
+  <div class="glow-tl"></div><div class="glow-br"></div>
+  <div class="inner" style="max-width:900px;">
+    <div class="mb20"><span class="kicker">The Ask</span></div>
+    <h2 class="mb10">Raising <span class="vgrad">$300K Seed</span><br>for 18-month runway.</h2>
+    <p class="muted mb32" style="max-width:540px;">Product risk is gone. MVP is live. Stripe is processing. Now we need capital to acquire counselors and build the commercial layer.</p>
+
+    <div class="g2" style="gap:28px;margin-bottom:28px;">
+      <div>
+        <div class="card hi" style="padding:26px;margin-bottom:14px;">
+          <div style="font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--v3);margin-bottom:8px;">Round Details</div>
+          <div style="font-size:42px;font-weight:900;letter-spacing:-.04em;margin-bottom:4px;">$300K</div>
+          <div style="color:var(--g400);font-size:14px;margin-bottom:18px;">Seed · Convertible Note / SAFE</div>
+          <div style="font-size:13px;color:#d1d5db;line-height:2.2;">
+            Valuation Cap &nbsp;→&nbsp; <strong style="color:var(--v2);">$3M</strong><br>
+            Discount &nbsp;→&nbsp; <strong style="color:var(--v2);">20%</strong><br>
+            Minimum Ticket &nbsp;→&nbsp; <strong style="color:var(--v2);">$25K</strong>
+          </div>
+        </div>
+
+        <div class="card" style="padding:20px;">
+          <div style="font-size:11px;color:var(--g400);margin-bottom:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">18-Month Milestones</div>
+          <ul class="chk" style="font-size:13px;">
+            <li>500 paying counselors</li>
+            <li>$180K ARR</li>
+            <li>1 institutional / school pilot</li>
+            <li>MYR + FPX payments live</li>
+            <li>LPK Malaysia partnership signed</li>
+          </ul>
+        </div>
+      </div>
+
+      <div>
+        <h4 style="font-size:11px;color:var(--g400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;">Why invest now?</h4>
+        <div class="aitem" style="margin-bottom:10px;">
+          <div style="font-size:20px;flex-shrink:0;">✅</div>
+          <div><h4 style="font-size:13px;margin-bottom:3px;color:#e5e7eb;">Product risk eliminated</h4><p style="font-size:12px;color:var(--g400);">Live app. Live payments. AI pipeline processing real sessions. No "will it work?" questions remain.</p></div>
+        </div>
+        <div class="aitem" style="margin-bottom:10px;">
+          <div style="font-size:20px;flex-shrink:0;">🏃</div>
+          <div><h4 style="font-size:13px;margin-bottom:3px;color:#e5e7eb;">True first-mover</h4><p style="font-size:12px;color:var(--g400);">No counseling-specific SaaS exists in Malaysia. Every month we delay, the window narrows.</p></div>
+        </div>
+        <div class="aitem" style="margin-bottom:10px;">
+          <div style="font-size:20px;flex-shrink:0;">📜</div>
+          <div><h4 style="font-size:13px;margin-bottom:3px;color:#e5e7eb;">Regulatory tailwind</h4><p style="font-size:12px;color:var(--g400);">PDPA enforcement tightening. LPK pushing for digital records. Government expanding counseling mandates in schools and clinics.</p></div>
+        </div>
+        <div class="aitem">
+          <div style="font-size:20px;flex-shrink:0;">💸</div>
+          <div><h4 style="font-size:13px;margin-bottom:3px;color:#e5e7eb;">Capital efficient</h4><p style="font-size:12px;color:var(--g400);">Vercel + Supabase stack. $300K carries us to $1M ARR milestone. No heavy infra costs, no large team needed to scale.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="padding:22px;text-align:center;background:linear-gradient(135deg,rgba(139,92,246,.14),rgba(109,40,217,.12));border-color:rgba(139,92,246,.35);">
+      <p style="font-size:15px;color:var(--v3);margin-bottom:8px;font-weight:500;">Ready to talk →</p>
+      <div style="font-size:22px;font-weight:900;letter-spacing:-.02em;">syedshazni@gmail.com</div>
+      <div style="font-size:14px;color:#6b7280;margin-top:8px;">kaunselor.app</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<button id="nprev" onclick="nav(-1)">‹</button>
+<button id="nnext" onclick="nav(1)">›</button>
+<div id="ctr"></div>
+<div id="dots"></div>
+
+<script>
+  const N = 13;
+  let cur = 0;
+  const s = i => document.getElementById('s'+i);
+
+  function go(n) {
+    if (n < 0 || n >= N) return;
+    const old = s(cur);
+    old.classList.remove('active');
+    old.classList.add('exit');
+    setTimeout(() => old.classList.remove('exit'), 450);
+    cur = n;
+    s(cur).classList.add('active');
+    sync();
+  }
+  function nav(d) { go(cur + d); }
+
+  function sync() {
+    document.getElementById('ctr').textContent = (cur+1) + ' / ' + N;
+    document.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('on', i===cur));
+  }
+
+  const dotsEl = document.getElementById('dots');
+  for (let i = 0; i < N; i++) {
+    const b = document.createElement('button');
+    b.className = 'dot' + (i===0?' on':'');
+    b.onclick = () => go(i);
+    dotsEl.appendChild(b);
+  }
+  sync();
+
+  document.addEventListener('keydown', e => {
+    if(['ArrowRight','ArrowDown',' '].includes(e.key)) { e.preventDefault(); nav(1); }
+    if(['ArrowLeft','ArrowUp'].includes(e.key))         { e.preventDefault(); nav(-1); }
+  });
+
+  let tx = 0;
+  document.addEventListener('touchstart', e => { tx = e.changedTouches[0].screenX; });
+  document.addEventListener('touchend',   e => {
+    const d = tx - e.changedTouches[0].screenX;
+    if (Math.abs(d) > 40) nav(d > 0 ? 1 : -1);
+  });
+</script>
+</body>
+</html>

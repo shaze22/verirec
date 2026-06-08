@@ -48,6 +48,10 @@ const KaunslorClientFilePage  = lazy(() => import('./pages/kaunselor/KaunslorCli
 const KaunslorCalendarPage    = lazy(() => import('./pages/kaunselor/KaunslorCalendarPage.jsx'));
 const KaunslorUploadSessionPage  = lazy(() => import('./pages/kaunselor/KaunslorUploadSessionPage.jsx'));
 const KaunslorSupervisionPage    = lazy(() => import('./pages/kaunselor/KaunslorSupervisionPage.jsx'));
+const KaunslorBillingPage        = lazy(() => import('./pages/kaunselor/KaunslorBillingPage.jsx'));
+const KaunslorResourcesPage      = lazy(() => import('./pages/kaunselor/KaunslorResourcesPage.jsx'));
+const PortalLoginPage            = lazy(() => import('./pages/portal/PortalLoginPage.jsx'));
+const PortalHomePage             = lazy(() => import('./pages/portal/PortalHomePage.jsx'));
 const CounselorLandingPage    = lazy(() => import('./pages/CounselorLandingPage.jsx'));
 
 function PageTracker() {
@@ -129,7 +133,14 @@ function CounselorHome() {
     import('./api/counselor.js').then(({ getCounselorProfile }) =>
       getCounselorProfile(user.id)
     ).then(p => {
-      setDest(p?.display_name && p?.phone ? '/analytics' : '/kaunselor/setup');
+      if (p === null || p === undefined) {
+        // No counselor profile — this is a client logging into the portal
+        setDest('/portal/home');
+      } else if (p?.display_name && p?.phone) {
+        setDest('/analytics');
+      } else {
+        setDest('/kaunselor/setup');
+      }
     }).catch(() => setDest('/analytics'));
   }, [user?.id]);
 
@@ -293,6 +304,12 @@ export default function App() {
               <Route path="/kaunselor/clients/:id" element={<ProtectedRoute><AppLayout><KaunslorClientFilePage /></AppLayout></ProtectedRoute>} />
               <Route path="/kaunselor/clients/:id/upload-session" element={<ProtectedRoute><AppLayout><KaunslorUploadSessionPage /></AppLayout></ProtectedRoute>} />
               <Route path="/kaunselor/supervision" element={<ProtectedRoute><AppLayout><KaunslorSupervisionPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/kaunselor/billing" element={<ProtectedRoute><AppLayout><KaunslorBillingPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/kaunselor/resources" element={<ProtectedRoute><AppLayout><KaunslorResourcesPage /></AppLayout></ProtectedRoute>} />
+
+              {/* Client Portal — /portal/home is protected (any logged-in user), /portal is public */}
+              <Route path="/portal" element={<PortalLoginPage />} />
+              <Route path="/portal/home" element={<ProtectedRoute><PortalHomePage /></ProtectedRoute>} />
 
               {/* Session flow — full screen, no sidebar/nav */}
               <Route path="/session/consent" element={
