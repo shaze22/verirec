@@ -545,7 +545,7 @@ export default function KaunslorAppointmentsPage() {
                     <img src={qrDataUrl} alt="Booking QR Code" className="mx-auto rounded-xl mb-4" style={{ width: 220 }} />
                     <p className="text-sm text-gray-500 mb-1">Booking Link</p>
                     <p className="font-mono text-xs bg-gray-50 rounded-lg px-3 py-2 text-gray-700 break-all">{bookingUrl}</p>
-                    <div className="flex gap-3 justify-center mt-4">
+                    <div className="flex gap-3 justify-center mt-4 flex-wrap">
                       <Button variant="secondary" onClick={() => {
                         const win = window.open('', '_blank', 'width=480,height=600');
                         win.document.write(`<!DOCTYPE html><html><head><title>Booking QR - Counselor</title>
@@ -572,6 +572,9 @@ export default function KaunslorAppointmentsPage() {
                       </Button>
                       <Button onClick={() => { navigator.clipboard.writeText(bookingUrl); toast.success('Link copied!'); }}>
                         Copy Link
+                      </Button>
+                      <Button variant="secondary" onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`Book an appointment with me here:\n${bookingUrl}`)}`, '_blank')}>
+                        Share via WhatsApp
                       </Button>
                     </div>
                   </>

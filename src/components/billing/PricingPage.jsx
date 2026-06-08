@@ -211,10 +211,29 @@ export function PricingPage() {
         {/* ── COUNSELOR TAB ── */}
         {tab === 'kaunselor' && (
           <div className="max-w-4xl mx-auto space-y-8">
-            <div className="grid lg:grid-cols-2 gap-8 items-start">
+            <div className="grid lg:grid-cols-3 gap-6 items-start">
+
+              {/* Free tier card */}
+              <div className={`rounded-2xl border-2 p-6 flex flex-col ${!subscription?.plan || subscription?.plan === 'free' ? 'border-gray-400 bg-gray-50' : 'border-gray-200 bg-white'}`}>
+                {(!subscription?.plan || subscription?.plan === 'free') && <p className="text-xs font-semibold text-gray-500 mb-2">CURRENT PLAN</p>}
+                <p className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-1">Free</p>
+                <div className="flex items-end gap-1 mb-1">
+                  <span className="text-4xl font-bold text-gray-900">$0</span>
+                </div>
+                <p className="text-xs text-gray-400 mb-5">2 sessions / month · forever</p>
+                <ul className="space-y-2 flex-1 mb-6">
+                  {['All counselor features included', 'Digital client files', 'SOAP/DAP session notes', 'Assessments & intake forms', '2 sessions per month'].map(f => (
+                    <li key={f} className="flex items-start gap-2 text-sm text-gray-600"><Check color="text-gray-400" />{f}</li>
+                  ))}
+                </ul>
+                <Button variant="outline" className="w-full" disabled onClick={() => {}}>
+                  {(!subscription?.plan || subscription?.plan === 'free') ? 'Current Plan' : 'Downgrade'}
+                </Button>
+                <p className="text-xs text-center text-gray-400 mt-2">No credit card required</p>
+              </div>
 
               {/* Counselor plan card */}
-              <div className={`relative rounded-2xl border-2 p-6 flex flex-col ${isCurrent('counselor') ? 'border-violet-400 bg-violet-50' : 'border-violet-600 bg-white shadow-xl'}`}>
+              <div className={`relative rounded-2xl border-2 p-6 flex flex-col lg:col-span-2 ${isCurrent('counselor') ? 'border-violet-400 bg-violet-50' : 'border-violet-600 bg-white shadow-xl'}`}>
                 {!isCurrent('counselor') && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-violet-600 text-white text-xs font-bold px-4 py-1.5 rounded-full whitespace-nowrap shadow">
                     Counselor Plan
@@ -226,8 +245,7 @@ export function PricingPage() {
                   <span className="text-4xl font-bold text-gray-900">$22</span>
                   <span className="text-gray-400 text-sm mb-1">USD/month</span>
                 </div>
-                <p className="text-xs text-gray-400 mb-1">Unlimited sessions · cancel anytime</p>
-                <p className="text-xs text-violet-500 mb-5">~RM97 · pay in any currency via Stripe</p>
+                <p className="text-xs text-gray-400 mb-5">Unlimited sessions · pay in any currency · cancel anytime</p>
                 <ul className="space-y-2 flex-1 mb-6">
                   {COUNSELOR_FEATURES.map(f => (
                     <li key={f} className="flex items-start gap-2 text-sm text-gray-700"><Check />{f}</li>
@@ -239,14 +257,6 @@ export function PricingPage() {
                 <p className="text-xs text-center text-gray-400 mt-2">No contract · Cancel anytime · Secure via Stripe</p>
               </div>
 
-              <div className="bg-violet-50 rounded-xl border border-violet-100 p-6 flex flex-col justify-center">
-                <p className="text-sm font-semibold text-violet-800 mb-3">Everything you need to run your practice</p>
-                <ul className="space-y-2 text-sm text-violet-700">
-                  {['No session limits — see as many clients as you need', 'All AI features included', 'PDPA compliant storage', 'LPK supervision log & reports', 'Client portal access'].map(f => (
-                    <li key={f} className="flex items-start gap-2"><span className="text-violet-500 font-bold mt-0.5">✓</span>{f}</li>
-                  ))}
-                </ul>
-              </div>
             </div>
           </div>
         )}

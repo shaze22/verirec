@@ -25,6 +25,13 @@ function StatCard({ label, value, sub, color = 'text-gray-900', bg = 'bg-white',
   );
 }
 
+const ONBOARDING_STEPS = [
+  { key: 'profile',  label: 'Complete your profile',     desc: 'Add your name, clinic, and specializations.',      action: '/kaunselor/setup' },
+  { key: 'booking',  label: 'Share your booking link',   desc: 'Send your QR link to clients so they can book.',   action: '/kaunselor/appointments?tab=qr' },
+  { key: 'client',   label: 'Add your first client',     desc: 'Create a client file to get started.',             action: '/kaunselor/clients' },
+  { key: 'session',  label: 'Run your first session',    desc: 'Upload a recording or start a live session.',      action: null },
+];
+
 export default function CounselorDashboard() {
   const { user } = useAuthStore();
   const { subscription } = useBillingStore();
@@ -35,6 +42,8 @@ export default function CounselorDashboard() {
   const [appointments, setAppointments] = useState([]);
   const [exporting, setExporting] = useState(false);
   const [reportMonth, setReportMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
+  const [profile, setProfile] = useState(null);
+  const [onboardingDismissed, setOnboardingDismissed] = useState(() => localStorage.getItem('onb_dismissed') === '1');
 
   // Request notification permission + real-time appointment alerts
   useEffect(() => {
@@ -69,10 +78,12 @@ export default function CounselorDashboard() {
       supabase.from('subjects').select('id, name, risk_level, presenting_issue, created_at').eq('user_id', user.id),
       supabase.from('sessions').select('id, created_at, duration, subject_name, subject_id, problem_types, risk_level').eq('user_id', user.id).order('created_at', { ascending: false }).limit(100),
       supabase.from('appointments').select('id, client_name, confirmed_date, confirmed_time, requested_date, status, subject_id').eq('counselor_id', user.id).in('status', ['confirmed', 'pending', 'rescheduled']).order('confirmed_date'),
-    ]).then(([{ data: c }, { data: s }, { data: a }]) => {
+      supabase.from('counselor_profiles').select('display_name, phone').eq('user_id', user.id).maybeSingle(),
+    ]).then(([{ data: c }, { data: s }, { data: a }, { data: p }]) => {
       setClients(c || []);
       setSessions(s || []);
       setAppointments(a || []);
+      setProfile(p);
     }).finally(() => setLoading(false));
   }, [user]);
 
@@ -316,7 +327,7 @@ export default function CounselorDashboard() {
       <div className="flex-1 overflow-auto p-4 pb-20 md:pb-6">
         <div className="max-w-5xl mx-auto space-y-5">
 
-          {/* Usage bar for counselor */}
+          {/* Usage bar */}
           {subscription && (
             <div className="bg-violet-50 border border-violet-200 rounded-xl px-4 py-3 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 min-w-0">
@@ -326,20 +337,77 @@ export default function CounselorDashboard() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-violet-800">
-                    {subscription.sessions_used} / {subscription.sessions_limit} sessions this month
-                    {subscription.extra_sessions > 0 && <span className="text-violet-600"> + {subscription.extra_sessions} top-up</span>}
-                  </p>
-                  <div className="w-48 h-1.5 bg-violet-200 rounded-full mt-1">
-                    <div className="h-full bg-violet-500 rounded-full" style={{ width: `${Math.min(100, (subscription.sessions_used / subscription.sessions_limit) * 100)}%` }} />
-                  </div>
+                  {subscription.sessions_limit === -1 ? (
+                    <p className="text-sm font-semibold text-violet-800">{subscription.sessions_used} sessions this month · Unlimited plan</p>
+                  ) : (
+                    <>
+                      <p className="text-sm font-semibold text-violet-800">
+                        {subscription.sessions_used} / {subscription.sessions_limit} sessions this month
+                      </p>
+                      <div className="w-48 h-1.5 bg-violet-200 rounded-full mt-1">
+                        <div className="h-full bg-violet-500 rounded-full" style={{ width: `${Math.min(100, (subscription.sessions_used / subscription.sessions_limit) * 100)}%` }} />
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
-              <button onClick={() => navigate('/pricing?tab=kaunselor')} className="text-xs font-semibold text-violet-700 bg-white border border-violet-300 px-3 py-1.5 rounded-lg hover:bg-violet-50 flex-shrink-0">
-                Top Up
-              </button>
+              {subscription.sessions_limit !== -1 && (
+                <button onClick={() => navigate('/pricing?tab=kaunselor')} className="text-xs font-semibold text-violet-700 bg-white border border-violet-300 px-3 py-1.5 rounded-lg hover:bg-violet-50 flex-shrink-0">
+                  Upgrade
+                </button>
+              )}
             </div>
           )}
+
+          {/* Onboarding checklist — shown until dismissed or all steps done */}
+          {!onboardingDismissed && (() => {
+            const bookingShared = localStorage.getItem('onb_booking') === '1';
+            const done = {
+              profile: !!(profile?.display_name && profile?.phone),
+              booking: bookingShared,
+              client: clients.length > 0,
+              session: sessions.length > 0,
+            };
+            const allDone = Object.values(done).every(Boolean);
+            if (allDone) return null;
+            const completedCount = Object.values(done).filter(Boolean).length;
+            return (
+              <div className="bg-white border border-violet-200 rounded-xl p-5">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900">Get started with Kaunselor</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">{completedCount} of {ONBOARDING_STEPS.length} steps complete</p>
+                  </div>
+                  <button onClick={() => { localStorage.setItem('onb_dismissed', '1'); setOnboardingDismissed(true); }}
+                    className="text-gray-300 hover:text-gray-500 text-lg leading-none flex-shrink-0">✕</button>
+                </div>
+                <div className="w-full h-1.5 bg-gray-100 rounded-full mb-4 overflow-hidden">
+                  <div className="h-full bg-violet-500 rounded-full transition-all" style={{ width: `${(completedCount / ONBOARDING_STEPS.length) * 100}%` }} />
+                </div>
+                <div className="space-y-3">
+                  {ONBOARDING_STEPS.map(step => (
+                    <div key={step.key} className={`flex items-start gap-3 p-3 rounded-xl transition-colors ${done[step.key] ? 'opacity-50' : 'hover:bg-violet-50 cursor-pointer'}`}
+                      onClick={() => {
+                        if (done[step.key]) return;
+                        if (step.key === 'booking') localStorage.setItem('onb_booking', '1');
+                        if (step.action) navigate(step.action);
+                      }}>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${done[step.key] ? 'bg-violet-500 border-violet-500' : 'border-gray-300'}`}>
+                        {done[step.key] && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-medium ${done[step.key] ? 'line-through text-gray-400' : 'text-gray-800'}`}>{step.label}</p>
+                        {!done[step.key] && <p className="text-xs text-gray-400 mt-0.5">{step.desc}</p>}
+                      </div>
+                      {!done[step.key] && step.action && (
+                        <svg className="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Stat cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

@@ -3,6 +3,7 @@ import { useBillingStore } from '../../store/billingStore.js';
 import { Modal } from '../ui/Modal.jsx';
 import { Button } from '../ui/Button.jsx';
 import { useNavigate } from 'react-router-dom';
+import { isCounselorSubdomain } from '../../lib/subdomain.js';
 
 const planOrder = { free: 0, counselor: 1, starter: 1, pro: 2, biz: 3 };
 
@@ -15,10 +16,13 @@ export function BillingGate({ plan, children, sessionCheck = false }) {
 
   const currentLevel = planOrder[subscription?.plan || 'free'];
   const requiredLevel = planOrder[plan] || 0;
-  const hasPlan = currentLevel >= requiredLevel;
-  const extra = subscription?.extra_sessions ?? 0;
+  // On counselor subdomain, all plans get counselor-level feature access (free tier)
+  // Only session count limits them — upgrade for unlimited sessions
+  const hasPlan = (isCounselorSubdomain() && plan === 'counselor')
+    ? true
+    : currentLevel >= requiredLevel;
   const hasSessionsLeft = !sessionCheck || subscription?.sessions_limit === -1 ||
-    (subscription?.sessions_used ?? 0) < (subscription?.sessions_limit ?? 2) + extra;
+    (subscription?.sessions_used ?? 0) < (subscription?.sessions_limit ?? 2);
 
   if (hasPlan && hasSessionsLeft) return <>{children}</>;
 

@@ -19,7 +19,7 @@ const features = [
   { icon: '📊', title: 'Clinical Assessments', desc: 'Built-in PHQ-9, GAD-7, DASS-21, RIASEC, and Big Five panels. Send secure links to clients. Auto-scored and saved to their file.' },
   { icon: '📋', title: 'Digital Intake Form', desc: 'Send a shareable intake link before the first session. Clients fill in personal details, presenting concern, and risk info — auto-populates their profile.' },
   { icon: '📄', title: 'AI Clinical Documents', desc: 'Generate Employment, Court, Academic, or Insurance support letters in seconds. Edit, print, or save as PDF.' },
-  { icon: '🔐', title: 'Supervision Log', desc: 'Log LPK-compliant supervision sessions, track hours, and print your annual supervision report for submission.' },
+  { icon: '🔐', title: 'Supervision Log', desc: 'Log supervision sessions, track hours by supervisor, and print your annual report for licensing body submission.' },
 ];
 
 const DEMO_TABS = [
@@ -192,7 +192,7 @@ function DemoDash() {
       <div className="grid grid-cols-3 gap-2">
         {[
           { label: 'Clients', val: '24', sub: '+3 this month', color: 'text-violet-600' },
-          { label: 'Sessions', val: '3', sub: '2 remaining', color: 'text-blue-600' },
+          { label: 'Sessions', val: '3', sub: 'this month', color: 'text-blue-600' },
           { label: 'Risk Flags', val: '3', sub: 'Need follow-up', color: 'text-amber-600' },
         ].map(({ label, val, sub, color }) => (
           <div key={label} className="bg-gray-50 rounded-xl p-3 text-center">
@@ -287,8 +287,8 @@ export default function CounselorLandingPage() {
     <>
       <Helmet>
         <title>Kaunselor — Digital Counselling Platform</title>
-        <meta name="description" content="Kaunselor is a digital counseling platform — QR booking, digital client files, SOAP/DAP notes, PHQ-9/GAD-7/DASS-21 assessments, AI clinical letters, supervision log. PDPA & Counselors Act 1998 compliant." />
-        <meta name="keywords" content="counseling platform, digital counseling, kaunselor, SOAP DAP notes, PHQ-9 GAD-7 DASS-21, RIASEC Big Five, LPK supervision log, PDPA compliant counseling, AI session notes" />
+        <meta name="description" content="Kaunselor — digital practice management for counselors. QR booking, digital client files, SOAP/DAP notes, clinical assessments, AI session reports, supervision log. Privacy-law compliant." />
+        <meta name="keywords" content="counseling platform, counseling software, digital counseling, SOAP DAP notes, PHQ-9 GAD-7 DASS-21, RIASEC Big Five, supervision log, AI session notes, client management counselor" />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://kaunselor.app" />
         <meta property="og:type" content="website" />
@@ -301,7 +301,7 @@ export default function CounselorLandingPage() {
           "@type": "SoftwareApplication",
           "name": "Kaunselor",
           "url": "https://kaunselor.app",
-          "description": "Digital counseling session management platform for counselors in Malaysia.",
+          "description": "Digital practice management platform for counselors worldwide.",
           "applicationCategory": "BusinessApplication",
           "operatingSystem": "Web",
           "offers": { "@type": "Offer", "price": "22", "priceCurrency": "USD" },
@@ -429,9 +429,9 @@ export default function CounselorLandingPage() {
           <div className="max-w-4xl mx-auto">
             <div className="grid sm:grid-cols-3 gap-6 text-center">
               {[
-                { icon: '🔒', title: 'PDPA 2010 Compliant', desc: 'Client data encrypted. Consent records permanent. Full audit trail.' },
-                { icon: '⚖️', title: 'Counselors Act 1998', desc: 'Session notes follow official SOP format required by Lembaga Kaunselor.' },
-                { icon: '🛡️', title: 'SHA-256 Chain of Custody', desc: 'Every session cryptographically signed. Tamper-proof documentation.' },
+                { icon: '🔒', title: 'Privacy Law Compliant', desc: 'Client data encrypted. Consent permanently recorded. Full audit trail. PDPA & GDPR-ready.' },
+                { icon: '⚖️', title: 'Professional Standards Ready', desc: 'SOAP/DAP session notes and supervision logs structured to meet licensing body requirements.' },
+                { icon: '🛡️', title: 'SHA-256 Chain of Custody', desc: 'Every session cryptographically signed. Tamper-proof documentation for any regulatory review.' },
               ].map(({ icon, title, desc }) => (
                 <div key={title} className="p-6">
                   <div className="text-3xl mb-3">{icon}</div>
@@ -527,14 +527,14 @@ export default function CounselorLandingPage() {
                 },
                 {
                   name: 'Ahmad Nazri Ibrahim',
-                  role: 'Private Practice Counselor, KL',
+                  role: 'Private Practice Counselor',
                   avatar: 'A',
                   rating: 5,
                   text: 'My clients love the online booking. They get a confirmation email, I get a notification. No more back-and-forth on WhatsApp. The PHQ-9 and GAD-7 assessments built right into the client file are a huge plus.',
                 },
                 {
                   name: 'Nurul Hafizah Othman',
-                  role: 'School Counselor, Selangor',
+                  role: 'School Counselor',
                   avatar: 'N',
                   rating: 5,
                   text: 'Finally a platform designed for us, not adapted from something else. The student/client file tracks everything across sessions. I can see the risk trend over time and act early.',
@@ -564,51 +564,66 @@ export default function CounselorLandingPage() {
 
         {/* Pricing */}
         <section className="py-24 px-4">
-          <div className="max-w-lg mx-auto">
+          <div className="max-w-3xl mx-auto">
             <div className="text-center mb-10">
               <h2 className="text-3xl font-bold text-gray-900 mb-3">Simple pricing</h2>
-              <p className="text-gray-500">One plan. Everything included. Cancel anytime.</p>
+              <p className="text-gray-500">Start free. Upgrade when you're ready.</p>
             </div>
-            <div className="bg-white border-2 border-violet-500 rounded-2xl p-8 shadow-xl shadow-violet-100">
-              <div className="flex items-start justify-between mb-2">
-                <div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-5xl font-bold text-gray-900">$22</span>
-                    <span className="text-gray-400 text-sm">USD / month</span>
-                  </div>
-                  <p className="text-xs text-gray-400 mt-1">~RM97 · Pay in any currency via Stripe</p>
+            <div className="grid sm:grid-cols-2 gap-6 items-start">
+              {/* Free tier */}
+              <div className="bg-white border-2 border-gray-200 rounded-2xl p-7 flex flex-col">
+                <p className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">Free</p>
+                <div className="flex items-baseline gap-1 mb-1">
+                  <span className="text-4xl font-bold text-gray-900">$0</span>
+                  <span className="text-gray-400 text-sm">/ month</span>
                 </div>
-                <div className="bg-violet-100 text-violet-700 text-xs font-bold px-3 py-1.5 rounded-full">COUNSELOR PLAN</div>
+                <p className="text-xs text-gray-400 mb-6">2 sessions / month · forever free</p>
+                <ul className="space-y-2.5 flex-1 mb-7 text-sm text-gray-600">
+                  {['All features unlocked', 'Digital client files', 'SOAP/DAP notes', 'Clinical assessments', 'Supervision log'].map(f => (
+                    <li key={f} className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <button onClick={() => navigate('/auth?mode=register&profession=counselor')}
+                  className="w-full border-2 border-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-colors text-sm">
+                  Start Free →
+                </button>
+                <p className="text-xs text-gray-400 text-center mt-2">No credit card required</p>
               </div>
-              <div className="border-t border-gray-100 my-5" />
-              <ul className="space-y-3 mb-8">
-                {[
-                  'Unlimited counseling sessions / month',
-                  'Digital client files (unlimited clients)',
-                  'Automated QR booking system',
-                  'SOAP / DAP structured session notes',
-                  'AI red flag & crisis detection',
-                  'PHQ-9, GAD-7, DASS-21, RIASEC, Big Five assessments',
-                  'Digital intake forms (shareable client links)',
-                  'AI clinical letter generator (employment, court, academic, insurance)',
-                  'Recording transcription (Gemini AI)',
-                  'Supervision log + LPK annual report',
-                  'Client portal & psychoeducation library',
-                  'PDPA 2010 & Counselors Act 1998 compliant',
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-sm text-gray-700">
-                    <svg className="w-4 h-4 text-violet-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <button onClick={() => navigate('/auth?mode=register&profession=counselor')}
-                className="w-full bg-violet-600 text-white font-bold py-3.5 rounded-xl hover:bg-violet-700 transition-colors text-sm">
-                Get Started Free →
-              </button>
-              <p className="text-xs text-gray-400 text-center mt-3">No contract · Cancel anytime · Secure via Stripe</p>
+
+              {/* Counselor plan */}
+              <div className="relative bg-white border-2 border-violet-500 rounded-2xl p-7 shadow-xl shadow-violet-100 flex flex-col">
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-violet-600 text-white text-xs font-bold px-4 py-1.5 rounded-full whitespace-nowrap shadow">MOST POPULAR</div>
+                <p className="text-sm font-semibold text-violet-600 uppercase tracking-wide mb-2">Counselor</p>
+                <div className="flex items-baseline gap-1 mb-1">
+                  <span className="text-4xl font-bold text-gray-900">$22</span>
+                  <span className="text-gray-400 text-sm">USD / month</span>
+                </div>
+                <p className="text-xs text-gray-400 mb-6">Unlimited sessions · pay in any currency</p>
+                <ul className="space-y-2.5 flex-1 mb-7 text-sm text-gray-700">
+                  {[
+                    'Everything in Free',
+                    'Unlimited counseling sessions',
+                    'AI red flag & crisis detection',
+                    'AI clinical letter generator',
+                    'Recording transcription (Gemini AI)',
+                    'Client portal & psychoeducation library',
+                    'Privacy law compliant · Professional standards ready',
+                  ].map(f => (
+                    <li key={f} className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-violet-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <button onClick={() => navigate('/auth?mode=register&profession=counselor')}
+                  className="w-full bg-violet-600 text-white font-bold py-3.5 rounded-xl hover:bg-violet-700 transition-colors text-sm">
+                  Get Started →
+                </button>
+                <p className="text-xs text-gray-400 text-center mt-2">No contract · Cancel anytime · Secure via Stripe</p>
+              </div>
             </div>
           </div>
         </section>

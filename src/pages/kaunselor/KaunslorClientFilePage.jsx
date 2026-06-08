@@ -1556,7 +1556,7 @@ export default function KaunslorClientFilePage() {
                       </div>
                     )}
 
-                    {/* Copy link for pending */}
+                    {/* Copy / share link for pending */}
                     {a.status === 'pending' && !isExpired && (
                       <div className="flex items-center gap-2">
                         <input
@@ -1568,7 +1568,13 @@ export default function KaunslorClientFilePage() {
                           onClick={() => { navigator.clipboard.writeText(link); toast.success('Link copied!'); }}
                           className="text-xs text-violet-600 border border-violet-200 rounded-lg px-2.5 py-1.5 hover:bg-violet-50 transition-colors whitespace-nowrap flex-shrink-0"
                         >
-                          Copy Link
+                          Copy
+                        </button>
+                        <button
+                          onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`Please complete your assessment here:\n${link}`)}`, '_blank')}
+                          className="text-xs text-green-700 border border-green-200 rounded-lg px-2.5 py-1.5 hover:bg-green-50 transition-colors whitespace-nowrap flex-shrink-0"
+                        >
+                          WhatsApp
                         </button>
                       </div>
                     )}
@@ -2047,6 +2053,10 @@ export default function KaunslorClientFilePage() {
                               onClick={() => { navigator.clipboard.writeText(link); toast.success('Link copied!'); }}
                               className="text-xs text-violet-600 hover:text-violet-800 font-medium flex-shrink-0 px-2 py-1 rounded hover:bg-violet-50 transition-colors"
                             >Copy</button>
+                            <button
+                              onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`Please fill in your intake form before our session:\n${link}`)}`, '_blank')}
+                              className="text-xs text-green-700 hover:text-green-900 font-medium flex-shrink-0 px-2 py-1 rounded hover:bg-green-50 transition-colors"
+                            >WhatsApp</button>
                           </div>
                         )}
 
