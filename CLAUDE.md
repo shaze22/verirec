@@ -70,8 +70,8 @@ Pengesan subdomain via `src/lib/subdomain.js` — hanya `isCounselorSubdomain()`
 - React + Vite (JSX, bukan TypeScript)
 - Tailwind CSS v3
 - Supabase (auth + database)
-- AssemblyAI `universal-3-pro` (speaker diarization, batch, on session end) via `/api/transcribe?mode=diarize`
-- OpenAI Whisper `whisper-1` (real-time chunk transcription during recording) via `/api/transcribe`
+- Google Gemini `gemini-2.5-flash` (diarization on session end + import transcription) via `/api/gemini?mode=diarize`
+- OpenAI Whisper `whisper-1` (real-time chunk transcription during recording) via `/api/gemini`
 - Anthropic Claude `claude-opus-4-7` (AI analysis) via `/api/suggest`
 - Google Gemini `gemini-2.5-flash` (fallback untuk Claude 529/500) via `/api/suggest`
 - Stripe (payments) — **Live mode aktif**, guna `fetch` terus (bukan SDK)
@@ -84,7 +84,7 @@ Pengesan subdomain via `src/lib/subdomain.js` — hanya `isCounselorSubdomain()`
 4. **Setiap async function perlu try/catch** — tiada silent failures
 5. **Consent data mesti tidak pernah dipadam** — PDPA compliance, audit trail kekal
 6. **SHA-256 hash dikira server-side** dalam `api/report.js` — bukan client-side
-7. **Pricing in USD** — $0 free, $25 professional, top-up $3/$12/$22. No RM in UI.
+7. **Pricing in USD** — $0 free, $22/unlimited (pro). Counselor top-up $3/$12/$22. No RM in UI.
 8. **Tiada free trial** — `trial_period_days` telah dibuang dari `stripe-checkout.js`
 
 ## Struktur Projek
@@ -323,7 +323,7 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - "Appointments" shortened to "Appts" in grid to fit cleanly
 - New Session bug fixed: `navigate('/session/setup/counselor')` → `navigate('/session/consent')` — ProfessionalRoute was blocking /session/setup on counselor subdomain
 
-**Latest deploy:** commit `15a56bc` — 2026-06-08 (landing page UX: 9→6 features, cookie banner corner widget, Tamper-Proof Records, who-is-this-for hero line)
+**Latest deploy:** commit `a6e537c` — 2026-06-08 (Gemini diarization, $22 unlimited plan, global branding, BillingGate free tier)
 
 **Generate Memo fix (commit `512d2a5` — 2026-06-03):**
 - Regression from tab merge: "🖨 Memo" button was dropped from referral cards in Plans tab
@@ -509,13 +509,14 @@ www.verirec.app/**, counselor.verirec.app/**, kaunselor.app/**, www.kaunselor.ap
 
 ## Hobby Plan — 12 Serverless Functions (HARD LIMIT)
 Jangan tambah function baru tanpa remove/merge yang lain dulu.
-Semasa: admin, cron-reset-usage, gemini, report, share-session, stripe-billing, stripe-checkout, stripe-webhook, suggest, team-invite, transcribe, user-notifications
+Semasa (11/12): admin, cron-reset-usage, gemini, report, share-session, stripe-billing, stripe-checkout, stripe-webhook, suggest, team-invite, user-notifications
+NOTE: transcribe.js adalah stub (no handler) — semua transcription di gemini.js sekarang
 
 ## AI Models
 | Provider    | Model                         | Kegunaan                              |
 |-------------|-------------------------------|---------------------------------------|
 | Anthropic   | claude-opus-4-7               | AI analysis (suggest)                 |
-| AssemblyAI  | universal-3-pro / universal-2 | Speaker diarization (batch, on end)   |
+| Gemini      | gemini-2.5-flash              | Diarization (batch, on end) + Import  |
 | OpenAI      | whisper-1                     | Real-time chunk transcription         |
 | Gemini      | gemini-2.5-flash              | Fallback bila Claude 529/500          |
 
@@ -535,13 +536,13 @@ Semasa: admin, cron-reset-usage, gemini, report, share-session, stripe-billing, 
 | jtk       | Pegawai JTK     | /jtk       | #0d9488 | PeaceModelPanel |
 
 ## Plan & Harga
-| Plan        | Sesi/bulan | Harga/bulan | Top-up | Label UI      |
-|-------------|------------|-------------|--------|---------------|
-| free        | 2          | $0 USD      | No     | Free          |
-| counselor   | 5          | $25 USD     | Yes    | Counselor     |
-| starter     | 5          | $25 USD     | Yes    | Professional  |
-| pro         | 100        | $249 USD    | No     | Pro (hidden)  |
-| biz         | 200        | $599 USD    | No     | Enterprise → email |
+| Plan        | Sesi/bulan | Harga/bulan | Top-up | Label UI         |
+|-------------|------------|-------------|--------|------------------|
+| free        | 2          | $0 USD      | No     | Free             |
+| pro         | unlimited  | $22 USD     | No     | Unlimited        |
+| counselor   | unlimited  | $22 USD     | Yes    | Counselor        |
+| starter     | 5          | $25 USD     | Yes    | Professional (legacy) |
+| biz         | unlimited  | $599 USD    | No     | Enterprise → email |
 
 **Top-up (counselor + starter):**
 - 1 session: $3 · 5 sessions: $12 · 10 sessions: $22 USD
