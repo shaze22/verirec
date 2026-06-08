@@ -696,7 +696,7 @@ vercel deploy --prod --force --scope syedshazni-7682s-projects
 - www.verirec.app + counselor.verirec.app (doctor/jkm redirect ke www)
 - Project ID: `prj_EwnDU0nKMOn56auUR1WZF1GeNI3f`
 - GitHub: `https://github.com/shaze22/verirec` (branch: main)
-- Last deployed: 2026-06-08 (commit `4e6364f` — kaunselor: WA reminders, consent portal, session ack, contradiction insights)
+- Last deployed: 2026-06-08 (commit `9a0c5e9` — kaunselor: portal messaging, reschedule, payment, audit trail, insights v2)
 - ⚠️ GitHub→Vercel auto-deploy broken — always use `vercel deploy --prod --force --scope syedshazni-7682s-projects`
 - Supabase project ID: `sbakkkxuhkxfofpfhdtn`
 
