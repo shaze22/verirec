@@ -12,7 +12,7 @@ const CONSENT_VERSION = 'VERIREC-CONSENT-v1.0';
 const CONSENT_ITEMS = [
   'I understand that this recording session will be audio-recorded and transcribed.',
   'I agree that the recording and transcript will be used for the stated professional purposes.',
-  'I understand that my personal information is protected under the Personal Data Protection Act 2010 (PDPA).',
+  'I understand that my personal information is protected and handled in accordance with applicable privacy laws.',
   'I agree to proceed with this session voluntarily and may stop at any time.',
 ];
 
