@@ -323,7 +323,47 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - "Appointments" shortened to "Appts" in grid to fit cleanly
 - New Session bug fixed: `navigate('/session/setup/counselor')` → `navigate('/session/consent')` — ProfessionalRoute was blocking /session/setup on counselor subdomain
 
-**Latest deploy:** commit `a6e537c` — 2026-06-08 (Gemini diarization, $22 unlimited plan, global branding, BillingGate free tier)
+**Latest deploy:** commit `f41fec2` — 2026-06-08 (pre-session consent, statement acknowledgement, WA reminders, global branding fixes)
+
+---
+
+## Features Baru (2026-06-08 — sesi terkini)
+
+**Global Branding Fixes (commits a6e537c, f44a92c — 2026-06-08):**
+- LandingPage.jsx: badge "SHA-256 · Privacy Compliant · 11+ Professions · Globally Ready" (removed PDPA/Malaysia)
+- Professions strip: SPRM/MACC→Anti-Corruption, SISPA→Private Investigator, MCMC removed, JTK→Labour Inspector, JAKIM Halal→Halal Inspector, JKM Officer→Welfare Officer
+- WHO_FOR cards: same replacements + "PDPA-compliant" → "Privacy-compliant"
+- Comparison table: "PDPA 2010 compliant" → "Privacy law compliant"
+- Testimonials: removed DSP/En./Pn. honorifics, IPD Petaling Jaya → Criminal Investigation Division, removed "PDPA" from quote
+- App mockup: "Ahmad bin Rosli · SPRM" → "J. Rivera · INV Case"
+- ConsentPage.jsx: "PDPA 2010" → "applicable privacy laws"
+- Meta description + schema.org: removed MACC/JAKIM references
+- Pricing: $22/unlimited, "Two plans. No contracts." (LandingPage)
+
+**Pre-Session Digital Consent (commit f41fec2 — 2026-06-08):**
+- `src/pages/PublicConsentPage.jsx` — public page at `/consent/:token`
+- From SchedulePage: "Send Consent Form" button → creates `consent_requests` record → opens WA with link
+- Subject opens link, ticks 4 consent items, submits — `consented_at` timestamped in DB
+- Supabase table: `consent_requests` (token, user_id, scheduled_session_id, session_id, subject_name, purpose, interviewer_name, consent_given, consented_at, expires_at 7 days)
+- Public RLS: SELECT + UPDATE allowed (token-gated at app level)
+
+**Statement Acknowledgement Portal (commit f41fec2 — 2026-06-08):**
+- `src/pages/PublicStatementPage.jsx` — public page at `/statement/:token`
+- From SessionReportPage: "Send to Subject" button (violet person icon) — only shown if transcript.length > 0
+- Subject views transcript in chat-style UI + SHA-256 hash, can add corrections, then acknowledges
+- `acknowledged_at` timestamped in DB, corrections stored
+- Supabase table: `statement_acknowledgements` (token, user_id, session_id, subject_name, acknowledged, acknowledged_at, corrections, expires_at 30 days)
+- Public RLS: SELECT + UPDATE allowed
+
+**WA Reminders + Location from Schedule (commit f41fec2 — 2026-06-08):**
+- SchedulePage card: "Send Reminder" (green WA button) → opens WA with session title/date/time/location
+- SchedulePage card: "Send Consent Form" (blue button) → creates consent_request + opens WA with link
+- SchedulePage modal: new "Location" field (stored in `scheduled_sessions.location`)
+- `scheduled_sessions` table: `location TEXT` column added via migration
+
+**Routes added (App.jsx):**
+- `/consent/:token` → PublicConsentPage (lazy, public, no auth)
+- `/statement/:token` → PublicStatementPage (lazy, public, no auth)
 
 **Generate Memo fix (commit `512d2a5` — 2026-06-03):**
 - Regression from tab merge: "🖨 Memo" button was dropped from referral cards in Plans tab
