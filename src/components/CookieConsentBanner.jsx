@@ -53,56 +53,31 @@ export function CookieConsentBanner() {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 shadow-2xl">
-      <div className="bg-white border-t border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <div className="flex items-start gap-3 flex-1">
-              <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Privacy &amp; Cookies</p>
-                <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-                  We use essential cookies (login, security) and optional analytics cookies (Google Analytics) to improve our service.{' '}
-                  <button onClick={() => setDetail(d => !d)} className="text-blue-600 hover:underline">
-                    {detail ? 'Show less' : 'Learn more'}
-                  </button>
-                  {' '}·{' '}
-                  <a href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</a>
-                </p>
-                {detail && (
-                  <div className="mt-2 space-y-1.5">
-                    <div className="flex items-start gap-2">
-                      <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-1.5 flex-shrink-0" />
-                      <p className="text-xs text-gray-600"><strong>Essential Cookies</strong> — Login, session, CSRF security. Always active, required for the app to function.</p>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <span className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5 flex-shrink-0" />
-                      <p className="text-xs text-gray-600"><strong>Analytics (optional)</strong> — Google Analytics helps us understand how users use VeriRec. No personal data is shared.</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="flex gap-2 flex-shrink-0 sm:ml-4">
-              <button
-                onClick={handleDecline}
-                className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Essential Only
-              </button>
-              <button
-                onClick={handleAccept}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Accept All
-              </button>
-            </div>
-          </div>
+    <div className="fixed bottom-4 right-4 z-50 w-80 bg-white border border-gray-200 rounded-2xl shadow-xl p-4">
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <p className="text-sm font-semibold text-gray-900">Cookies</p>
+        <button onClick={handleDecline} className="text-gray-400 hover:text-gray-600 text-lg leading-none flex-shrink-0">✕</button>
+      </div>
+      <p className="text-xs text-gray-500 leading-relaxed mb-1">
+        We use essential cookies for login and security, plus optional analytics to improve the product.{' '}
+        <a href="/privacy" className="text-violet-600 hover:underline">Privacy Policy</a>
+      </p>
+      {detail && (
+        <div className="mt-2 mb-2 space-y-1.5">
+          <p className="text-xs text-gray-500"><strong className="text-gray-700">Essential</strong> — Login, session, security. Always on.</p>
+          <p className="text-xs text-gray-500"><strong className="text-gray-700">Analytics</strong> — Google Analytics. No personal data shared.</p>
         </div>
+      )}
+      <button onClick={() => setDetail(d => !d)} className="text-xs text-violet-600 hover:underline mb-3 block">
+        {detail ? 'Show less' : 'Learn more'}
+      </button>
+      <div className="flex gap-2">
+        <button onClick={handleDecline} className="flex-1 px-3 py-2 text-xs text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          Essential Only
+        </button>
+        <button onClick={handleAccept} className="flex-1 px-3 py-2 text-xs font-semibold text-white bg-violet-600 rounded-lg hover:bg-violet-700 transition-colors">
+          Accept All
+        </button>
       </div>
     </div>
   );

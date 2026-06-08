@@ -12,14 +12,11 @@ const Logo = () => (
 
 const features = [
   { icon: '📅', title: 'QR Booking', desc: 'Clients book themselves via your personal QR link. Slots, confirmations, and reminders handled automatically.' },
-  { icon: '🗂️', title: 'Digital Client Files', desc: 'Full profile, risk tiers, action plans, referrals, progress notes, session history. All in one organised place.' },
   { icon: '🔴', title: 'AI Red Flag Detection', desc: 'Detects suicide risk, self-harm signals, and crisis indicators in real time during the session.' },
-  { icon: '📝', title: 'SOAP/DAP Session Notes', desc: 'Structured SOAP & DAP note templates with colour-coded fields. Print-ready clinical format, plus free-text notes.' },
-  { icon: '🎙️', title: 'Recording Transcription', desc: 'Upload any audio or video recording. AI transcribes, diarizes speakers, and generates a full session report automatically.' },
+  { icon: '🎙️', title: 'Session Transcription', desc: 'Upload any audio recording. AI transcribes, identifies speakers, and generates a full clinical report automatically.' },
   { icon: '📊', title: 'Clinical Assessments', desc: 'Built-in PHQ-9, GAD-7, DASS-21, RIASEC, and Big Five panels. Send secure links to clients. Auto-scored and saved to their file.' },
-  { icon: '📋', title: 'Digital Intake Form', desc: 'Send a shareable intake link before the first session. Clients fill in personal details, presenting concern, and risk info. Auto-populates their profile.' },
-  { icon: '📄', title: 'AI Clinical Documents', desc: 'Generate Employment, Court, Academic, or Insurance support letters in seconds. Edit, print, or save as PDF.' },
-  { icon: '🔐', title: 'Supervision Log', desc: 'Log supervision sessions, track hours by supervisor, and print your annual report for licensing body submission.' },
+  { icon: '📝', title: 'SOAP/DAP Session Notes', desc: 'Structured SOAP & DAP note templates with colour-coded fields. Print-ready clinical format in seconds.' },
+  { icon: '🗂️', title: 'Digital Client Files', desc: 'Full profile, risk tiers, action plans, referrals, progress notes, session history. All in one organised place.' },
 ];
 
 const DEMO_TABS = [
@@ -343,8 +340,11 @@ export default function CounselorLandingPage() {
               Less Admin.<br />
               <span className="text-violet-400">More Counseling.</span>
             </h1>
-            <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+            <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-4 leading-relaxed">
               From QR booking to AI session reports. Kaunselor handles all the paperwork so you can focus entirely on your clients.
+            </p>
+            <p className="text-sm text-gray-600 mb-10">
+              For licensed counselors in private practice, schools, and wellness centres.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-12">
               <button onClick={() => navigate('/auth?mode=register&profession=counselor')}
@@ -379,9 +379,9 @@ export default function CounselorLandingPage() {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-14">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Everything you need. Nothing you don't.</h2>
-              <p className="text-gray-500 text-lg max-w-xl mx-auto">One platform from intake form to final report.</p>
+              <p className="text-gray-500 text-lg max-w-xl mx-auto">One platform from first booking to final report.</p>
             </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {features.map((f) => (
                 <div key={f.title} className="group bg-white border border-gray-100 rounded-2xl p-6 hover:border-violet-200 hover:shadow-lg hover:shadow-violet-50 transition-all">
                   <div className="text-2xl mb-4">{f.icon}</div>
@@ -431,7 +431,7 @@ export default function CounselorLandingPage() {
               {[
                 { icon: '🔒', title: 'Privacy Law Compliant', desc: 'Client data encrypted. Consent permanently recorded. Full audit trail. PDPA & GDPR-ready.' },
                 { icon: '⚖️', title: 'Professional Standards Ready', desc: 'SOAP/DAP session notes and supervision logs structured to meet licensing body requirements.' },
-                { icon: '🛡️', title: 'SHA-256 Chain of Custody', desc: 'Every session cryptographically signed. Tamper-proof documentation for any regulatory review.' },
+                { icon: '🛡️', title: 'Tamper-Proof Records', desc: 'Every session is cryptographically signed at generation. Prove your records were never altered, for any audit or review.' },
               ].map(({ icon, title, desc }) => (
                 <div key={title} className="p-6">
                   <div className="text-3xl mb-3">{icon}</div>
@@ -608,7 +608,7 @@ export default function CounselorLandingPage() {
                     'Unlimited counseling sessions',
                     'AI red flag & crisis detection',
                     'AI clinical letter generator',
-                    'Recording transcription (Gemini AI)',
+                    'Automatic session transcription',
                     'Client portal & psychoeducation library',
                     'Privacy law compliant · Professional standards ready',
                   ].map(f => (
