@@ -4,7 +4,7 @@ import { useAuthStore } from '../store/authStore.js';
 import { useBillingStore } from '../store/billingStore.js';
 import { PROFESSIONS, getProfession } from '../data/professions.js';
 import { supabase } from '../lib/supabase.js';
-import { importFromStoragePath, pollDiarization } from '../api/whisper.js';
+import { importFromStoragePath } from '../api/whisper.js';
 import { generateReport } from '../api/claude.js';
 import { updateSession } from '../api/sessions.js';
 import { TopBar } from '../components/layout/TopBar.jsx';
@@ -191,21 +191,13 @@ export default function ImportSessionPage() {
         title,
       }).catch(() => {});
 
-      // 3. Submit to AssemblyAI via API (signed URL approach)
+      // 3. Transcribe with Gemini AI
       setCurrentStep('transcribing');
-      setStepDetail('Submitting to AssemblyAI...');
-      const jobId = await importFromStoragePath({
+      setStepDetail('Transcribing with Gemini AI. This may take a few minutes for long recordings...');
+      const utterances = await importFromStoragePath({
         storagePath,
         interviewer: form.interviewer.trim(),
         subject_name: form.subject_name.trim(),
-      });
-
-      setStepDetail('Processing audio — this may take a few minutes for long recordings...');
-      const utterances = await pollDiarization(jobId, {
-        interviewer: form.interviewer.trim(),
-        subject_name: form.subject_name.trim(),
-        onProgress: (status) => setStepDetail(`AssemblyAI: ${status}`),
-        maxWaitMs: 600_000,
       });
 
       // Build transcript from diarized utterances

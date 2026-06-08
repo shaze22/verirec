@@ -42,7 +42,7 @@ function AppMockup() {
           <p className="text-[11px] font-semibold text-gray-400 mb-2">Live Transcript</p>
           {[
             { sp: 'Officer', text: 'Describe your role in the procurement process.', cls: 'bg-blue-50 text-blue-800 border-blue-100' },
-            { sp: 'Subject', text: 'I approved vendor selections above RM50,000.', cls: 'bg-gray-50 text-gray-700 border-gray-100' },
+            { sp: 'Subject', text: 'I approved vendor selections above USD 50,000.', cls: 'bg-gray-50 text-gray-700 border-gray-100' },
             { sp: 'Subject', text: 'The vendor was selected before the tender officially closed.', cls: 'bg-red-50 text-red-700 border-red-200' },
           ].map((t, i) => (
             <div key={i} className={`rounded-lg border px-3 py-2 ${t.cls}`}>
@@ -92,12 +92,12 @@ const PROFESSIONS = [
 ];
 
 const FEATURES = [
-  { icon: '⚖️', title: 'PEACE Model Guide', desc: '5-phase checklist panel in every session — Planning, Engage, Account, Closure, Evaluation. Never miss a step.' },
-  { icon: '🔐', title: 'SHA-256 Chain of Custody', desc: 'Every report is cryptographically hashed on generation. Prove it was never altered — court and audit ready.' },
+  { icon: '⚖️', title: 'PEACE Model Guide', desc: '5-phase checklist panel in every session: Planning, Engage, Account, Closure, Evaluation. Never miss a step.' },
+  { icon: '🔐', title: 'SHA-256 Chain of Custody', desc: 'Every report is cryptographically hashed on generation. Prove it was never altered, court and audit ready.' },
   { icon: '🎙️', title: 'Speaker Diarization', desc: 'Automatic identification of who said what. Real-time transcript with officer and subject clearly labeled.' },
   { icon: '🤖', title: 'AI Red Flags & Suggestions', desc: 'Claude AI detects testimony contradictions and suggests follow-up questions in real-time during the session.' },
-  { icon: '📄', title: 'SOP Reports by Profession', desc: 'Auto-generated in the exact format required — investigation, NCR/CAR, SOAP, disciplinary. Export as signed PDF.' },
-  { icon: '📡', title: 'Offline Mode', desc: 'Record in any location — factory floors, remote areas, courts. Data syncs automatically when back online.' },
+  { icon: '📄', title: 'SOP Reports by Profession', desc: 'Auto-generated in the exact format required: investigation, NCR/CAR, SOAP, disciplinary. Export as signed PDF.' },
+  { icon: '📡', title: 'Offline Mode', desc: 'Record in any location: factory floors, remote areas, courts. Data syncs automatically when back online.' },
 ];
 
 const WHO_FOR = [
@@ -162,14 +162,14 @@ export default function LandingPage() {
   return (
     <>
     <Helmet>
-      <title>VeriRec — Professional Investigation & Audit Platform</title>
+      <title>VeriRec: Professional Investigation & Audit Platform</title>
       <meta name="description" content="AI transcription, SHA-256 chain of custody, and SOP reports for Police, MACC, HR, ISO, Halal JAKIM, Lawyers and more. Make every record unchallengeable." />
       <link rel="canonical" href="https://www.verirec.app/" />
       <meta property="og:type" content="website" />
       <meta property="og:url" content="https://www.verirec.app/" />
-      <meta property="og:title" content="VeriRec — Make Every Investigation Record Unchallengeable" />
+      <meta property="og:title" content="VeriRec: Make Every Investigation Record Unchallengeable" />
       <meta property="og:description" content="AI transcription, SHA-256 chain of custody, and SOP reports for investigators, auditors, and officers." />
-      <meta property="og:locale" content="en_MY" />
+      <meta property="og:locale" content="en_US" />
       <meta name="twitter:card" content="summary_large_image" />
       <script type="application/ld+json">{JSON.stringify({
         '@context': 'https://schema.org',
@@ -213,20 +213,20 @@ export default function LandingPage() {
       <section className="pt-40 pb-24 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-gray-100 text-gray-500 text-xs font-medium px-4 py-2 rounded-full mb-8">
-            SHA-256 · PDPA 2010 · 11+ Professions · Made in Malaysia
+            SHA-256 · Privacy Compliant · 11+ Professions · Globally Ready
           </div>
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-black text-gray-900 leading-[1.05] tracking-tight mb-7">
             Make every investigation<br />record unchallengeable.
           </h1>
           <p className="text-xl text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed">
-            AI transcription, SHA-256 chain of custody, and profession-specific SOP reports — built for investigators, auditors, and officers whose records must hold up in court.
+            AI transcription, SHA-256 chain of custody, and profession-specific SOP reports, built for investigators, auditors, and officers whose records must hold up in court.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={() => navigate('/auth?mode=register')}
               className="px-8 py-4 bg-blue-600 text-white font-bold text-base rounded-full hover:bg-blue-700 transition-colors shadow-md"
             >
-              Try Free — 2 Sessions
+              Try Free: 2 Sessions
             </button>
             <button
               onClick={() => navigate('/auth')}
@@ -303,7 +303,7 @@ export default function LandingPage() {
               {
                 num: '03',
                 title: 'Export the signed report',
-                desc: 'A SHA-256 hashed PDF is generated the moment the session ends — ready for court files, audit submissions, or official records.',
+                desc: 'A SHA-256 hashed PDF is generated the moment the session ends, ready for court files, audit submissions, or official records.',
               },
             ].map(s => (
               <div key={s.num}>
@@ -396,7 +396,7 @@ export default function LandingPage() {
                 Works on your phone.<br />No download needed.
               </h2>
               <p className="text-xl text-gray-500 mb-10 leading-relaxed">
-                VeriRec is a Progressive Web App — install it on any phone in seconds. Record sessions, view reports, and manage case files on the go. Works offline too.
+                VeriRec is a Progressive Web App. Install it on any phone in seconds. Record sessions, view reports, and manage case files on the go. Works offline too.
               </p>
               <div className="space-y-5 mb-10">
                 {[
@@ -416,7 +416,7 @@ export default function LandingPage() {
                 onClick={() => navigate('/auth?mode=register')}
                 className="px-8 py-4 bg-blue-600 text-white font-black text-base rounded-full hover:bg-blue-700 transition-colors shadow-md"
               >
-                Try Free — Install Later →
+                Try Free (Install Later) →
               </button>
             </div>
           </div>
@@ -448,7 +448,7 @@ export default function LandingPage() {
               onClick={() => navigate('/auth?mode=register')}
               className="inline-flex items-center gap-2 bg-gray-900 text-white font-bold px-8 py-4 rounded-full hover:bg-gray-800 transition-colors"
             >
-              Try Free — 2 Sessions, No Credit Card →
+              Try Free: 2 Sessions, No Credit Card →
             </button>
           </div>
         </div>
@@ -502,12 +502,12 @@ export default function LandingPage() {
       <section className="py-28 px-6">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-4xl sm:text-5xl font-black text-gray-900 text-center mb-16">
-            Trusted by professionals across Malaysia
+            Trusted by professionals worldwide
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {[
               {
-                quote: 'SHA-256 hash on every report — defence lawyers can no longer challenge our records. It changed how we document investigations.',
+                quote: 'SHA-256 hash on every report. Defence lawyers can no longer challenge our records. It changed how we document investigations.',
                 name: 'DSP Ahmad Fauzi',
                 role: 'Head of Criminal Investigation',
                 org: 'IPD Petaling Jaya',
@@ -522,7 +522,7 @@ export default function LandingPage() {
                 quote: 'PDPA consent records in every session guarantee company legal protection. Our company lawyer recommends VeriRec.',
                 name: 'Pn. Melissa Tan',
                 role: 'CHRO',
-                org: 'Listed Company Bursa Malaysia',
+                org: 'Listed Company',
               },
             ].map(t => (
               <div key={t.name} className="bg-white rounded-2xl p-8 border border-gray-100 flex flex-col">
@@ -543,7 +543,7 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-black text-gray-900">Simple pricing</h2>
-            <p className="text-xl text-gray-500 mt-4">One professional plan. Top-up when needed. No contracts.</p>
+            <p className="text-xl text-gray-500 mt-4">Two plans. No contracts.</p>
           </div>
 
           <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
@@ -555,7 +555,7 @@ export default function LandingPage() {
               </div>
               <p className="text-gray-400 text-sm mb-8">Forever free</p>
               <ul className="space-y-3 flex-1 mb-8">
-                {['2 sessions per month', 'AI real-time transcription', 'Basic PDF report', 'SHA-256 chain of custody'].map(f => (
+                {['2 sessions per month', 'AI real-time transcription', 'AI analysis + red flags', 'PEACE Model guide', 'SOP PDF report', 'SHA-256 chain of custody'].map(f => (
                   <li key={f} className="flex items-center gap-3 text-sm text-gray-600">
                     <Check className="w-4 h-4 text-green-500 flex-shrink-0" />{f}
                   </li>
@@ -569,27 +569,27 @@ export default function LandingPage() {
               </button>
             </div>
 
-            {/* Professional */}
+            {/* Unlimited */}
             <div className="bg-blue-600 rounded-2xl p-8 flex flex-col relative">
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
                 <span className="bg-gray-900 text-white text-xs font-black px-3 py-1 rounded-full tracking-wide">MOST POPULAR</span>
               </div>
-              <p className="text-xs font-black text-blue-300 uppercase tracking-widest mb-5">Professional</p>
+              <p className="text-xs font-black text-blue-300 uppercase tracking-widest mb-5">Unlimited</p>
               <div className="flex items-end gap-1 mb-1">
-                <span className="text-5xl font-black text-white">$25</span>
+                <span className="text-5xl font-black text-white">$22</span>
                 <span className="text-blue-300 mb-2 text-sm">/month</span>
               </div>
-              <p className="text-blue-300 text-sm mb-8">5 sessions per month</p>
+              <p className="text-blue-300 text-sm mb-8">Unlimited sessions</p>
               <ul className="space-y-3 flex-1 mb-8">
                 {[
-                  '5 recording sessions / month',
+                  'Unlimited recording sessions',
                   'AI analysis + real-time red flags',
                   'PEACE Model guide',
                   'SOP PDF report by profession',
                   'SHA-256 chain of custody',
-                  'Automatic speaker diarization',
+                  'Speaker diarization',
                   'Case files & subjects',
-                  'Top-up sessions available',
+                  'Priority email support',
                 ].map(f => (
                   <li key={f} className="flex items-center gap-3 text-sm text-white">
                     <Check className="w-4 h-4 text-blue-200 flex-shrink-0" />{f}
@@ -602,33 +602,12 @@ export default function LandingPage() {
               >
                 Get Started →
               </button>
-              <p className="text-xs text-center text-blue-300 mt-3">No long-term contract · Cancel anytime</p>
+              <p className="text-xs text-center text-blue-300 mt-3">No long-term contract, cancel anytime</p>
             </div>
-          </div>
-
-          {/* Top-up table */}
-          <div className="mt-10 max-w-md mx-auto bg-gray-50 rounded-2xl p-6">
-            <p className="text-sm font-bold text-gray-700 mb-5 text-center">Additional Session Top-Up</p>
-            <div className="space-y-3">
-              {[
-                { qty: '1 session',   price: '$3',  per: '$3.00 / session' },
-                { qty: '5 sessions',  price: '$12', per: '$2.40 / session' },
-                { qty: '10 sessions', price: '$22', per: '$2.20 / session — save 27%' },
-              ].map(t => (
-                <div key={t.qty} className="flex items-center justify-between text-sm">
-                  <span className="font-semibold text-gray-700">{t.qty}</span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-gray-400 text-xs">{t.per}</span>
-                    <span className="font-black text-gray-900">{t.price}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <p className="text-xs text-gray-400 text-center mt-5">Top-ups never expire · No monthly reset</p>
           </div>
 
           <p className="text-center text-sm text-gray-500 mt-8">
-            Need more than 5 sessions or a large team?{' '}
+            Large team or enterprise?{' '}
             <a href="mailto:hello@verirec.app" className="text-blue-600 hover:underline font-semibold">Contact us</a>
           </p>
         </div>
@@ -647,7 +626,7 @@ export default function LandingPage() {
           >
             Try VeriRec Free →
           </button>
-          <p className="text-sm text-gray-400 mt-5">SHA-256 · PDPA 2010 · Made in Malaysia</p>
+          <p className="text-sm text-gray-400 mt-5">SHA-256 · Privacy Compliant · Globally Ready</p>
         </div>
       </section>
 
@@ -668,7 +647,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="mt-8 pt-6 border-t border-gray-800 text-center text-xs text-gray-600">
-            © {new Date().getFullYear()} VeriRec. Built in Malaysia. PDPA 2010 Compliant.
+            © {new Date().getFullYear()} VeriRec. Privacy Compliant.
           </div>
         </div>
       </footer>

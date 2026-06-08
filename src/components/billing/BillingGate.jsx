@@ -5,7 +5,7 @@ import { Button } from '../ui/Button.jsx';
 import { useNavigate } from 'react-router-dom';
 import { isCounselorSubdomain } from '../../lib/subdomain.js';
 
-const planOrder = { free: 0, counselor: 1, starter: 1, pro: 2, biz: 3 };
+const planOrder = { free: 0, counselor: 1, pro: 1, starter: 1, biz: 2 };
 
 export function BillingGate({ plan, children, sessionCheck = false }) {
   const { subscription, loading } = useBillingStore();
@@ -16,9 +16,11 @@ export function BillingGate({ plan, children, sessionCheck = false }) {
 
   const currentLevel = planOrder[subscription?.plan || 'free'];
   const requiredLevel = planOrder[plan] || 0;
-  // On counselor subdomain, all plans get counselor-level feature access (free tier)
-  // Only session count limits them — upgrade for unlimited sessions
+  // Counselor subdomain: counselor plan unlocks counselor features
+  // verirec.app: all features accessible regardless of plan — only session count gates
   const hasPlan = (isCounselorSubdomain() && plan === 'counselor')
+    ? true
+    : !isCounselorSubdomain()
     ? true
     : currentLevel >= requiredLevel;
   const hasSessionsLeft = !sessionCheck || subscription?.sessions_limit === -1 ||

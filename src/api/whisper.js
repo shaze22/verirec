@@ -7,12 +7,14 @@ async function getToken() {
   return session.access_token;
 }
 
-// Submit full audio blob for AssemblyAI diarization. Returns job_id.
-export async function diarizeAudio(blob) {
+// Submit full audio blob for Gemini diarization. Returns utterances[] directly (synchronous).
+export async function diarizeAudio(blob, { interviewer, subject_name } = {}) {
   const token = await getToken();
   const form = new FormData();
   form.append('audio', blob, 'session.webm');
   form.append('mode', 'diarize');
+  if (interviewer) form.append('interviewer', interviewer);
+  if (subject_name) form.append('subject_name', subject_name);
   const res = await fetch(CONFIG.api.transcribe, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
@@ -23,32 +25,7 @@ export async function diarizeAudio(blob) {
     throw new Error(err.error || 'diarize_failed');
   }
   const data = await res.json();
-  return data.job_id;
-}
-
-// Poll AssemblyAI job until completed or timeout. Returns utterances[].
-// utterances: [{ speaker, text, start, end, identified_name? }]
-export async function pollDiarization(jobId, { onProgress, maxWaitMs = 180_000, interviewer, subject_name } = {}) {
-  const token = await getToken();
-  const started = Date.now();
-
-  // Build query params including optional speaker names for Speaker Identification
-  const params = new URLSearchParams({ job_id: jobId });
-  if (interviewer) params.set('interviewer', interviewer);
-  if (subject_name) params.set('subject_name', subject_name);
-
-  while (Date.now() - started < maxWaitMs) {
-    await new Promise(r => setTimeout(r, 3000));
-    const res = await fetch(`${CONFIG.api.transcribe}?${params}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) throw new Error('poll_failed');
-    const data = await res.json();
-    onProgress?.(data.status);
-    if (data.status === 'completed') return data.utterances || [];
-    if (data.status === 'error') throw new Error(data.error || 'diarize_error');
-  }
-  throw new Error('diarize_timeout');
+  return data.utterances || [];
 }
 
 // Transcribe an already-uploaded file (Supabase storage path) via Gemini. Returns utterances[].

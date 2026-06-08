@@ -12,7 +12,7 @@ import { updateSession } from '../api/sessions.js';
 import { generateReport } from '../api/claude.js';
 import { put } from '../lib/idb.js';
 import { uploadAudio } from '../api/audioLibrary.js';
-import { diarizeAudio, pollDiarization } from '../api/whisper.js';
+import { diarizeAudio } from '../api/whisper.js';
 import { getSessionById } from '../api/sessions.js';
 import { Waveform } from '../components/session/Waveform.jsx';
 import { TranscriptPanel } from '../components/session/TranscriptPanel.jsx';
@@ -258,17 +258,12 @@ export default function SessionPage() {
       : null;
 
     try {
-      // 1. Diarize full audio with AssemblyAI (if audio captured)
+      // 1. Diarize full audio with Gemini (if audio captured)
       let diarizedEntries = entries;
       if (fullAudioBlob && fullAudioBlob.size > 10_000) {
         try {
-          setGenerateStep('Sending audio for speaker diarization...');
-          const jobId = await diarizeAudio(fullAudioBlob);
-          setGenerateStep('Processing speaker diarization (this takes ~30 seconds)...');
-          const utterances = await pollDiarization(jobId, {
-            onProgress: (status) => {
-              if (status === 'processing') setGenerateStep('Processing diarization & speaker identification...');
-            },
+          setGenerateStep('Transcribing with Gemini AI. This may take a moment for long recordings...');
+          const utterances = await diarizeAudio(fullAudioBlob, {
             interviewer: setup.interviewer,
             subject_name: setup.subject_name,
           });

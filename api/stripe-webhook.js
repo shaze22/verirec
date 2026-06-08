@@ -10,7 +10,8 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-const PLAN_LIMITS = { free: 2, counselor: -1, starter: 5, pro: 100, biz: -1 };
+const PLAN_LIMITS = { free: 2, counselor: -1, pro: -1, starter: 5, biz: -1 };
+const TOPUP_SESSIONS = { topup_1: 1, topup_5: 5, topup_10: 10 };
 
 export const config = { api: { bodyParser: false } };
 
@@ -91,7 +92,18 @@ export default async function handler(req, res) {
         const { user_id, plan } = session.metadata || {};
         if (!user_id || !plan) break;
 
-        // Retrieve subscription status
+        // Topup purchase: increment extra_sessions, don't change plan
+        if (TOPUP_SESSIONS[plan]) {
+          const toAdd = TOPUP_SESSIONS[plan];
+          const { data: sub } = await supabaseAdmin
+            .from('subscriptions').select('extra_sessions').eq('user_id', user_id).single();
+          await supabaseAdmin.from('subscriptions')
+            .update({ extra_sessions: (sub?.extra_sessions ?? 0) + toAdd })
+            .eq('user_id', user_id);
+          break;
+        }
+
+        // Subscription purchase
         let status = 'active';
         let trialEnd = null;
         if (session.subscription) {

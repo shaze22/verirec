@@ -11,7 +11,7 @@ export const CONFIG = {
     isDev: import.meta.env.DEV,
   },
   api: {
-    transcribe:     '/api/transcribe',
+    transcribe:     '/api/gemini',
     suggest:        '/api/suggest',
     report:         '/api/report',
     gemini:         '/api/gemini',
@@ -19,11 +19,17 @@ export const CONFIG = {
     stripeBilling:   '/api/stripe-billing',
   },
   plans: {
-    free:      { sessions: 2,   users: 1,  price: 0,   currency: 'USD', label: 'Free' },
-    counselor: { sessions: -1,  users: 1,  price: 22,  currency: 'USD', label: 'Counselor' },
-    starter:   { sessions: 5,   users: 2,  price: 25,  currency: 'USD', label: 'Professional' },
-    pro:       { sessions: 100, users: 10, price: 249, currency: 'USD', label: 'Pro' },
-    biz:       { sessions: 200, users: -1, price: 599, currency: 'USD', label: 'Business' },
+    free:      { sessions: 2,  users: 1, price: 0,  currency: 'USD', label: 'Free' },
+    counselor: { sessions: -1, users: 1, price: 22, currency: 'USD', label: 'Counselor' },
+    pro:       { sessions: -1, users: 1, price: 22, currency: 'USD', label: 'Unlimited' },
+    // Legacy plans kept for backward-compat with existing subscribers
+    starter:   { sessions: 5,  users: 2, price: 25, currency: 'USD', label: 'Professional' },
+    biz:       { sessions: -1, users: -1, price: 599, currency: 'USD', label: 'Business' },
   },
-  planOrder: { free: 0, counselor: 1, starter: 1, pro: 2, biz: 3 },
+  planOrder: { free: 0, counselor: 1, pro: 1, starter: 1, biz: 2 },
+  topups: [
+    { key: 'topup_1',  label: '1 Session',   price: 3,  perSession: 3   },
+    { key: 'topup_5',  label: '5 Sessions',  price: 12, perSession: 2.4 },
+    { key: 'topup_10', label: '10 Sessions', price: 22, perSession: 2.2 },
+  ],
 };

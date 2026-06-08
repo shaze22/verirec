@@ -10,13 +10,11 @@ const supabaseAdmin = createClient(
 );
 
 const PRICE_IDS = {
-  starter_monthly:   clean(process.env.STRIPE_PRICE_STARTER_MONTHLY),
-  starter_annual:    clean(process.env.STRIPE_PRICE_STARTER_ANNUAL),
   pro_monthly:       clean(process.env.STRIPE_PRICE_PRO_MONTHLY),
-  pro_annual:        clean(process.env.STRIPE_PRICE_PRO_ANNUAL),
-  biz_monthly:       clean(process.env.STRIPE_PRICE_BIZ_MONTHLY),
-  biz_annual:        clean(process.env.STRIPE_PRICE_BIZ_ANNUAL),
   counselor_monthly: clean(process.env.STRIPE_PRICE_COUNSELOR_MONTHLY),
+  topup_1:           clean(process.env.STRIPE_PRICE_TOPUP_1),
+  topup_5:           clean(process.env.STRIPE_PRICE_TOPUP_5),
+  topup_10:          clean(process.env.STRIPE_PRICE_TOPUP_10),
 };
 
 // Direct Stripe REST API calls — no SDK, no connection issues
@@ -77,11 +75,12 @@ export default async function handler(req, res) {
     const { plan, annual = false, origin } = body;
     const baseUrl = origin || process.env.VITE_APP_URL || 'https://www.verirec.app';
 
-    if (!['starter', 'pro', 'biz', 'counselor'].includes(plan)) {
+    const isTopup = plan.startsWith('topup_');
+    if (!['pro', 'counselor', 'topup_1', 'topup_5', 'topup_10'].includes(plan)) {
       return res.status(400).json({ error: 'Invalid plan' });
     }
 
-    const priceKey = `${plan}_${annual ? 'annual' : 'monthly'}`;
+    const priceKey = isTopup ? plan : `${plan}_monthly`;
     const priceId = PRICE_IDS[priceKey];
     if (!priceId) return res.status(400).json({ error: 'Price not configured: ' + priceKey });
 
@@ -121,9 +120,11 @@ export default async function handler(req, res) {
       'metadata[plan]': plan,
     };
 
-    sessionParams.mode = 'subscription';
-    sessionParams['subscription_data[metadata][user_id]'] = user.id;
-    sessionParams['subscription_data[metadata][plan]'] = plan;
+    sessionParams.mode = isTopup ? 'payment' : 'subscription';
+    if (!isTopup) {
+      sessionParams['subscription_data[metadata][user_id]'] = user.id;
+      sessionParams['subscription_data[metadata][plan]'] = plan;
+    }
 
     const session = await stripePost('/checkout/sessions', sessionParams);
 

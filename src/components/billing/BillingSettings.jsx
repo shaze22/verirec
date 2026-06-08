@@ -7,11 +7,11 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 const PLAN_CONFIG = {
-  free:      { label: 'Free',         bg: 'bg-gray-100',    text: 'text-gray-700', ring: 'ring-gray-200' },
-  counselor: { label: 'Counselor',    bg: 'bg-violet-600',  text: 'text-white',    ring: 'ring-violet-300' },
-  starter:   { label: 'Professional', bg: 'bg-blue-600',    text: 'text-white',    ring: 'ring-blue-300' },
-  pro:       { label: 'Pro',          bg: 'bg-violet-600',  text: 'text-white',    ring: 'ring-violet-300' },
-  biz:       { label: 'Business',     bg: 'bg-violet-600',  text: 'text-white',    ring: 'ring-violet-300' },
+  free:      { label: 'Free',         bg: 'bg-gray-100',   text: 'text-gray-700', ring: 'ring-gray-200' },
+  counselor: { label: 'Counselor',    bg: 'bg-violet-600', text: 'text-white',    ring: 'ring-violet-300' },
+  pro:       { label: 'Unlimited',    bg: 'bg-blue-600',   text: 'text-white',    ring: 'ring-blue-300' },
+  starter:   { label: 'Professional', bg: 'bg-blue-600',   text: 'text-white',    ring: 'ring-blue-300' },
+  biz:       { label: 'Business',     bg: 'bg-blue-600',   text: 'text-white',    ring: 'ring-blue-300' },
 };
 
 const STATUS_CONFIG = {
