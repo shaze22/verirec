@@ -10,7 +10,7 @@ import toast from 'react-hot-toast';
 
 const COUNSELOR_FEATURES = [
   'Unlimited counseling sessions / month',
-  'Automated QR booking — clients self-serve',
+  'Automated QR booking, clients self-serve',
   'Digital client files + session history',
   'SOP-format Case Session Notes (PDF)',
   'PHQ-9, GAD-7, DASS-21 & RIASEC assessments',
@@ -77,7 +77,7 @@ export function PricingPage() {
   return (
     <>
       <Helmet>
-        <title>Pricing — VeriRec</title>
+        <title>Pricing | VeriRec</title>
         <meta name="description" content="$22/month, unlimited sessions. No contract. Cancel anytime." />
         <link rel="canonical" href="https://www.verirec.app/pricing" />
       </Helmet>
@@ -165,7 +165,7 @@ export function PricingPage() {
             {/* Top-up */}
             <div className="max-w-md mx-auto bg-white rounded-2xl border p-6">
               <p className="text-sm font-bold text-gray-700 mb-1 text-center">Session Top-Up</p>
-              <p className="text-xs text-gray-400 text-center mb-4">Available for Professional plan. Never expires — carried to next month.</p>
+              <p className="text-xs text-gray-400 text-center mb-4">Available for Professional plan. Never expires, carried to next month.</p>
               <div className="space-y-3">
                 {CONFIG.topups.map(t => (
                   <div key={t.key} className="flex items-center justify-between">
@@ -192,7 +192,7 @@ export function PricingPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">Organization</p>
-                  <p className="text-gray-700 text-sm mb-1">For investigation departments &amp; units — up to 5 users</p>
+                  <p className="text-gray-700 text-sm mb-1">For investigation departments and units, up to 5 users</p>
                   <p className="text-2xl font-bold text-gray-900">$249<span className="text-sm font-normal text-gray-400">/month · 5 users · 100 sessions/user</span></p>
                 </div>
                 <Button variant="outline" className="flex-shrink-0" onClick={() => subscribe('enterprise')}>Contact Us →</Button>

@@ -6,7 +6,7 @@ const COUNSELOR_STEPS = [
   {
     icon: '👋',
     title: 'Welcome to Kaunselor',
-    desc: 'Your all-in-one digital counseling platform. AI session notes, QR booking, client files — all in one place.',
+    desc: 'Your all-in-one digital counseling platform. AI session notes, QR booking, client files. All in one place.',
     action: null,
   },
   {
@@ -18,7 +18,7 @@ const COUNSELOR_STEPS = [
   {
     icon: '📅',
     title: 'Add Your Time Slots',
-    desc: 'Define when you\'re available. Clients will only see slots you set — no overbooking, no hassle.',
+    desc: 'Define when you\'re available. Clients will only see slots you set. No overbooking, no hassle.',
     action: { label: 'Add Slots', path: '/kaunselor/appointments' },
   },
   {

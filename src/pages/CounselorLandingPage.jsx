@@ -12,12 +12,12 @@ const Logo = () => (
 
 const features = [
   { icon: '📅', title: 'QR Booking', desc: 'Clients book themselves via your personal QR link. Slots, confirmations, and reminders handled automatically.' },
-  { icon: '🗂️', title: 'Digital Client Files', desc: 'Full profile, risk tiers, action plans, referrals, progress notes, session history — all in one organised place.' },
+  { icon: '🗂️', title: 'Digital Client Files', desc: 'Full profile, risk tiers, action plans, referrals, progress notes, session history. All in one organised place.' },
   { icon: '🔴', title: 'AI Red Flag Detection', desc: 'Detects suicide risk, self-harm signals, and crisis indicators in real time during the session.' },
   { icon: '📝', title: 'SOAP/DAP Session Notes', desc: 'Structured SOAP & DAP note templates with colour-coded fields. Print-ready clinical format, plus free-text notes.' },
   { icon: '🎙️', title: 'Recording Transcription', desc: 'Upload any audio or video recording. AI transcribes, diarizes speakers, and generates a full session report automatically.' },
   { icon: '📊', title: 'Clinical Assessments', desc: 'Built-in PHQ-9, GAD-7, DASS-21, RIASEC, and Big Five panels. Send secure links to clients. Auto-scored and saved to their file.' },
-  { icon: '📋', title: 'Digital Intake Form', desc: 'Send a shareable intake link before the first session. Clients fill in personal details, presenting concern, and risk info — auto-populates their profile.' },
+  { icon: '📋', title: 'Digital Intake Form', desc: 'Send a shareable intake link before the first session. Clients fill in personal details, presenting concern, and risk info. Auto-populates their profile.' },
   { icon: '📄', title: 'AI Clinical Documents', desc: 'Generate Employment, Court, Academic, or Insurance support letters in seconds. Edit, print, or save as PDF.' },
   { icon: '🔐', title: 'Supervision Log', desc: 'Log supervision sessions, track hours by supervisor, and print your annual report for licensing body submission.' },
 ];
@@ -117,7 +117,7 @@ function DemoSession() {
   const transcript = [
     { speaker: 'Counselor', text: 'How have you been feeling this week overall?', time: '0:12' },
     { speaker: 'Client', text: "Not great honestly. I've been having trouble sleeping and feeling really anxious about exams.", time: '0:18', flag: true },
-    { speaker: 'Counselor', text: 'I hear you. Let\'s explore that anxiety — when did it start getting worse?', time: '0:35' },
+    { speaker: 'Counselor', text: 'I hear you. Let\'s explore that anxiety. When did it start getting worse?', time: '0:35' },
     { speaker: 'Client', text: "About two weeks ago. Sometimes I feel like I just can't cope anymore.", time: '0:42', flag: true },
   ];
   return (
@@ -126,7 +126,7 @@ function DemoSession() {
         <div className="flex items-center gap-2">
           <div className={`w-2.5 h-2.5 rounded-full ${recording ? 'bg-red-500 animate-pulse' : 'bg-gray-500'}`} />
           <span className="text-white text-xs font-mono">12:34</span>
-          <span className="text-gray-400 text-xs">Ahmad Faris — Session 3</span>
+          <span className="text-gray-400 text-xs">Ahmad Faris, Session 3</span>
         </div>
         <button onClick={() => setRecording(r => !r)}
           className={`text-xs px-3 py-1 rounded-full font-medium transition-colors ${recording ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}`}>
@@ -149,7 +149,7 @@ function DemoSession() {
       </div>
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
         <p className="text-xs font-semibold text-amber-800 mb-1">🧠 AI Suggestion</p>
-        <p className="text-xs text-amber-700">Client mentions inability to cope — consider exploring coping mechanisms using CBT thought records. Monitor for escalation.</p>
+        <p className="text-xs text-amber-700">Client mentions inability to cope. Consider exploring coping mechanisms using CBT thought records. Monitor for escalation.</p>
       </div>
     </div>
   );
@@ -160,7 +160,7 @@ function DemoReport() {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-semibold text-gray-900">Session Report — Ahmad Faris</p>
+          <p className="text-sm font-semibold text-gray-900">Session Report: Ahmad Faris</p>
           <p className="text-xs text-gray-400">Generated in 48 seconds · 4 Jun 2026</p>
         </div>
         <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full">⚠ Moderate Risk</span>
@@ -168,7 +168,7 @@ function DemoReport() {
       <div className="space-y-2.5 text-xs">
         {[
           { label: 'Presenting Issue', val: 'Exam anxiety and sleep disturbance. Client reports feeling unable to cope.' },
-          { label: 'Key Findings', val: '2 red flags detected — coping difficulty, sleep disruption. No suicidal ideation.' },
+          { label: 'Key Findings', val: '2 red flags detected: coping difficulty, sleep disruption. No suicidal ideation.' },
           { label: 'Intervention', val: 'Psychoeducation on anxiety cycle. CBT thought records introduced. Breathing exercise practised.' },
           { label: 'Follow-Up Plan', val: 'Review sleep diary next session. Refer to student wellness if symptoms persist.' },
         ].map(({ label, val }) => (
@@ -274,7 +274,7 @@ function InteractiveDemo() {
           </div>
         </div>
 
-        <p className="text-center text-gray-600 text-sm mt-4">This is a live interactive demo — click the tabs and buttons above.</p>
+        <p className="text-center text-gray-600 text-sm mt-4">This is a live interactive demo. Click the tabs and buttons above.</p>
       </div>
     </section>
   );
@@ -286,14 +286,14 @@ export default function CounselorLandingPage() {
   return (
     <>
       <Helmet>
-        <title>Kaunselor — Digital Counselling Platform</title>
-        <meta name="description" content="Kaunselor — digital practice management for counselors. QR booking, digital client files, SOAP/DAP notes, clinical assessments, AI session reports, supervision log. Privacy-law compliant." />
+        <title>Kaunselor: Digital Counselling Platform</title>
+        <meta name="description" content="Kaunselor, digital practice management for counselors. QR booking, digital client files, SOAP/DAP notes, clinical assessments, AI session reports, supervision log. Privacy-law compliant." />
         <meta name="keywords" content="counseling platform, counseling software, digital counseling, SOAP DAP notes, PHQ-9 GAD-7 DASS-21, RIASEC Big Five, supervision log, AI session notes, client management counselor" />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://kaunselor.app" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://kaunselor.app" />
-        <meta property="og:title" content="Kaunselor — Digital Counselling Platform" />
+        <meta property="og:title" content="Kaunselor: Digital Counselling Platform" />
         <meta property="og:description" content="Manage counseling sessions smarter. QR booking, digital client files, AI SOP notes, red flag detection. PDPA compliant." />
         <meta property="og:image" content="https://kaunselor.app/og-counselor.svg" />
         <script type="application/ld+json">{JSON.stringify({
@@ -344,7 +344,7 @@ export default function CounselorLandingPage() {
               <span className="text-violet-400">More Counseling.</span>
             </h1>
             <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-              From QR booking to AI session reports — Kaunselor handles all the paperwork so you can focus entirely on your clients.
+              From QR booking to AI session reports. Kaunselor handles all the paperwork so you can focus entirely on your clients.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-12">
               <button onClick={() => navigate('/auth?mode=register&profession=counselor')}
@@ -410,7 +410,7 @@ export default function CounselorLandingPage() {
               {[
                 { num: '1', title: 'Create Account', desc: 'Register in 2 minutes. Choose your credentials and specializations.' },
                 { num: '2', title: 'Share Your QR', desc: 'Clients book appointments through your personal booking link or QR code.' },
-                { num: '3', title: 'Start Counseling', desc: 'Record sessions, get AI reports, manage client files — all in one place.' },
+                { num: '3', title: 'Start Counseling', desc: 'Record sessions, get AI reports, manage client files. All in one place.' },
               ].map((s) => (
                 <div key={s.num} className="text-center relative">
                   <div className="w-12 h-12 bg-violet-600 text-white rounded-2xl flex items-center justify-center text-lg font-bold mx-auto mb-4 shadow-lg shadow-violet-200">
@@ -484,7 +484,7 @@ export default function CounselorLandingPage() {
                 </div>
                 <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Works on your phone.<br/>No download needed.</h2>
                 <p className="text-gray-400 text-lg mb-8 leading-relaxed">
-                  Kaunselor is a Progressive Web App — install it on your phone in seconds. Works offline too.
+                  Kaunselor is a Progressive Web App. Install it on your phone in seconds. Works offline too.
                 </p>
                 <div className="space-y-4 mb-8">
                   {[
@@ -502,7 +502,7 @@ export default function CounselorLandingPage() {
                 </div>
                 <button onClick={() => window.location.href = '/auth?mode=register&profession=counselor'}
                   className="bg-violet-600 text-white font-semibold px-8 py-3 rounded-xl hover:bg-violet-500 transition-colors text-sm">
-                  Get Started — Install Later →
+                  Get Started, Install Later →
                 </button>
               </div>
             </div>
@@ -523,7 +523,7 @@ export default function CounselorLandingPage() {
                   role: 'Senior Counselor, University Counseling Centre',
                   avatar: 'S',
                   rating: 5,
-                  text: 'The AI red flag detection has genuinely changed how I work. I used to worry about missing signs — now I have a safety net running throughout every session. The SOP notes save me 40 minutes per client.',
+                  text: 'The AI red flag detection has genuinely changed how I work. I used to worry about missing signs. Now I have a safety net running throughout every session. The SOP notes save me 40 minutes per client.',
                 },
                 {
                   name: 'Ahmad Nazri Ibrahim',

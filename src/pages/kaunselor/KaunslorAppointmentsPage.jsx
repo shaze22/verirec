@@ -427,7 +427,7 @@ export default function KaunslorAppointmentsPage() {
                   {scheduledSessions.filter(s => s.status !== 'upcoming').slice(0, 5).map(s => (
                     <div key={s.id} className="bg-gray-50 border border-gray-100 rounded-xl p-3 flex items-center justify-between text-sm">
                       <div>
-                        <p className="text-gray-600">{s.title}{s.subject_name ? ` — ${s.subject_name}` : ''}</p>
+                        <p className="text-gray-600">{s.title}{s.subject_name ? `: ${s.subject_name}` : ''}</p>
                         <p className="text-xs text-gray-400">{format(new Date(s.scheduled_at), 'dd MMM yyyy · HH:mm')}</p>
                       </div>
                       <span className="text-xs text-gray-400">{s.status === 'completed' ? 'Completed' : 'Cancelled'}</span>
@@ -445,7 +445,7 @@ export default function KaunslorAppointmentsPage() {
                       <div>
                         <label className="text-xs text-gray-500 mb-1 block">Session Title *</label>
                         <input type="text" value={scheduleForm.title} onChange={e => setScheduleForm(f => ({ ...f, title: e.target.value }))} required
-                          placeholder="e.g. Counseling Session — John Doe"
+                          placeholder="e.g. Counseling Session: John Doe"
                           className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                       </div>
                       <div>
@@ -560,7 +560,7 @@ export default function KaunslorAppointmentsPage() {
                             .url{font-family:monospace;background:#f1f5f9;padding:5px 10px;border-radius:6px;font-size:10px;margin:6px 0}
                           </style>
                         </head><body>
-                          <h2>Kaunselor — Booking QR</h2>
+                          <h2>Kaunselor: Booking QR</h2>
                           <p>Scan this QR code to make an appointment</p>
                           <img src="${qrDataUrl}" alt="QR"/>
                           <p class="url">${bookingUrl}</p>

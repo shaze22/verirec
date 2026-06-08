@@ -149,7 +149,7 @@ export default function KaunslorUploadSessionPage() {
         .select('id', { count: 'exact', head: true })
         .eq('subject_id', id);
       const sessionNumber = (count || 0) + 1;
-      const title = `Counseling Session ${sessionNumber} — ${client.name}`;
+      const title = `Counseling Session ${sessionNumber}: ${client.name}`;
 
       const { data: session, error: sessionErr } = await supabase.from('sessions').insert({
         user_id: user.id,
@@ -208,7 +208,7 @@ export default function KaunslorUploadSessionPage() {
 
         // Transcribe with Gemini AI
         setCurrentStep('transcribing');
-        setStepDetail('Transcribing with Gemini AI — this may take a few minutes for long recordings...');
+        setStepDetail('Transcribing with Gemini AI. This may take a few minutes for long recordings...');
         const utterances = await importFromStoragePath({
           storagePath,
           interviewer: counselorName.trim(),
@@ -294,7 +294,7 @@ export default function KaunslorUploadSessionPage() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      <TopBar title={`New Session — ${client?.name}`} onBack={() => navigate(`/kaunselor/clients/${id}`)} />
+      <TopBar title={`New Session: ${client?.name}`} onBack={() => navigate(`/kaunselor/clients/${id}`)} />
       <div className="flex-1 overflow-auto p-6">
         <div className="max-w-2xl mx-auto space-y-6">
 
@@ -366,7 +366,7 @@ export default function KaunslorUploadSessionPage() {
                   <div>
                     <div className="text-4xl mb-3">📁</div>
                     <p className="font-semibold text-gray-700">Drop recording here or click to browse</p>
-                    <p className="text-sm text-gray-400 mt-1">MP3, M4A, MP4, WAV, OGG, WEBM, FLAC, MOV — max 500MB</p>
+                    <p className="text-sm text-gray-400 mt-1">MP3, M4A, MP4, WAV, OGG, WEBM, FLAC, MOV, max 500MB</p>
                   </div>
                 )}
               </div>
@@ -437,7 +437,7 @@ export default function KaunslorUploadSessionPage() {
                   status={stepStatus('transcribing')}
                 />
                 <StepRow label="Generating session report" status={stepStatus('generating')} />
-                <StepRow label="Complete — redirecting to report" status={stepStatus('done')} />
+                <StepRow label="Complete, redirecting to report" status={stepStatus('done')} />
               </div>
               {stepDetail && <p className="text-xs text-gray-400 mt-2">{stepDetail}</p>}
             </div>
@@ -463,7 +463,7 @@ export default function KaunslorUploadSessionPage() {
           <p className="text-xs text-center text-gray-400 pb-6">
             {mode === 'audio'
               ? 'Audio is transcribed by Gemini AI. Long recordings (1+ hour) may take a few minutes.'
-              : 'Transcript will be processed directly — no transcription wait time.'}
+              : 'Transcript will be processed directly. No transcription wait time.'}
           </p>
         </div>
       </div>

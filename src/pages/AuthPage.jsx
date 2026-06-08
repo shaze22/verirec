@@ -305,7 +305,7 @@ export default function AuthPage() {
               <h2 className="text-2xl font-bold text-white mb-3 leading-snug">Less Admin.<br/>More Counseling.</h2>
               <div className="space-y-3">
                 {[
-                  { icon: '📅', text: 'QR booking — clients self-serve' },
+                  { icon: '📅', text: 'QR booking, clients self-serve' },
                   { icon: '🔴', text: 'AI red flag detection in real time' },
                   { icon: '📝', text: 'SOP session notes, auto-generated' },
                 ].map(({ icon, text }) => (

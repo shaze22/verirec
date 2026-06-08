@@ -64,7 +64,7 @@ export function BillingSettings() {
   };
 
   const downloadReceipt = async () => {
-    if (!isPaid) { toast.error('No receipt — you are on the free plan.'); return; }
+    if (!isPaid) { toast.error('No receipt. You are on the free plan.'); return; }
     const latest = charges?.[0];
     if (latest?.receipt_url) {
       window.open(latest.receipt_url, '_blank');
@@ -133,7 +133,7 @@ export function BillingSettings() {
             </div>
           )}
           {nearLimit && subscription.plan !== 'counselor' && (
-            <p className="text-xs text-red-600 mt-1.5">Limit almost reached — consider upgrading.</p>
+            <p className="text-xs text-red-600 mt-1.5">Limit almost reached. Consider upgrading.</p>
           )}
         </div>
       </div>
@@ -164,7 +164,7 @@ export function BillingSettings() {
 
       {isPaid && (
         <p className="text-xs text-gray-400">
-          "Manage Subscription" — cancel, change card, or view all invoices via the secure Stripe portal.
+          "Manage Subscription": cancel, change card, or view all invoices via the secure Stripe portal.
         </p>
       )}
 
