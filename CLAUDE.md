@@ -302,7 +302,7 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - ✅ Stripe secret key rotated + updated in Vercel (2026-06-02)
 - ✅ All remaining VeriRec refs in counselor pages replaced: print footers, notifications, QR popup, PDF, robots.txt (commit 271217b)
 - ✅ FROM_KAUNSELOR: noreply@kaunselor.app (commit c8a7098)
-- ⏳ Resend domain kaunselor.app: DNS records confirmed, pending Resend auto-verify (id: ea1931e0-8deb-4979-bd12-e6bc1909a32a)
+- ✅ Resend domain kaunselor.app: VERIFIED (2026-06-08) — noreply@kaunselor.app fully active
 
 **Recording Import — Client File (KaunslorClientFilePage.jsx — 2026-06-03):**
 - New "Recordings" tab in client file — upload audio/video directly to client record
@@ -323,7 +323,7 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - "Appointments" shortened to "Appts" in grid to fit cleanly
 - New Session bug fixed: `navigate('/session/setup/counselor')` → `navigate('/session/consent')` — ProfessionalRoute was blocking /session/setup on counselor subdomain
 
-**Latest deploy:** commit `f41fec2` — 2026-06-08 (pre-session consent, statement acknowledgement, WA reminders, global branding fixes)
+**Latest deploy:** commit `a1faf62` — 2026-06-08 (kaunselor.app Phase 1 + Phase 2 complete, RESEND_API_KEY active)
 
 ---
 
@@ -364,6 +364,23 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 **Routes added (App.jsx):**
 - `/consent/:token` → PublicConsentPage (lazy, public, no auth)
 - `/statement/:token` → PublicStatementPage (lazy, public, no auth)
+
+**kaunselor.app Phase 1 (commit 4e6364f — 2026-06-08):**
+- WA Appointment Reminder + Consent Form buttons in Appointments tab
+- `/counselor-consent/:token` — PublicCounselorConsentPage; `counselor_consent_requests` table (7-day expiry)
+- `/counselor-ack/:token` — PublicCounselorAckPage; `counselor_session_acks` table (30-day expiry)
+- Insights tab: AI Contradiction Detection across last 5 sessions (Gemini primary + Claude fallback)
+- `api/suggest.js`: mode='contradiction' added; `src/api/claude.js`: analyseContradictions() added
+- Routes: `/counselor-consent/:token` + `/counselor-ack/:token` added to App.jsx (lazy, public)
+
+**kaunselor.app Phase 2 (commit 9a0c5e9 — 2026-06-08):**
+- **Portal messaging**: `portal_messages` table; client ↔ counselor chat in both portal + client file (Messages tab)
+- **Reschedule requests**: `reschedule_requests` table; client requests via portal; counselor handles in Appointments tab (amber banner)
+- **Client self-serve payment**: `payment_url` in `counselor_profiles`; KaunslorSetupPage has payment link field; portal Invoices tab shows "Pay Now" button
+- **Audit trail**: `kaunselor_audit_logs` table; logActivity() fire-and-forget; Overview tab shows last 8 entries
+- **Insights v2**: contradiction detection now includes progress notes (SOAP/DAP/Free) + transcripts; threshold: 2+ sources; last 8 merged sources
+- **Email system**: `RESEND_API_KEY` set in Vercel production (2026-06-08); kaunselor.app domain verified in Resend
+- **DB migrations**: portal_messages, reschedule_requests, kaunselor_audit_logs, ALTER counselor_profiles ADD payment_url, portal RLS for counselor_invoices
 
 **Generate Memo fix (commit `512d2a5` — 2026-06-03):**
 - Regression from tab merge: "🖨 Memo" button was dropped from referral cards in Plans tab
