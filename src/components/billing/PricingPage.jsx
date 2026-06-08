@@ -9,15 +9,15 @@ import { isCounselorSubdomain } from '../../lib/subdomain.js';
 import toast from 'react-hot-toast';
 
 const COUNSELOR_FEATURES = [
-  '5 counseling sessions / month',
+  'Unlimited counseling sessions / month',
   'Automated QR booking — clients self-serve',
   'Digital client files + session history',
   'SOP-format Case Session Notes (PDF)',
-  'MBTI + RIASEC assessment in sessions',
+  'PHQ-9, GAD-7, DASS-21 & RIASEC assessments',
   'AI report + PDF export',
   'Schedule & Appointments + reminders',
   'Action Plans & Clinical Referrals',
-  'Top-up sessions anytime',
+  'Outcome tracking & progress trends',
 ];
 
 const PROFESSIONAL_FEATURES = [
@@ -78,13 +78,13 @@ export function PricingPage() {
     <>
       <Helmet>
         <title>Pricing — VeriRec</title>
-        <meta name="description" content="$25/month, 5 sessions. No contract. Top-up anytime." />
+        <meta name="description" content="$22/month, unlimited sessions. No contract. Cancel anytime." />
         <link rel="canonical" href="https://www.verirec.app/pricing" />
       </Helmet>
       <div className="max-w-5xl mx-auto px-6 py-12">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Plans & Pricing</h1>
-          <p className="text-gray-500 mt-2">Simple pricing. No surprises. Top-up when needed.</p>
+          <p className="text-gray-500 mt-2">Simple pricing. No surprises. Cancel anytime.</p>
         </div>
 
         {/* Tab toggle — hidden on counselor subdomain */}
@@ -223,57 +223,29 @@ export function PricingPage() {
                 {isCurrent('counselor') && <p className="text-xs font-semibold text-violet-700 mb-2">CURRENT PLAN</p>}
                 <p className="text-sm font-semibold text-violet-600 uppercase tracking-wide mb-1">Counselor</p>
                 <div className="flex items-end gap-1 mb-1">
-                  <span className="text-4xl font-bold text-gray-900">$25</span>
+                  <span className="text-4xl font-bold text-gray-900">$22</span>
                   <span className="text-gray-400 text-sm mb-1">USD/month</span>
                 </div>
-                <p className="text-xs text-gray-400 mb-1">5 sessions · $5/session · cancel anytime</p>
-                <p className="text-xs text-violet-500 mb-5">~RM110 · pay in any currency via Stripe</p>
+                <p className="text-xs text-gray-400 mb-1">Unlimited sessions · cancel anytime</p>
+                <p className="text-xs text-violet-500 mb-5">~RM97 · pay in any currency via Stripe</p>
                 <ul className="space-y-2 flex-1 mb-6">
                   {COUNSELOR_FEATURES.map(f => (
                     <li key={f} className="flex items-start gap-2 text-sm text-gray-700"><Check />{f}</li>
                   ))}
                 </ul>
-                {isCurrent('counselor') && (
-                  <p className="text-xs text-center text-violet-700 font-medium mb-3">
-                    Balance: {sessionBalance} sessions{extraSessions > 0 ? ` + ${extraSessions} top-up` : ''}
-                  </p>
-                )}
                 <Button variant="primary" className="w-full bg-violet-600 hover:bg-violet-700" disabled={isCurrent('counselor')} loading={loading === 'counselor'} onClick={() => subscribe('counselor')}>
                   {isCurrent('counselor') ? 'Active Plan' : 'Subscribe Now'}
                 </Button>
                 <p className="text-xs text-center text-gray-400 mt-2">No contract · Cancel anytime · Secure via Stripe</p>
               </div>
 
-              {/* Top-up packs */}
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-1">Session Top-Up</h3>
-                  <p className="text-sm text-gray-500">Never expires — carried to next month.</p>
-                </div>
-
-                {CONFIG.topups.map(topup => (
-                  <div key={topup.key} className="rounded-xl border bg-white p-4 flex items-center justify-between gap-4 hover:border-violet-200 transition-colors">
-                    <div>
-                      <p className="font-semibold text-gray-900">{topup.label}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">${topup.perSession}/session</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <p className="text-xl font-bold text-gray-900">${topup.price}</p>
-                      <Button variant="outline" size="sm" disabled={subscription?.plan !== 'counselor'} loading={loading === topup.key} onClick={() => subscribe(topup.key)}>
-                        Buy
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-
-                {subscription?.plan !== 'counselor' && (
-                  <p className="text-xs text-gray-400 text-center">Top-up available for Counselor plan subscribers only.</p>
-                )}
-
-                <div className="bg-violet-50 rounded-xl border border-violet-100 p-4">
-                  <p className="text-sm font-semibold text-violet-800 mb-1">Clear cost per client</p>
-                  <p className="text-sm text-violet-700">Top-up at $3/session — cheaper than the base rate. Easy to plan client billing.</p>
-                </div>
+              <div className="bg-violet-50 rounded-xl border border-violet-100 p-6 flex flex-col justify-center">
+                <p className="text-sm font-semibold text-violet-800 mb-3">Everything you need to run your practice</p>
+                <ul className="space-y-2 text-sm text-violet-700">
+                  {['No session limits — see as many clients as you need', 'All AI features included', 'PDPA compliant storage', 'LPK supervision log & reports', 'Client portal access'].map(f => (
+                    <li key={f} className="flex items-start gap-2"><span className="text-violet-500 font-bold mt-0.5">✓</span>{f}</li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>

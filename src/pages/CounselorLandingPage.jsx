@@ -304,7 +304,7 @@ export default function CounselorLandingPage() {
           "description": "Digital counseling session management platform for counselors in Malaysia.",
           "applicationCategory": "BusinessApplication",
           "operatingSystem": "Web",
-          "offers": { "@type": "Offer", "price": "100", "priceCurrency": "MYR" },
+          "offers": { "@type": "Offer", "price": "22", "priceCurrency": "USD" },
           "publisher": { "@type": "Organization", "name": "Kaunselor", "url": "https://kaunselor.app" }
         })}</script>
       </Helmet>
@@ -461,7 +461,7 @@ export default function CounselorLandingPage() {
                         </div>
                         <span className="text-white text-xs font-bold">Kaunselor</span>
                       </div>
-                      {[['Total Clients', '24', 'text-violet-400'], ['Sessions Used', '3/5', 'text-blue-400'], ['Pending', '2', 'text-amber-400']].map(([l, v, c]) => (
+                      {[['Total Clients', '24', 'text-violet-400'], ['Sessions This Month', '3', 'text-blue-400'], ['Pending', '2', 'text-amber-400']].map(([l, v, c]) => (
                         <div key={l} className="bg-gray-800 rounded-lg p-2 flex justify-between items-center">
                           <span className="text-[10px] text-gray-400">{l}</span>
                           <span className={`text-xs font-bold ${c}`}>{v}</span>
@@ -573,17 +573,17 @@ export default function CounselorLandingPage() {
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-5xl font-bold text-gray-900">$25</span>
+                    <span className="text-5xl font-bold text-gray-900">$22</span>
                     <span className="text-gray-400 text-sm">USD / month</span>
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">~RM118 · Pay in any currency via Stripe</p>
+                  <p className="text-xs text-gray-400 mt-1">~RM97 · Pay in any currency via Stripe</p>
                 </div>
                 <div className="bg-violet-100 text-violet-700 text-xs font-bold px-3 py-1.5 rounded-full">COUNSELOR PLAN</div>
               </div>
               <div className="border-t border-gray-100 my-5" />
               <ul className="space-y-3 mb-8">
                 {[
-                  '5 counseling sessions / month',
+                  'Unlimited counseling sessions / month',
                   'Digital client files (unlimited clients)',
                   'Automated QR booking system',
                   'SOAP / DAP structured session notes',
@@ -591,9 +591,9 @@ export default function CounselorLandingPage() {
                   'PHQ-9, GAD-7, DASS-21, RIASEC, Big Five assessments',
                   'Digital intake forms (shareable client links)',
                   'AI clinical letter generator (employment, court, academic, insurance)',
-                  'Recording transcription (AI speaker diarization)',
+                  'Recording transcription (Gemini AI)',
                   'Supervision log + LPK annual report',
-                  'Top-up sessions when needed',
+                  'Client portal & psychoeducation library',
                   'PDPA 2010 & Counselors Act 1998 compliant',
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-3 text-sm text-gray-700">
@@ -604,14 +604,6 @@ export default function CounselorLandingPage() {
                   </li>
                 ))}
               </ul>
-              <div className="bg-violet-50 rounded-xl p-4 mb-6">
-                <p className="text-xs font-semibold text-violet-800 mb-2">Need more sessions?</p>
-                <div className="space-y-1 text-xs text-gray-600">
-                  <div className="flex justify-between"><span>1 session</span><span className="font-medium text-gray-800">$3</span></div>
-                  <div className="flex justify-between"><span>5 sessions</span><span className="font-medium text-gray-800">$12</span></div>
-                  <div className="flex justify-between"><span>10 sessions</span><span className="font-medium text-gray-800">$22</span></div>
-                </div>
-              </div>
               <button onClick={() => navigate('/auth?mode=register&profession=counselor')}
                 className="w-full bg-violet-600 text-white font-bold py-3.5 rounded-xl hover:bg-violet-700 transition-colors text-sm">
                 Get Started Free →
@@ -625,7 +617,7 @@ export default function CounselorLandingPage() {
         <section className="bg-gray-950 py-20 px-4 text-center">
           <div className="max-w-2xl mx-auto">
             <div className="text-4xl font-bold text-white mb-4">Ready to simplify your practice?</div>
-            <p className="text-gray-400 text-lg mb-8">$25/month. 5 sessions. Cancel anytime.</p>
+            <p className="text-gray-400 text-lg mb-8">$22/month. Unlimited sessions. Cancel anytime.</p>
             <button onClick={() => navigate('/auth?mode=register&profession=counselor')}
               className="bg-violet-600 text-white font-bold text-base px-10 py-4 rounded-xl hover:bg-violet-500 transition-colors shadow-lg shadow-violet-900/30">
               Get Started Free →

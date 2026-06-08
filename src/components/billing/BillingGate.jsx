@@ -22,8 +22,7 @@ export function BillingGate({ plan, children, sessionCheck = false }) {
 
   if (hasPlan && hasSessionsLeft) return <>{children}</>;
 
-  const isCounselor = subscription?.plan === 'counselor';
-  const pricingUrl = isCounselor ? '/pricing?tab=kaunselor' : '/pricing';
+  const pricingUrl = subscription?.plan === 'counselor' ? '/pricing?tab=kaunselor' : '/pricing';
 
   return (
     <>
@@ -38,9 +37,7 @@ export function BillingGate({ plan, children, sessionCheck = false }) {
         footer={
           <div className="flex gap-3 justify-end">
             <Button variant="secondary" onClick={() => setShowUpgrade(false)}>Cancel</Button>
-            <Button onClick={() => navigate(pricingUrl)}>
-              {isCounselor && !hasSessionsLeft ? 'Top Up Sessions' : 'View Plans'}
-            </Button>
+            <Button onClick={() => navigate(pricingUrl)}>View Plans</Button>
           </div>
         }
       >
@@ -50,10 +47,7 @@ export function BillingGate({ plan, children, sessionCheck = false }) {
             <>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Session Limit Reached</h3>
               <p className="text-gray-600">
-                {isCounselor
-                  ? `Your monthly sessions and top-ups have been used up. Buy a session top-up to continue.`
-                  : `You have used ${subscription?.sessions_used} of ${subscription?.sessions_limit} sessions this month. Upgrade to continue.`
-                }
+                You have used {subscription?.sessions_used} of {subscription?.sessions_limit} sessions this month. Upgrade to continue.
               </p>
             </>
           ) : (

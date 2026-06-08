@@ -20,15 +20,10 @@ export const CONFIG = {
   },
   plans: {
     free:      { sessions: 2,   users: 1,  price: 0,   currency: 'USD', label: 'Free' },
-    counselor: { sessions: 5,   users: 1,  price: 25,  currency: 'USD', label: 'Counselor' },
+    counselor: { sessions: -1,  users: 1,  price: 22,  currency: 'USD', label: 'Counselor' },
     starter:   { sessions: 5,   users: 2,  price: 25,  currency: 'USD', label: 'Professional' },
     pro:       { sessions: 100, users: 10, price: 249, currency: 'USD', label: 'Pro' },
     biz:       { sessions: 200, users: -1, price: 599, currency: 'USD', label: 'Business' },
   },
-  topups: [
-    { key: 'topup_1',  sessions: 1,  price: 3,  label: '1 Session',   perSession: 3 },
-    { key: 'topup_5',  sessions: 5,  price: 12, label: '5 Sessions',  perSession: 2.4 },
-    { key: 'topup_10', sessions: 10, price: 22, label: '10 Sessions', perSession: 2.2 },
-  ],
   planOrder: { free: 0, counselor: 1, starter: 1, pro: 2, biz: 3 },
 };

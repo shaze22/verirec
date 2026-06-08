@@ -135,22 +135,13 @@ export function BillingSettings() {
           {nearLimit && subscription.plan !== 'counselor' && (
             <p className="text-xs text-red-600 mt-1.5">Limit almost reached — consider upgrading.</p>
           )}
-          {nearLimit && subscription.plan === 'counselor' && (
-            <p className="text-xs text-orange-600 mt-1.5">Monthly sessions almost used up — top up anytime.</p>
-          )}
         </div>
-        {(subscription.extra_sessions > 0) && (
-          <div className="flex items-center justify-between pt-2 border-t border-gray-200">
-            <p className="text-sm text-gray-600">Top-up Sessions Balance</p>
-            <span className="text-sm font-bold text-violet-600">{subscription.extra_sessions} sessions</span>
-          </div>
-        )}
       </div>
 
       {/* Action buttons */}
       <div className="flex flex-wrap gap-2">
         <Button variant="outline" onClick={() => navigate(subscription.plan === 'counselor' ? '/pricing?tab=kaunselor' : '/pricing')}>
-          {subscription.plan === 'counselor' ? 'Top Up Sessions' : isPaid ? 'Change Plan' : 'Upgrade'}
+          {isPaid ? 'Change Plan' : 'Upgrade'}
         </Button>
         {isPaid && (
           <Button variant="outline" loading={portalLoading} onClick={openPortal}>
