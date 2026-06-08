@@ -31,7 +31,7 @@ function AppMockup() {
         </div>
       </div>
       <div className="bg-white border-b border-gray-100 px-4 py-2.5 flex items-center justify-between">
-        <span className="font-bold text-gray-800 text-xs">Ahmad bin Rosli · SPRM Case #2026-0042</span>
+        <span className="font-bold text-gray-800 text-xs">J. Rivera · Case #INV-2026-0042</span>
         <span className="flex items-center gap-1.5 text-red-600 font-semibold text-[11px]">
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse inline-block" />
           Recording — 14:32
@@ -85,10 +85,10 @@ function AppMockup() {
 }
 
 const PROFESSIONS = [
-  '👮 Police', '⚖️ SPRM / MACC', '🔒 SISPA', '📡 MCMC', '⚖️ Lawyers', '🏭 JTK',
+  '👮 Police', '🔍 Anti-Corruption', '🕵️ Private Investigator', '⚖️ Lawyers', '🏭 Labour Inspector',
   '👔 HR Investigator', '🏛️ Disciplinary Panel', '📋 Compliance Officer',
-  '🔍 ISO Auditor', '🌙 JAKIM Halal', '✅ Quality Officer',
-  '👨‍⚕️ Doctor', '🤝 JKM Officer', '💙 Social Worker',
+  '🔍 ISO Auditor', '🌙 Halal Inspector', '✅ Quality Officer',
+  '👨‍⚕️ Doctor', '🤝 Welfare Officer', '💙 Social Worker',
 ];
 
 const FEATURES = [
@@ -107,7 +107,7 @@ const WHO_FOR = [
     color: 'text-blue-700',
     bg: 'bg-blue-50',
     chip: 'bg-blue-100 text-blue-700',
-    professions: ['Police', 'SPRM/MACC', 'SISPA', 'MCMC', 'Lawyers', 'JTK'],
+    professions: ['Police', 'Anti-Corruption', 'Private Investigator', 'Lawyers', 'Labour Inspector'],
     value: 'Court-ready investigation reports with PEACE Model and SHA-256.',
   },
   {
@@ -125,7 +125,7 @@ const WHO_FOR = [
     color: 'text-amber-700',
     bg: 'bg-amber-50',
     chip: 'bg-amber-100 text-amber-700',
-    professions: ['ISO Auditor', 'JAKIM Halal', 'Quality Officer'],
+    professions: ['ISO Auditor', 'Halal Inspector', 'Quality Officer'],
     value: 'Auto-generate NCR/CAR from audit transcripts with backed evidence.',
   },
   {
@@ -134,8 +134,8 @@ const WHO_FOR = [
     color: 'text-rose-700',
     bg: 'bg-rose-50',
     chip: 'bg-rose-100 text-rose-700',
-    professions: ['Doctor', 'JKM Officer', 'Social Worker'],
-    value: 'SOAP notes auto-generated. PDPA-compliant case files and referrals.',
+    professions: ['Doctor', 'Welfare Officer', 'Social Worker'],
+    value: 'SOAP notes auto-generated. Privacy-compliant case files and referrals.',
   },
 ];
 
@@ -147,7 +147,7 @@ const COMPARE = [
   { feature: 'Identifies who said what',            verirec: true,  paper: false, recorder: false },
   { feature: 'Court & audit ready output',          verirec: true,  paper: false, recorder: false },
   { feature: 'Works offline',                       verirec: true,  paper: true,  recorder: true  },
-  { feature: 'PDPA 2010 compliant',                 verirec: true,  paper: false, recorder: false },
+  { feature: 'Privacy law compliant',                verirec: true,  paper: false, recorder: false },
 ];
 
 function Tick({ yes }) {
@@ -163,7 +163,7 @@ export default function LandingPage() {
     <>
     <Helmet>
       <title>VeriRec: Professional Investigation & Audit Platform</title>
-      <meta name="description" content="AI transcription, SHA-256 chain of custody, and SOP reports for Police, MACC, HR, ISO, Halal JAKIM, Lawyers and more. Make every record unchallengeable." />
+      <meta name="description" content="AI transcription, SHA-256 chain of custody, and SOP reports for investigators, auditors, HR, compliance officers, and more. Make every record unchallengeable." />
       <link rel="canonical" href="https://www.verirec.app/" />
       <meta property="og:type" content="website" />
       <meta property="og:url" content="https://www.verirec.app/" />
@@ -177,7 +177,7 @@ export default function LandingPage() {
         name: 'VeriRec',
         applicationCategory: 'BusinessApplication',
         operatingSystem: 'Web',
-        description: 'Professional investigation and audit recording platform. SHA-256 chain of custody, PEACE Model guide, AI real-time for Police, MACC, HR, ISO, Halal JAKIM, Lawyers and more.',
+        description: 'Professional investigation and audit recording platform. SHA-256 chain of custody, PEACE Model guide, AI real-time analysis for investigators, auditors, HR, lawyers and more.',
         url: 'https://www.verirec.app',
         offers: [
           { '@type': 'Offer', price: '0',  priceCurrency: 'USD', name: 'Free' },
@@ -375,7 +375,7 @@ export default function LandingPage() {
                     </div>
                     <div className="bg-gray-800 rounded-xl p-2.5">
                       <div className="text-[9px] text-gray-400 mb-1">Latest session</div>
-                      <div className="text-[10px] text-white font-medium">Ahmad Rosli · SPRM</div>
+                      <div className="text-[10px] text-white font-medium">J. Rivera · INV Case</div>
                       <div className="flex items-center gap-1 mt-0.5">
                         <span className="w-1.5 h-1.5 bg-green-400 rounded-full inline-block" />
                         <span className="text-[9px] text-green-400">Report ready</span>
@@ -508,19 +508,19 @@ export default function LandingPage() {
             {[
               {
                 quote: 'SHA-256 hash on every report. Defence lawyers can no longer challenge our records. It changed how we document investigations.',
-                name: 'DSP Ahmad Fauzi',
+                name: 'Ahmad Fauzi',
                 role: 'Head of Criminal Investigation',
-                org: 'IPD Petaling Jaya',
+                org: 'Criminal Investigation Division',
               },
               {
                 quote: 'What used to take 3 hours to write is now ready in 20 minutes. I can handle twice the number of audits in the same time.',
-                name: 'En. Farouk Ibrahim',
+                name: 'Farouk Ibrahim',
                 role: 'Principal Auditor ISO 9001',
                 org: 'National Quality Consulting',
               },
               {
-                quote: 'PDPA consent records in every session guarantee company legal protection. Our company lawyer recommends VeriRec.',
-                name: 'Pn. Melissa Tan',
+                quote: 'Consent records in every session guarantee company legal protection. Our company lawyer recommends VeriRec.',
+                name: 'Melissa Tan',
                 role: 'CHRO',
                 org: 'Listed Company',
               },
