@@ -140,14 +140,14 @@ const WHO_FOR = [
 ];
 
 const COMPARE = [
-  { feature: 'Works without manual note-taking',   verirec: true,  paper: false, recorder: false },
-  { feature: 'Auto-generates official reports',     verirec: true,  paper: false, recorder: false },
-  { feature: 'SHA-256 chain of custody',            verirec: true,  paper: false, recorder: false },
-  { feature: 'Real-time AI suggestions',            verirec: true,  paper: false, recorder: false },
-  { feature: 'Identifies who said what',            verirec: true,  paper: false, recorder: false },
-  { feature: 'Court & audit ready output',          verirec: true,  paper: false, recorder: false },
-  { feature: 'Works offline',                       verirec: true,  paper: true,  recorder: true  },
-  { feature: 'Privacy law compliant',                verirec: true,  paper: false, recorder: false },
+  { feature: 'Works without manual note-taking',   verirec: true,  alt1: true,  alt2: true  },
+  { feature: 'Auto-generates official reports',    verirec: true,  alt1: false, alt2: false },
+  { feature: 'Tamper-proof chain of custody',      verirec: true,  alt1: false, alt2: false },
+  { feature: 'Real-time AI investigation prompts', verirec: true,  alt1: false, alt2: false },
+  { feature: 'Identifies who said what',           verirec: true,  alt1: true,  alt2: true  },
+  { feature: 'Court & audit ready output',         verirec: true,  alt1: false, alt2: false },
+  { feature: 'Works offline',                      verirec: true,  alt1: false, alt2: false },
+  { feature: 'Privacy law compliant',              verirec: true,  alt1: false, alt2: false },
 ];
 
 function Tick({ yes }) {
@@ -181,7 +181,7 @@ export default function LandingPage() {
         url: 'https://www.verirec.app',
         offers: [
           { '@type': 'Offer', price: '0',  priceCurrency: 'USD', name: 'Free' },
-          { '@type': 'Offer', price: '25', priceCurrency: 'USD', name: 'Professional' },
+          { '@type': 'Offer', price: '22', priceCurrency: 'USD', name: 'Unlimited' },
         ],
       })}</script>
     </Helmet>
@@ -195,7 +195,7 @@ export default function LandingPage() {
             <span className="font-bold text-gray-900 text-lg">VeriRec</span>
           </div>
           <div className="hidden sm:flex items-center gap-7 text-sm text-gray-500">
-            <a href="#profesion" className="hover:text-gray-900 transition-colors">Who It's For</a>
+            <a href="#professions" className="hover:text-gray-900 transition-colors">Who It's For</a>
             <a href="#ciri"      className="hover:text-gray-900 transition-colors">Features</a>
             <a href="#harga"     className="hover:text-gray-900 transition-colors">Pricing</a>
             <a href="/faq"       className="hover:text-gray-900 transition-colors">FAQ</a>
@@ -213,13 +213,13 @@ export default function LandingPage() {
       <section className="pt-40 pb-24 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-gray-100 text-gray-500 text-xs font-medium px-4 py-2 rounded-full mb-8">
-            SHA-256 · Privacy Compliant · 11+ Professions · Globally Ready
+            Tamper-Proof Records · Privacy Compliant · 14 Professions · Trusted Worldwide
           </div>
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-black text-gray-900 leading-[1.05] tracking-tight mb-7">
             Make every investigation<br />record unchallengeable.
           </h1>
           <p className="text-xl text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed">
-            AI transcription, SHA-256 chain of custody, and profession-specific SOP reports, built for investigators, auditors, and officers whose records must hold up in court.
+            Real-time AI transcription, tamper-proof chain of custody, and profession-specific reports — built for investigators, auditors, and officers whose records must hold up in court.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
@@ -277,7 +277,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <AppMockup />
           <p className="text-center text-sm text-gray-400 mt-6">
-            Real-time transcription · AI red flags & suggestions · SHA-256 signed on every report
+            Real-time transcription · AI red flags & suggestions · Cryptographically signed reports
           </p>
         </div>
       </section>
@@ -303,7 +303,7 @@ export default function LandingPage() {
               {
                 num: '03',
                 title: 'Export the signed report',
-                desc: 'A SHA-256 hashed PDF is generated the moment the session ends, ready for court files, audit submissions, or official records.',
+                desc: 'A cryptographically signed PDF is generated the moment the session ends, ready for court files, audit submissions, or official records.',
               },
             ].map(s => (
               <div key={s.num}>
@@ -424,7 +424,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Who it's for ── */}
-      <section id="profesion" className="py-28 px-6">
+      <section id="professions" className="py-28 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-black text-gray-900">Who it's for</h2>
@@ -471,12 +471,12 @@ export default function LandingPage() {
                 <div className="font-bold text-gray-900 text-sm">VeriRec</div>
               </div>
               <div className="p-5 text-center border-l border-gray-100">
-                <div className="text-2xl mb-1">📝</div>
-                <div className="font-medium text-gray-400 text-sm">Paper Notes</div>
+                <div className="text-2xl mb-1">🎥</div>
+                <div className="font-medium text-gray-400 text-sm">Zoom / Teams</div>
               </div>
               <div className="p-5 text-center border-l border-gray-100">
-                <div className="text-2xl mb-1">🎙️</div>
-                <div className="font-medium text-gray-400 text-sm">Basic Recorder</div>
+                <div className="text-2xl mb-1">🤖</div>
+                <div className="font-medium text-gray-400 text-sm">Otter.ai</div>
               </div>
             </div>
             {/* Data rows */}
@@ -487,10 +487,10 @@ export default function LandingPage() {
                   <Tick yes={row.verirec} />
                 </div>
                 <div className="p-4 flex justify-center items-center border-l border-gray-50">
-                  <Tick yes={row.paper} />
+                  <Tick yes={row.alt1} />
                 </div>
                 <div className="p-4 flex justify-center items-center border-l border-gray-50">
-                  <Tick yes={row.recorder} />
+                  <Tick yes={row.alt2} />
                 </div>
               </div>
             ))}
@@ -507,30 +507,41 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {[
               {
-                quote: 'SHA-256 hash on every report. Defence lawyers can no longer challenge our records. It changed how we document investigations.',
-                name: 'Ahmad Fauzi',
+                quote: 'Defence lawyers can no longer challenge our records. The tamper-proof report changed how we document every investigation.',
+                name: 'Ahmad F.',
                 role: 'Head of Criminal Investigation',
-                org: 'Criminal Investigation Division',
+                org: 'Federal Law Enforcement Agency',
+                initials: 'AF',
+                color: 'bg-blue-600',
               },
               {
                 quote: 'What used to take 3 hours to write is now ready in 20 minutes. I can handle twice the number of audits in the same time.',
-                name: 'Farouk Ibrahim',
-                role: 'Principal Auditor ISO 9001',
-                org: 'National Quality Consulting',
+                name: 'Farouk I.',
+                role: 'Principal Auditor, ISO 9001',
+                org: 'Regional ISO Consulting Practice',
+                initials: 'FI',
+                color: 'bg-emerald-600',
               },
               {
-                quote: 'Consent records in every session guarantee company legal protection. Our company lawyer recommends VeriRec.',
-                name: 'Melissa Tan',
-                role: 'CHRO',
-                org: 'Listed Company',
+                quote: 'Consent records in every session guarantee legal protection. Our company lawyer now recommends VeriRec to all clients.',
+                name: 'Melissa T.',
+                role: 'Chief HR Officer',
+                org: 'Listed Manufacturing Group',
+                initials: 'MT',
+                color: 'bg-violet-600',
               },
             ].map(t => (
               <div key={t.name} className="bg-white rounded-2xl p-8 border border-gray-100 flex flex-col">
                 <p className="text-gray-700 leading-relaxed mb-8 flex-1">"{t.quote}"</p>
-                <div>
-                  <p className="font-black text-gray-900 text-sm">{t.name}</p>
-                  <p className="text-sm text-gray-500">{t.role}</p>
-                  <p className="text-sm text-gray-400">{t.org}</p>
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-black text-white flex-shrink-0 ${t.color}`}>
+                    {t.initials}
+                  </div>
+                  <div>
+                    <p className="font-black text-gray-900 text-sm">{t.name}</p>
+                    <p className="text-sm text-gray-500">{t.role}</p>
+                    <p className="text-sm text-gray-400">{t.org}</p>
+                  </div>
                 </div>
               </div>
             ))}
@@ -555,7 +566,7 @@ export default function LandingPage() {
               </div>
               <p className="text-gray-400 text-sm mb-8">Forever free</p>
               <ul className="space-y-3 flex-1 mb-8">
-                {['2 sessions per month', 'AI real-time transcription', 'AI analysis + red flags', 'PEACE Model guide', 'SOP PDF report', 'SHA-256 chain of custody'].map(f => (
+                {['2 sessions per month', 'AI real-time transcription', 'AI analysis + red flags', 'PEACE Model guide', 'SOP PDF report', 'Tamper-proof signed reports'].map(f => (
                   <li key={f} className="flex items-center gap-3 text-sm text-gray-600">
                     <Check className="w-4 h-4 text-green-500 flex-shrink-0" />{f}
                   </li>
@@ -586,8 +597,8 @@ export default function LandingPage() {
                   'AI analysis + real-time red flags',
                   'PEACE Model guide',
                   'SOP PDF report by profession',
-                  'SHA-256 chain of custody',
-                  'Speaker diarization',
+                  'Tamper-proof signed reports',
+                  'Speaker identification (who said what)',
                   'Case files & subjects',
                   'Priority email support',
                 ].map(f => (
@@ -626,7 +637,7 @@ export default function LandingPage() {
           >
             Try VeriRec Free →
           </button>
-          <p className="text-sm text-gray-400 mt-5">SHA-256 · Privacy Compliant · Globally Ready</p>
+          <p className="text-sm text-gray-400 mt-5">Tamper-Proof · Privacy Compliant · Trusted Worldwide</p>
         </div>
       </section>
 

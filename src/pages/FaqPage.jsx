@@ -6,8 +6,8 @@ import { isCounselorSubdomain } from '../lib/subdomain.js';
 
 const VERIREC_FAQS = [
   {
-    q: 'Is VeriRec compliant with the Personal Data Protection Act (PDPA) 2010?',
-    a: 'Yes. VeriRec is designed specifically for PDPA Malaysia compliance. Every session requires a digitally signed informed consent form with timestamp, version, and a non-deletable audit trail. Consent data is retained permanently as a compliance record.',
+    q: 'How does VeriRec protect my data and meet privacy compliance requirements?',
+    a: 'VeriRec is built with privacy compliance at its core. Every session requires a digitally signed informed consent form with timestamp, version, and a non-deletable audit trail. Consent data is retained permanently as a compliance record, satisfying the requirements of major data protection regulations worldwide.',
   },
   {
     q: 'Where is my recording and transcript data stored?',
@@ -19,7 +19,7 @@ const VERIREC_FAQS = [
   },
   {
     q: 'Can I delete recordings and session data?',
-    a: 'Yes, you can delete sessions from the dashboard. However, consent data cannot be deleted — this is a PDPA requirement to retain consent records permanently. Audio recordings can be deleted separately if needed.',
+    a: 'Yes, you can delete sessions from the dashboard. However, consent data cannot be deleted — consent records must be retained permanently for compliance and audit purposes. Audio recordings can be deleted separately if needed.',
   },
   {
     q: 'What audio formats are supported?',
@@ -39,18 +39,18 @@ const VERIREC_FAQS = [
   },
   {
     q: 'Is VeriRec suitable for use in court proceedings?',
-    a: 'VeriRec is designed to facilitate professional documentation. The SHA-256 hash serves as proof of document integrity. However, admissibility as court evidence depends on Malaysian court rules and specific cases. Please seek legal advice for specific cases.',
+    a: 'VeriRec is designed to facilitate professional documentation. The cryptographic hash on every report serves as proof of document integrity. However, admissibility as evidence depends on the court rules and legal requirements in your jurisdiction. Please seek legal advice for your specific case.',
   },
   {
     q: 'How do I contact technical support?',
-    a: 'Send an email to hello@verirec.app. Typical response time is within 24 hours on business days. Business plan customers receive priority support with a 4-hour response time.',
+    a: 'Send an email to hello@verirec.app. Typical response time is within 24 hours on business days.',
   },
 ];
 
 const KAUNSELOR_FAQS = [
   {
     q: 'Is Kaunselor compliant with privacy and data protection regulations?',
-    a: 'Yes. Kaunselor is built to meet global data protection standards including the Personal Data Protection Act 2010 (PDPA) of Malaysia and GDPR-equivalent principles. Every session records informed consent digitally with a permanent, non-deletable audit trail.',
+    a: 'Yes. Kaunselor is built to meet global privacy and data protection standards. Every session records informed consent digitally with a permanent, non-deletable audit trail. Consent records are retained indefinitely as required for professional compliance.',
   },
   {
     q: 'Where is my client data stored?',
@@ -61,8 +61,8 @@ const KAUNSELOR_FAQS = [
     a: 'Yes. Every counselor gets a unique QR code and booking link. Clients scan or click the link, choose an available slot, and submit a request — you then approve or decline. No app download required for clients.',
   },
   {
-    q: 'What are the MBTI and RIASEC assessments?',
-    a: 'MBTI (Myers-Briggs Type Indicator) is a 16-question personality assessment. RIASEC (Holland Code) is a 24-activity career interest tool. Both are built directly into the session view — you can run them with clients during a session and results are saved automatically to the client file.',
+    q: 'What psychological assessments are available?',
+    a: 'Kaunselor includes 5 built-in assessments: PHQ-9 (depression screening), GAD-7 (anxiety), DASS-21 (stress, depression, and anxiety), RIASEC (career interests), and Big Five/TIPI (personality). Assessments are sent to clients via a private link — clients complete them on their own device, and results are saved automatically to their file.',
   },
   {
     q: 'How does the AI session report work?',
@@ -77,8 +77,8 @@ const KAUNSELOR_FAQS = [
     a: 'Yes, partially. You can record sessions and view transcripts offline. Data is stored locally and syncs automatically when your connection is restored. AI report generation and appointment management require an internet connection.',
   },
   {
-    q: 'Is the $25/month price in USD? Can I pay in my local currency?',
-    a: 'Yes, pricing is in USD ($25/month). Stripe — our payment processor — supports most major currencies and will convert to your local currency at checkout. You can pay by credit or debit card from anywhere in the world.',
+    q: 'Is the $22/month price in USD? Can I pay in my local currency?',
+    a: 'Yes, pricing is in USD ($22/month). Stripe — our payment processor — supports most major currencies and will convert to your local currency at checkout. You can pay by credit or debit card from anywhere in the world.',
   },
   {
     q: 'What happens to my data if I cancel?',
@@ -123,7 +123,7 @@ export default function FaqPage() {
 
   const handleContact = (e) => {
     e.preventDefault();
-    window.location.href = `mailto:${EMAIL}?subject=Enquiry from ${contactForm.name}&body=${encodeURIComponent(contactForm.message)}%0A%0AFrom: ${contactForm.name} (${contactForm.email})`;
+    window.open(`mailto:${EMAIL}?subject=${encodeURIComponent('Enquiry from ' + contactForm.name)}&body=${encodeURIComponent(contactForm.message + '\n\nFrom: ' + contactForm.name + ' (' + contactForm.email + ')')}`, '_blank');
     setSent(true);
   };
 
@@ -133,7 +133,7 @@ export default function FaqPage() {
       <title>Frequently Asked Questions — {PLATFORM}</title>
       <meta name="description" content={isCounselor
         ? 'Answers to common questions about Kaunselor — privacy compliance, client bookings, AI session reports, assessments, pricing, and support.'
-        : 'Answers to common questions about VeriRec — PDPA compliance, data security, transcription, audio recording, and pricing plans.'
+        : 'Answers to common questions about VeriRec — privacy compliance, data security, transcription, audio recording, and pricing plans.'
       } />
       <link rel="canonical" href={isCounselor ? 'https://kaunselor.app/faq' : 'https://www.verirec.app/faq'} />
     </Helmet>
