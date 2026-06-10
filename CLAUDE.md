@@ -323,11 +323,22 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - "Appointments" shortened to "Appts" in grid to fit cleanly
 - New Session bug fixed: `navigate('/session/setup/counselor')` → `navigate('/session/consent')` — ProfessionalRoute was blocking /session/setup on counselor subdomain
 
-**Latest deploy:** commit `a1faf62` — 2026-06-08 (kaunselor.app Phase 1 + Phase 2 complete, RESEND_API_KEY active)
+**Latest deploy:** commit `c27b53b` — 2026-06-08 (landing page review: jargon removal, FAQ fixes, comparison table update)
 
 ---
 
 ## Features Baru (2026-06-08 — sesi terkini)
+
+**Landing Page Review Fixes (commit c27b53b — 2026-06-08):**
+- Hero badge: SHA-256 removed → "Tamper-Proof Records · Privacy Compliant · 14 Professions · Trusted Worldwide"
+- Hero desc, mockup caption, Step 03, pricing features: "SHA-256 hash/chain" → plain-language ("Tamper-proof", "cryptographically signed")
+- Comparison table: competitors changed from Paper Notes/Basic Recorder → Zoom/Teams & Otter.ai (honest checkmarks)
+- Testimonials: avatar initials with color circles, abbreviated last names, specific org names (no fictional orgs)
+- Nav anchor + section id: `#profesion` → `#professions`
+- FAQ (VeriRec): PDPA Malaysia → global, "Malaysian court rules" → jurisdiction-neutral, Business plan support line removed
+- FAQ (Kaunselor): PDPA Malaysia → global, MBTI → Big Five/TIPI with full assessment list, $25→$22
+- Contact form: `window.location.href = mailto:` → `window.open(..., '_blank')` (prevents navigating away)
+- Schema JSON: price $25 → $22, product name "Professional" → "Unlimited"
 
 **Global Branding Fixes (commits a6e537c, f44a92c — 2026-06-08):**
 - LandingPage.jsx: badge "SHA-256 · Privacy Compliant · 11+ Professions · Globally Ready" (removed PDPA/Malaysia)
