@@ -25,6 +25,7 @@ export default function PortalHomePage() {
   const [subjectIds, setSubjectIds] = useState([]);
   const [refreshingMessages, setRefreshingMessages] = useState(false);
   const [payingInvoiceId, setPayingInvoiceId] = useState(null);
+  const [paymentError, setPaymentError] = useState(null);
 
   useEffect(() => {
     if (!user) return;
@@ -41,10 +42,15 @@ export default function PortalHomePage() {
   const handlePayInvoice = async (inv, total) => {
     if (payingInvoiceId) return;
     setPayingInvoiceId(inv.id);
+    setPaymentError(null);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
-      if (!token) { toast.error('Session expired. Please sign in again.'); return; }
+      if (!token) {
+        setPaymentError('Session expired. Please sign out and sign in again.');
+        setPayingInvoiceId(null);
+        return;
+      }
       const res = await fetch('/api/stripe-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -57,10 +63,12 @@ export default function PortalHomePage() {
         }),
       });
       const data = await res.json();
-      if (!res.ok || !data.url) throw new Error(data.error || 'Failed to create payment session');
+      if (!res.ok || !data.url) throw new Error(data.error || 'Payment setup failed. Please contact your counselor.');
       window.location.href = data.url;
     } catch (err) {
-      toast.error(err.message || 'Payment failed. Please try again.');
+      const msg = err.message || 'Payment failed. Please try again.';
+      setPaymentError(msg);
+      toast.error(msg);
       setPayingInvoiceId(null);
     }
   };
@@ -589,16 +597,21 @@ export default function PortalHomePage() {
                     </div>
                   </div>
                   {(inv.status === 'sent' || inv.status === 'draft') && (
-                    <button
-                      onClick={() => handlePayInvoice(inv, total)}
-                      disabled={payingInvoiceId === inv.id}
-                      className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 disabled:opacity-50 transition-colors">
-                      {payingInvoiceId === inv.id ? (
-                        <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Redirecting…</>
-                      ) : (
-                        <>💳 Pay RM {total.toFixed(2)} — Card / FPX / Google Pay</>
+                    <>
+                      <button
+                        onClick={() => handlePayInvoice(inv, total)}
+                        disabled={payingInvoiceId === inv.id}
+                        className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 disabled:opacity-50 transition-colors">
+                        {payingInvoiceId === inv.id ? (
+                          <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Opening payment page…</>
+                        ) : (
+                          <>💳 Pay RM {total.toFixed(2)} — Card / Google Pay</>
+                        )}
+                      </button>
+                      {paymentError && (
+                        <p className="mt-2 text-xs text-red-600 text-center">{paymentError}</p>
                       )}
-                    </button>
+                    </>
                   )}
                 </div>
               );

@@ -82,12 +82,13 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Missing or invalid invoice_id / amount_cents' });
       }
       const sessionParams = {
+        'payment_method_types[0]': 'card',
         'line_items[0][price_data][currency]': 'myr',
         'line_items[0][price_data][unit_amount]': Math.round(amount_cents),
         'line_items[0][price_data][product_data][name]': invoice_number ? `Invoice ${invoice_number}` : 'Counseling Invoice',
         'line_items[0][quantity]': 1,
         mode: 'payment',
-        'automatic_payment_methods[enabled]': 'true',
+        customer_email: user.email,
         success_url: `${baseUrl}/portal/home?tab=invoices&payment=success`,
         cancel_url: `${baseUrl}/portal/home?tab=invoices`,
         'metadata[invoice_id]': invoice_id,
