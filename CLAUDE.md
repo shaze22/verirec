@@ -375,7 +375,26 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - GOTCHA: `automatic_payment_methods[enabled]=true` with `currency=myr` causes Stripe 500 on non-Malaysian Stripe accounts — always use explicit `payment_method_types` for non-USD currencies
 - FPX: NOT enabled (requires Malaysian business Stripe account) — card + Google Pay only
 
-**Latest deploy:** commit `cef1376` — 2026-06-12, deployment `dpl_7eZDoua9tB35huDrmdHbFedgAmS7`
+**Latest deploy:** commit `3551bd8` — 2026-06-13, deployment `dpl_AVZthC42BAXcxt2qRHPDDjCotwSG`
+
+---
+
+## Features Baru (2026-06-13 — sesi terkini)
+
+**Informed Consent Form — Expanded (commits 3551bd8):**
+- `PublicCounselorConsentPage.jsx`: expanded from 4 generic items → 7 full sections for legal validity
+  1. Nature of Counseling Services
+  2. Confidentiality (Malaysian Counselors Act 1998 / Act 580)
+  3. Limits of Confidentiality (harm, abuse, court order, anonymised supervision)
+  4. Session Documentation & AI Technology (AI transcription, encrypted storage, records access)
+  5. Client Rights (ask questions, withdraw, referral, records access, LKM complaint)
+  6. Personal Data Protection — PDPA 2010 (collection, use, retention, no third-party sharing)
+  7. Voluntary Participation & Withdrawal
+- Each section: full explanatory text + individual checkbox — client must tick all 7
+- Progress bar: shows "X / 7 sections" live as client ticks
+- Footer references Act 580 + PDPA 2010 for legal traceability
+- `ConsentPage.jsx` (face-to-face pre-recording): expanded from 4 → 6 items covering AI transcription, limits of confidentiality, PDPA, client rights
+- Both files use `Array(CONSENT_ITEMS.length).fill(false)` — no hardcoded array size
 
 ---
 
