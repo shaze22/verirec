@@ -850,6 +850,38 @@ export default function KaunslorClientFilePage() {
                 </div>
               </div>
 
+              {/* Client Portal Access */}
+              <div className="bg-white rounded-xl border p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 className="font-semibold text-gray-900">Client Portal Access</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {client.email
+                        ? <>Client logs in with <strong className="text-gray-600">{client.email}</strong></>
+                        : <span className="text-amber-600">No email registered — portal requires email</span>}
+                    </p>
+                  </div>
+                  <span className="text-xs bg-violet-50 text-violet-600 border border-violet-100 px-2 py-0.5 rounded-full font-medium flex-shrink-0">Self-serve</span>
+                </div>
+                <p className="text-xs text-gray-500 font-mono bg-gray-50 rounded-lg px-3 py-2 mb-3 select-all">https://kaunselor.app/portal</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { navigator.clipboard.writeText('https://kaunselor.app/portal'); toast.success('Portal link copied!'); }}
+                    className="flex-1 py-2 text-xs font-semibold border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-gray-700">
+                    Copy Link
+                  </button>
+                  <button
+                    onClick={() => {
+                      const phone = (client.phone || '').replace(/\D/g, '');
+                      const msg = `Hi ${client.name}, you can now access your counseling portal here:\nhttps://kaunselor.app/portal\n\nLog in using your email: ${client.email || '(your email)'}\n\nYou can view appointments, tasks, assessments and messages from your counselor.`;
+                      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+                    }}
+                    className="flex-1 py-2 text-xs font-semibold bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+                    Share via WhatsApp
+                  </button>
+                </div>
+              </div>
+
               {/* Risk level selector */}
               <div className="bg-white rounded-xl border p-5">
                 <h3 className="font-semibold text-gray-900 mb-3">Client Risk Level</h3>

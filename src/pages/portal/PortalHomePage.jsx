@@ -31,19 +31,20 @@ export default function PortalHomePage() {
 
   const linkAndLoad = async () => {
     try {
-      // Find subject by email (counselor may have registered them with this email)
-      let { data: sub } = await supabase.from('subjects')
+      // First try: find by portal_user_id (already linked)
+      let { data: linked } = await supabase.from('subjects')
         .select('*')
-        .eq('email', user.email)
-        .maybeSingle();
+        .eq('portal_user_id', user.id)
+        .limit(1);
+      let sub = linked?.[0] || null;
 
+      // Second try: find by email (not yet linked)
       if (!sub) {
-        // Also check if already linked
-        const { data: linked } = await supabase.from('subjects')
+        const { data: byEmail } = await supabase.from('subjects')
           .select('*')
-          .eq('portal_user_id', user.id)
-          .maybeSingle();
-        sub = linked;
+          .eq('email', user.email)
+          .limit(1);
+        sub = byEmail?.[0] || null;
       }
 
       if (!sub) {
