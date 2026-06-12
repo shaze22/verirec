@@ -364,7 +364,18 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - KaunslorBillingPage: reads `?client=` URL param, pre-selects client + auto-opens create form
 - GOTCHA: lazy-load + ref guard pattern (`messagesLoadedRef`) breaks when new data arrives after first empty load — prefer eager load + explicit refresh button
 
-**Latest deploy:** commit `9b9d409` — 2026-06-12, deployment `dpl_34anMq7gt6zzPm84QsCxoVAB2xWy`
+**Invoice Payment via Stripe — Client Portal (commits b314efe + cef1376 — 2026-06-12):**
+- `api/stripe-checkout.js`: added `plan='invoice'` mode — one-time MYR Checkout session; params: `{ invoice_id, amount_cents (in sen = RM × 100), invoice_number, origin }`
+  - Uses `payment_method_types[0]=card` (NOT `automatic_payment_methods` — auto mode returns Stripe 500 for MYR on non-Malaysian accounts)
+  - Card type in Stripe Checkout automatically includes Google Pay + Apple Pay on supported devices
+  - Adds `customer_email: user.email` for Stripe form prefill
+  - No Stripe customer ID required — portal clients may not have subscription row
+- `api/stripe-webhook.js`: `checkout.session.completed` checks `metadata.plan === 'invoice'` → marks `counselor_invoices.status = 'paid'` via service key
+- `PortalHomePage.jsx`: Pay button calls `/api/stripe-checkout`; shows spinner; redirects to Stripe; on return `?payment=success` shows toast; inline error text shows below button if API fails (not just toast — toast dismisses too quickly)
+- GOTCHA: `automatic_payment_methods[enabled]=true` with `currency=myr` causes Stripe 500 on non-Malaysian Stripe accounts — always use explicit `payment_method_types` for non-USD currencies
+- FPX: NOT enabled (requires Malaysian business Stripe account) — card + Google Pay only
+
+**Latest deploy:** commit `cef1376` — 2026-06-12, deployment `dpl_7eZDoua9tB35huDrmdHbFedgAmS7`
 
 ---
 
