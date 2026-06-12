@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore.js';
 import { supabase } from '../../lib/supabase.js';
 import { format, parseISO } from 'date-fns';
@@ -30,6 +31,7 @@ function calcTotals(lineItems, taxRate) {
 
 export default function KaunslorBillingPage() {
   const { user } = useAuthStore();
+  const [searchParams] = useSearchParams();
   const [invoices, setInvoices] = useState([]);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,6 +48,12 @@ export default function KaunslorBillingPage() {
     ]).then(([{ data: inv }, { data: sub }]) => {
       setInvoices(inv || []);
       setClients(sub || []);
+      // Auto-open create form if ?client= param is set
+      const clientId = searchParams.get('client');
+      if (clientId) {
+        setForm(f => ({ ...f, subject_id: clientId }));
+        setShowCreate(true);
+      }
     }).finally(() => setLoading(false));
   }, [user]);
 

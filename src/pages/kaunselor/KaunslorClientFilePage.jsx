@@ -99,6 +99,8 @@ export default function KaunslorClientFilePage() {
   const [newMessage, setNewMessage] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
   const messagesLoadedRef = useRef(false);
+  // Invoices
+  const [clientInvoices, setClientInvoices] = useState([]);
   // Activity log
   const [activityLog, setActivityLog] = useState([]);
   // Reschedule requests
@@ -185,6 +187,14 @@ export default function KaunslorClientFilePage() {
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .then(({ data }) => setAllResources(data || []));
+
+    // Invoices for this client
+    supabase.from('counselor_invoices')
+      .select('*')
+      .eq('subject_id', id)
+      .eq('user_id', user.id)
+      .order('invoice_date', { ascending: false })
+      .then(({ data }) => setClientInvoices(data || []));
   }, [id, user]);
 
   // Resolve signed URLs lazily when user opens Sessions or Recordings tab
@@ -766,6 +776,7 @@ export default function KaunslorClientFilePage() {
               { id: 'homework',     icon: '✅', label: 'Homework',     count: homework.length },
               { id: 'intake',       icon: '📋', label: 'Intake',       count: 0 },
               { id: 'resources',    icon: '📚', label: 'Resources',    count: clientResources.length },
+              { id: 'billing',      icon: '🧾', label: 'Billing',       count: clientInvoices.length },
               { id: 'recordings',   icon: '🎞️', label: 'Recordings',   count: clientRecordings.length },
             ].map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
@@ -822,6 +833,7 @@ export default function KaunslorClientFilePage() {
                 { id: 'homework',     label: `Homework (${homework.length})` },
                 { id: 'intake',       label: 'Intake' },
                 { id: 'resources',    label: `Resources (${clientResources.length})` },
+                { id: 'billing',      label: `Billing (${clientInvoices.length})` },
                 { id: 'recordings',   label: `Recordings (${clientRecordings.length})` },
               ].map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
             </select>
@@ -1942,6 +1954,72 @@ export default function KaunslorClientFilePage() {
                     <button onClick={() => setShowAssignResource(false)} className="mt-4 w-full py-2 text-sm text-gray-500 hover:text-gray-700">Cancel</button>
                   </div>
                 </div>
+              )}
+            </div>
+          )}
+
+          {/* ── BILLING TAB ── */}
+          {tab === 'billing' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-gray-900">Invoices</h3>
+                  <p className="text-xs text-gray-400 mt-0.5">Invoices sent to {client.name}</p>
+                </div>
+                <button
+                  onClick={() => navigate(`/kaunselor/billing?client=${id}`)}
+                  className="text-sm font-semibold bg-violet-600 text-white px-4 py-2 rounded-xl hover:bg-violet-700 transition-colors">
+                  + New Invoice
+                </button>
+              </div>
+
+              {clientInvoices.length === 0 ? (
+                <div className="text-center py-12 text-gray-400 bg-white rounded-xl border">
+                  <div className="text-4xl mb-3">🧾</div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">No invoices yet</p>
+                  <p className="text-xs mb-4">Create an invoice to send to {client.name}</p>
+                  <button
+                    onClick={() => navigate(`/kaunselor/billing?client=${id}`)}
+                    className="text-sm font-semibold text-violet-600 hover:underline">
+                    Create First Invoice →
+                  </button>
+                </div>
+              ) : clientInvoices.map(inv => {
+                const subtotal = (inv.line_items || []).reduce((s, l) => s + (Number(l.qty) || 0) * (Number(l.unit_price) || 0), 0);
+                const tax = subtotal * ((Number(inv.tax_rate) || 0) / 100);
+                const total = subtotal + tax;
+                const statusStyle = {
+                  draft:     'bg-gray-100 text-gray-600',
+                  sent:      'bg-blue-100 text-blue-700',
+                  paid:      'bg-green-100 text-green-700',
+                  cancelled: 'bg-red-100 text-red-600',
+                }[inv.status] || 'bg-gray-100 text-gray-600';
+                return (
+                  <div key={inv.id} className="bg-white rounded-xl border p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{inv.invoice_number}</p>
+                        <p className="text-xs text-gray-400">{inv.invoice_date ? format(parseISO(inv.invoice_date), 'dd MMM yyyy') : '—'}</p>
+                        {(inv.line_items || []).map((l, i) => (
+                          <p key={i} className="text-xs text-gray-500 mt-0.5">{l.description} × {l.qty}</p>
+                        ))}
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-base font-bold text-gray-900">RM {total.toFixed(2)}</p>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${statusStyle}`}>{inv.status}</span>
+                      </div>
+                    </div>
+                    {inv.notes && <p className="text-xs text-gray-500 mt-2 pt-2 border-t">{inv.notes}</p>}
+                  </div>
+                );
+              })}
+
+              {clientInvoices.length > 0 && (
+                <button
+                  onClick={() => navigate(`/kaunselor/billing?client=${id}`)}
+                  className="w-full text-sm text-violet-600 font-medium hover:underline py-2">
+                  View all in Billing page →
+                </button>
               )}
             </div>
           )}

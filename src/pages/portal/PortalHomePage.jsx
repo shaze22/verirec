@@ -22,7 +22,8 @@ export default function PortalHomePage() {
   const [rescheduleModal, setRescheduleModal] = useState(null); // appointment to reschedule
   const [rescheduleForm, setRescheduleForm] = useState({ preferred_date: '', preferred_time: '', reason: '' });
   const [submittingReschedule, setSubmittingReschedule] = useState(false);
-  const messagesLoadedRef = useRef(false);
+  const [subjectIds, setSubjectIds] = useState([]);
+  const [refreshingMessages, setRefreshingMessages] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -58,24 +59,27 @@ export default function PortalHomePage() {
       )[0];
       setSubject(primary);
 
-      const subjectIds = allSubs.map(s => s.id);
+      const ids = allSubs.map(s => s.id);
+      setSubjectIds(ids);
 
       // Fetch all portal data across ALL subjects (client may be with multiple counselors)
-      const [{ data: appts }, { data: hw }, { data: asmt }, { data: res }] = await Promise.all([
-        supabase.from('appointments').select('*').in('subject_id', subjectIds).order('created_at', { ascending: false }).limit(20),
-        supabase.from('client_homework').select('*').in('subject_id', subjectIds).order('created_at', { ascending: false }),
-        supabase.from('client_assessments').select('*').in('subject_id', subjectIds).order('assigned_at', { ascending: false }),
-        supabase.from('client_resource_assignments').select('*, psychoed_resources(*)').in('subject_id', subjectIds).order('assigned_at', { ascending: false }),
+      const [{ data: appts }, { data: hw }, { data: asmt }, { data: res }, { data: msgs }] = await Promise.all([
+        supabase.from('appointments').select('*').in('subject_id', ids).order('created_at', { ascending: false }).limit(20),
+        supabase.from('client_homework').select('*').in('subject_id', ids).order('created_at', { ascending: false }),
+        supabase.from('client_assessments').select('*').in('subject_id', ids).order('assigned_at', { ascending: false }),
+        supabase.from('client_resource_assignments').select('*, psychoed_resources(*)').in('subject_id', ids).order('assigned_at', { ascending: false }),
+        supabase.from('portal_messages').select('*').in('subject_id', ids).order('created_at', { ascending: true }),
       ]);
 
       setAppointments(appts || []);
       setHomework(hw || []);
       setAssessments(asmt || []);
       setResources(res || []);
+      setMessages(msgs || []);
 
-      // Load invoices + counselor payment URL (primary subject's counselor)
+      // Load invoices + counselor payment URL (all subjects)
       const [{ data: invData }, { data: profileData }] = await Promise.all([
-        supabase.from('counselor_invoices').select('*').eq('subject_id', primary.id).order('invoice_date', { ascending: false }).limit(20),
+        supabase.from('counselor_invoices').select('*').in('subject_id', ids).order('invoice_date', { ascending: false }).limit(20),
         supabase.from('counselor_profiles').select('payment_url').eq('user_id', primary.user_id).maybeSingle(),
       ]);
       setInvoices(invData || []);
@@ -88,15 +92,14 @@ export default function PortalHomePage() {
     }
   };
 
-  // Lazy-load messages when messages tab opens
-  useEffect(() => {
-    if (tab !== 'messages' || messagesLoadedRef.current || !subject) return;
-    messagesLoadedRef.current = true;
-    supabase.from('portal_messages')
-      .select('*').eq('subject_id', subject.id).eq('user_id', subject.user_id)
-      .order('created_at', { ascending: true })
-      .then(({ data }) => setMessages(data || []));
-  }, [tab, subject]);
+  const refreshMessages = async () => {
+    if (!subjectIds.length || refreshingMessages) return;
+    setRefreshingMessages(true);
+    const { data } = await supabase.from('portal_messages')
+      .select('*').in('subject_id', subjectIds).order('created_at', { ascending: true });
+    setMessages(data || []);
+    setRefreshingMessages(false);
+  };
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || sendingMessage || !subject) return;
@@ -479,6 +482,13 @@ export default function PortalHomePage() {
         {/* Messages */}
         {tab === 'messages' && (
           <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-gray-400">Messages with your counselor</p>
+              <button onClick={refreshMessages} disabled={refreshingMessages}
+                className="text-xs text-violet-600 hover:text-violet-800 font-medium disabled:opacity-40">
+                {refreshingMessages ? 'Refreshing…' : '↻ Refresh'}
+              </button>
+            </div>
             <div className="bg-white rounded-xl border p-4 min-h-48 max-h-96 overflow-y-auto flex flex-col space-y-3">
               {messages.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-gray-400 py-8">
