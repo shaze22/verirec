@@ -349,7 +349,15 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - Bug 3: `counselor_profiles` query changed from `.single()` → `.maybeSingle()` to avoid crash when no profile found
 - GOTCHA: Postgres UPDATE RLS — always add explicit `WITH CHECK` when `USING` clause has a condition that the new row would violate (e.g. `IS NULL` check)
 
-**Latest deploy:** commit `121be25` — 2026-06-12, deployment `dpl_2WYTwoipUvFXa9gcvcff16ueof6b`
+**Portal assessment results + count fix (commits 2a0d79a + ea024eb — 2026-06-12):**
+- Assessment tab label used `pendingAsmt.length` — completed assessments counted as 0, client thought tab was empty. Fixed: use `assessments.length` (total)
+- Completed assessments now show score + color-coded interpretation card (level, note, completed date). `interpretation` stored as JSON string — parse with try/catch
+- Overview card: completed assessments show green "✓ Completed — view in Assessments tab" instead of nothing
+- Supabase migration `fix_subjects_portal_update_with_check`: UPDATE policy missing WITH CHECK — Postgres applies USING to new row too, `portal_user_id IS NULL` fails after update → silently rejected → data queries return empty
+- PortalHomePage: fetch ALL subjects with matching email; link portal_user_id on ALL; query data with `.in('subject_id', allIds)`
+- GOTCHA: portal tab labels — always count ALL items, not just pending/active subset
+
+**Latest deploy:** commit `ea024eb` — 2026-06-12, deployment `dpl_G7w9RBnTfoerfaWuwTRXmmG1jSBt`
 
 ---
 
