@@ -357,7 +357,14 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - PortalHomePage: fetch ALL subjects with matching email; link portal_user_id on ALL; query data with `.in('subject_id', allIds)`
 - GOTCHA: portal tab labels — always count ALL items, not just pending/active subset
 
-**Latest deploy:** commit `ea024eb` — 2026-06-12, deployment `dpl_G7w9RBnTfoerfaWuwTRXmmG1jSBt`
+**Portal messages + invoices + billing tab (commit 9b9d409 — 2026-06-12):**
+- PortalHomePage: messages moved from lazy-load (messagesLoadedRef cached empty state) → eager load in linkAndLoad using `.in('subject_id', ids)`; Refresh button added
+- PortalHomePage: invoices query changed from `eq('subject_id', primary.id)` → `.in('subject_id', ids)` for all subjects
+- KaunslorClientFilePage: Billing tab added (sidebar + mobile select) — shows client invoices, "+ New Invoice" navigates to `/kaunselor/billing?client=<id>`
+- KaunslorBillingPage: reads `?client=` URL param, pre-selects client + auto-opens create form
+- GOTCHA: lazy-load + ref guard pattern (`messagesLoadedRef`) breaks when new data arrives after first empty load — prefer eager load + explicit refresh button
+
+**Latest deploy:** commit `9b9d409` — 2026-06-12, deployment `dpl_34anMq7gt6zzPm84QsCxoVAB2xWy`
 
 ---
 
