@@ -31,44 +31,41 @@ export default function PortalHomePage() {
 
   const linkAndLoad = async () => {
     try {
-      // First try: find by portal_user_id (already linked)
-      let { data: linked } = await supabase.from('subjects')
-        .select('*')
-        .eq('portal_user_id', user.id)
-        .limit(1);
-      let sub = linked?.[0] || null;
+      // Fetch all subjects: already linked OR matching email (unlinked)
+      const [{ data: linked }, { data: byEmail }] = await Promise.all([
+        supabase.from('subjects').select('*').eq('portal_user_id', user.id),
+        supabase.from('subjects').select('*').eq('email', user.email).is('portal_user_id', null),
+      ]);
 
-      // Second try: find by email (not yet linked)
-      if (!sub) {
-        const { data: byEmail } = await supabase.from('subjects')
-          .select('*')
-          .eq('email', user.email)
-          .limit(1);
-        sub = byEmail?.[0] || null;
-      }
+      const allSubs = [...(linked || []), ...(byEmail || [])];
 
-      if (!sub) {
+      if (allSubs.length === 0) {
         setNotFound(true);
         setLoading(false);
         return;
       }
 
-      // Link portal_user_id if not set
-      if (!sub.portal_user_id) {
-        await supabase.from('subjects')
-          .update({ portal_user_id: user.id })
-          .eq('id', sub.id);
-        sub = { ...sub, portal_user_id: user.id };
+      // Link portal_user_id on ALL unlinked subjects (handles multi-counselor case)
+      if (byEmail?.length) {
+        await Promise.all(byEmail.map(s =>
+          supabase.from('subjects').update({ portal_user_id: user.id }).eq('id', s.id)
+        ));
       }
 
-      setSubject(sub);
+      // Primary subject for profile display, messages, invoices (most recently updated)
+      const primary = [...allSubs].sort((a, b) =>
+        new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at)
+      )[0];
+      setSubject(primary);
 
-      // Fetch all portal data
+      const subjectIds = allSubs.map(s => s.id);
+
+      // Fetch all portal data across ALL subjects (client may be with multiple counselors)
       const [{ data: appts }, { data: hw }, { data: asmt }, { data: res }] = await Promise.all([
-        supabase.from('appointments').select('*').eq('subject_id', sub.id).order('created_at', { ascending: false }).limit(20),
-        supabase.from('client_homework').select('*').eq('subject_id', sub.id).order('created_at', { ascending: false }),
-        supabase.from('client_assessments').select('*').eq('subject_id', sub.id).order('assigned_at', { ascending: false }),
-        supabase.from('client_resource_assignments').select('*, psychoed_resources(*)').eq('subject_id', sub.id).order('assigned_at', { ascending: false }),
+        supabase.from('appointments').select('*').in('subject_id', subjectIds).order('created_at', { ascending: false }).limit(20),
+        supabase.from('client_homework').select('*').in('subject_id', subjectIds).order('created_at', { ascending: false }),
+        supabase.from('client_assessments').select('*').in('subject_id', subjectIds).order('assigned_at', { ascending: false }),
+        supabase.from('client_resource_assignments').select('*, psychoed_resources(*)').in('subject_id', subjectIds).order('assigned_at', { ascending: false }),
       ]);
 
       setAppointments(appts || []);
@@ -76,10 +73,10 @@ export default function PortalHomePage() {
       setAssessments(asmt || []);
       setResources(res || []);
 
-      // Load invoices + counselor payment URL
+      // Load invoices + counselor payment URL (primary subject's counselor)
       const [{ data: invData }, { data: profileData }] = await Promise.all([
-        supabase.from('counselor_invoices').select('*').eq('subject_id', sub.id).order('invoice_date', { ascending: false }).limit(20),
-        supabase.from('counselor_profiles').select('payment_url').eq('user_id', sub.user_id).single(),
+        supabase.from('counselor_invoices').select('*').eq('subject_id', primary.id).order('invoice_date', { ascending: false }).limit(20),
+        supabase.from('counselor_profiles').select('payment_url').eq('user_id', primary.user_id).maybeSingle(),
       ]);
       setInvoices(invData || []);
       setCounselorPaymentUrl(profileData?.payment_url || '');
