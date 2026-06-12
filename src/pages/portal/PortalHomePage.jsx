@@ -24,11 +24,46 @@ export default function PortalHomePage() {
   const [submittingReschedule, setSubmittingReschedule] = useState(false);
   const [subjectIds, setSubjectIds] = useState([]);
   const [refreshingMessages, setRefreshingMessages] = useState(false);
+  const [payingInvoiceId, setPayingInvoiceId] = useState(null);
 
   useEffect(() => {
     if (!user) return;
     linkAndLoad();
+    // Show success toast when redirected back from Stripe
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('payment') === 'success') {
+      toast.success('Payment received! Invoice updated.');
+      if (params.get('tab') === 'invoices') setTab('invoices');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   }, [user]);
+
+  const handlePayInvoice = async (inv, total) => {
+    if (payingInvoiceId) return;
+    setPayingInvoiceId(inv.id);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) { toast.error('Session expired. Please sign in again.'); return; }
+      const res = await fetch('/api/stripe-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          plan: 'invoice',
+          invoice_id: inv.id,
+          amount_cents: Math.round(total * 100),
+          invoice_number: inv.invoice_number,
+          origin: window.location.origin,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.url) throw new Error(data.error || 'Failed to create payment session');
+      window.location.href = data.url;
+    } catch (err) {
+      toast.error(err.message || 'Payment failed. Please try again.');
+      setPayingInvoiceId(null);
+    }
+  };
 
   const linkAndLoad = async () => {
     try {
@@ -553,11 +588,17 @@ export default function PortalHomePage() {
                       }`}>{inv.status}</span>
                     </div>
                   </div>
-                  {(inv.status === 'sent' || inv.status === 'draft') && counselorPaymentUrl && (
-                    <a href={counselorPaymentUrl} target="_blank" rel="noopener noreferrer"
-                      className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 transition-colors">
-                      Pay Now →
-                    </a>
+                  {(inv.status === 'sent' || inv.status === 'draft') && (
+                    <button
+                      onClick={() => handlePayInvoice(inv, total)}
+                      disabled={payingInvoiceId === inv.id}
+                      className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 disabled:opacity-50 transition-colors">
+                      {payingInvoiceId === inv.id ? (
+                        <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Redirecting…</>
+                      ) : (
+                        <>💳 Pay RM {total.toFixed(2)} — Card / FPX / Google Pay</>
+                      )}
+                    </button>
                   )}
                 </div>
               );

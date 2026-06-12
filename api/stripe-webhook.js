@@ -89,7 +89,16 @@ export default async function handler(req, res) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object;
-        const { user_id, plan } = session.metadata || {};
+        const { user_id, plan, invoice_id } = session.metadata || {};
+
+        // Invoice payment from client portal
+        if (plan === 'invoice' && invoice_id) {
+          await supabaseAdmin.from('counselor_invoices')
+            .update({ status: 'paid' })
+            .eq('id', invoice_id);
+          break;
+        }
+
         if (!user_id || !plan) break;
 
         // Topup purchase: increment extra_sessions, don't change plan

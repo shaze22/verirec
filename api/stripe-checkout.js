@@ -75,6 +75,29 @@ export default async function handler(req, res) {
     const { plan, annual = false, origin } = body;
     const baseUrl = origin || process.env.VITE_APP_URL || 'https://www.verirec.app';
 
+    // Invoice payment — one-time MYR checkout for client portal
+    if (plan === 'invoice') {
+      const { invoice_id, amount_cents, invoice_number } = body;
+      if (!invoice_id || !amount_cents || amount_cents < 100) {
+        return res.status(400).json({ error: 'Missing or invalid invoice_id / amount_cents' });
+      }
+      const sessionParams = {
+        'line_items[0][price_data][currency]': 'myr',
+        'line_items[0][price_data][unit_amount]': Math.round(amount_cents),
+        'line_items[0][price_data][product_data][name]': invoice_number ? `Invoice ${invoice_number}` : 'Counseling Invoice',
+        'line_items[0][quantity]': 1,
+        mode: 'payment',
+        'automatic_payment_methods[enabled]': 'true',
+        success_url: `${baseUrl}/portal/home?tab=invoices&payment=success`,
+        cancel_url: `${baseUrl}/portal/home?tab=invoices`,
+        'metadata[invoice_id]': invoice_id,
+        'metadata[user_id]': user.id,
+        'metadata[plan]': 'invoice',
+      };
+      const session = await stripePost('/checkout/sessions', sessionParams);
+      return res.status(200).json({ url: session.url });
+    }
+
     const isTopup = plan.startsWith('topup_');
     if (!['pro', 'counselor', 'topup_1', 'topup_5', 'topup_10'].includes(plan)) {
       return res.status(400).json({ error: 'Invalid plan' });
