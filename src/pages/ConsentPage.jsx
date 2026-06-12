@@ -10,17 +10,19 @@ import toast from 'react-hot-toast';
 const CONSENT_VERSION = 'VERIREC-CONSENT-v1.0';
 
 const CONSENT_ITEMS = [
-  'I understand that this recording session will be audio-recorded and transcribed.',
-  'I agree that the recording and transcript will be used for the stated professional purposes.',
-  'I understand that my personal information is protected and handled in accordance with applicable privacy laws.',
-  'I agree to proceed with this session voluntarily and may stop at any time.',
+  'I understand that this session will be audio-recorded and transcribed using AI-assisted technology for professional documentation purposes.',
+  'I agree that the recording and transcript will be used solely for the stated professional purpose and reviewed only by the authorised session handler.',
+  'I understand that confidentiality will be maintained except where disclosure is required by law — including risk of harm to self or others, suspicion of abuse, or a court order.',
+  'I understand that my personal data is protected under Malaysia\'s Personal Data Protection Act 2010 (PDPA) and will not be shared with third parties without my consent.',
+  'I acknowledge my right to ask questions about this process, to access my records, and to withdraw my consent at any time without penalty.',
+  'I confirm that I am participating in this session voluntarily and agree to proceed.',
 ];
 
 export default function ConsentPage() {
   const { user } = useAuthStore();
   const { incrementUsage } = useBillingStore();
   const navigate = useNavigate();
-  const [checked, setChecked] = useState([false, false, false, false]);
+  const [checked, setChecked] = useState(Array(CONSENT_ITEMS.length).fill(false));
   const [loading, setLoading] = useState(false);
 
   // Parsed once — sessionStorage never changes during component lifetime
