@@ -373,9 +373,17 @@ export default function PortalHomePage() {
             ) : assessments.map(a => {
               const expired = new Date(a.expires_at) < new Date();
               const link = `${window.location.origin}/assess/${a.token}`;
+              let interp = null;
+              try { interp = typeof a.interpretation === 'string' ? JSON.parse(a.interpretation) : a.interpretation; } catch {}
+              const scoreColor = {
+                green: 'bg-green-50 border-green-200 text-green-800',
+                yellow: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+                orange: 'bg-orange-50 border-orange-200 text-orange-800',
+                red: 'bg-red-50 border-red-200 text-red-800',
+              }[interp?.color] || 'bg-gray-50 border-gray-200 text-gray-700';
               return (
                 <div key={a.id} className="bg-white rounded-xl border p-4">
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center justify-between gap-3 mb-2">
                     <div>
                       <p className="text-sm font-semibold text-gray-900">{a.test_type?.toUpperCase()}</p>
                       <p className="text-xs text-gray-400">Assigned {format(parseISO(a.assigned_at), 'dd MMM yyyy')}</p>
@@ -386,6 +394,24 @@ export default function PortalHomePage() {
                       'bg-amber-100 text-amber-700'
                     }`}>{a.status === 'completed' ? 'Completed' : expired ? 'Expired' : 'Pending'}</span>
                   </div>
+
+                  {/* Completed: show score + interpretation */}
+                  {a.status === 'completed' && a.scores && (
+                    <div className={`mt-2 rounded-lg border px-4 py-3 ${scoreColor}`}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-semibold uppercase tracking-wide opacity-70">Your Result</span>
+                        {a.scores.total !== undefined && (
+                          <span className="text-lg font-bold">Score: {a.scores.total}</span>
+                        )}
+                      </div>
+                      {interp?.level && <p className="text-sm font-semibold">{interp.level}</p>}
+                      {interp?.note && <p className="text-xs mt-0.5 opacity-80">{interp.note}</p>}
+                      {a.completed_at && (
+                        <p className="text-xs mt-2 opacity-60">Completed {format(parseISO(a.completed_at), 'dd MMM yyyy, h:mm a')}</p>
+                      )}
+                    </div>
+                  )}
+
                   {a.status === 'pending' && !expired && (
                     <a href={link} target="_blank" rel="noopener noreferrer"
                       className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 transition-colors">
