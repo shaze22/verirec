@@ -323,7 +323,33 @@ Kaunselor, Doktor, JKM masih dapat AssessmentPanel (MBTI/RIASEC).
 - "Appointments" shortened to "Appts" in grid to fit cleanly
 - New Session bug fixed: `navigate('/session/setup/counselor')` → `navigate('/session/consent')` — ProfessionalRoute was blocking /session/setup on counselor subdomain
 
-**Latest deploy:** commit `c27b53b` — 2026-06-08 (landing page review: jargon removal, FAQ fixes, comparison table update)
+**Latest deploy:** commit `aa8b7fc` — 2026-06-12 (client portal: account not found fix + portal sharing card)
+
+---
+
+## Features Baru (2026-06-12 — sesi terkini)
+
+**Client Portal "Account Not Found" Fix (PortalHomePage.jsx):**
+- Root cause: `maybeSingle()` returns null/error when client email matches multiple subjects (registered with different counselors)
+- Fix: query order reversed — check `portal_user_id` first (returning users), then email fallback; use `.limit(1)` instead of `maybeSingle()` to safely handle multiple matches
+- Supabase migration `fix_subjects_rls_auth_email`: replaced two broken RLS policies on `subjects` table that queried `auth.users` directly (causes "permission denied") with `auth.email()` built-in function
+  - `client_read_own_subject`: `USING (portal_user_id = auth.uid() OR email = auth.email())`
+  - `client_set_portal_user_id`: `USING (email = auth.email() AND portal_user_id IS NULL)`
+- This migration also fixed: QR code missing, appointments not loading, client creation failing (all caused by the same RLS bug)
+
+**Client Portal Access Card (KaunslorClientFilePage.jsx — Overview tab):**
+- Added "Client Portal Access" card after summary cards, before risk level selector
+- Shows client email (or amber warning if no email)
+- Two action buttons: "Copy Link" (clipboard) + "Share via WhatsApp" (pre-filled WA message with portal URL + login email)
+- Portal URL: `https://kaunselor.app/portal`
+
+**Portal data not showing (assessments + appointments empty) — 3 bugs fixed (commit 121be25):**
+- Bug 1: Wrong subject picked — `.limit(1)` without order picked subject with no data (client registered with 2 counselors). Fix: fetch ALL subjects with matching email, link ALL, query with `.in('subject_id', allIds)`
+- Bug 2: UPDATE policy missing `WITH CHECK` — Postgres applies `USING` to both old AND new row. After setting `portal_user_id = user.id`, new row fails `portal_user_id IS NULL` → update silently rejected → RLS blocks data queries. Fix: migration `fix_subjects_portal_update_with_check` adds `WITH CHECK (portal_user_id = auth.uid())`
+- Bug 3: `counselor_profiles` query changed from `.single()` → `.maybeSingle()` to avoid crash when no profile found
+- GOTCHA: Postgres UPDATE RLS — always add explicit `WITH CHECK` when `USING` clause has a condition that the new row would violate (e.g. `IS NULL` check)
+
+**Latest deploy:** commit `121be25` — 2026-06-12, deployment `dpl_2WYTwoipUvFXa9gcvcff16ueof6b`
 
 ---
 
