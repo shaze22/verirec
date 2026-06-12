@@ -170,7 +170,7 @@ export default function PortalHomePage() {
     { id: 'overview',     label: 'Overview' },
     { id: 'appointments', label: `Appointments (${appointments.length})` },
     { id: 'homework',     label: `Tasks (${homework.length})` },
-    { id: 'assessments',  label: `Assessments (${pendingAsmt.length})` },
+    { id: 'assessments',  label: `Assessments (${assessments.length})` },
     { id: 'resources',    label: `Resources (${resources.length})` },
     { id: 'messages',     label: 'Messages' },
     { id: 'invoices',     label: `Invoices${unpaidInvoices.length ? ` (${unpaidInvoices.length})` : ''}` },
@@ -220,7 +220,7 @@ export default function PortalHomePage() {
               {[
                 ['Upcoming', upcomingAppts.length, 'violet'],
                 ['Tasks Due', pendingHw.length, 'amber'],
-                ['Assessments', pendingAsmt.length, 'blue'],
+                ['Assessments', assessments.length, 'blue'],
               ].map(([label, val, color]) => (
                 <div key={label} className={`bg-${color}-50 rounded-xl p-4 text-center`}>
                   <p className={`text-2xl font-bold text-${color}-700`}>{val}</p>
@@ -248,23 +248,38 @@ export default function PortalHomePage() {
               </div>
             )}
 
-            {/* Pending assessments */}
-            {pendingAsmt.length > 0 && (
+            {/* Assessments overview */}
+            {assessments.length > 0 && (
               <div className="bg-white rounded-xl border p-4">
-                <p className="text-sm font-semibold text-gray-800 mb-3">Assessments Waiting</p>
+                <p className="text-sm font-semibold text-gray-800 mb-3">
+                  {pendingAsmt.length > 0 ? 'Assessments Waiting' : 'Assessments'}
+                </p>
                 <div className="space-y-2">
-                  {pendingAsmt.slice(0, 3).map(a => (
-                    <a key={a.id} href={`${window.location.origin}/assess/${a.token}`} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-violet-50 transition-colors group">
-                      <div className="w-8 h-8 bg-violet-100 rounded-lg flex items-center justify-center text-xs font-bold text-violet-700 flex-shrink-0">
-                        {a.test_type?.toUpperCase().slice(0,3)}
+                  {assessments.slice(0, 3).map(a => {
+                    const isPending = a.status === 'pending' && new Date(a.expires_at) > new Date();
+                    return isPending ? (
+                      <a key={a.id} href={`${window.location.origin}/assess/${a.token}`} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-violet-50 transition-colors group">
+                        <div className="w-8 h-8 bg-violet-100 rounded-lg flex items-center justify-center text-xs font-bold text-violet-700 flex-shrink-0">
+                          {a.test_type?.toUpperCase().slice(0,3)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-gray-800 font-medium truncate">{a.test_type?.toUpperCase()}</p>
+                          <p className="text-xs text-violet-600 group-hover:underline">Take assessment →</p>
+                        </div>
+                      </a>
+                    ) : (
+                      <div key={a.id} className="flex items-center gap-3 p-2">
+                        <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-xs font-bold text-green-700 flex-shrink-0">
+                          {a.test_type?.toUpperCase().slice(0,3)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-gray-800 font-medium truncate">{a.test_type?.toUpperCase()}</p>
+                          <p className="text-xs text-green-600">✓ Completed — view in Assessments tab</p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-800 font-medium truncate">{a.test_type?.toUpperCase()}</p>
-                        <p className="text-xs text-violet-600 group-hover:underline">Take assessment →</p>
-                      </div>
-                    </a>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
