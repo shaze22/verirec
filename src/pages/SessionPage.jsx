@@ -67,6 +67,7 @@ export default function SessionPage() {
 
 
   const autoSaveRef = useRef(null);
+  const autoSaveFailRef = useRef(0); // consecutive auto-save failure counter
   const detectedFlagsRef = useRef(new Set());
   const durationAtStopRef = useRef(0);
   const fullAudioChunksRef = useRef([]);
@@ -153,7 +154,15 @@ export default function SessionPage() {
       // Local backup (works offline)
       put('sessions', { id: sessionId, transcript: entries, flags, updated_at: new Date().toISOString() });
       // Cloud save so session is resumable from any device
-      updateSession(sessionId, { transcript: entries, flags, duration: timer.elapsed }).catch(() => {});
+      updateSession(sessionId, { transcript: entries, flags, duration: timer.elapsed }).then(() => {
+        autoSaveFailRef.current = 0;
+      }).catch((err) => {
+        autoSaveFailRef.current += 1;
+        console.error('Auto-save failed:', err?.message);
+        if (autoSaveFailRef.current === 3) {
+          toast.error('Auto-save is failing. Your session data may not be backed up. Check your internet connection.', { duration: 8000, id: 'autosave-fail' });
+        }
+      });
     }, 30000);
     return () => clearInterval(autoSaveRef.current);
   }, [started, sessionId, entries, flags, timer.elapsed]);
@@ -235,12 +244,16 @@ export default function SessionPage() {
 
   const handleEnd = async () => {
     const lockKey = `report_generating_${sessionId}`;
-    if (localStorage.getItem(lockKey)) {
-      toast('Report is being generated in another tab.');
-      setEndModal(false);
-      return;
+    const existingLock = localStorage.getItem(lockKey);
+    if (existingLock) {
+      const lockAge = Date.now() - parseInt(existingLock);
+      if (lockAge < 10 * 60 * 1000) { // 10-minute TTL — expired lock from a crash should not block forever
+        toast('Report is being generated in another tab.');
+        setEndModal(false);
+        return;
+      }
     }
-    localStorage.setItem(lockKey, '1');
+    localStorage.setItem(lockKey, Date.now().toString());
 
     if (isSpeechRecognitionSupported) stopRealtime();
     flush();
@@ -353,7 +366,14 @@ export default function SessionPage() {
       sessionStorage.removeItem('active_session_id');
       toast.success('Report generated successfully!');
       navigate(`/session/${sessionId}`);
-    } catch {
+    } catch (err) {
+      console.error('Session end failed:', err?.message);
+      const msg = err?.message?.includes('database')
+        ? 'Report generated but failed to save. Please retry.'
+        : err?.message?.includes('AI') || err?.message?.includes('Claude') || err?.message?.includes('Gemini')
+        ? 'AI analysis failed. Please retry — your transcript is saved.'
+        : 'Something went wrong. Your transcript is saved. Please retry.';
+      toast.error(msg, { duration: 6000 });
       setEndError(true);
     } finally {
       localStorage.removeItem(lockKey);

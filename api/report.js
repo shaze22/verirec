@@ -262,14 +262,17 @@ Semua teks dalam Bahasa Malaysia. Jika sesuatu medan tidak berkaitan atau tiada 
     const hashPayload = JSON.stringify({ report, transcript, session_id });
     const hash = crypto.createHash('sha256').update(hashPayload).digest('hex');
 
-    await supabaseAdmin
+    const { error: saveError } = await supabaseAdmin
       .from('sessions')
       .update({ report, hash, updated_at: new Date().toISOString() })
       .eq('id', session_id);
+    if (saveError) throw new Error('Failed to save report to database: ' + saveError.message);
 
     // Fire-and-forget: notify user that report is ready
     const { subject, html } = reportReadyEmail(session_info?.title, session_id);
-    sendEmail({ to: user.email, subject, html }).catch(() => {});
+    sendEmail({ to: user.email, subject, html }).catch((emailErr) => {
+      console.error('report email failed (non-fatal):', emailErr?.message);
+    });
 
     return res.status(200).json({ report, hash });
   } catch (err) {

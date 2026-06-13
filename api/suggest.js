@@ -282,17 +282,20 @@ Respond in JSON only:
 }
 If no contradictions: { "contradictions": [] }`;
       let text;
-      let provider = 'gemini';
+      let provider = 'claude';
       try {
-        text = await callGeminiFallback(prompt);
-      } catch {
         const message = await anthropic.messages.create({
           model: 'claude-opus-4-7',
           max_tokens: 1200,
           messages: [{ role: 'user', content: prompt }],
         });
         text = message.content[0].text.trim();
-        provider = 'claude';
+      } catch (claudeErr) {
+        const isRetryable = claudeErr?.status === 529 || claudeErr?.status >= 500;
+        if (!isRetryable) throw claudeErr;
+        console.warn('Claude unavailable for contradiction, falling back to Gemini:', claudeErr?.status);
+        text = await callGeminiFallback(prompt);
+        provider = 'gemini';
       }
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) return res.status(502).json({ error: 'Invalid AI response' });

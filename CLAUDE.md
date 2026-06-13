@@ -87,6 +87,50 @@ Pengesan subdomain via `src/lib/subdomain.js` — hanya `isCounselorSubdomain()`
 7. **Pricing in USD** — $0 free, $22/unlimited (pro). Counselor top-up $3/$12/$22. No RM in UI.
 8. **Tiada free trial** — `trial_period_days` telah dibuang dari `stripe-checkout.js`
 
+## Coding Standards (Wajib — Setiap Sesi)
+
+### Error Handling
+- **DILARANG: `.catch(() => {})` yang kosong** — selalu log atau tunjuk error kepada user
+- **WAJIB: try/catch untuk semua API calls** — dengan `toast.error()` yang informatif
+- **WAJIB: check error return dari Supabase** — `const { data, error } = await ...; if (error) throw error;`
+- **DILARANG: silent DB saves** — `await supabase.from(...).update(...)` mesti check error
+- **Fire-and-forget (email, analytics)**: boleh guna `.catch(err => console.error(...))` — log tapi tak crash
+
+### Mesej Error kepada User
+- Tunjuk **sebab spesifik** bukan "Something went wrong"
+- Contoh baik: `"AI analysis failed. Your transcript is saved. Please retry."`
+- Contoh baik: `"Auto-save is failing. Check your internet connection."`
+- Guna `toast.error()` untuk transient errors, inline error text untuk payment/critical flows
+
+### Supabase Queries
+- **Guna `.maybeSingle()` bukan `.single()`** bila data mungkin tiada (`.single()` throws bila kosong)
+- **Guna specific columns** bukan `.select('*')` untuk queries yang besar
+- **Tambah `.limit(N)`** pada semua queries yang boleh return banyak rows — kecuali ada justifikasi
+- **Guna `.in('id', ids)`** bukan multiple `.eq()` calls untuk multi-record queries
+
+### AI Fallback Order
+- **Claude dulu, Gemini fallback** — bukan sebaliknya
+- Pattern standard:
+  ```js
+  try {
+    const msg = await anthropic.messages.create({...});
+    text = msg.content[0].text.trim();
+  } catch (err) {
+    if (err?.status !== 529 && err?.status < 500) throw err; // non-retryable
+    text = await callGeminiFallback(prompt); // only on 5xx/529
+    provider = 'gemini';
+  }
+  ```
+
+### State & Loading
+- **Setiap async action perlu loading state** — user mesti tahu sesuatu sedang berlaku
+- **Jangan guna lazy-load + ref guard** untuk data yang boleh berubah — guna eager load + refresh button
+
+### Scaling
+- **Pagination wajib** untuk lists yang boleh melebihi 50 rows
+- **Database indexes** — tambah index bila query filter by `user_id`, `counselor_id`, atau `subject_id`
+- **Rate limits sebagai env vars** — jangan hardcode dalam `_rateLimit.js`
+
 ## Struktur Projek
 ```
 src/
