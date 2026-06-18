@@ -24,18 +24,20 @@ export async function updateSession(id, updates) {
   return session;
 }
 
-export async function getSessions(userId) {
+export async function getSessions(userId, { limit = 200, offset = 0 } = {}) {
   const { data, error } = await supabase
     .from('sessions')
     .select('id, title, profession, subject_name, case_number, duration, created_at, report, hash, status, recording_status')
     .eq('user_id', userId)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
   if (error) {
     const { data: d2, error: e2 } = await supabase
       .from('sessions')
       .select('id, title, profession, subject_name, case_number, duration, created_at, report, hash')
       .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
     if (e2) throw e2;
     return d2;
   }

@@ -20,9 +20,14 @@ export default async function handler(req, res) {
 
       const { data: appt } = await supabaseAdmin
         .from('appointments')
-        .select('client_name, client_phone, client_email, presenting_issue, requested_date, requested_time, counselor_id')
+        .select('client_name, client_phone, client_email, presenting_issue, requested_date, requested_time, counselor_id, created_at')
         .eq('id', appointment_id).single();
       if (!appt) return res.status(404).json({ error: 'Appointment not found' });
+
+      // Reject if appointment was created more than 15 minutes ago — prevents replay with old IDs
+      if (Date.now() - new Date(appt.created_at).getTime() > 15 * 60 * 1000) {
+        return res.status(400).json({ error: 'Notification window expired' });
+      }
 
       const { data: { user: counselor } } = await supabaseAdmin.auth.admin.getUserById(appt.counselor_id);
       const { data: profile } = await supabaseAdmin
@@ -52,6 +57,14 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
+    // ── End public notifications ──────────────────────────────────────
+
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    if (authError || !user) return res.status(401).json({ error: 'Unauthorized' });
+
     if (type === 'appointment-confirmed') {
       const appointment_id = req.query.appointment_id || req.body?.appointment_id;
       if (!appointment_id) return res.status(400).json({ error: 'Missing appointment_id' });
@@ -59,7 +72,9 @@ export default async function handler(req, res) {
       const { data: appt } = await supabaseAdmin
         .from('appointments')
         .select('client_email, confirmed_date, confirmed_time, requested_date, requested_time, counselor_id, status, counselor_notes')
-        .eq('id', appointment_id).single();
+        .eq('id', appointment_id)
+        .eq('counselor_id', user.id)
+        .single();
       if (!appt || !appt.client_email) return res.status(200).json({ ok: true, skipped: 'no email' });
 
       const [{ data: profile }, { data: { user: counselorUser } }] = await Promise.all([
@@ -91,13 +106,6 @@ export default async function handler(req, res) {
       await sendEmail({ to: appt.client_email, subject, html, from });
       return res.status(200).json({ ok: true });
     }
-    // ── End public notifications ──────────────────────────────────────
-
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) return res.status(401).json({ error: 'Unauthorized' });
-
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
-    if (authError || !user) return res.status(401).json({ error: 'Unauthorized' });
 
 
     if (type === 'welcome') {

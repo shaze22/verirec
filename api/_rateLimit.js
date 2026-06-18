@@ -21,29 +21,16 @@ export async function checkRateLimit(userId, endpoint) {
   ).toISOString();
 
   try {
-    const { data: existing } = await supabaseAdmin
-      .from('rate_limits')
-      .select('id, count')
-      .eq('user_id', userId)
-      .eq('endpoint', endpoint)
-      .eq('window_start', windowStart)
-      .maybeSingle();
+    const { data, error } = await supabaseAdmin.rpc('increment_rate_limit', {
+      p_user_id: userId,
+      p_endpoint: endpoint,
+      p_window_start: windowStart,
+      p_max_count: limit.max,
+    });
 
-    if (!existing) {
-      await supabaseAdmin.from('rate_limits').insert({
-        user_id: userId, endpoint, window_start: windowStart, count: 1,
-      });
-      return { ok: true };
-    }
-
-    if (existing.count >= limit.max) {
-      return { ok: false, retryAfter: Math.ceil(limit.windowMs / 1000) };
-    }
-
-    await supabaseAdmin.from('rate_limits')
-      .update({ count: existing.count + 1 })
-      .eq('id', existing.id);
-
+    if (error) throw error;
+    const allowed = data?.[0]?.allowed ?? true;
+    if (!allowed) return { ok: false, retryAfter: Math.ceil(limit.windowMs / 1000) };
     return { ok: true };
   } catch {
     return { ok: true }; // fail open — never block on DB error

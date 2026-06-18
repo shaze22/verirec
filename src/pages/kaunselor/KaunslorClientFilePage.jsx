@@ -117,16 +117,16 @@ export default function KaunslorClientFilePage() {
     Promise.all([
       supabase.from('subjects').select('*').eq('id', id).eq('user_id', user.id).single(),
       supabase.from('sessions').select('id, title, created_at, duration, report, profession, session_number, risk_level, risk_severity')
-        .eq('subject_id', id).order('created_at', { ascending: false }),
-      supabase.from('appointments').select('*')
-        .eq('subject_id', id).order('created_at', { ascending: false }),
-      supabase.from('action_plans').select('*').eq('subject_id', id).order('created_at', { ascending: false }),
-      supabase.from('clinical_referrals').select('*').eq('subject_id', id).order('created_at', { ascending: false }),
-      supabase.from('audio_library').select('id, session_id, storage_path, file_name, duration, created_at, mime_type').eq('subject_id', id),
-      supabase.from('progress_notes').select('*').eq('subject_id', id).order('note_date', { ascending: false }).order('created_at', { ascending: false }),
-      supabase.from('team_referrals').select('*').eq('subject_id', id).eq('from_user_id', user.id).order('created_at', { ascending: false }),
+        .eq('subject_id', id).order('created_at', { ascending: false }).limit(100),
+      supabase.from('appointments').select('id, client_name, client_email, client_phone, requested_date, requested_time, confirmed_date, confirmed_time, status, presenting_issue, counselor_notes, created_at, subject_id, counselor_id, consent_given, consent_given_at')
+        .eq('subject_id', id).order('created_at', { ascending: false }).limit(100),
+      supabase.from('action_plans').select('id, subject_id, user_id, goals, interventions, follow_up_date, notes, status, created_at, updated_at').eq('subject_id', id).order('created_at', { ascending: false }).limit(50),
+      supabase.from('clinical_referrals').select('id, subject_id, user_id, referral_type, reason, referred_to, status, notes, created_at').eq('subject_id', id).order('created_at', { ascending: false }).limit(50),
+      supabase.from('audio_library').select('id, session_id, storage_path, file_name, duration, created_at, mime_type').eq('subject_id', id).limit(100),
+      supabase.from('progress_notes').select('id, subject_id, user_id, note_type, note_data, note_text, note_date, session_id, created_at').eq('subject_id', id).order('note_date', { ascending: false }).order('created_at', { ascending: false }).limit(50),
+      supabase.from('team_referrals').select('id, subject_id, from_user_id, to_email, referral_reason, status, created_at').eq('subject_id', id).eq('from_user_id', user.id).order('created_at', { ascending: false }).limit(50),
       supabase.from('kaunselor_audit_logs').select('action,metadata,created_at').eq('subject_id', id).eq('user_id', user.id).order('created_at', { ascending: false }).limit(20),
-      supabase.from('reschedule_requests').select('*').eq('subject_id', id).eq('user_id', user.id).eq('status', 'pending').order('created_at', { ascending: false }),
+      supabase.from('reschedule_requests').select('id, subject_id, user_id, appointment_id, requested_date, requested_time, reason, status, created_at').eq('subject_id', id).eq('user_id', user.id).eq('status', 'pending').order('created_at', { ascending: false }).limit(20),
     ]).then(([{ data: c }, { data: s }, { data: a }, { data: plans }, { data: refs }, { data: audios }, { data: notes }, { data: trefs }, { data: alogs }, { data: rreqs }]) => {
       if (!c) { navigate('/kaunselor/clients'); return; }
       setClient(c);
@@ -152,48 +152,54 @@ export default function KaunslorClientFilePage() {
 
     // Fetch assessments assigned to this client
     supabase.from('client_assessments')
-      .select('*')
+      .select('id, subject_id, user_id, test_id, token, status, scores, interpretation, assigned_at, completed_at, expires_at')
       .eq('subject_id', id)
       .eq('user_id', user.id)
       .order('assigned_at', { ascending: false })
+      .limit(50)
       .then(({ data }) => setClientAssessments(data || []));
 
     // Fasa 4 — intake forms and homework
     supabase.from('client_intake_forms')
-      .select('*')
+      .select('id, subject_id, user_id, token, status, assigned_at, completed_at, expires_at, form_answers')
       .eq('subject_id', id)
       .eq('user_id', user.id)
       .order('assigned_at', { ascending: false })
+      .limit(20)
       .then(({ data }) => setClientIntakeForms(data || []));
 
     supabase.from('client_homework')
-      .select('*')
+      .select('id, subject_id, user_id, title, description, due_date, status, created_at')
       .eq('subject_id', id)
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
+      .limit(50)
       .then(({ data }) => setHomework(data || []));
 
     // Fasa 6D — assigned resources for this client
     supabase.from('client_resource_assignments')
-      .select('*, psychoed_resources(*)')
+      .select('id, subject_id, user_id, resource_id, assigned_at, viewed_at, psychoed_resources(id, title, description, resource_type, url, file_path)')
       .eq('subject_id', id)
       .eq('user_id', user.id)
       .order('assigned_at', { ascending: false })
+      .limit(50)
       .then(({ data }) => setClientResources(data || []));
 
     // All resources in counselor library (for assign dropdown)
     supabase.from('psychoed_resources')
-      .select('*')
+      .select('id, user_id, title, description, resource_type, url, file_path, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
+      .limit(100)
       .then(({ data }) => setAllResources(data || []));
 
     // Invoices for this client
     supabase.from('counselor_invoices')
-      .select('*')
+      .select('id, subject_id, user_id, invoice_number, invoice_date, due_date, status, line_items, total_amount, notes, created_at')
       .eq('subject_id', id)
       .eq('user_id', user.id)
       .order('invoice_date', { ascending: false })
+      .limit(50)
       .then(({ data }) => setClientInvoices(data || []));
   }, [id, user]);
 

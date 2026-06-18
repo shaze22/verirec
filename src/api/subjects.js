@@ -3,8 +3,9 @@ import { supabase } from '../lib/supabase.js';
 export async function getSubjects() {
   const { data, error } = await supabase
     .from('subjects')
-    .select('*')
-    .order('name');
+    .select('id, user_id, name, ic_number, phone, email, dob, gender, occupation, risk_level, problem_types, presenting_issue, case_number, consent_signed, portal_user_id, created_at')
+    .order('name')
+    .limit(200);
   if (error) throw error;
   return data;
 }
