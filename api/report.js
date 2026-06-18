@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import crypto from 'crypto';
 import { checkRateLimit } from './_rateLimit.js';
 import { sendEmail, reportReadyEmail } from './_mailer.js';
+import { scoreAssessment, interpretAssessment } from './_scoring.js';
 
 const supabaseAdmin = createClient(
   process.env.VITE_SUPABASE_URL,
@@ -139,6 +140,21 @@ export default async function handler(req, res) {
   }
 
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  // Public — no auth required; compute scores server-side to prevent client-side tampering
+  if (req.url?.includes('mode=score-assessment')) {
+    try {
+      let body;
+      try { body = await readBody(req, 10240); } catch { return res.status(400).json({ error: 'Invalid request body' }); }
+      const { test_id, answers } = body || {};
+      if (!test_id || !Array.isArray(answers)) return res.status(400).json({ error: 'Missing test_id or answers' });
+      const scores = scoreAssessment(test_id, answers);
+      const interpretation = interpretAssessment(test_id, scores);
+      return res.status(200).json({ scores, interpretation });
+    } catch (err) {
+      return res.status(400).json({ error: err.message });
+    }
+  }
 
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');

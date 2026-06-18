@@ -69,8 +69,15 @@ export default function PublicAssessmentPage() {
     if (!canSubmit) return;
     setStatus('submitting');
     try {
-      const computedScores = test.score(answers);
-      const interpretation = test.interpret(computedScores);
+      // Score computed server-side to prevent tampering
+      const scoreRes = await fetch('/api/report?mode=score-assessment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ test_id: assignment.test_type, answers }),
+      });
+      if (!scoreRes.ok) throw new Error('Scoring failed');
+      const { scores: computedScores, interpretation } = await scoreRes.json();
+
       const { error } = await supabaseAnon
         .from('client_assessments')
         .update({

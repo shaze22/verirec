@@ -78,8 +78,8 @@ export default async function handler(req, res) {
     // Invoice payment — one-time MYR checkout for client portal
     if (plan === 'invoice') {
       const { invoice_id, amount_cents, invoice_number } = body;
-      if (!invoice_id || !amount_cents || amount_cents < 100) {
-        return res.status(400).json({ error: 'Missing or invalid invoice_id / amount_cents' });
+      if (!invoice_id || !amount_cents || amount_cents < 200) {
+        return res.status(400).json({ error: 'Missing or invalid invoice_id / amount_cents (minimum MYR 2.00)' });
       }
       const sessionParams = {
         'payment_method_types[0]': 'card',

@@ -124,7 +124,8 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-      const { action, userId, plan, subject, message } = req.body || {};
+      const body = await readBody(req);
+      const { action, userId, plan, subject, message } = body;
 
       if (action === 'update-plan') {
         if (!userId || !plan || !(plan in PLAN_LIMITS)) return res.status(400).json({ error: 'Parameter tidak sah' });
@@ -229,4 +230,15 @@ export default async function handler(req, res) {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message });
   }
+}
+
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    let data = '';
+    req.on('data', chunk => { data += chunk; });
+    req.on('end', () => {
+      try { resolve(data ? JSON.parse(data) : {}); } catch { reject(new Error('Invalid JSON')); }
+    });
+    req.on('error', reject);
+  });
 }
