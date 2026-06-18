@@ -240,8 +240,14 @@ export default function KaunslorClientFilePage() {
   };
 
   const updateRiskLevel = async (risk_level) => {
+    const prev = client.risk_level;
     setClient(c => ({ ...c, risk_level }));
-    await supabase.from('subjects').update({ risk_level }).eq('id', id);
+    const { error } = await supabase.from('subjects').update({ risk_level }).eq('id', id).eq('user_id', user.id);
+    if (error) {
+      setClient(c => ({ ...c, risk_level: prev }));
+      toast.error('Failed to update risk level.');
+      console.error('updateRiskLevel error:', error);
+    }
   };
 
   const toggleProblemType = async (type) => {
@@ -251,7 +257,13 @@ export default function KaunslorClientFilePage() {
       : [...current, type];
     setClient(c => ({ ...c, problem_types: updated }));
     setEditForm(f => ({ ...f, problem_types: updated }));
-    await supabase.from('subjects').update({ problem_types: updated }).eq('id', id);
+    const { error } = await supabase.from('subjects').update({ problem_types: updated }).eq('id', id).eq('user_id', user.id);
+    if (error) {
+      setClient(c => ({ ...c, problem_types: current }));
+      setEditForm(f => ({ ...f, problem_types: current }));
+      toast.error('Failed to update problem types.');
+      console.error('toggleProblemType error:', error);
+    }
   };
 
   const handleAddPlan = async (e) => {

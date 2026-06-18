@@ -93,9 +93,11 @@ export default async function handler(req, res) {
 
         // Invoice payment from client portal
         if (plan === 'invoice' && invoice_id) {
-          await supabaseAdmin.from('counselor_invoices')
+          const { error: invErr } = await supabaseAdmin.from('counselor_invoices')
             .update({ status: 'paid' })
-            .eq('id', invoice_id);
+            .eq('id', invoice_id)
+            .eq('user_id', user_id);
+          if (invErr) throw invErr;
           break;
         }
 
@@ -106,9 +108,10 @@ export default async function handler(req, res) {
           const toAdd = TOPUP_SESSIONS[plan];
           const { data: sub } = await supabaseAdmin
             .from('subscriptions').select('extra_sessions').eq('user_id', user_id).single();
-          await supabaseAdmin.from('subscriptions')
+          const { error: topupErr } = await supabaseAdmin.from('subscriptions')
             .update({ extra_sessions: (sub?.extra_sessions ?? 0) + toAdd })
             .eq('user_id', user_id);
+          if (topupErr) throw topupErr;
           break;
         }
 
@@ -125,13 +128,14 @@ export default async function handler(req, res) {
           } catch { /* non-fatal */ }
         }
 
-        await supabaseAdmin.from('subscriptions').update({
+        const { error: subErr } = await supabaseAdmin.from('subscriptions').update({
           plan,
           status,
           sessions_limit: PLAN_LIMITS[plan] ?? 2,
           stripe_subscription_id: session.subscription,
           next_billing_date: trialEnd ?? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         }).eq('user_id', user_id);
+        if (subErr) throw subErr;
         break;
       }
 
@@ -148,7 +152,8 @@ export default async function handler(req, res) {
         if (sub.current_period_end) {
           updateData.next_billing_date = new Date(sub.current_period_end * 1000).toISOString();
         }
-        await supabaseAdmin.from('subscriptions').update(updateData).eq('user_id', userId);
+        const { error: updErr } = await supabaseAdmin.from('subscriptions').update(updateData).eq('user_id', userId);
+        if (updErr) throw updErr;
         break;
       }
 
@@ -158,13 +163,14 @@ export default async function handler(req, res) {
         if (!userId) break;
         const plan = sub.metadata?.plan || 'starter';
         const planLabels = { starter: 'Starter', pro: 'Pro', biz: 'Perniagaan' };
-        await supabaseAdmin.from('subscriptions').update({
+        const { error: delErr } = await supabaseAdmin.from('subscriptions').update({
           plan: 'free',
           status: 'active',
           sessions_limit: 2,
           stripe_subscription_id: null,
           next_billing_date: null,
         }).eq('user_id', userId);
+        if (delErr) throw delErr;
         const email = await getUserEmail(userId);
         if (email) {
           const { subject, html } = subscriptionCancelledEmail(planLabels[plan] || plan);
@@ -177,7 +183,8 @@ export default async function handler(req, res) {
         const invoice = event.data.object;
         const userId = await getUserIdByCustomer(invoice.customer);
         if (!userId) break;
-        await supabaseAdmin.from('subscriptions').update({ status: 'past_due' }).eq('user_id', userId);
+        const { error: failErr } = await supabaseAdmin.from('subscriptions').update({ status: 'past_due' }).eq('user_id', userId);
+        if (failErr) throw failErr;
         const email = await getUserEmail(userId);
         if (email) {
           const { subject, html } = paymentFailedEmail();
@@ -191,13 +198,14 @@ export default async function handler(req, res) {
         if (invoice.billing_reason === 'subscription_create') break;
         const userId = await getUserIdByCustomer(invoice.customer);
         if (!userId) break;
-        await supabaseAdmin.from('subscriptions').update({
+        const { error: succErr } = await supabaseAdmin.from('subscriptions').update({
           status: 'active',
           sessions_used: 0,
           warning_sent: false,
           billing_cycle_start: new Date().toISOString(),
           next_billing_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         }).eq('user_id', userId);
+        if (succErr) throw succErr;
         break;
       }
     }
@@ -205,6 +213,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ received: true });
   } catch (err) {
     console.error('Webhook processing error:', err);
-    return res.status(200).json({ received: true });
+    return res.status(500).json({ error: 'Webhook processing failed' });
   }
 }

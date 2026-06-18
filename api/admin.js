@@ -5,12 +5,13 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'syedshazni@todak.com,syedshazni@gmail.com')
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '')
   .split(',').map(e => e.trim()).filter(Boolean);
 
 const PLAN_LIMITS = { free: 2, starter: 20, pro: 100, biz: 200 };
 
 async function verifyAdmin(req) {
+  if (ADMIN_EMAILS.length === 0) throw Object.assign(new Error('Admin access not configured'), { status: 503 });
   const token = req.headers.authorization?.replace('Bearer ', '');
   if (!token) throw Object.assign(new Error('Tidak dibenarkan'), { status: 401 });
   const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
@@ -64,6 +65,58 @@ async function getData() {
 
 export default async function handler(req, res) {
   try {
+    // Self-service account deletion — user auth only, not admin
+    if (req.method === 'DELETE') {
+      const token = req.headers.authorization?.replace('Bearer ', '');
+      if (!token) return res.status(401).json({ error: 'Unauthorized' });
+      const { data: { user }, error: authErr } = await supabaseAdmin.auth.getUser(token);
+      if (authErr || !user) return res.status(401).json({ error: 'Unauthorized' });
+
+      // Delete all user-owned data in parallel (non-fatal per table)
+      // Note: consent_logs are NOT deleted — audit trail must be preserved per PDPA
+      await Promise.allSettled([
+        supabaseAdmin.from('sessions').delete().eq('user_id', user.id),
+        supabaseAdmin.from('subscriptions').delete().eq('user_id', user.id),
+        supabaseAdmin.from('subjects').delete().eq('user_id', user.id),
+        supabaseAdmin.from('cases').delete().eq('user_id', user.id),
+        supabaseAdmin.from('scheduled_sessions').delete().eq('user_id', user.id),
+        supabaseAdmin.from('question_templates').delete().eq('user_id', user.id),
+        supabaseAdmin.from('audio_library').delete().eq('user_id', user.id),
+        supabaseAdmin.from('referrals').delete().eq('referrer_id', user.id),
+        supabaseAdmin.from('audit_logs').delete().eq('user_id', user.id),
+        // Counselor-specific tables
+        supabaseAdmin.from('counselor_profiles').delete().eq('user_id', user.id),
+        supabaseAdmin.from('appointment_slots').delete().eq('counselor_id', user.id),
+        supabaseAdmin.from('appointments').delete().eq('counselor_id', user.id),
+        supabaseAdmin.from('counselor_invoices').delete().eq('user_id', user.id),
+        supabaseAdmin.from('progress_notes').delete().eq('user_id', user.id),
+        supabaseAdmin.from('action_plans').delete().eq('user_id', user.id),
+        supabaseAdmin.from('client_assessments').delete().eq('user_id', user.id),
+        supabaseAdmin.from('client_intake_forms').delete().eq('user_id', user.id),
+        supabaseAdmin.from('client_homework').delete().eq('user_id', user.id),
+        supabaseAdmin.from('supervision_sessions').delete().eq('user_id', user.id),
+        supabaseAdmin.from('kaunselor_audit_logs').delete().eq('user_id', user.id),
+      ]);
+
+      // Storage cleanup (non-fatal)
+      try {
+        const { data: recFiles } = await supabaseAdmin.storage.from('recordings').list(user.id);
+        if (recFiles?.length) {
+          await supabaseAdmin.storage.from('recordings').remove(recFiles.map(f => `${user.id}/${f.name}`));
+        }
+        const { data: evFiles } = await supabaseAdmin.storage.from('evidence').list(user.id);
+        if (evFiles?.length) {
+          await supabaseAdmin.storage.from('evidence').remove(evFiles.map(f => `${user.id}/${f.name}`));
+        }
+      } catch (storageErr) { console.error('Storage cleanup error:', storageErr); }
+
+      // Delete auth user last
+      const { error: deleteErr } = await supabaseAdmin.auth.admin.deleteUser(user.id);
+      if (deleteErr) throw deleteErr;
+
+      return res.status(200).json({ ok: true });
+    }
+
     await verifyAdmin(req);
 
     if (req.method === 'GET') {

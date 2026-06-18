@@ -20,7 +20,7 @@ const CONSENT_ITEMS = [
 
 export default function ConsentPage() {
   const { user } = useAuthStore();
-  const { incrementUsage } = useBillingStore();
+  const { incrementUsage, canStartSession } = useBillingStore();
   const navigate = useNavigate();
   const [checked, setChecked] = useState(Array(CONSENT_ITEMS.length).fill(false));
   const [loading, setLoading] = useState(false);
@@ -47,6 +47,11 @@ export default function ConsentPage() {
         const { data } = await supabase
           .from('subjects').select('consent_signed').eq('id', setup.subject_id).single();
         if (data?.consent_signed) {
+          if (!canStartSession()) {
+            toast.error('Session limit reached. Please upgrade your plan.');
+            navigate('/pricing', { replace: true });
+            return;
+          }
           const ts = new Date().toISOString();
           const consentData = {
             id: generateConsentId(), version: CONSENT_VERSION, timestamp: ts,
@@ -68,13 +73,15 @@ export default function ConsentPage() {
             })
             .select().single();
           if (error) throw error;
-          await incrementUsage().catch(() => {});
+          const usageResult = await incrementUsage();
+          if (usageResult?.error) console.error('incrementUsage error:', usageResult.error);
           sessionStorage.setItem('active_session_id', session.id);
           navigate('/session/active', { replace: true });
         } else {
           setAutoChecking(false);
         }
-      } catch {
+      } catch (err) {
+        console.error('auto-consent error:', err);
         setAutoChecking(false);
       }
     })();
@@ -85,6 +92,11 @@ export default function ConsentPage() {
 
   const handleConsent = async () => {
     if (!allChecked) return;
+    if (!canStartSession()) {
+      toast.error('Session limit reached. Please upgrade your plan.');
+      navigate('/pricing');
+      return;
+    }
     setLoading(true);
     try {
       const consentData = {
@@ -121,7 +133,8 @@ export default function ConsentPage() {
 
       if (error) throw error;
 
-      await incrementUsage().catch(() => {});
+      const usageResult = await incrementUsage();
+      if (usageResult?.error) console.error('incrementUsage error:', usageResult.error);
       sessionStorage.setItem('active_session_id', session.id);
       navigate('/session/active');
     } catch (err) {

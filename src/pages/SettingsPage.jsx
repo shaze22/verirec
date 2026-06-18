@@ -243,13 +243,22 @@ export default function SettingsPage() {
   const confirmDeleteAccount = async () => {
     setDeleteLoading(true);
     try {
-      await supabase.from('sessions').delete().eq('user_id', user.id);
-      await supabase.from('subscriptions').delete().eq('user_id', user.id);
+      const { data: { session: authSession } } = await supabase.auth.getSession();
+      if (!authSession) throw new Error('Not authenticated');
+      const res = await fetch('/api/admin', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${authSession.access_token}` },
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Delete failed');
+      }
       await signOut();
-      toast.success('All your data has been deleted.');
+      toast.success('Your account and all data have been permanently deleted.');
       navigate('/');
-    } catch {
-      toast.error('Failed to delete data. Contact support at hello@verirec.app.');
+    } catch (err) {
+      console.error('confirmDeleteAccount error:', err);
+      toast.error('Failed to delete account. Contact support at hello@verirec.app.');
       setDeleteModal(false);
     } finally {
       setDeleteLoading(false);

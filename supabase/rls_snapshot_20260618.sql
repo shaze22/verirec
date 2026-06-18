@@ -1,0 +1,47 @@
+-- RLS Policy Snapshot — Live DB as of 2026-06-18
+-- Generated via: SELECT schemaname, tablename, policyname, cmd, qual, with_check FROM pg_policies WHERE schemaname = 'public'
+-- 38 tables — all have rls_enabled: true
+-- ⚠️ C4 fix: schema.sql is outdated. Run `supabase db dump --schema public > supabase/schema_live.sql` to update.
+
+-- action_plans: owner all (MISSING with_check — medium risk)
+-- appointment_slots: counselor_manage_slots (ALL, no with_check), public_read_slots (SELECT true)
+-- appointments: client_read_own_appointments (SELECT, via subjects.portal_user_id), counselor_manage_appointments (ALL), public_can_book (INSERT true)
+-- assessment_sets: users_manage_own (ALL, no with_check), users_read_own_or_default (SELECT)
+-- audio_library: users_own_audio_library (ALL)
+-- audit_logs: users_own_audit_logs (ALL)
+-- cases: users_own_cases (ALL)
+-- client_assessments: ca_owner_all (ALL with_check), ca_public_complete (anon UPDATE pending→completed), ca_public_select (anon SELECT true), client_read_own_assessments (SELECT, via portal_user_id)
+-- client_homework: client_read_own_homework (SELECT, via portal_user_id), counselor_manage_homework (ALL, no with_check)
+-- client_intake_forms: counselor_manage (ALL), public_read (SELECT true), public_submit (UPDATE true — wide open)
+-- client_resource_assignments: client_read (SELECT), client_update_viewed (UPDATE with_check), counselor_manage (ALL, no with_check)
+-- clinical_referrals: users_own (ALL, no with_check)
+-- consent_logs: consent_insert (INSERT true), consent_select_own (SELECT own)
+-- consent_requests: owner_all (ALL), public_select (SELECT true), public_update (UPDATE true — wide open)
+-- counselor_consent_requests: owner_all (authenticated ALL), public_read_by_token (anon SELECT true), public_update_by_token (anon UPDATE true)
+-- counselor_invoices: counselor_manage (ALL), portal_client_read (SELECT via subjects.portal_user_id)
+-- counselor_profiles: counselor_manage_own (ALL, no with_check), public_read_profile (SELECT true)
+-- counselor_session_acks: owner_all (authenticated ALL), public tokens (anon SELECT/UPDATE true)
+-- kaunselor_audit_logs: owner_only (authenticated ALL, with_check)
+-- portal_messages: client_insert (WITH CHECK via portal_user_id), client_read (SELECT), counselor_all (ALL)
+-- progress_notes: counselor_owns (ALL WITH CHECK) ✓
+-- psychoed_resources: counselor_manage (ALL), client_read_assigned (SELECT via join)
+-- question_templates: users_own (ALL)
+-- rate_limits: service_role_only (ALL for service_role), users_read_own (SELECT only) ✓ [FIXED 2026-06-18]
+-- referrals: referrers_own (ALL)
+-- reschedule_requests: client_insert (WITH CHECK), client_read (SELECT), counselor_all (ALL)
+-- scheduled_sessions: users_own (ALL)
+-- session_assessments: users_own (ALL)
+-- sessions: users_own (ALL)
+-- statement_acknowledgements: ack_owner (ALL), ack_public_select (SELECT true), ack_public_update (UPDATE true WITH CHECK true)
+-- subjects: client_read_own (SELECT via portal_user_id OR email), client_set_portal_user_id (UPDATE WITH CHECK) ✓, users_own (ALL, no with_check)
+-- subscriptions: users_own (ALL)
+-- supervision_sessions: counselor_manage (ALL)
+-- team_members: team_member_view (SELECT), team_members_owner_all (ALL), team_owner_delete/manage/update
+-- team_referrals: ⚠️ QUERIES auth.users DIRECTLY — medium risk
+-- teams: team_owner_all (ALL)
+
+-- ⚠️ ISSUES NOTED FOR FUTURE FIX:
+-- 1. team_referrals policies query auth.users directly — should use auth.email() instead
+-- 2. Several ALL policies missing WITH CHECK (action_plans, counselor_profiles, client_homework, clinical_referrals, subjects users_own)
+-- 3. client_intake_forms public_submit UPDATE has no token check — any user can update any form
+-- 4. consent_requests public_update has no expiry check — client can update expired requests

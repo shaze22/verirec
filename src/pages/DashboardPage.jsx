@@ -327,7 +327,8 @@ export default function DashboardPage({ pageTitle }) {
         .select()
         .single();
       if (error) throw error;
-      await incrementUsage().catch(() => {});
+      const usageResult = await incrementUsage();
+      if (usageResult?.error) console.error('incrementUsage error:', usageResult.error);
       sessionStorage.setItem('session_setup', JSON.stringify(setup));
       sessionStorage.setItem('active_session_id', session.id);
       localStorage.setItem('preferred_profession', quickProfession);
@@ -361,7 +362,7 @@ export default function DashboardPage({ pageTitle }) {
     if (!confirmed) return;
     setBulkDeleting(true);
     try {
-      await deleteSessions([...selected]);
+      await deleteSessions([...selected], user.id);
       setSessions(prev => prev.filter(s => !selected.has(s.id)));
       setSelected(new Set());
       setSelectMode(false);

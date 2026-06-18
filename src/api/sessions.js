@@ -69,8 +69,9 @@ export async function deleteSession(id) {
   if (error) throw error;
 }
 
-export async function deleteSessions(ids) {
-  const { error } = await supabase.from('sessions').delete().in('id', ids);
+export async function deleteSessions(ids, userId) {
+  const query = supabase.from('sessions').delete().in('id', ids);
+  const { error } = userId ? await query.eq('user_id', userId) : await query;
   if (error) throw error;
 }
 
