@@ -813,6 +813,26 @@ Redesign 2026-06-02 — Soro-inspired. Sections (dalam order):
 **AISuggestions locked overlay:** English + "$25/month" (updated 2026-06-02)
 **ProfessionLandingPage (/polis, /sprm dll):** USD pricing — Free $0 / Professional $25 / Pro $249. All content fully in English (commit d20099e) — PROFESSION_META, PROFESSIONS data, TESTIMONIALS, CTA labels for all 9 professions.
 
+## Security Audit (2026-06-18) — ALL ISSUES RESOLVED
+
+Full security + scalability audit. 19 issues fixed across 3 commits (90396ec → 96b43b3 → fff3b00).
+
+### New files added
+- `api/_scoring.js` — server-side scoring for PHQ-9, GAD-7, DASS-21, RIASEC, TIPI
+- `api/_cors.js` — centralised CORS with origin allowlist (verirec.app + kaunselor.app)
+- `supabase/migrations/20260618_fix_rate_limits_rls.sql` — RLS on rate_limits
+- `supabase/rls_snapshot_20260618.sql` — snapshot of all 38 tables + policies
+
+### Key security conventions added/confirmed
+- **Stripe MYR minimum is 200 sen (RM 2.00)**, not 100 — checked in `stripe-checkout.js`
+- **admin.js POST body** — `req.body` is undefined in Vercel serverless; always use `readBody(req)` (same pattern as `stripe-checkout.js`)
+- **CRON_SECRET must be set** — `cron-reset-usage.js` returns 401 if missing; set via `printf` in Bash (not PowerShell `Get-Content` which adds `\r`)
+- **Rate limit is now atomic** — `increment_rate_limit()` Postgres RPC via `api/_rateLimit.js`; `_rateLimit.js` no longer does read-modify-write
+- **Assessment scoring is server-side** — `PublicAssessmentPage.jsx` calls `POST /api/report?mode=score-assessment` (public, no auth); scoring logic in `api/_scoring.js`
+- **user-notifications `appointment-confirmed`** — requires auth + `.eq('counselor_id', user.id)`; `new-appointment` is public but rejects if appointment >15 min old
+- **Supabase queries** — always add `.limit(N)` on lists; `getSessions()` now supports `{ limit, offset }` pagination params; `getSubjects()` excludes `notes` column (long text, not needed in list)
+- **PDPA**: `consent_logs` must NEVER be deleted — account deletion in `admin.js DELETE` skips this table intentionally
+
 ## Environment Variables
 ```
 # Frontend (VITE_ prefix wajib)
@@ -829,17 +849,19 @@ STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
 STRIPE_PRICE_COUNSELOR_MONTHLY, STRIPE_PRICE_COUNSELOR_ANNUAL
 STRIPE_PRICE_TOPUP_1, STRIPE_PRICE_TOPUP_5, STRIPE_PRICE_TOPUP_10
 RESEND_API_KEY
-TELEGRAM_BOT_TOKEN  ← belum set, perlu dapatkan dari @BotFather
+TELEGRAM_BOT_TOKEN  ← set 2026-06-02 via @BotFather
+ADMIN_EMAILS        ← set 2026-06-18 (syedshazni@gmail.com) — required by admin.js
+CRON_SECRET         ← set 2026-06-18 (64-char hex) — required by cron-reset-usage.js
 ```
 
 ## Deployment
 ```bash
 vercel deploy --prod --force --scope syedshazni-7682s-projects
 ```
-- www.verirec.app + counselor.verirec.app (doctor/jkm redirect ke www)
+- www.verirec.app + counselor.verirec.app + kaunselor.app (doctor/jkm redirect ke www)
 - Project ID: `prj_EwnDU0nKMOn56auUR1WZF1GeNI3f`
 - GitHub: `https://github.com/shaze22/verirec` (branch: main)
-- Last deployed: 2026-06-08 (commit `9a0c5e9` — kaunselor: portal messaging, reschedule, payment, audit trail, insights v2)
+- Last deployed: 2026-06-18 (commit `fff3b00` — full security audit: 9C+7H+3M issues fixed)
 - ⚠️ GitHub→Vercel auto-deploy broken — always use `vercel deploy --prod --force --scope syedshazni-7682s-projects`
 - Supabase project ID: `sbakkkxuhkxfofpfhdtn`
 
