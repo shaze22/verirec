@@ -77,6 +77,11 @@ Pengesan subdomain via `src/lib/subdomain.js` — hanya `isCounselorSubdomain()`
 - Stripe (payments) — **Live mode aktif**, guna `fetch` terus (bukan SDK)
 - Vercel (deployment)
 
+## Landing UI helpers (Kaunselor, commit ed8b6c8)
+- `src/components/ui/Reveal.jsx` — IntersectionObserver fade+slide-in wrapper. Props: `children`, `className`, `delay` (ms). Use to stagger card grids (`delay={i*90}`).
+- `src/index.css` keyframes/utilities: `.animate-fade-up` (hero, set `animationDelay` inline to stagger), `.float-blob`/`.float-blob-2` (decorative glow orbs), `.text-shimmer` (violet→fuchsia animated gradient text). Guarded by `prefers-reduced-motion`.
+- CounselorLandingPage design tokens: accent = **violet→fuchsia** gradient; dark hero/CTA = `bg-gray-950` + radial violet glow + faint grid pattern; cards = `ring-1 ring-gray-100` hover-lift; gradient icon tiles `from-violet-50 to-fuchsia-50 ring-1 ring-violet-100`; primary button `bg-gradient-to-r from-violet-600 to-fuchsia-600`. Keep violet identity — NOT the blue `brand` palette.
+
 ## Peraturan Wajib
 1. **Jangan panggil OpenAI/Anthropic/Stripe/Gemini dari browser** — semua melalui `/api/` routes
 2. **Jangan simpan secrets dalam `src/`** — hanya `VITE_` prefix dibenarkan di frontend
