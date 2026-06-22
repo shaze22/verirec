@@ -111,7 +111,7 @@ Reusable letterhead/branding for ALL counselor documents (consent receipt, AI le
 - **Shared renderer `src/lib/letterhead.js`:** `renderLetterhead(doc, profile)` (logo + org + name + credentials + LKM reg + divider, returns y), `renderLetterFooter` (contact line), `renderSignatureBlock` (signature image + name/creds/reg/date for letters). Used by `consentPdf.js` (replaced the violet band) and `letterPdf.js`.
 - **Consent PDF** takes `profile` (passed from client file = counselor's own `getCounselorLetterhead(user.id)`; from portal = `getCounselorLetterhead(primary.user_id)`).
 - **AI letters** (Generate Clinical Document modal): new "Download PDF (Letterhead)" → `downloadLetterPdf` (`src/lib/letterPdf.js`).
-- **Auto-email:** `seal-consent` (api/report.js) sends the client a fire-and-forget link-based email ("your signed consent copy is ready → portal") via existing `sendEmail` (Resend has no attachment here; link, not attachment).
+- **Auto-email with PDF attachment (commit 0e7fe9f):** `seal-consent` (api/report.js) generates the consent PDF **server-side** (jsPDF runs in Node — tested) via the shared `buildConsentDoc(doc, ...)` in `src/lib/consentPdfDoc.js` (also used by the browser `consentPdf.js`), on the counselor's letterhead, and attaches it to the client email. `sendEmail` now supports Resend `attachments: [{ filename, content(base64) }]`. Fire-and-forget; if PDF gen fails it still sends the link-only email. Server fetches the counselor letterhead via supabaseAdmin from `counselor_profiles`.
 - Gotcha (caused a build fail): never put `await` inside a non-async inner arrow — `setProfileForm(fm => ({ ...fm, x: await f() }))` is a syntax error; await first, then setState.
 
 ## Peraturan Wajib
