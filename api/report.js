@@ -4,6 +4,8 @@ import crypto from 'crypto';
 import { checkRateLimit } from './_rateLimit.js';
 import { sendEmail, reportReadyEmail } from './_mailer.js';
 import { scoreAssessment, interpretAssessment } from './_scoring.js';
+import { jsPDF } from 'jspdf';
+import { buildConsentDoc } from '../src/lib/consentPdfDoc.js';
 
 const supabaseAdmin = createClient(
   process.env.VITE_SUPABASE_URL,
@@ -213,18 +215,37 @@ export default async function handler(req, res) {
         .single();
       if (insErr) return res.status(500).json({ error: insErr.message });
 
-      // Notify the client their signed consent copy is ready (fire-and-forget)
+      // Email the client their signed consent copy as a PDF attachment (fire-and-forget)
       try {
         const { data: subj } = await supabaseAdmin
           .from('subjects').select('name, email').eq('id', subject_id).single();
         if (subj?.email) {
+          const { data: prof } = await supabaseAdmin
+            .from('counselor_profiles')
+            .select('display_name, credentials, registration_number, klinik_name, klinik_address, phone, website, official_email, org_registration_no, logo_data, signature_data')
+            .eq('user_id', subject.user_id).maybeSingle();
+
+          let attachments;
+          try {
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            buildConsentDoc(doc, {
+              full_name, ic_number: ic_number || null, is_guardian: !!is_guardian,
+              guardian_name: guardian_name || null, guardian_relationship: guardian_relationship || null,
+              clauses: clauses || {}, signature_data: signature, signed_at,
+              hash, version: version || '0', language: language || 'ms', status: 'active',
+            }, { clientName: subj.name || full_name, counselorName: prof?.display_name || '', profile: prof || null });
+            const b64 = Buffer.from(doc.output('arraybuffer')).toString('base64');
+            attachments = [{ filename: 'informed-consent.pdf', content: b64 }];
+          } catch (e) { console.error('consent pdf gen failed:', e?.message); }
+
           await sendEmail({
             to: subj.email,
-            subject: 'Your signed consent copy is ready',
+            subject: 'Your signed consent copy',
             html: `<p>Dear ${subj.name || 'client'},</p>
-<p>Your informed consent has been signed and securely recorded with a tamper-proof seal. You can view and download your copy anytime from your client portal.</p>
+<p>Your informed consent has been signed and securely recorded with a tamper-proof seal. A copy is attached for your records, and is also available anytime in your client portal.</p>
 <p><a href="https://kaunselor.app/portal">Open your portal &rarr;</a></p>
 <p>— Kaunselor</p>`,
+            attachments,
           });
         }
       } catch (e) { console.error('consent email failed:', e?.message); }

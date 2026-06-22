@@ -17,16 +17,19 @@ export function buildCalendarUrl(date, time, duration, counselorName, location) 
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${startStr}/${endStr}&details=${details}${loc}`;
 }
 
-export async function sendEmail({ to, subject, html, from }) {
+export async function sendEmail({ to, subject, html, from, attachments }) {
   if (!process.env.RESEND_API_KEY) return null;
   try {
+    const payload = { from: from || FROM, to: [to], subject, html };
+    // attachments: [{ filename, content }] where content is a base64 string
+    if (Array.isArray(attachments) && attachments.length) payload.attachments = attachments;
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
       },
-      body: JSON.stringify({ from: from || FROM, to: [to], subject, html }),
+      body: JSON.stringify(payload),
     });
     if (!res.ok) console.error('Resend error:', await res.text());
     return res.ok;
