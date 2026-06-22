@@ -104,6 +104,16 @@ Portal lives at `src/pages/portal/` (`/portal` login magic-link, `/portal/home` 
 - **Portal nav (commit c3c541a):** replaced the horizontal overflow tab bar (which hid later tabs like Consent off-screen) with a desktop **side nav** (icons + active gradient) + mobile **dropdown**. `PortalHomePage` is now a `md:flex` layout: `<aside>` sidebar + `<main>`.
 - **PWA reload prompt (commit 865ee55):** `vite.config.js` `registerType: 'prompt'` (was `autoUpdate`) + `src/components/ReloadPrompt.jsx` (`useRegisterSW` from `virtual:pwa-register/react`) mounted in `App.jsx` — shows a "New version available → Reload" banner so clients aren't stuck on a stale cached build. NOTE: a plain hard-refresh does NOT bypass the service worker; to force the current cached build to update once, unregister the SW / clear site data.
 
+### 3. Professional Letterhead + auto-email consent — commit d49c1d0
+Reusable letterhead/branding for ALL counselor documents (consent receipt, AI letters, future reports).
+- **Profile (`counselor_profiles`):** existing fields (`display_name`, `credentials[]`, `registration_number` = LKM, `klinik_name`, `klinik_address`, `phone`) + new `logo_data`, `signature_data` (both **base64 data URLs** — Settings downscales images via canvas before save, no Storage bucket), `website`, `official_email`, `org_registration_no` (SSM/ROC). Migration `20260622_counselor_letterhead_fields.sql`.
+- **Edit in Settings → Counselor Profile** (`SettingsPage.jsx`): logo + signature upload (`fileToCompressedDataUrl`), email/website/org-reg fields.
+- **Shared renderer `src/lib/letterhead.js`:** `renderLetterhead(doc, profile)` (logo + org + name + credentials + LKM reg + divider, returns y), `renderLetterFooter` (contact line), `renderSignatureBlock` (signature image + name/creds/reg/date for letters). Used by `consentPdf.js` (replaced the violet band) and `letterPdf.js`.
+- **Consent PDF** takes `profile` (passed from client file = counselor's own `getCounselorLetterhead(user.id)`; from portal = `getCounselorLetterhead(primary.user_id)`).
+- **AI letters** (Generate Clinical Document modal): new "Download PDF (Letterhead)" → `downloadLetterPdf` (`src/lib/letterPdf.js`).
+- **Auto-email:** `seal-consent` (api/report.js) sends the client a fire-and-forget link-based email ("your signed consent copy is ready → portal") via existing `sendEmail` (Resend has no attachment here; link, not attachment).
+- Gotcha (caused a build fail): never put `await` inside a non-async inner arrow — `setProfileForm(fm => ({ ...fm, x: await f() }))` is a syntax error; await first, then setState.
+
 ## Peraturan Wajib
 1. **Jangan panggil OpenAI/Anthropic/Stripe/Gemini dari browser** — semua melalui `/api/` routes
 2. **Jangan simpan secrets dalam `src/`** — hanya `VITE_` prefix dibenarkan di frontend
