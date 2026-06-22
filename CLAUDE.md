@@ -82,6 +82,25 @@ Pengesan subdomain via `src/lib/subdomain.js` — hanya `isCounselorSubdomain()`
 - `src/index.css` keyframes/utilities: `.animate-fade-up` (hero, set `animationDelay` inline to stagger), `.float-blob`/`.float-blob-2` (decorative glow orbs), `.text-shimmer` (violet→fuchsia animated gradient text). Guarded by `prefers-reduced-motion`.
 - CounselorLandingPage design tokens: accent = **violet→fuchsia** gradient; dark hero/CTA = `bg-gray-950` + radial violet glow + faint grid pattern; cards = `ring-1 ring-gray-100` hover-lift; gradient icon tiles `from-violet-50 to-fuchsia-50 ring-1 ring-violet-100`; primary button `bg-gradient-to-r from-violet-600 to-fuchsia-600`. Keep violet identity — NOT the blue `brand` palette.
 
+## Features Baru (2026-06-22 — Consent + Portal)
+
+### 1. Pre-session Informed Consent (in-person, client-signed) — commits d0f8902, 2374de4
+Counselor reads consent aloud; client signs digitally before a session starts. Episode-based (sign once) + per-session re-affirmation.
+
+- **Flow / gate:** `KaunslorClientFilePage.startNewSession()` → `/kaunselor/clients/:id/upload-session` (`KaunslorUploadSessionPage`). The upload page now **gates** on consent before the session form: no active consent → render `<ConsentCeremony>`; active consent exists → quick re-affirm panel ("Client re-affirms — Continue") or "Sign a new consent". `gatePassed` state unlocks the form. The `sessions` insert records the real `consent_data` (`consent_id`, `hash`, `method`, `signed_at`) — NOT the old placeholder assertion.
+- **Components/data:** `src/components/session/ConsentCeremony.jsx` (bilingual BM/EN toggle, per-clause checkboxes, reuses `src/components/session/SignaturePad.jsx` for drawn signature). Content in `src/data/consentDocument.js` (`CONSENT_VERSION`, `CONSENT_SECTIONS`, `CRISIS_RESOURCES`). Client API in `src/api/consent.js` (`getActiveConsent`, `getConsentDetail`, `sealConsent`, `reaffirmConsent`, `withdrawConsent`).
+- **Server seal (SHA-256, per Rule 6):** `api/report.js` modes `mode=seal-consent` (verifies counselor owns subject, computes SHA-256 server-side, supersedes prior active, inserts row via service key) and `mode=reaffirm-consent`.
+- **Tables (migration `20260622_client_consents.sql`):** `client_consents` (subject_id, signature_data base64 PNG, clauses jsonb, hash, status active|withdrawn|superseded, is_guardian/guardian_*) + `consent_reaffirmations`. RLS: counselor owns (`auth.uid()=user_id`); portal client may read own via `subjects.portal_user_id`.
+- **Counselor management:** ClientFile **Overview** has an "Informed Consent" card → status, signer, date, re-affirm count, SHA-256, **View** modal / **Download PDF** / **Withdraw**. PDF receipt = `src/lib/consentPdf.js` (`downloadConsentPdf`, bilingual, jsPDF, includes clauses + signature image + seal + crisis resources).
+- **Content meets global (APA/ACA/BACP, GDPR) + exceeds Malaysia (Act 580/LKM/PDPA):** limits-to-confidentiality (duty to warn, mandatory reporting, court order, supervision), recording & AI processing, cross-border data processing disclosure, rights, crisis lines, guardian consent. DO NOT alter clause text without review (legal).
+
+### 2. Client Portal — Progress trends + realtime — commit f2c2963
+Portal lives at `src/pages/portal/` (`/portal` login magic-link, `/portal/home` `PortalHomePage`). Already had assessments, homework, messages, resources, invoices, reschedule.
+
+- **Your Progress:** Overview shows SVG trend charts of completed PHQ-9 / GAD-7 / DASS-21 (subscales) scores over time with improvement delta (lower score = better → green ↓). Component `src/components/portal/ScoreTrendChart.jsx` (pure SVG, stroke = `currentColor`, color via `className`).
+- **Realtime messaging:** `PortalHomePage` subscribes to `portal_messages` INSERTs via `supabase.channel(...).on('postgres_changes', …)` (RLS-scoped). Live-appends messages, unread badge on Messages tab, browser Notification on counselor reply. Requires the table in the realtime publication — migration `20260622_portal_messages_realtime.sql` (`ALTER PUBLICATION supabase_realtime ADD TABLE portal_messages`).
+- **Gotcha fixed:** dynamic `bg-${color}-50` summary cards don't survive Tailwind JIT — use static class strings (now gradient/ring cards). Never build Tailwind classes via template literals.
+
 ## Peraturan Wajib
 1. **Jangan panggil OpenAI/Anthropic/Stripe/Gemini dari browser** — semua melalui `/api/` routes
 2. **Jangan simpan secrets dalam `src/`** — hanya `VITE_` prefix dibenarkan di frontend
