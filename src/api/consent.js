@@ -23,6 +23,34 @@ export async function getActiveConsent(subjectId) {
   return data;
 }
 
+// Full active consent record (incl. signature + clauses) for the counselor view / PDF
+export async function getConsentDetail(subjectId) {
+  const { data, error } = await supabase
+    .from('client_consents')
+    .select('id, version, language, full_name, ic_number, is_guardian, guardian_name, guardian_relationship, clauses, signature_data, signed_at, hash, status, withdrawn_at, created_at')
+    .eq('subject_id', subjectId)
+    .order('signed_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  const { count } = await supabase
+    .from('consent_reaffirmations')
+    .select('id', { count: 'exact', head: true })
+    .eq('consent_id', data.id);
+  return { ...data, reaffirmation_count: count || 0 };
+}
+
+// Withdraw an active consent (counselor RLS owns the row)
+export async function withdrawConsent(consentId) {
+  const { error } = await supabase
+    .from('client_consents')
+    .update({ status: 'withdrawn', withdrawn_at: new Date().toISOString() })
+    .eq('id', consentId)
+    .eq('status', 'active');
+  if (error) throw error;
+}
+
 // Seal a freshly signed consent (server computes the SHA-256 + inserts the row)
 export async function sealConsent(payload) {
   const res = await fetch('/api/report?mode=seal-consent', {

@@ -12,6 +12,8 @@ import { generateReport, generateDocument, analyseContradictions } from '../../a
 import { updateSession } from '../../api/sessions.js';
 import toast from 'react-hot-toast';
 import { ASSESSMENTS, ASSESSMENT_LIST, BADGE_COLORS } from '../../data/assessments.js';
+import { getConsentDetail, withdrawConsent } from '../../api/consent.js';
+import { downloadConsentPdf } from '../../lib/consentPdf.js';
 
 const PROBLEM_TYPES = [
   'Emotional', 'Social Relationships', 'Career Development', 'Family/Home',
@@ -48,6 +50,11 @@ export default function KaunslorClientFilePage() {
   const [referralForm, setReferralForm] = useState({ referred_to: '', referral_type: 'other', reason: '' });
   const [savingPlan, setSavingPlan] = useState(false);
   const [savingReferral, setSavingReferral] = useState(false);
+  const [consentRecord, setConsentRecord] = useState(null);
+  const [consentLoading, setConsentLoading] = useState(true);
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [withdrawing, setWithdrawing] = useState(false);
+  const [pdfBusy, setPdfBusy] = useState(false);
   const [progressNotes, setProgressNotes] = useState([]);
   const [noteContent, setNoteContent] = useState('');
   const [noteDate, setNoteDate] = useState(new Date().toISOString().slice(0, 10));
@@ -243,6 +250,35 @@ export default function KaunslorClientFilePage() {
 
   const startNewSession = () => {
     navigate(`/kaunselor/clients/${id}/upload-session`);
+  };
+
+  const loadConsent = async () => {
+    setConsentLoading(true);
+    try { setConsentRecord(await getConsentDetail(id)); }
+    catch (err) { console.error('consent load failed:', err?.message); }
+    finally { setConsentLoading(false); }
+  };
+  useEffect(() => { if (user && id) loadConsent(); }, [user, id]);
+
+  const handleWithdrawConsent = async () => {
+    if (!consentRecord) return;
+    if (!window.confirm('Withdraw this client’s active consent? They will need to sign a new consent before the next session.')) return;
+    setWithdrawing(true);
+    try {
+      await withdrawConsent(consentRecord.id);
+      toast.success('Consent withdrawn.');
+      await loadConsent();
+      setShowConsentModal(false);
+    } catch (err) { toast.error(err.message || 'Failed to withdraw consent.'); }
+    finally { setWithdrawing(false); }
+  };
+
+  const handleDownloadConsent = async () => {
+    if (!consentRecord) return;
+    setPdfBusy(true);
+    try { await downloadConsentPdf(consentRecord, { clientName: client?.name, counselorName }); }
+    catch (err) { toast.error(err.message || 'Failed to generate PDF.'); }
+    finally { setPdfBusy(false); }
   };
 
   const updateRiskLevel = async (risk_level) => {
@@ -910,6 +946,60 @@ export default function KaunslorClientFilePage() {
                     Share via WhatsApp
                   </button>
                 </div>
+              </div>
+
+              {/* Informed Consent */}
+              <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-gray-900">Informed Consent</h3>
+                  {consentRecord && (
+                    <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${
+                      consentRecord.status === 'active' ? 'bg-green-100 text-green-700'
+                      : consentRecord.status === 'withdrawn' ? 'bg-red-100 text-red-700'
+                      : 'bg-gray-100 text-gray-500'
+                    }`}>
+                      {consentRecord.status === 'active' ? 'Active'
+                        : consentRecord.status === 'withdrawn' ? 'Withdrawn' : 'Superseded'}
+                    </span>
+                  )}
+                </div>
+
+                {consentLoading ? (
+                  <div className="h-5 w-40 bg-gray-100 rounded animate-pulse" />
+                ) : !consentRecord ? (
+                  <div className="rounded-xl bg-amber-50 ring-1 ring-amber-100 p-4 text-sm text-amber-700">
+                    No consent on file yet. Consent is captured (signed by the client) the first time you start a session.
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p>Signed by <span className="font-medium text-gray-900">{consentRecord.full_name}</span>
+                        {consentRecord.is_guardian ? ' (guardian)' : ''} on{' '}
+                        {format(parseISO(consentRecord.signed_at), 'd MMM yyyy, h:mm a')}</p>
+                      <p className="text-xs text-gray-400">
+                        v{consentRecord.version} · {consentRecord.language?.toUpperCase()}
+                        {consentRecord.reaffirmation_count > 0 ? ` · ${consentRecord.reaffirmation_count} re-affirmation(s)` : ''}
+                      </p>
+                      <p className="text-[10px] text-gray-400 font-mono truncate">SHA-256: {consentRecord.hash}</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      <button onClick={() => setShowConsentModal(true)}
+                        className="px-3 py-2 text-xs font-semibold border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-700 transition-colors">
+                        View
+                      </button>
+                      <button onClick={handleDownloadConsent} disabled={pdfBusy}
+                        className="px-3 py-2 text-xs font-semibold border border-violet-200 text-violet-700 rounded-lg hover:bg-violet-50 transition-colors disabled:opacity-50">
+                        {pdfBusy ? 'Preparing…' : 'Download PDF'}
+                      </button>
+                      {consentRecord.status === 'active' && (
+                        <button onClick={handleWithdrawConsent} disabled={withdrawing}
+                          className="px-3 py-2 text-xs font-semibold border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50">
+                          {withdrawing ? 'Withdrawing…' : 'Withdraw'}
+                        </button>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Risk level selector */}
@@ -2906,6 +2996,57 @@ export default function KaunslorClientFilePage() {
                     finally { setSavingTeamReferral(false); }
                   }}
                 >Send Referral</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showConsentModal && consentRecord && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4" onClick={() => setShowConsentModal(false)}>
+          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[88vh] overflow-auto" onClick={e => e.stopPropagation()}>
+            <div className="bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white p-5 rounded-t-2xl flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-widest text-violet-200 font-semibold">Informed Consent</p>
+                <h3 className="text-lg font-bold mt-0.5">{client?.name}</h3>
+              </div>
+              <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${consentRecord.status === 'active' ? 'bg-white/20' : 'bg-red-500/30'}`}>{consentRecord.status}</span>
+            </div>
+            <div className="p-5 space-y-4 text-sm">
+              <div className="space-y-1 text-gray-600">
+                <p><span className="text-gray-400">Signed by:</span> <span className="font-medium text-gray-900">{consentRecord.full_name}</span>{consentRecord.is_guardian ? ` (guardian — ${consentRecord.guardian_name || ''})` : ''}</p>
+                {consentRecord.ic_number && <p><span className="text-gray-400">IC/Passport:</span> {consentRecord.ic_number}</p>}
+                <p><span className="text-gray-400">Date:</span> {format(parseISO(consentRecord.signed_at), 'd MMM yyyy, h:mm a')}</p>
+                <p><span className="text-gray-400">Version / language:</span> v{consentRecord.version} · {consentRecord.language?.toUpperCase()}</p>
+                {consentRecord.reaffirmation_count > 0 && <p><span className="text-gray-400">Re-affirmations:</span> {consentRecord.reaffirmation_count}</p>}
+                {consentRecord.status === 'withdrawn' && consentRecord.withdrawn_at && (
+                  <p className="text-red-600">Withdrawn on {format(parseISO(consentRecord.withdrawn_at), 'd MMM yyyy, h:mm a')}</p>
+                )}
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-gray-500 mb-1">Signature</p>
+                {consentRecord.signature_data
+                  ? <img src={consentRecord.signature_data} alt="signature" className="h-24 bg-white rounded-xl ring-1 ring-gray-100" />
+                  : <p className="text-gray-400 text-xs">No signature image.</p>}
+              </div>
+              <div className="rounded-xl bg-gray-50 ring-1 ring-gray-100 p-3">
+                <p className="text-[10px] font-semibold text-gray-500 mb-1">INTEGRITY SEAL (SHA-256)</p>
+                <p className="text-[10px] text-gray-500 font-mono break-all">{consentRecord.hash}</p>
+              </div>
+              <p className="text-xs text-gray-400">Full consent clauses are included in the downloadable PDF receipt.</p>
+              <div className="flex flex-wrap gap-2 pt-1">
+                <button onClick={handleDownloadConsent} disabled={pdfBusy}
+                  className="flex-1 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white text-sm font-semibold py-2.5 rounded-xl disabled:opacity-50">
+                  {pdfBusy ? 'Preparing…' : 'Download PDF'}
+                </button>
+                {consentRecord.status === 'active' && (
+                  <button onClick={handleWithdrawConsent} disabled={withdrawing}
+                    className="px-4 py-2.5 text-sm font-semibold border border-red-200 text-red-600 rounded-xl hover:bg-red-50 disabled:opacity-50">
+                    {withdrawing ? '…' : 'Withdraw'}
+                  </button>
+                )}
+                <button onClick={() => setShowConsentModal(false)}
+                  className="px-4 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700">Close</button>
               </div>
             </div>
           </div>
