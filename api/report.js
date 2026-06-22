@@ -212,6 +212,23 @@ export default async function handler(req, res) {
         .select('id, hash, signed_at, status, full_name, language, signed_via')
         .single();
       if (insErr) return res.status(500).json({ error: insErr.message });
+
+      // Notify the client their signed consent copy is ready (fire-and-forget)
+      try {
+        const { data: subj } = await supabaseAdmin
+          .from('subjects').select('name, email').eq('id', subject_id).single();
+        if (subj?.email) {
+          await sendEmail({
+            to: subj.email,
+            subject: 'Your signed consent copy is ready',
+            html: `<p>Dear ${subj.name || 'client'},</p>
+<p>Your informed consent has been signed and securely recorded with a tamper-proof seal. You can view and download your copy anytime from your client portal.</p>
+<p><a href="https://kaunselor.app/portal">Open your portal &rarr;</a></p>
+<p>— Kaunselor</p>`,
+          });
+        }
+      } catch (e) { console.error('consent email failed:', e?.message); }
+
       return res.status(200).json({ consent });
     } catch (err) {
       return res.status(500).json({ error: err.message || 'Internal server error' });

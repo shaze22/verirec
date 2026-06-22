@@ -12,8 +12,9 @@ import { generateReport, generateDocument, analyseContradictions } from '../../a
 import { updateSession } from '../../api/sessions.js';
 import toast from 'react-hot-toast';
 import { ASSESSMENTS, ASSESSMENT_LIST, BADGE_COLORS } from '../../data/assessments.js';
-import { getConsentDetail, withdrawConsent } from '../../api/consent.js';
+import { getConsentDetail, withdrawConsent, getCounselorLetterhead } from '../../api/consent.js';
 import { downloadConsentPdf } from '../../lib/consentPdf.js';
+import { downloadLetterPdf } from '../../lib/letterPdf.js';
 
 const PROBLEM_TYPES = [
   'Emotional', 'Social Relationships', 'Career Development', 'Family/Home',
@@ -51,6 +52,7 @@ export default function KaunslorClientFilePage() {
   const [savingPlan, setSavingPlan] = useState(false);
   const [savingReferral, setSavingReferral] = useState(false);
   const [consentRecord, setConsentRecord] = useState(null);
+  const [letterhead, setLetterhead] = useState(null);
   const [consentLoading, setConsentLoading] = useState(true);
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [withdrawing, setWithdrawing] = useState(false);
@@ -259,6 +261,7 @@ export default function KaunslorClientFilePage() {
     finally { setConsentLoading(false); }
   };
   useEffect(() => { if (user && id) loadConsent(); }, [user, id]);
+  useEffect(() => { if (user?.id) getCounselorLetterhead(user.id).then(setLetterhead).catch(() => {}); }, [user?.id]);
 
   const handleWithdrawConsent = async () => {
     if (!consentRecord) return;
@@ -276,7 +279,7 @@ export default function KaunslorClientFilePage() {
   const handleDownloadConsent = async () => {
     if (!consentRecord) return;
     setPdfBusy(true);
-    try { await downloadConsentPdf(consentRecord, { clientName: client?.name, counselorName }); }
+    try { await downloadConsentPdf(consentRecord, { clientName: client?.name, counselorName, profile: letterhead }); }
     catch (err) { toast.error(err.message || 'Failed to generate PDF.'); }
     finally { setPdfBusy(false); }
   };
@@ -2926,6 +2929,11 @@ export default function KaunslorClientFilePage() {
                     </body></html>`);
                     win.document.close();
                   }}>🖨 Print / Save as PDF</Button>
+                  <Button variant="secondary" className="w-full" onClick={() => {
+                    const docLabels = { employment: 'Employment Support Letter', court: 'Court Support Letter', school: 'Academic Support Letter', insurance: 'Insurance Progress Report' };
+                    downloadLetterPdf({ body: generatedDoc, title: docLabels[docType] || 'Clinical Document', clientName: client.name, profile: letterhead })
+                      .catch(err => toast.error(err.message || 'PDF failed.'));
+                  }}>📄 Download PDF (Letterhead)</Button>
                 </div>
               )}
             </div>

@@ -17,6 +17,26 @@ import { BillingSettings } from '../components/billing/BillingSettings.jsx';
 import { isCounselorSubdomain } from '../lib/subdomain.js';
 import toast from 'react-hot-toast';
 
+// Downscale + encode an image file to a compact PNG data URL (for letterhead logo/signature)
+function fileToCompressedDataUrl(file, maxW = 400, maxH = 400) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      const ratio = Math.min(maxW / width, maxH / height, 1);
+      width = Math.round(width * ratio); height = Math.round(height * ratio);
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      const url = canvas.toDataURL('image/png');
+      URL.revokeObjectURL(img.src);
+      resolve(url);
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
+
 export default function SettingsPage() {
   const { user, signOut } = useAuthStore();
   const { fetchSubscription, subscription } = useBillingStore();
@@ -415,6 +435,11 @@ export default function SettingsPage() {
                       bio: counselorProfile?.bio || '',
                       session_duration_minutes: counselorProfile?.session_duration_minutes || 60,
                       is_accepting_appointments: counselorProfile?.is_accepting_appointments ?? true,
+                      official_email: counselorProfile?.official_email || '',
+                      website: counselorProfile?.website || '',
+                      org_registration_no: counselorProfile?.org_registration_no || '',
+                      logo_data: counselorProfile?.logo_data || null,
+                      signature_data: counselorProfile?.signature_data || null,
                     });
                     setEditingProfile(true);
                   }}>
@@ -475,6 +500,68 @@ export default function SettingsPage() {
                     <label className="text-xs text-gray-500 mb-1 block">Short Bio</label>
                     <Textarea value={profileForm.bio} onChange={e => setProfileForm(f => ({ ...f, bio: e.target.value }))} rows={2} placeholder="Your specialization and experience..." />
                   </div>
+                  {/* Letterhead / Branding */}
+                  <div className="pt-3 mt-1 border-t border-gray-100 space-y-3">
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Letterhead &amp; Branding</p>
+                      <p className="text-[11px] text-gray-400">Used on consent receipts, referral &amp; support letters.</p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-gray-500 mb-1 block">Logo</label>
+                        <div className="flex items-center gap-3">
+                          {profileForm.logo_data ? (
+                            <img src={profileForm.logo_data} alt="logo" className="h-12 w-12 object-contain rounded-lg ring-1 ring-gray-200 bg-white" />
+                          ) : (
+                            <div className="h-12 w-12 rounded-lg ring-1 ring-dashed ring-gray-300 flex items-center justify-center text-gray-300 text-lg">🏷️</div>
+                          )}
+                          <div className="flex flex-col gap-1">
+                            <label className="text-xs font-semibold text-violet-700 cursor-pointer hover:underline">
+                              {profileForm.logo_data ? 'Change' : 'Upload'}
+                              <input type="file" accept="image/png,image/jpeg" className="hidden"
+                                onChange={async e => { const f = e.target.files?.[0]; if (!f) return; try { const d = await fileToCompressedDataUrl(f, 400, 400); setProfileForm(fm => ({ ...fm, logo_data: d })); } catch { toast.error('Could not read image.'); } e.target.value = ''; }} />
+                            </label>
+                            {profileForm.logo_data && (
+                              <button type="button" onClick={() => setProfileForm(fm => ({ ...fm, logo_data: null }))} className="text-xs text-gray-400 hover:text-red-500 text-left">Remove</button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500 mb-1 block">Signature (for letters)</label>
+                        <div className="flex items-center gap-3">
+                          {profileForm.signature_data ? (
+                            <img src={profileForm.signature_data} alt="signature" className="h-12 w-24 object-contain rounded-lg ring-1 ring-gray-200 bg-white" />
+                          ) : (
+                            <div className="h-12 w-24 rounded-lg ring-1 ring-dashed ring-gray-300 flex items-center justify-center text-gray-300 text-lg">✍️</div>
+                          )}
+                          <div className="flex flex-col gap-1">
+                            <label className="text-xs font-semibold text-violet-700 cursor-pointer hover:underline">
+                              {profileForm.signature_data ? 'Change' : 'Upload'}
+                              <input type="file" accept="image/png,image/jpeg" className="hidden"
+                                onChange={async e => { const f = e.target.files?.[0]; if (!f) return; try { const d = await fileToCompressedDataUrl(f, 600, 300); setProfileForm(fm => ({ ...fm, signature_data: d })); } catch { toast.error('Could not read image.'); } e.target.value = ''; }} />
+                            </label>
+                            {profileForm.signature_data && (
+                              <button type="button" onClick={() => setProfileForm(fm => ({ ...fm, signature_data: null }))} className="text-xs text-gray-400 hover:text-red-500 text-left">Remove</button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500 mb-1 block">Official Email</label>
+                        <Input type="email" value={profileForm.official_email} onChange={e => setProfileForm(f => ({ ...f, official_email: e.target.value }))} placeholder="clinic@example.com" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500 mb-1 block">Website</label>
+                        <Input value={profileForm.website} onChange={e => setProfileForm(f => ({ ...f, website: e.target.value }))} placeholder="www.example.com" />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="text-xs text-gray-500 mb-1 block">Org Registration No. (SSM / ROC)</label>
+                        <Input value={profileForm.org_registration_no} onChange={e => setProfileForm(f => ({ ...f, org_registration_no: e.target.value }))} placeholder="e.g. 202301234567 (1234567-X)" />
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="flex gap-2 pt-1">
                     <Button type="submit" loading={savingProfile} size="sm">Save</Button>
                     <Button type="button" variant="secondary" size="sm" onClick={() => setEditingProfile(false)}>Cancel</Button>
@@ -553,7 +640,7 @@ export default function SettingsPage() {
                 <div className="text-center py-4">
                   <p className="text-sm text-gray-500 mb-3">Counselor profile not set up yet.</p>
                   <Button size="sm" onClick={() => {
-                    setProfileForm({ display_name: '', phone: '', registration_number: '', klinik_name: '', klinik_address: '', bio: '', session_duration_minutes: 60, is_accepting_appointments: true });
+                    setProfileForm({ display_name: '', phone: '', registration_number: '', klinik_name: '', klinik_address: '', bio: '', session_duration_minutes: 60, is_accepting_appointments: true, official_email: '', website: '', org_registration_no: '', logo_data: null, signature_data: null });
                     setEditingProfile(true);
                   }}>Set Up Profile</Button>
                 </div>

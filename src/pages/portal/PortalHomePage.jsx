@@ -5,7 +5,7 @@ import { format, parseISO, isPast } from 'date-fns';
 import toast from 'react-hot-toast';
 import ScoreTrendChart from '../../components/portal/ScoreTrendChart.jsx';
 import ConsentCeremony from '../../components/session/ConsentCeremony.jsx';
-import { getConsentDetail } from '../../api/consent.js';
+import { getConsentDetail, getCounselorLetterhead } from '../../api/consent.js';
 import { downloadConsentPdf } from '../../lib/consentPdf.js';
 
 export default function PortalHomePage() {
@@ -34,6 +34,7 @@ export default function PortalHomePage() {
   const [consent, setConsent] = useState(null);
   const [showConsentSign, setShowConsentSign] = useState(false);
   const [consentPdfBusy, setConsentPdfBusy] = useState(false);
+  const [counselorLetterhead, setCounselorLetterhead] = useState(null);
   const [navOpen, setNavOpen] = useState(false);
   const tabRef = useRef(tab);
   tabRef.current = tab;
@@ -167,6 +168,8 @@ export default function PortalHomePage() {
 
       try { setConsent(await getConsentDetail(primary.id)); }
       catch (e) { console.error('Consent load error:', e?.message); }
+      try { setCounselorLetterhead(await getCounselorLetterhead(primary.user_id)); }
+      catch (e) { console.error('Letterhead load error:', e?.message); }
     } catch (err) {
       console.error('Portal load error:', err);
       toast.error('Failed to load your data.');
@@ -235,7 +238,7 @@ export default function PortalHomePage() {
   const handleDownloadConsent = async () => {
     if (!consent) return;
     setConsentPdfBusy(true);
-    try { await downloadConsentPdf(consent, { clientName: subject?.name }); }
+    try { await downloadConsentPdf(consent, { clientName: subject?.name, profile: counselorLetterhead }); }
     catch (err) { toast.error(err.message || 'Failed to generate PDF.'); }
     finally { setConsentPdfBusy(false); }
   };

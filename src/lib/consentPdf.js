@@ -1,4 +1,5 @@
 import { CONSENT_SECTIONS, CRISIS_RESOURCES } from '../data/consentDocument.js';
+import { renderLetterhead, renderLetterFooter } from './letterhead.js';
 
 const fill = (str, vars) => str.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
 
@@ -25,7 +26,7 @@ const LABELS = {
   },
 };
 
-export async function downloadConsentPdf(consent, { clientName = '', counselorName = '' } = {}) {
+export async function downloadConsentPdf(consent, { clientName = '', counselorName = '', profile = null } = {}) {
   const { default: jsPDF } = await import('jspdf');
   const lang = consent.language === 'en' ? 'en' : 'ms';
   const L = LABELS[lang];
@@ -42,13 +43,10 @@ export async function downloadConsentPdf(consent, { clientName = '', counselorNa
     lines.forEach(line => { ensure(size * 0.45 + 1.5); doc.text(line, M, y); y += size * 0.45 + 1.5; });
   };
 
-  // Header band
-  doc.setFillColor(124, 58, 237); doc.rect(0, 0, W, 22, 'F');
-  doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
-  doc.text('Kaunselor', M, 14);
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
-  doc.text(L.title, W - M, 14, { align: 'right' });
-  y = 30;
+  // Letterhead from the counselor's profile (logo, org, credentials, reg no)
+  y = profile ? renderLetterhead(doc, profile, { W, M }) : 16;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(124, 58, 237);
+  doc.text(L.title, M, y); y += 7;
 
   if (consent.status === 'withdrawn') {
     doc.setFillColor(254, 226, 226); doc.rect(M, y - 4, CW, 9, 'F');
@@ -99,6 +97,8 @@ export async function downloadConsentPdf(consent, { clientName = '', counselorNa
   text(consent.hash, 7.5, 'normal', [107, 114, 128]);
   y += 4;
   text(L.footer, 8, 'italic', [156, 163, 175]);
+
+  if (profile) renderLetterFooter(doc, profile, { W, M });
 
   const safe = (clientName || 'client').replace(/\s+/g, '-').toLowerCase();
   doc.save(`kaunselor-consent-${safe}-${consent.signed_at?.slice(0, 10) || 'signed'}.pdf`);

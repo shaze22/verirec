@@ -23,6 +23,18 @@ export async function getActiveConsent(subjectId) {
   return data;
 }
 
+// Counselor letterhead/branding for document headers (consent PDF, letters)
+export async function getCounselorLetterhead(userId) {
+  if (!userId) return null;
+  const { data, error } = await supabase
+    .from('counselor_profiles')
+    .select('display_name, credentials, registration_number, specializations, klinik_name, klinik_address, phone, website, official_email, org_registration_no, logo_data, signature_data')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (error) { console.error('letterhead load:', error.message); return null; }
+  return data || null;
+}
+
 // Full active consent record (incl. signature + clauses) for the counselor view / PDF
 export async function getConsentDetail(subjectId) {
   const { data, error } = await supabase
