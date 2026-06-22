@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import Reveal from '../components/ui/Reveal.jsx';
 
 const Logo = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-8 h-8 flex-shrink-0">
@@ -331,41 +332,53 @@ export default function CounselorLandingPage() {
         {/* Hero */}
         <section className="bg-gray-950 text-white overflow-hidden relative">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-900/40 via-transparent to-transparent pointer-events-none" />
+          {/* decorative glow orbs + grid */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+            <div className="absolute -top-20 -left-16 w-96 h-96 rounded-full bg-violet-600/20 blur-3xl float-blob" />
+            <div className="absolute top-10 -right-24 w-96 h-96 rounded-full bg-fuchsia-600/15 blur-3xl float-blob-2" />
+            <div
+              className="absolute inset-0 opacity-[0.04]"
+              style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '48px 48px' }}
+            />
+          </div>
           <div className="max-w-5xl mx-auto px-4 py-24 md:py-32 text-center relative">
-            <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/25 rounded-full px-4 py-1.5 text-sm font-medium text-violet-400 mb-8">
-              <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse inline-block" />
+            <div className="animate-fade-up inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/25 rounded-full px-4 py-1.5 text-sm font-medium text-violet-300 mb-8 backdrop-blur">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-violet-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-violet-400" />
+              </span>
               Global Standards · Built for Every Counselor
             </div>
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] mb-6 tracking-tight">
+            <h1 className="animate-fade-up text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] mb-6 tracking-tight" style={{ animationDelay: '0.08s' }}>
               Less Admin.<br />
-              <span className="text-violet-400">More Counseling.</span>
+              <span className="text-shimmer">More Counseling.</span>
             </h1>
-            <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-4 leading-relaxed">
+            <p className="animate-fade-up text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-4 leading-relaxed" style={{ animationDelay: '0.16s' }}>
               From QR booking to AI session reports. Kaunselor handles all the paperwork so you can focus entirely on your clients.
             </p>
-            <p className="text-sm text-gray-600 mb-10">
+            <p className="animate-fade-up text-sm text-gray-600 mb-10" style={{ animationDelay: '0.22s' }}>
               For licensed counselors in private practice, schools, and wellness centres.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-12">
+            <div className="animate-fade-up flex flex-col sm:flex-row items-center justify-center gap-3 mb-12" style={{ animationDelay: '0.3s' }}>
               <button onClick={() => navigate('/auth?mode=register&profession=counselor')}
-                className="w-full sm:w-auto bg-violet-600 text-white font-bold text-base px-8 py-3.5 rounded-xl hover:bg-violet-500 transition-colors shadow-lg shadow-violet-900/30">
-                Get Started Free →
+                className="group w-full sm:w-auto bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-bold text-base px-8 py-3.5 rounded-xl hover:-translate-y-0.5 hover:shadow-xl transition-all shadow-lg shadow-violet-900/40">
+                Get Started Free <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
               </button>
               <button onClick={() => document.getElementById('demo-section').scrollIntoView({ behavior: 'smooth' })}
-                className="w-full sm:w-auto border border-gray-700 text-gray-300 font-medium text-base px-8 py-3.5 rounded-xl hover:bg-gray-800 transition-colors">
+                className="w-full sm:w-auto border border-gray-700 text-gray-300 font-medium text-base px-8 py-3.5 rounded-xl hover:bg-gray-800 hover:border-gray-600 transition-colors backdrop-blur">
                 See Demo
               </button>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-6 max-w-xl mx-auto border-t border-gray-800 pt-10">
+            <div className="animate-fade-up grid grid-cols-3 gap-6 max-w-xl mx-auto border-t border-gray-800 pt-10" style={{ animationDelay: '0.38s' }}>
               {[
                 { val: 'AI', label: 'Red Flag Detection', sub: 'Real-time during session' },
                 { val: '5', label: 'Assessment Tools', sub: 'PHQ-9 · GAD-7 · DASS-21 · RIASEC · Big Five' },
                 { val: 'QR', label: 'Client Booking', sub: 'Fully automated' },
               ].map(({ val, label, sub }) => (
                 <div key={label} className="text-center">
-                  <div className="text-2xl font-bold text-violet-400">{val}</div>
+                  <div className="text-2xl font-bold bg-gradient-to-br from-violet-300 to-fuchsia-400 bg-clip-text text-transparent">{val}</div>
                   <div className="text-xs font-semibold text-gray-300 mt-1">{label}</div>
                   <div className="text-xs text-gray-600 mt-0.5">{sub}</div>
                 </div>
@@ -377,17 +390,20 @@ export default function CounselorLandingPage() {
         {/* Features */}
         <section className="py-24 px-4">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-14">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Everything you need. Nothing you don't.</h2>
+            <Reveal className="text-center mb-14">
+              <span className="text-sm font-bold text-violet-600 uppercase tracking-widest">Features</span>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2 mb-4">Everything you need. Nothing you don't.</h2>
               <p className="text-gray-500 text-lg max-w-xl mx-auto">One platform from first booking to final report.</p>
-            </div>
+            </Reveal>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {features.map((f) => (
-                <div key={f.title} className="group bg-white border border-gray-100 rounded-2xl p-6 hover:border-violet-200 hover:shadow-lg hover:shadow-violet-50 transition-all">
-                  <div className="text-2xl mb-4">{f.icon}</div>
-                  <h3 className="font-bold text-gray-900 mb-2 text-base">{f.title}</h3>
-                  <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
-                </div>
+              {features.map((f, i) => (
+                <Reveal key={f.title} delay={(i % 3) * 90}>
+                  <div className="group h-full bg-white ring-1 ring-gray-100 rounded-2xl p-6 hover:ring-violet-200 hover:shadow-xl hover:shadow-violet-100/60 hover:-translate-y-1 transition-all duration-300">
+                    <div className="flex h-12 w-12 items-center justify-center text-2xl rounded-xl bg-gradient-to-br from-violet-50 to-fuchsia-50 ring-1 ring-violet-100 mb-4 group-hover:scale-105 transition-transform">{f.icon}</div>
+                    <h3 className="font-bold text-gray-900 mb-2 text-base">{f.title}</h3>
+                    <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
+                  </div>
+                </Reveal>
               ))}
             </div>
           </div>
@@ -401,24 +417,25 @@ export default function CounselorLandingPage() {
         {/* How it works */}
         <section className="py-24 px-4 bg-gray-50">
           <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-14">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Up and running in minutes</h2>
+            <Reveal className="text-center mb-14">
+              <span className="text-sm font-bold text-violet-600 uppercase tracking-widest">How it works</span>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2 mb-4">Up and running in minutes</h2>
               <p className="text-gray-500 text-lg">No IT department needed.</p>
-            </div>
+            </Reveal>
             <div className="grid sm:grid-cols-3 gap-8 relative">
-              <div className="hidden sm:block absolute top-6 left-1/6 right-1/6 h-0.5 bg-gradient-to-r from-violet-200 via-violet-300 to-violet-200" />
+              <div className="hidden sm:block absolute top-7 left-1/6 right-1/6 h-0.5 bg-gradient-to-r from-violet-200 via-fuchsia-300 to-violet-200" />
               {[
                 { num: '1', title: 'Create Account', desc: 'Register in 2 minutes. Choose your credentials and specializations.' },
                 { num: '2', title: 'Share Your QR', desc: 'Clients book appointments through your personal booking link or QR code.' },
                 { num: '3', title: 'Start Counseling', desc: 'Record sessions, get AI reports, manage client files. All in one place.' },
-              ].map((s) => (
-                <div key={s.num} className="text-center relative">
-                  <div className="w-12 h-12 bg-violet-600 text-white rounded-2xl flex items-center justify-center text-lg font-bold mx-auto mb-4 shadow-lg shadow-violet-200">
+              ].map((s, i) => (
+                <Reveal key={s.num} delay={i * 120} className="text-center relative">
+                  <div className="w-14 h-14 bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white rounded-2xl flex items-center justify-center text-lg font-bold mx-auto mb-4 shadow-lg shadow-violet-200 ring-4 ring-white relative z-10">
                     {s.num}
                   </div>
                   <h3 className="font-bold text-gray-900 mb-2">{s.title}</h3>
                   <p className="text-gray-500 text-sm leading-relaxed">{s.desc}</p>
-                </div>
+                </Reveal>
               ))}
             </div>
           </div>
@@ -432,12 +449,12 @@ export default function CounselorLandingPage() {
                 { icon: '🔒', title: 'Privacy Law Compliant', desc: 'Client data encrypted. Consent permanently recorded. Full audit trail. PDPA & GDPR-ready.' },
                 { icon: '⚖️', title: 'Professional Standards Ready', desc: 'SOAP/DAP session notes and supervision logs structured to meet licensing body requirements.' },
                 { icon: '🛡️', title: 'Tamper-Proof Records', desc: 'Every session is cryptographically signed at generation. Prove your records were never altered, for any audit or review.' },
-              ].map(({ icon, title, desc }) => (
-                <div key={title} className="p-6">
-                  <div className="text-3xl mb-3">{icon}</div>
+              ].map(({ icon, title, desc }, i) => (
+                <Reveal key={title} delay={i * 100} className="p-6">
+                  <div className="flex h-14 w-14 items-center justify-center text-3xl rounded-2xl bg-gradient-to-br from-violet-50 to-fuchsia-50 ring-1 ring-violet-100 mx-auto mb-4">{icon}</div>
                   <h3 className="font-bold text-gray-900 mb-2 text-sm">{title}</h3>
                   <p className="text-gray-500 text-xs leading-relaxed">{desc}</p>
-                </div>
+                </Reveal>
               ))}
             </div>
           </div>
@@ -629,15 +646,23 @@ export default function CounselorLandingPage() {
         </section>
 
         {/* Final CTA */}
-        <section className="bg-gray-950 py-20 px-4 text-center">
-          <div className="max-w-2xl mx-auto">
-            <div className="text-4xl font-bold text-white mb-4">Ready to simplify your practice?</div>
+        <section className="relative overflow-hidden bg-gray-950 py-24 px-4 text-center">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-violet-900/50 via-transparent to-transparent pointer-events-none" />
+          <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+            <div className="absolute -bottom-24 left-1/2 -translate-x-1/2 w-[40rem] h-72 rounded-full bg-violet-600/20 blur-3xl float-blob" />
+            <div
+              className="absolute inset-0 opacity-[0.04]"
+              style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '48px 48px' }}
+            />
+          </div>
+          <Reveal className="relative max-w-2xl mx-auto">
+            <div className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">Ready to simplify your practice?</div>
             <p className="text-gray-400 text-lg mb-8">$22/month. Unlimited sessions. Cancel anytime.</p>
             <button onClick={() => navigate('/auth?mode=register&profession=counselor')}
-              className="bg-violet-600 text-white font-bold text-base px-10 py-4 rounded-xl hover:bg-violet-500 transition-colors shadow-lg shadow-violet-900/30">
-              Get Started Free →
+              className="group bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-bold text-base px-10 py-4 rounded-xl hover:-translate-y-0.5 hover:shadow-xl transition-all shadow-lg shadow-violet-900/40">
+              Get Started Free <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
             </button>
-          </div>
+          </Reveal>
         </section>
 
         {/* Footer */}
