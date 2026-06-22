@@ -8,6 +8,8 @@ import { generateReport } from '../../api/claude.js';
 import { updateSession } from '../../api/sessions.js';
 import { TopBar } from '../../components/layout/TopBar.jsx';
 import { Button } from '../../components/ui/Button.jsx';
+import ConsentCeremony from '../../components/session/ConsentCeremony.jsx';
+import { getActiveConsent, reaffirmConsent } from '../../api/consent.js';
 import toast from 'react-hot-toast';
 
 const AUDIO_ACCEPT = '.mp3,.m4a,.mp4,.wav,.ogg,.webm,.flac,.aac,.mov,.wma';
@@ -92,6 +94,41 @@ export default function KaunslorUploadSessionPage() {
   const [stepDetail, setStepDetail] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
+  // ── Pre-session consent gate ──
+  const [checkingConsent, setCheckingConsent] = useState(true);
+  const [activeConsent, setActiveConsent] = useState(null);
+  const [usedConsent, setUsedConsent] = useState(null); // consent attached to this session
+  const [gatePassed, setGatePassed] = useState(false);
+  const [forceNew, setForceNew] = useState(false);
+  const [reaffirming, setReaffirming] = useState(false);
+
+  useEffect(() => {
+    if (!client) return;
+    setCheckingConsent(true);
+    getActiveConsent(id)
+      .then(c => setActiveConsent(c))
+      .catch(err => { console.error('consent check failed:', err?.message); })
+      .finally(() => setCheckingConsent(false));
+  }, [client, id]);
+
+  const handleConsentComplete = (consent) => {
+    setUsedConsent({ ...consent, mode: 'signed' });
+    setGatePassed(true);
+  };
+
+  const handleReaffirm = async () => {
+    setReaffirming(true);
+    try {
+      await reaffirmConsent({ consentId: activeConsent.id, subjectId: id });
+      setUsedConsent({ ...activeConsent, mode: 'reaffirmed' });
+      setGatePassed(true);
+    } catch (err) {
+      toast.error(err.message || 'Failed to re-affirm consent.');
+    } finally {
+      setReaffirming(false);
+    }
+  };
+
   useEffect(() => {
     if (!user || !id) return;
     supabase.from('subjects').select('*').eq('id', id).eq('user_id', user.id).single()
@@ -160,7 +197,11 @@ export default function KaunslorUploadSessionPage() {
         subject_id: id,
         consent_signed: true,
         consent_data: {
-          items: ['Counselor confirms client consent was obtained prior to this session recording'],
+          consent_id: usedConsent?.id || null,
+          hash: usedConsent?.hash || null,
+          version: usedConsent?.version || null,
+          method: usedConsent?.mode || 'signed', // 'signed' (new) | 'reaffirmed'
+          signed_at: usedConsent?.signed_at || null,
           subject_name: client.name,
           import_mode: true,
         },
@@ -291,6 +332,54 @@ export default function KaunslorUploadSessionPage() {
       </div>
     </div>
   );
+
+  // ── Pre-session consent gate — must pass before the session form appears ──
+  if (client && !gatePassed) {
+    return (
+      <div className="flex flex-col h-screen bg-gray-50">
+        <TopBar title={`Consent: ${client?.name}`} onBack={() => navigate(`/kaunselor/clients/${id}`)} />
+        <div className="flex-1 overflow-auto p-6">
+          {checkingConsent ? (
+            <div className="flex justify-center pt-20">
+              <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : (activeConsent && !forceNew) ? (
+            <div className="max-w-xl mx-auto">
+              <div className="rounded-2xl ring-1 ring-gray-100 bg-white shadow-sm p-6">
+                <div className="flex h-12 w-12 items-center justify-center text-2xl rounded-xl bg-gradient-to-br from-violet-50 to-fuchsia-50 ring-1 ring-violet-100 mb-4">📝</div>
+                <h2 className="text-xl font-bold text-gray-900">Informed consent on file</h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Signed by <span className="font-medium text-gray-700">{activeConsent.full_name}</span> on{' '}
+                  {new Date(activeConsent.signed_at).toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  {activeConsent.is_guardian ? ' (guardian)' : ''}.
+                </p>
+                <div className="mt-4 rounded-xl bg-violet-50/60 ring-1 ring-violet-100 p-4 text-sm text-gray-600">
+                  Confirm verbally with the client that they still consent to today&apos;s session — including recording and AI-assisted documentation — then continue.
+                </div>
+                <button onClick={handleReaffirm} disabled={reaffirming}
+                  className="mt-5 w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-semibold px-8 py-3 rounded-xl shadow-lg shadow-violet-200 hover:-translate-y-0.5 hover:shadow-xl transition-all disabled:opacity-50">
+                  {reaffirming ? 'Confirming...' : 'Client re-affirms — Continue'}
+                </button>
+                <button onClick={() => setForceNew(true)} disabled={reaffirming}
+                  className="mt-2 w-full text-sm font-medium text-gray-500 hover:text-violet-700 py-2">
+                  Sign a new consent instead
+                </button>
+                <p className="text-center text-xs text-gray-400 mt-3">Consent valid for this episode of care · re-affirmed each session.</p>
+              </div>
+            </div>
+          ) : (
+            <ConsentCeremony
+              subjectId={id}
+              clientName={client.name}
+              counselorName={counselorName}
+              onComplete={handleConsentComplete}
+              onCancel={() => navigate(`/kaunselor/clients/${id}`)}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">

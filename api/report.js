@@ -156,6 +156,98 @@ export default async function handler(req, res) {
     }
   }
 
+  // Seal a signed informed-consent record (SHA-256 tamper seal, computed server-side)
+  if (req.url?.includes('mode=seal-consent')) {
+    try {
+      const token = req.headers.authorization?.replace('Bearer ', '');
+      if (!token) return res.status(401).json({ error: 'Unauthorized' });
+      const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+      if (authError || !user) return res.status(401).json({ error: 'Unauthorized' });
+
+      let body;
+      try { body = await readBody(req, MAX_BODY_BYTES); } catch (err) { return res.status(413).json({ error: err.message }); }
+      const {
+        subject_id, language, full_name, ic_number,
+        is_guardian, guardian_name, guardian_relationship,
+        clauses, signature, signed_at, version,
+      } = body || {};
+      if (!subject_id || !full_name || !signature || !signed_at) {
+        return res.status(400).json({ error: 'Missing required consent fields' });
+      }
+
+      // Verify the counselor owns this client
+      const { data: subject, error: subjErr } = await supabaseAdmin
+        .from('subjects').select('id, user_id').eq('id', subject_id).single();
+      if (subjErr || !subject || subject.user_id !== user.id) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
+      const canonical = JSON.stringify({
+        subject_id, version: version || '0', language: language || 'ms', full_name,
+        ic_number: ic_number || null, is_guardian: !!is_guardian,
+        guardian_name: guardian_name || null, guardian_relationship: guardian_relationship || null,
+        clauses: clauses || {}, signed_at,
+        signature_sha: crypto.createHash('sha256').update(signature).digest('hex'),
+      });
+      const hash = crypto.createHash('sha256').update(canonical).digest('hex');
+
+      // A new full consent supersedes any prior active consent for this client
+      await supabaseAdmin.from('client_consents')
+        .update({ status: 'superseded' })
+        .eq('subject_id', subject_id).eq('status', 'active');
+
+      const { data: consent, error: insErr } = await supabaseAdmin
+        .from('client_consents')
+        .insert({
+          subject_id, user_id: user.id, version: version || '0',
+          language: language || 'ms', full_name,
+          ic_number: ic_number || null, is_guardian: !!is_guardian,
+          guardian_name: guardian_name || null, guardian_relationship: guardian_relationship || null,
+          clauses: clauses || {}, signature_data: signature,
+          signed_at, hash, user_agent: req.headers['user-agent'] || '', status: 'active',
+        })
+        .select('id, hash, signed_at, status, full_name, language')
+        .single();
+      if (insErr) return res.status(500).json({ error: insErr.message });
+      return res.status(200).json({ consent });
+    } catch (err) {
+      return res.status(500).json({ error: err.message || 'Internal server error' });
+    }
+  }
+
+  // Re-affirm an existing active consent at the start of a follow-up session
+  if (req.url?.includes('mode=reaffirm-consent')) {
+    try {
+      const token = req.headers.authorization?.replace('Bearer ', '');
+      if (!token) return res.status(401).json({ error: 'Unauthorized' });
+      const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+      if (authError || !user) return res.status(401).json({ error: 'Unauthorized' });
+
+      let body;
+      try { body = await readBody(req, 10240); } catch (err) { return res.status(413).json({ error: err.message }); }
+      const { consent_id, subject_id, session_id } = body || {};
+      if (!consent_id || !subject_id) return res.status(400).json({ error: 'Missing fields' });
+
+      const { data: consent, error: cErr } = await supabaseAdmin
+        .from('client_consents').select('id, user_id, hash, status').eq('id', consent_id).single();
+      if (cErr || !consent || consent.user_id !== user.id) return res.status(403).json({ error: 'Forbidden' });
+      if (consent.status !== 'active') return res.status(400).json({ error: 'Consent is not active' });
+
+      const affirmed_at = new Date().toISOString();
+      const hash = crypto.createHash('sha256')
+        .update(JSON.stringify({ consent_id, subject_id, session_id: session_id || null, affirmed_at, base: consent.hash }))
+        .digest('hex');
+      const { data: row, error: rErr } = await supabaseAdmin
+        .from('consent_reaffirmations')
+        .insert({ consent_id, subject_id, user_id: user.id, session_id: session_id || null, affirmed_at, hash })
+        .select('id, affirmed_at').single();
+      if (rErr) return res.status(500).json({ error: rErr.message });
+      return res.status(200).json({ reaffirmation: row });
+    } catch (err) {
+      return res.status(500).json({ error: err.message || 'Internal server error' });
+    }
+  }
+
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
     if (!token) return res.status(401).json({ error: 'Unauthorized' });
