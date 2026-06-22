@@ -34,6 +34,7 @@ export default function PortalHomePage() {
   const [consent, setConsent] = useState(null);
   const [showConsentSign, setShowConsentSign] = useState(false);
   const [consentPdfBusy, setConsentPdfBusy] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const tabRef = useRef(tab);
   tabRef.current = tab;
 
@@ -289,15 +290,16 @@ export default function PortalHomePage() {
   });
 
   const TABS = [
-    { id: 'overview',     label: 'Overview' },
-    { id: 'appointments', label: `Appointments (${appointments.length})` },
-    { id: 'homework',     label: `Tasks (${homework.length})` },
-    { id: 'assessments',  label: `Assessments (${assessments.length})` },
-    { id: 'resources',    label: `Resources (${resources.length})` },
-    { id: 'consent',      label: consent && consent.status === 'active' ? 'Consent ✓' : 'Consent' },
-    { id: 'messages',     label: `Messages${unreadCount ? ` (${unreadCount})` : ''}` },
-    { id: 'invoices',     label: `Invoices${unpaidInvoices.length ? ` (${unpaidInvoices.length})` : ''}` },
+    { id: 'overview',     label: 'Overview', icon: '🏠' },
+    { id: 'appointments', label: `Appointments (${appointments.length})`, icon: '📅' },
+    { id: 'homework',     label: `Tasks (${homework.length})`, icon: '✅' },
+    { id: 'assessments',  label: `Assessments (${assessments.length})`, icon: '📊' },
+    { id: 'resources',    label: `Resources (${resources.length})`, icon: '📚' },
+    { id: 'consent',      label: consent && consent.status === 'active' ? 'Consent ✓' : 'Consent', icon: '📝' },
+    { id: 'messages',     label: `Messages${unreadCount ? ` (${unreadCount})` : ''}`, icon: '💬' },
+    { id: 'invoices',     label: `Invoices${unpaidInvoices.length ? ` (${unpaidInvoices.length})` : ''}`, icon: '🧾' },
   ];
+  const activeTab = TABS.find(t => t.id === tab) || TABS[0];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -318,22 +320,50 @@ export default function PortalHomePage() {
           <button onClick={() => signOut()} className="text-xs text-gray-400 hover:text-red-500 transition-colors">Sign Out</button>
         </div>
 
-        {/* Tab bar */}
-        <div className="max-w-2xl mx-auto px-4 pb-0 overflow-x-auto">
-          <div className="flex gap-0 min-w-max">
-            {TABS.map(t => (
-              <button key={t.id} onClick={() => setTab(t.id)}
-                className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
-                  tab === t.id ? 'border-violet-600 text-violet-700' : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}>
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
+      <div className="max-w-5xl mx-auto px-4 py-6 md:flex md:gap-6 md:items-start">
+
+        {/* Desktop side nav */}
+        <aside className="hidden md:block w-56 flex-shrink-0">
+          <nav className="sticky top-24 space-y-1">
+            {TABS.map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-left transition-colors ${
+                  tab === t.id ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-sm shadow-violet-200' : 'text-gray-600 hover:bg-gray-100'
+                }`}>
+                <span className="text-base">{t.icon}</span>
+                <span className="truncate">{t.label}</span>
+              </button>
+            ))}
+          </nav>
+        </aside>
+
+        {/* Mobile dropdown nav */}
+        <div className="md:hidden mb-4 relative">
+          <button onClick={() => setNavOpen(o => !o)}
+            className="w-full flex items-center justify-between gap-2 bg-white ring-1 ring-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-800 shadow-sm">
+            <span className="flex items-center gap-2"><span>{activeTab.icon}</span>{activeTab.label}</span>
+            <svg className={`w-4 h-4 text-gray-400 transition-transform ${navOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {navOpen && (
+            <div className="absolute z-20 mt-1 w-full bg-white ring-1 ring-gray-200 rounded-xl shadow-lg overflow-hidden">
+              {TABS.map(t => (
+                <button key={t.id} onClick={() => { setTab(t.id); setNavOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-left transition-colors ${
+                    tab === t.id ? 'bg-violet-50 text-violet-700' : 'text-gray-600 hover:bg-gray-50'
+                  }`}>
+                  <span>{t.icon}</span><span className="truncate">{t.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Content */}
+        <main className="flex-1 min-w-0 md:max-w-2xl space-y-4">
 
         {/* Overview */}
         {tab === 'overview' && (
@@ -797,6 +827,7 @@ export default function PortalHomePage() {
           </div>
         )}
 
+        </main>
       </div>
 
       {/* Reschedule modal */}
