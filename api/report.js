@@ -175,12 +175,14 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Missing required consent fields' });
       }
 
-      // Verify the counselor owns this client
+      // Authorize: the counselor who owns the client, OR the client themselves (portal self-sign)
       const { data: subject, error: subjErr } = await supabaseAdmin
-        .from('subjects').select('id, user_id').eq('id', subject_id).single();
-      if (subjErr || !subject || subject.user_id !== user.id) {
-        return res.status(403).json({ error: 'Forbidden' });
-      }
+        .from('subjects').select('id, user_id, portal_user_id').eq('id', subject_id).single();
+      if (subjErr || !subject) return res.status(403).json({ error: 'Forbidden' });
+      const isCounselor = subject.user_id === user.id;
+      const isClient = subject.portal_user_id === user.id;
+      if (!isCounselor && !isClient) return res.status(403).json({ error: 'Forbidden' });
+      const signed_via = isCounselor ? 'in_person' : 'portal';
 
       const canonical = JSON.stringify({
         subject_id, version: version || '0', language: language || 'ms', full_name,
@@ -199,14 +201,15 @@ export default async function handler(req, res) {
       const { data: consent, error: insErr } = await supabaseAdmin
         .from('client_consents')
         .insert({
-          subject_id, user_id: user.id, version: version || '0',
+          subject_id, user_id: subject.user_id, version: version || '0',
           language: language || 'ms', full_name,
           ic_number: ic_number || null, is_guardian: !!is_guardian,
           guardian_name: guardian_name || null, guardian_relationship: guardian_relationship || null,
           clauses: clauses || {}, signature_data: signature,
           signed_at, hash, user_agent: req.headers['user-agent'] || '', status: 'active',
+          signed_via,
         })
-        .select('id, hash, signed_at, status, full_name, language')
+        .select('id, hash, signed_at, status, full_name, language, signed_via')
         .single();
       if (insErr) return res.status(500).json({ error: insErr.message });
       return res.status(200).json({ consent });

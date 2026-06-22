@@ -4,6 +4,9 @@ import { supabase } from '../../lib/supabase.js';
 import { format, parseISO, isPast } from 'date-fns';
 import toast from 'react-hot-toast';
 import ScoreTrendChart from '../../components/portal/ScoreTrendChart.jsx';
+import ConsentCeremony from '../../components/session/ConsentCeremony.jsx';
+import { getConsentDetail } from '../../api/consent.js';
+import { downloadConsentPdf } from '../../lib/consentPdf.js';
 
 export default function PortalHomePage() {
   const { user, signOut } = useAuthStore();
@@ -28,6 +31,9 @@ export default function PortalHomePage() {
   const [payingInvoiceId, setPayingInvoiceId] = useState(null);
   const [paymentError, setPaymentError] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [consent, setConsent] = useState(null);
+  const [showConsentSign, setShowConsentSign] = useState(false);
+  const [consentPdfBusy, setConsentPdfBusy] = useState(false);
   const tabRef = useRef(tab);
   tabRef.current = tab;
 
@@ -157,6 +163,9 @@ export default function PortalHomePage() {
       ]);
       setInvoices(invData || []);
       setCounselorPaymentUrl(profileData?.payment_url || '');
+
+      try { setConsent(await getConsentDetail(primary.id)); }
+      catch (e) { console.error('Consent load error:', e?.message); }
     } catch (err) {
       console.error('Portal load error:', err);
       toast.error('Failed to load your data.');
@@ -217,6 +226,19 @@ export default function PortalHomePage() {
     setResources(prev => prev.map(x => x.id === r.id ? { ...x, viewed_at: new Date().toISOString() } : x));
   };
 
+  const handleConsentSigned = async () => {
+    setShowConsentSign(false);
+    try { setConsent(await getConsentDetail(subject.id)); } catch { /* ignore */ }
+  };
+
+  const handleDownloadConsent = async () => {
+    if (!consent) return;
+    setConsentPdfBusy(true);
+    try { await downloadConsentPdf(consent, { clientName: subject?.name }); }
+    catch (err) { toast.error(err.message || 'Failed to generate PDF.'); }
+    finally { setConsentPdfBusy(false); }
+  };
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-violet-50">
       <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
@@ -272,6 +294,7 @@ export default function PortalHomePage() {
     { id: 'homework',     label: `Tasks (${homework.length})` },
     { id: 'assessments',  label: `Assessments (${assessments.length})` },
     { id: 'resources',    label: `Resources (${resources.length})` },
+    { id: 'consent',      label: consent && consent.status === 'active' ? 'Consent ✓' : 'Consent' },
     { id: 'messages',     label: `Messages${unreadCount ? ` (${unreadCount})` : ''}` },
     { id: 'invoices',     label: `Invoices${unpaidInvoices.length ? ` (${unpaidInvoices.length})` : ''}` },
   ];
@@ -315,6 +338,17 @@ export default function PortalHomePage() {
         {/* Overview */}
         {tab === 'overview' && (
           <div className="space-y-4">
+            {(!consent || consent.status !== 'active') && (
+              <button onClick={() => setTab('consent')}
+                className="w-full flex items-center gap-3 text-left rounded-2xl bg-amber-50 ring-1 ring-amber-200 p-4 hover:bg-amber-100/60 transition-colors">
+                <span className="text-xl">📝</span>
+                <span className="flex-1">
+                  <span className="block text-sm font-semibold text-amber-800">Sign your informed consent</span>
+                  <span className="block text-xs text-amber-600">Tap to review and sign — it only takes a minute.</span>
+                </span>
+                <span className="text-amber-700 text-sm">→</span>
+              </button>
+            )}
             {/* Summary cards */}
             <div className="grid grid-cols-3 gap-3">
               {[
@@ -615,6 +649,57 @@ export default function PortalHomePage() {
             })}
           </div>
         )}
+        {/* Consent */}
+        {tab === 'consent' && (
+          <div className="space-y-4">
+            {showConsentSign ? (
+              <ConsentCeremony
+                subjectId={subject.id}
+                clientName={subject.name}
+                counselorName=""
+                onComplete={handleConsentSigned}
+                onCancel={() => setShowConsentSign(false)}
+              />
+            ) : consent && consent.status === 'active' ? (
+              <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-5">
+                <div className="flex h-12 w-12 items-center justify-center text-2xl rounded-xl bg-gradient-to-br from-violet-50 to-fuchsia-50 ring-1 ring-violet-100 mb-4">📝</div>
+                <h2 className="text-lg font-bold text-gray-900">Your informed consent</h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Signed by <span className="font-medium text-gray-700">{consent.full_name}</span>
+                  {consent.is_guardian ? ' (guardian)' : ''} on {format(parseISO(consent.signed_at), 'd MMM yyyy, h:mm a')}.
+                </p>
+                {consent.signature_data && (
+                  <img src={consent.signature_data} alt="signature" className="mt-3 h-16 bg-white rounded-lg ring-1 ring-gray-100" />
+                )}
+                <p className="mt-3 text-[10px] text-gray-400 font-mono break-all">SHA-256: {consent.hash}</p>
+                <div className="flex flex-wrap gap-2 mt-4">
+                  <button onClick={handleDownloadConsent} disabled={consentPdfBusy}
+                    className="px-4 py-2.5 text-sm font-semibold bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-xl shadow-lg shadow-violet-200 hover:-translate-y-0.5 transition-all disabled:opacity-50">
+                    {consentPdfBusy ? 'Preparing…' : 'Download my copy (PDF)'}
+                  </button>
+                  <button onClick={() => setShowConsentSign(true)}
+                    className="px-4 py-2.5 text-sm font-semibold border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50">
+                    Sign again
+                  </button>
+                </div>
+                <p className="mt-3 text-xs text-gray-400">A copy is kept by both you and your counselor. You may withdraw consent anytime by contacting your counselor.</p>
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-6 text-center">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center text-2xl rounded-2xl bg-gradient-to-br from-violet-50 to-fuchsia-50 ring-1 ring-violet-100 mb-4">📝</div>
+                <h2 className="text-lg font-bold text-gray-900">Informed consent</h2>
+                <p className="text-sm text-gray-500 mt-1 max-w-sm mx-auto">
+                  Please read and sign your informed consent. You can do it right here on your device, and download a copy for your records.
+                </p>
+                <button onClick={() => setShowConsentSign(true)}
+                  className="mt-5 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-semibold px-8 py-3 rounded-xl shadow-lg shadow-violet-200 hover:-translate-y-0.5 transition-all">
+                  Review &amp; Sign
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Messages */}
         {tab === 'messages' && (
           <div className="space-y-4">

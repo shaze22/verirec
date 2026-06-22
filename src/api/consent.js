@@ -27,7 +27,7 @@ export async function getActiveConsent(subjectId) {
 export async function getConsentDetail(subjectId) {
   const { data, error } = await supabase
     .from('client_consents')
-    .select('id, version, language, full_name, ic_number, is_guardian, guardian_name, guardian_relationship, clauses, signature_data, signed_at, hash, status, withdrawn_at, created_at')
+    .select('id, version, language, full_name, ic_number, is_guardian, guardian_name, guardian_relationship, clauses, signature_data, signed_at, hash, status, withdrawn_at, created_at, signed_via')
     .eq('subject_id', subjectId)
     .order('signed_at', { ascending: false })
     .limit(1)
