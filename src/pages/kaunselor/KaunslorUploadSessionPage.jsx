@@ -299,11 +299,11 @@ export default function KaunslorUploadSessionPage() {
         <div className="max-w-2xl mx-auto space-y-6">
 
           {/* Mode toggle */}
-          <div className="bg-white rounded-2xl border p-1 flex gap-1">
+          <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-1 flex gap-1">
             <button
               onClick={() => setMode('audio')}
               className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all ${
-                mode === 'audio' ? 'bg-violet-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                mode === 'audio' ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-sm shadow-violet-200' : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -314,7 +314,7 @@ export default function KaunslorUploadSessionPage() {
             <button
               onClick={() => setMode('txt')}
               className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all ${
-                mode === 'txt' ? 'bg-violet-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                mode === 'txt' ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-sm shadow-violet-200' : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -376,13 +376,13 @@ export default function KaunslorUploadSessionPage() {
           {/* ── TXT transcript mode ── */}
           {mode === 'txt' && (
             <div className="space-y-3">
-              <div className="bg-violet-50 border border-violet-100 rounded-xl p-4">
+              <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 ring-1 ring-violet-100 rounded-2xl p-4">
                 <p className="text-sm font-medium text-violet-800 mb-1">Import transcript from PLAUD Note or any transcription tool</p>
                 <p className="text-xs text-violet-600">Paste your transcript below, or upload a .txt file. Speaker labels like "Counselor:" or "Client:" will be auto-detected.</p>
               </div>
               <button
                 onClick={() => txtFileRef.current?.click()}
-                className="flex items-center gap-2 text-sm text-violet-600 border border-violet-200 rounded-lg px-3 py-2 hover:bg-violet-50 transition-colors"
+                className="flex items-center gap-2 text-sm text-violet-600 ring-1 ring-violet-200 rounded-lg px-3 py-2 hover:bg-violet-50 transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -396,20 +396,20 @@ export default function KaunslorUploadSessionPage() {
                 onChange={(e) => setTxtContent(e.target.value)}
                 rows={10}
                 placeholder={"Paste transcript here...\n\nContoh format:\nCounselor: Bagaimana perasaan awak hari ini?\nClient: Saya rasa lebih baik dari minggu lepas..."}
-                className="w-full text-sm border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none font-mono"
+                className="w-full text-sm rounded-xl px-4 py-3 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none font-mono"
               />
             </div>
           )}
 
           {/* Session details */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-4">
+          <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-5 space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Counselor Name</label>
               <input
                 value={counselorName}
                 onChange={(e) => setCounselorName(e.target.value)}
                 placeholder="Your name"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full rounded-xl px-4 py-2.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
               />
             </div>
             <div>
@@ -419,14 +419,14 @@ export default function KaunslorUploadSessionPage() {
                 onChange={(e) => setContextNotes(e.target.value)}
                 rows={2}
                 placeholder="Presenting issue, session objectives, counseling approach used..."
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
+                className="w-full rounded-xl px-4 py-2.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
               />
             </div>
           </div>
 
           {/* Processing progress */}
           {processing && (
-            <div className="bg-white border border-violet-100 rounded-2xl p-6 space-y-4">
+            <div className="bg-white rounded-2xl ring-1 ring-violet-100 shadow-sm p-6 space-y-4">
               <p className="text-sm font-semibold text-gray-700 mb-2">Processing Session</p>
               <div className="space-y-3">
                 {mode === 'audio' && (
@@ -444,7 +444,7 @@ export default function KaunslorUploadSessionPage() {
           )}
 
           {errorMsg && (
-            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+            <div className="bg-red-50 ring-1 ring-red-200 rounded-xl px-4 py-3">
               <p className="text-sm text-red-700 font-medium">Processing failed</p>
               <p className="text-xs text-red-600 mt-1">{errorMsg}</p>
             </div>
@@ -453,7 +453,7 @@ export default function KaunslorUploadSessionPage() {
           {!processing && (
             <Button
               onClick={handleProcess}
-              className="w-full py-3.5 text-base font-bold bg-violet-600 hover:bg-violet-700"
+              className="w-full py-3.5 text-base font-semibold bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-xl shadow-lg shadow-violet-200 hover:-translate-y-0.5 hover:shadow-xl transition-all"
               disabled={mode === 'audio' ? !audioFile : !txtContent.trim()}
             >
               {mode === 'audio' ? '🚀 Upload & Generate Report' : '📄 Process Transcript & Generate Report'}

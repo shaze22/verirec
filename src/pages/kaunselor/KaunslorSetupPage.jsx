@@ -10,7 +10,7 @@ import toast from 'react-hot-toast';
 function Tag({ label, selected, onToggle }) {
   return (
     <button type="button" onClick={onToggle}
-      className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${selected ? 'bg-blue-100 text-blue-700 border-blue-300' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>
+      className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${selected ? 'bg-violet-100 text-violet-700 border-violet-300' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>
       {label}
     </button>
   );
@@ -76,7 +76,7 @@ export default function KaunslorSetupPage() {
     }
   };
 
-  if (loading) return <div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
     <div className="flex flex-col h-screen">
@@ -84,16 +84,16 @@ export default function KaunslorSetupPage() {
       <div className="flex-1 overflow-auto p-6 pb-20 md:pb-6">
         <div className="max-w-2xl mx-auto space-y-6">
 
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800 flex items-start justify-between gap-3">
+          <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 ring-1 ring-violet-100 rounded-2xl p-4 text-sm text-violet-800 flex items-start justify-between gap-3">
             <span><strong>Welcome to Kaunselor.</strong> Complete your profile to start accepting appointments from clients.</span>
             <button type="button" onClick={() => { localStorage.setItem(`counselor_setup_skipped_${user?.id}`, '1'); navigate('/dashboard'); }}
-              className="text-xs text-blue-500 hover:text-blue-700 flex-shrink-0 underline">Skip</button>
+              className="text-xs text-violet-500 hover:text-violet-700 flex-shrink-0 underline">Skip</button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
 
             {/* Personal info */}
-            <div className="bg-white rounded-xl border p-5 space-y-4">
+            <div className="rounded-2xl ring-1 ring-gray-100 bg-white shadow-sm p-5 space-y-4">
               <h3 className="font-semibold text-gray-900">Personal Information</h3>
               <Input label="Display Name *" value={form.display_name} onChange={set('display_name')} placeholder="Name that will be shown to clients" required />
               <Input label="Phone / WhatsApp Number *" value={form.phone} onChange={set('phone')} type="tel" placeholder="e.g. 012-3456789" required />
@@ -102,13 +102,13 @@ export default function KaunslorSetupPage() {
             </div>
 
             {/* Practice type */}
-            <div className="bg-white rounded-xl border p-5 space-y-4">
+            <div className="rounded-2xl ring-1 ring-gray-100 bg-white shadow-sm p-5 space-y-4">
               <h3 className="font-semibold text-gray-900">Location & Practice Type</h3>
               <div className="grid grid-cols-2 gap-3">
                 {[{ val: 'solo', label: '👤 Solo Practitioner', desc: 'Private practice' }, { val: 'klinik', label: '🏥 Clinic / Center', desc: 'Has admin / receptionist' }].map(opt => (
                   <button key={opt.val} type="button"
                     onClick={() => setForm(f => ({ ...f, practice_type: opt.val }))}
-                    className={`p-4 rounded-xl border-2 text-left transition-all ${form.practice_type === opt.val ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                    className={`p-4 rounded-xl border-2 text-left transition-all ${form.practice_type === opt.val ? 'border-violet-500 bg-violet-50' : 'border-gray-200 hover:border-gray-300'}`}>
                     <div className="font-medium text-sm">{opt.label}</div>
                     <div className="text-xs text-gray-500 mt-1">{opt.desc}</div>
                   </button>
@@ -122,7 +122,7 @@ export default function KaunslorSetupPage() {
             </div>
 
             {/* Credentials */}
-            <div className="bg-white rounded-xl border p-5 space-y-3">
+            <div className="rounded-2xl ring-1 ring-gray-100 bg-white shadow-sm p-5 space-y-3">
               <h3 className="font-semibold text-gray-900">Credentials *</h3>
               <div className="flex flex-wrap gap-2">
                 {CREDENTIALS_OPTIONS.map(c => (
@@ -132,7 +132,7 @@ export default function KaunslorSetupPage() {
             </div>
 
             {/* Specializations */}
-            <div className="bg-white rounded-xl border p-5 space-y-3">
+            <div className="rounded-2xl ring-1 ring-gray-100 bg-white shadow-sm p-5 space-y-3">
               <h3 className="font-semibold text-gray-900">Specializations</h3>
               <div className="flex flex-wrap gap-2">
                 {SPECIALIZATIONS_OPTIONS.map(s => (
@@ -142,25 +142,25 @@ export default function KaunslorSetupPage() {
             </div>
 
             {/* Session settings */}
-            <div className="bg-white rounded-xl border p-5 space-y-4">
+            <div className="rounded-2xl ring-1 ring-gray-100 bg-white shadow-sm p-5 space-y-4">
               <h3 className="font-semibold text-gray-900">Session Settings</h3>
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-1 block">Session Duration (minutes)</label>
                 <select value={form.session_duration_minutes} onChange={e => setForm(f => ({ ...f, session_duration_minutes: +e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  className="w-full rounded-xl px-4 py-2.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                   {[30, 45, 60, 90, 120].map(m => <option key={m} value={m}>{m} minutes</option>)}
                 </select>
               </div>
               <div className="flex items-center gap-3">
                 <input type="checkbox" id="accepting" checked={form.is_accepting_appointments}
                   onChange={e => setForm(f => ({ ...f, is_accepting_appointments: e.target.checked }))}
-                  className="w-4 h-4 text-blue-600 rounded" />
+                  className="w-4 h-4 text-violet-600 rounded" />
                 <label htmlFor="accepting" className="text-sm text-gray-700">Accepting new appointments from clients</label>
               </div>
-              <div className="bg-gray-50 rounded-lg p-3">
-                <p className="text-xs text-gray-500 mb-1">Your Booking Code</p>
+              <div className="rounded-xl p-4 bg-gradient-to-br from-violet-50 to-fuchsia-50 ring-1 ring-violet-100">
+                <p className="text-xs text-violet-600 font-semibold mb-1">Your Booking Code</p>
                 <p className="font-mono font-bold text-gray-900 text-lg">{form.booking_code}</p>
-                <p className="text-xs text-gray-400 mt-1">URL: kaunselor.app/book/{form.booking_code}</p>
+                <p className="text-xs text-gray-500 mt-1">URL: kaunselor.app/book/{form.booking_code}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Online Payment Link</label>

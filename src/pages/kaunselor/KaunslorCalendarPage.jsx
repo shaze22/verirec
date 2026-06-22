@@ -53,7 +53,7 @@ export default function KaunslorCalendarPage() {
         <div className="max-w-3xl mx-auto space-y-4">
 
           {/* Month navigation */}
-          <div className="flex items-center justify-between bg-white rounded-xl border px-4 py-3">
+          <div className="flex items-center justify-between rounded-2xl ring-1 ring-gray-100 bg-white shadow-sm px-4 py-3">
             <button onClick={() => setMonth(m => subMonths(m, 1))} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
               <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
             </button>
@@ -70,7 +70,7 @@ export default function KaunslorCalendarPage() {
           </div>
 
           {/* Calendar grid */}
-          <div className="bg-white rounded-xl border overflow-hidden">
+          <div className="rounded-2xl ring-1 ring-gray-100 bg-white shadow-sm overflow-hidden">
             <div className="grid grid-cols-7 border-b">
               {DAY_LABELS.map(d => (
                 <div key={d} className="text-center text-xs font-semibold text-gray-400 py-2">{d}</div>
@@ -119,7 +119,7 @@ export default function KaunslorCalendarPage() {
 
           {/* Selected day detail */}
           {selected && selectedEvents && (selectedEvents.sessions.length > 0 || selectedEvents.appointments.length > 0) && (
-            <div className="bg-white rounded-xl border p-4 space-y-3">
+            <div className="rounded-2xl ring-1 ring-gray-100 bg-white shadow-sm p-4 space-y-3">
               <h3 className="font-semibold text-gray-900">{format(selected, 'dd MMMM yyyy')}</h3>
               {selectedEvents.sessions.map(s => (
                 <div key={s.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
@@ -151,7 +151,7 @@ export default function KaunslorCalendarPage() {
           )}
 
           {selected && selectedEvents && selectedEvents.sessions.length === 0 && selectedEvents.appointments.length === 0 && (
-            <div className="bg-white rounded-xl border p-4 text-center text-gray-400 text-sm">
+            <div className="rounded-2xl ring-1 ring-gray-100 bg-white shadow-sm p-4 text-center text-gray-400 text-sm">
               No activity on {format(selected, 'dd MMM yyyy')}
             </div>
           )}

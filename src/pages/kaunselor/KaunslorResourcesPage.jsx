@@ -3,6 +3,7 @@ import { useAuthStore } from '../../store/authStore.js';
 import { supabase } from '../../lib/supabase.js';
 import { format, parseISO } from 'date-fns';
 import { Button } from '../../components/ui/Button.jsx';
+import Reveal from '../../components/ui/Reveal.jsx';
 import toast from 'react-hot-toast';
 
 const CATEGORIES = ['General', 'Anxiety', 'Depression', 'Grief', 'Relationships', 'Trauma', 'Career', 'Parenting', 'Self-Care', 'Crisis Support'];
@@ -74,7 +75,7 @@ export default function KaunslorResourcesPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Psychoeducation Library</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Psychoeducation Library</h1>
             <p className="text-sm text-gray-500 mt-0.5">Manage resources to assign to clients</p>
           </div>
           <Button onClick={openAdd} className="bg-violet-600 hover:bg-violet-700">+ Add Resource</Button>
@@ -84,8 +85,8 @@ export default function KaunslorResourcesPage() {
         <div className="flex gap-2 flex-wrap">
           {cats.map(c => (
             <button key={c} onClick={() => setFilterCat(c)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                filterCat === c ? 'bg-violet-600 text-white' : 'bg-white text-gray-500 border hover:border-violet-400'
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                filterCat === c ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-sm' : 'bg-white text-gray-500 ring-1 ring-gray-100 hover:ring-violet-200'
               }`}>
               {c}
             </button>
@@ -94,18 +95,22 @@ export default function KaunslorResourcesPage() {
 
         {/* Resource list */}
         {filtered.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
-            <div className="text-4xl mb-3">📚</div>
-            <p className="text-sm">No resources yet.</p>
-            <p className="text-xs mt-1 text-gray-300">Add articles, videos, worksheets, or links to share with clients.</p>
+          <div className="text-center py-16">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl bg-gradient-to-br from-violet-50 to-fuchsia-50 ring-1 ring-violet-100">📚</div>
+            <p className="text-sm font-semibold text-gray-700">No resources yet.</p>
+            <p className="text-xs mt-1 text-gray-400 max-w-xs mx-auto">Add articles, videos, worksheets, or links to share with clients.</p>
+            <div className="mt-4 flex justify-center">
+              <Button onClick={openAdd} className="bg-violet-600 hover:bg-violet-700">+ Add Resource</Button>
+            </div>
           </div>
         ) : (
           <div className="grid gap-3">
-            {filtered.map(r => (
-              <div key={r.id} className="bg-white rounded-xl border p-4 flex gap-4">
+            {filtered.map((r, i) => (
+              <Reveal key={r.id} delay={(i % 6) * 70}>
+              <div className="rounded-2xl ring-1 ring-gray-100 bg-white shadow-sm p-4 flex gap-4 hover:shadow-md transition-shadow">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs bg-violet-50 text-violet-700 border border-violet-100 px-2 py-0.5 rounded-full font-medium">{r.category}</span>
+                    <span className="text-xs bg-violet-50 text-violet-700 ring-1 ring-violet-100 px-2.5 py-1 rounded-full font-semibold">{r.category}</span>
                   </div>
                   <p className="text-sm font-semibold text-gray-900">{r.title}</p>
                   {r.description && <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{r.description}</p>}
@@ -121,10 +126,11 @@ export default function KaunslorResourcesPage() {
                   <p className="text-xs text-gray-400 mt-1">Added {format(parseISO(r.created_at), 'dd MMM yyyy')}</p>
                 </div>
                 <div className="flex flex-col gap-1.5 flex-shrink-0">
-                  <button onClick={() => openEdit(r)} className="text-xs text-gray-500 hover:text-violet-600 border rounded-lg px-2.5 py-1.5 hover:border-violet-400 transition-colors">Edit</button>
-                  <button onClick={() => handleDelete(r)} className="text-xs text-red-400 hover:text-red-600 border rounded-lg px-2.5 py-1.5 hover:border-red-400 transition-colors">Delete</button>
+                  <button onClick={() => openEdit(r)} className="text-xs text-gray-500 hover:text-violet-600 ring-1 ring-gray-200 rounded-lg px-2.5 py-1.5 hover:ring-violet-300 transition-colors">Edit</button>
+                  <button onClick={() => handleDelete(r)} className="text-xs text-red-400 hover:text-red-600 ring-1 ring-gray-200 rounded-lg px-2.5 py-1.5 hover:ring-red-300 transition-colors">Delete</button>
                 </div>
               </div>
+              </Reveal>
             ))}
           </div>
         )}
@@ -138,25 +144,25 @@ export default function KaunslorResourcesPage() {
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Title *</label>
               <input value={form.title} onChange={e => setForm(f => ({...f, title: e.target.value}))} placeholder="e.g. Breathing Exercises for Anxiety"
-                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                className="w-full rounded-xl px-4 py-2.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
               <select value={form.category} onChange={e => setForm(f => ({...f, category: e.target.value}))}
-                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                className="w-full rounded-xl px-4 py-2.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">URL (optional)</label>
               <input value={form.url} onChange={e => setForm(f => ({...f, url: e.target.value}))} placeholder="https://..."
-                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                className="w-full rounded-xl px-4 py-2.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Description (optional)</label>
               <textarea value={form.description} onChange={e => setForm(f => ({...f, description: e.target.value}))} rows={3}
                 placeholder="Brief description of this resource..."
-                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
+                className="w-full rounded-xl px-4 py-2.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
             </div>
             <div className="flex gap-3 pt-1">
               <Button onClick={() => setShowAdd(false)} className="flex-1 bg-gray-100 text-gray-700 hover:bg-gray-200">Cancel</Button>

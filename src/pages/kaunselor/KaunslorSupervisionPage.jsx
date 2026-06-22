@@ -203,12 +203,12 @@ export default function KaunslorSupervisionPage() {
 
         {/* Controls */}
         <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-1 bg-white border rounded-xl px-2 py-1">
+          <div className="flex items-center gap-1 bg-white ring-1 ring-gray-100 shadow-sm rounded-xl px-2 py-1">
             {years.map(y => (
               <button
                 key={y}
                 onClick={() => setFilterYear(y)}
-                className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${filterYear === y ? 'bg-violet-600 text-white' : 'text-gray-500 hover:text-gray-800'}`}
+                className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${filterYear === y ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-sm shadow-violet-200' : 'text-gray-500 hover:text-gray-800'}`}
               >
                 {y}
               </button>
@@ -224,7 +224,7 @@ export default function KaunslorSupervisionPage() {
 
         {/* LPK guidance note */}
         {totalMinsLifetime === 0 && (
-          <div className="bg-violet-50 border border-violet-200 rounded-xl p-4">
+          <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 ring-1 ring-violet-100 rounded-2xl p-4">
             <p className="text-sm font-semibold text-violet-900 mb-1">LPK Supervision Requirement</p>
             <p className="text-xs text-violet-700">LPK requires registered counselors to complete a minimum of supervision hours per year. Log each supervision session here to track compliance and generate your annual supervision report.</p>
           </div>
@@ -232,17 +232,18 @@ export default function KaunslorSupervisionPage() {
 
         {/* Session list */}
         {filtered.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
-            <div className="text-5xl mb-3">📋</div>
-            <p className="text-sm">No supervision sessions logged for {filterYear}.</p>
-            <p className="text-xs mt-1">Tap "+ Add Session" to record a session.</p>
+          <div className="text-center py-12">
+            <div className="mx-auto w-16 h-16 flex items-center justify-center rounded-full bg-gradient-to-br from-violet-50 to-fuchsia-50 ring-1 ring-violet-100 text-3xl mb-4">📋</div>
+            <p className="text-sm text-gray-500">No supervision sessions logged for {filterYear}.</p>
+            <p className="text-xs text-gray-400 mt-1 mb-4">Tap "+ Add Session" to record a session.</p>
+            <Button size="sm" onClick={() => setShowAdd(true)} className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-xl font-semibold shadow-lg shadow-violet-200 hover:-translate-y-0.5 hover:shadow-xl transition-all">+ Add Session</Button>
           </div>
         ) : (
           <div className="space-y-3">
             {filtered.map(s => (
-              <div key={s.id} className="bg-white rounded-xl border p-4">
+              <div key={s.id} className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm hover:shadow-md transition-shadow p-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-violet-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-violet-50 to-fuchsia-50 ring-1 ring-violet-100 flex-shrink-0">
                     <span className="text-xs font-bold text-violet-700">{fmtDuration(s.duration_minutes)}</span>
                   </div>
                   <div className="flex-1 min-w-0">
@@ -251,7 +252,7 @@ export default function KaunslorSupervisionPage() {
                       {s.supervisor_reg_no && (
                         <span className="text-xs text-gray-400 font-mono">{s.supervisor_reg_no}</span>
                       )}
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
                         s.session_type === 'individual' ? 'bg-violet-100 text-violet-700' :
                         s.session_type === 'group'      ? 'bg-blue-100 text-blue-700' :
                         'bg-gray-100 text-gray-600'
@@ -282,7 +283,7 @@ export default function KaunslorSupervisionPage() {
       {showAdd && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b px-6 pt-5 pb-3 flex items-center justify-between">
+            <div className="sticky top-0 bg-white border-b border-gray-100 px-6 pt-5 pb-3 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">Log Supervision Session</h3>
               <button onClick={() => setShowAdd(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
             </div>
@@ -352,7 +353,7 @@ export default function KaunslorSupervisionPage() {
 
 function StatCard({ label, value, sub, color, bg }) {
   return (
-    <div className={`${bg} rounded-xl border p-4 text-center`}>
+    <div className={`${bg} rounded-2xl ring-1 ring-gray-100 shadow-sm p-4 text-center`}>
       <p className="text-xs text-gray-400 font-medium mb-1">{label}</p>
       <p className={`text-2xl font-bold ${color}`}>{value}<span className="text-sm font-normal text-gray-400 ml-0.5">{sub}</span></p>
     </div>

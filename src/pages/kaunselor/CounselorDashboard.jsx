@@ -6,6 +6,7 @@ import { useBillingStore } from '../../store/billingStore.js';
 import { supabase } from '../../lib/supabase.js';
 import { TopBar } from '../../components/layout/TopBar.jsx';
 import { Button } from '../../components/ui/Button.jsx';
+import Reveal from '../../components/ui/Reveal.jsx';
 import toast from 'react-hot-toast';
 
 const RISK_CONFIG = {
@@ -17,7 +18,7 @@ const RISK_CONFIG = {
 
 function StatCard({ label, value, sub, color = 'text-gray-900', bg = 'bg-white', onClick }) {
   return (
-    <div className={`${bg} rounded-xl border p-5 ${onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`} onClick={onClick}>
+    <div className={`${bg} rounded-2xl ring-1 ring-gray-100 shadow-sm p-5 ${onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`} onClick={onClick}>
       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{label}</p>
       <p className={`text-3xl font-bold ${color}`}>{value}</p>
       {sub && <p className="text-xs text-gray-400 mt-1">{sub}</p>}
@@ -329,9 +330,9 @@ export default function CounselorDashboard() {
 
           {/* Usage bar */}
           {subscription && (
-            <div className="bg-violet-50 border border-violet-200 rounded-xl px-4 py-3 flex items-center justify-between gap-4">
+            <div className="bg-gradient-to-r from-violet-50 to-fuchsia-50 ring-1 ring-violet-100 rounded-2xl px-4 py-3 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="w-9 h-9 bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-xl flex items-center justify-center flex-shrink-0">
                   <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
@@ -352,7 +353,7 @@ export default function CounselorDashboard() {
                 </div>
               </div>
               {subscription.sessions_limit !== -1 && (
-                <button onClick={() => navigate('/pricing?tab=kaunselor')} className="text-xs font-semibold text-violet-700 bg-white border border-violet-300 px-3 py-1.5 rounded-lg hover:bg-violet-50 flex-shrink-0">
+                <button onClick={() => navigate('/pricing?tab=kaunselor')} className="text-xs font-semibold text-violet-700 bg-white ring-1 ring-violet-200 px-3 py-1.5 rounded-xl hover:bg-violet-50 flex-shrink-0">
                   Upgrade
                 </button>
               )}
@@ -372,7 +373,7 @@ export default function CounselorDashboard() {
             if (allDone) return null;
             const completedCount = Object.values(done).filter(Boolean).length;
             return (
-              <div className="bg-white border border-violet-200 rounded-xl p-5">
+              <div className="bg-white rounded-2xl ring-1 ring-violet-100 shadow-sm p-5">
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <h3 className="text-sm font-bold text-gray-900">Get started with Kaunselor</h3>
@@ -410,22 +411,24 @@ export default function CounselorDashboard() {
           })()}
 
           {/* Stat cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <StatCard label="Total Clients" value={clients.length} sub="registered clients" onClick={() => navigate('/kaunselor/clients')} />
-            <StatCard label="Sessions This Month" value={stats.sessionsThisMonth} sub={format(new Date(), 'MMMM yyyy')} />
-            <StatCard label="New Appointments" value={stats.pendingAppts} sub="pending confirmation"
-              color={stats.pendingAppts > 0 ? 'text-amber-600' : 'text-gray-900'}
-              bg={stats.pendingAppts > 0 ? 'bg-amber-50' : 'bg-white'}
-              onClick={() => navigate('/kaunselor/appointments')} />
-            <StatCard label="High Risk" value={stats.highRisk} sub="clients needing attention"
-              color={stats.highRisk > 0 ? 'text-red-600' : 'text-gray-900'}
-              bg={stats.highRisk > 0 ? 'bg-red-50' : 'bg-white'}
-              onClick={() => navigate('/kaunselor/clients')} />
-          </div>
+          <Reveal>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <StatCard label="Total Clients" value={clients.length} sub="registered clients" onClick={() => navigate('/kaunselor/clients')} />
+              <StatCard label="Sessions This Month" value={stats.sessionsThisMonth} sub={format(new Date(), 'MMMM yyyy')} />
+              <StatCard label="New Appointments" value={stats.pendingAppts} sub="pending confirmation"
+                color={stats.pendingAppts > 0 ? 'text-amber-600' : 'text-gray-900'}
+                bg={stats.pendingAppts > 0 ? 'bg-amber-50' : 'bg-white'}
+                onClick={() => navigate('/kaunselor/appointments')} />
+              <StatCard label="High Risk" value={stats.highRisk} sub="clients needing attention"
+                color={stats.highRisk > 0 ? 'text-red-600' : 'text-gray-900'}
+                bg={stats.highRisk > 0 ? 'bg-red-50' : 'bg-white'}
+                onClick={() => navigate('/kaunselor/clients')} />
+            </div>
+          </Reveal>
 
           <div className="grid md:grid-cols-2 gap-5">
             {/* Sessions trend */}
-            <div className="bg-white rounded-xl border p-5">
+            <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-5">
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Session Trend (6 Months)</h3>
               {sessions.length === 0 ? (
                 <p className="text-sm text-gray-400 text-center py-8">No sessions yet</p>
@@ -434,7 +437,7 @@ export default function CounselorDashboard() {
                   {stats.monthlyData.map(({ label, count }) => (
                     <div key={label} className="flex-1 flex flex-col items-center gap-1">
                       <span className="text-xs text-gray-500">{count > 0 ? count : ''}</span>
-                      <div className="w-full rounded-t-md bg-violet-500 transition-all" style={{ height: `${Math.max(4, (count / maxMonthly) * 80)}px` }} />
+                      <div className="w-full rounded-t-md bg-gradient-to-t from-violet-600 to-fuchsia-500 transition-all" style={{ height: `${Math.max(4, (count / maxMonthly) * 80)}px` }} />
                       <span className="text-[10px] text-gray-400">{label}</span>
                     </div>
                   ))}
@@ -443,7 +446,7 @@ export default function CounselorDashboard() {
             </div>
 
             {/* Risk distribution */}
-            <div className="bg-white rounded-xl border p-5">
+            <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-5">
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Client Risk Distribution</h3>
               {clients.length === 0 ? (
                 <p className="text-sm text-gray-400 text-center py-8">No clients yet</p>
@@ -469,7 +472,7 @@ export default function CounselorDashboard() {
 
           <div className="grid md:grid-cols-2 gap-5">
             {/* Upcoming appointments */}
-            <div className="bg-white rounded-xl border p-5">
+            <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Upcoming Appointments</h3>
                 <button onClick={() => navigate('/kaunselor/appointments')} className="text-xs text-violet-600 hover:text-violet-800 font-medium">View all →</button>
@@ -484,7 +487,7 @@ export default function CounselorDashboard() {
                   {stats.upcomingAppts.map(a => (
                     <button key={a.id} onClick={() => a.subject_id && navigate(`/kaunselor/clients/${a.subject_id}`)}
                       className="w-full flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-violet-50 transition-colors text-left">
-                      <div className="w-9 h-9 bg-violet-100 rounded-xl flex items-center justify-center text-violet-700 font-bold text-sm flex-shrink-0">
+                      <div className="w-9 h-9 bg-gradient-to-br from-violet-50 to-fuchsia-50 ring-1 ring-violet-100 rounded-xl flex items-center justify-center text-violet-700 font-bold text-sm flex-shrink-0">
                         {a.client_name?.charAt(0).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -501,7 +504,7 @@ export default function CounselorDashboard() {
             </div>
 
             {/* Recent sessions */}
-            <div className="bg-white rounded-xl border p-5">
+            <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Recent Sessions</h3>
                 <button onClick={() => navigate('/kaunselor/clients')} className="text-xs text-violet-600 hover:text-violet-800 font-medium">All clients →</button>
@@ -539,7 +542,7 @@ export default function CounselorDashboard() {
 
           {/* Top presenting issues */}
           {stats.topIssues.length > 0 && (
-            <div className="bg-white rounded-xl border p-5">
+            <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-5">
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Top Client Issues</h3>
               <div className="space-y-2">
                 {stats.topIssues.map(([issue, count], i) => (

@@ -175,16 +175,16 @@ ${inv.notes ? `<p style="margin-top:20px;font-size:12px;color:#555"><em>${inv.no
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Billing</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Billing</h1>
             <p className="text-sm text-gray-500 mt-0.5">Create and track invoices for your practice</p>
           </div>
-          <Button onClick={openCreate} className="bg-violet-600 hover:bg-violet-700">+ New Invoice</Button>
+          <Button onClick={openCreate} className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-xl font-semibold shadow-lg shadow-violet-200 hover:-translate-y-0.5 hover:shadow-xl transition-all">+ New Invoice</Button>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4">
           {[['Paid', totals.paid, 'green'], ['Sent', totals.sent, 'blue'], ['Draft', totals.draft, 'gray']].map(([label, val, color]) => (
-            <div key={label} className={`bg-white rounded-xl border p-4`}>
+            <div key={label} className="rounded-2xl ring-1 ring-gray-100 bg-white shadow-sm p-4">
               <p className="text-xs text-gray-500 mb-1">{label}</p>
               <p className={`text-lg font-bold text-${color}-600`}>RM {val.toFixed(2)}</p>
             </div>
@@ -195,8 +195,8 @@ ${inv.notes ? `<p style="margin-top:20px;font-size:12px;color:#555"><em>${inv.no
         <div className="flex gap-2">
           {['all', 'draft', 'sent', 'paid', 'cancelled'].map(s => (
             <button key={s} onClick={() => setFilterStatus(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors ${
-                filterStatus === s ? 'bg-violet-600 text-white' : 'bg-white text-gray-500 border hover:border-violet-400'
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize transition-colors ${
+                filterStatus === s ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-sm shadow-violet-200' : 'bg-white text-gray-500 ring-1 ring-gray-200 hover:ring-violet-400'
               }`}>
               {s === 'all' ? 'All' : s}
             </button>
@@ -205,30 +205,31 @@ ${inv.notes ? `<p style="margin-top:20px;font-size:12px;color:#555"><em>${inv.no
 
         {/* Invoice list */}
         {filtered.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
-            <div className="text-4xl mb-3">🧾</div>
-            <p className="text-sm">No invoices yet.</p>
+          <div className="text-center py-16">
+            <div className="mx-auto w-16 h-16 flex items-center justify-center rounded-full bg-gradient-to-br from-violet-50 to-fuchsia-50 ring-1 ring-violet-100 text-3xl mb-4">🧾</div>
+            <p className="text-sm text-gray-500 mb-4">No invoices yet.</p>
+            <Button onClick={openCreate} className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-xl font-semibold shadow-lg shadow-violet-200 hover:-translate-y-0.5 hover:shadow-xl transition-all">+ New Invoice</Button>
           </div>
         ) : filtered.map(inv => {
           const clientName = inv.subjects?.name || '—';
           return (
-            <div key={inv.id} className="bg-white rounded-xl border p-4">
+            <div key={inv.id} className="rounded-2xl ring-1 ring-gray-100 bg-white shadow-sm hover:shadow-md transition-shadow p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-sm font-bold text-gray-900">{inv.invoice_number}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${STATUS_STYLES[inv.status]}`}>{inv.status}</span>
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${STATUS_STYLES[inv.status]}`}>{inv.status}</span>
                   </div>
                   <p className="text-xs text-gray-500">{clientName} · {format(parseISO(inv.invoice_date), 'dd MMM yyyy')}{inv.due_date ? ` · Due ${format(parseISO(inv.due_date), 'dd MMM yyyy')}` : ''}</p>
                   <p className="text-base font-bold text-gray-900 mt-1">RM {inv.total.toFixed(2)}</p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <button onClick={() => printInvoice(inv)} className="text-xs text-violet-600 border border-violet-200 rounded-lg px-2.5 py-1.5 hover:bg-violet-50">Print</button>
+                  <button onClick={() => printInvoice(inv)} className="text-xs text-violet-600 ring-1 ring-violet-200 rounded-lg px-2.5 py-1.5 hover:bg-violet-50 transition-colors">Print</button>
                   {inv.status === 'draft' && (
-                    <button onClick={() => updateStatus(inv, 'sent')} className="text-xs text-blue-600 border border-blue-200 rounded-lg px-2.5 py-1.5 hover:bg-blue-50">Mark Sent</button>
+                    <button onClick={() => updateStatus(inv, 'sent')} className="text-xs text-blue-600 ring-1 ring-blue-200 rounded-lg px-2.5 py-1.5 hover:bg-blue-50 transition-colors">Mark Sent</button>
                   )}
                   {inv.status === 'sent' && (
-                    <button onClick={() => updateStatus(inv, 'paid')} className="text-xs text-green-600 border border-green-200 rounded-lg px-2.5 py-1.5 hover:bg-green-50">Mark Paid</button>
+                    <button onClick={() => updateStatus(inv, 'paid')} className="text-xs text-green-600 ring-1 ring-green-200 rounded-lg px-2.5 py-1.5 hover:bg-green-50 transition-colors">Mark Paid</button>
                   )}
                 </div>
               </div>
@@ -241,7 +242,7 @@ ${inv.notes ? `<p style="margin-top:20px;font-size:12px;color:#555"><em>${inv.no
       {showCreate && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
-            <div className="p-5 border-b flex items-center justify-between">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
               <h3 className="text-base font-bold text-gray-900">New Invoice</h3>
               <button onClick={() => setShowCreate(false)} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
@@ -250,12 +251,12 @@ ${inv.notes ? `<p style="margin-top:20px;font-size:12px;color:#555"><em>${inv.no
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Invoice No.</label>
                   <input value={form.invoice_number} onChange={e => setForm(f => ({...f, invoice_number: e.target.value}))}
-                    className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                    className="w-full rounded-xl px-4 py-2.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Client</label>
                   <select value={form.subject_id} onChange={e => setForm(f => ({...f, subject_id: e.target.value}))}
-                    className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    className="w-full rounded-xl px-4 py-2.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                     <option value="">— No client —</option>
                     {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
@@ -263,12 +264,12 @@ ${inv.notes ? `<p style="margin-top:20px;font-size:12px;color:#555"><em>${inv.no
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Invoice Date</label>
                   <input type="date" value={form.invoice_date} onChange={e => setForm(f => ({...f, invoice_date: e.target.value}))}
-                    className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                    className="w-full rounded-xl px-4 py-2.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Due Date</label>
                   <input type="date" value={form.due_date} onChange={e => setForm(f => ({...f, due_date: e.target.value}))}
-                    className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                    className="w-full rounded-xl px-4 py-2.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
                 </div>
               </div>
 
@@ -281,11 +282,11 @@ ${inv.notes ? `<p style="margin-top:20px;font-size:12px;color:#555"><em>${inv.no
                   {form.line_items.map((line, i) => (
                     <div key={i} className="grid grid-cols-12 gap-2 items-center">
                       <input value={line.description} onChange={e => updateLine(i, 'description', e.target.value)} placeholder="Description"
-                        className="col-span-6 border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                        className="col-span-6 rounded-xl px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
                       <input type="number" value={line.qty} min="1" onChange={e => updateLine(i, 'qty', e.target.value)} placeholder="Qty"
-                        className="col-span-2 border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                        className="col-span-2 rounded-xl px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
                       <input type="number" value={line.unit_price} onChange={e => updateLine(i, 'unit_price', e.target.value)} placeholder="Price"
-                        className="col-span-3 border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                        className="col-span-3 rounded-xl px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
                       {form.line_items.length > 1 && (
                         <button onClick={() => removeLine(i)} className="col-span-1 text-red-400 hover:text-red-600 text-center">✕</button>
                       )}
@@ -298,12 +299,12 @@ ${inv.notes ? `<p style="margin-top:20px;font-size:12px;color:#555"><em>${inv.no
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Tax Rate (%)</label>
                   <input type="number" value={form.tax_rate} min="0" max="100" onChange={e => setForm(f => ({...f, tax_rate: e.target.value}))}
-                    className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                    className="w-full rounded-xl px-4 py-2.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
                   <select value={form.status} onChange={e => setForm(f => ({...f, status: e.target.value}))}
-                    className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    className="w-full rounded-xl px-4 py-2.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                     <option value="draft">Draft</option>
                     <option value="sent">Sent</option>
                     <option value="paid">Paid</option>
@@ -314,14 +315,14 @@ ${inv.notes ? `<p style="margin-top:20px;font-size:12px;color:#555"><em>${inv.no
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Notes (optional)</label>
                 <textarea value={form.notes} onChange={e => setForm(f => ({...f, notes: e.target.value}))} rows={2} placeholder="Payment instructions, thank you note..."
-                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
+                  className="w-full rounded-xl px-4 py-2.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
               </div>
 
               {/* Totals preview */}
               {(() => {
                 const { subtotal, taxAmount, total } = calcTotals(form.line_items, form.tax_rate);
                 return (
-                  <div className="bg-gray-50 rounded-xl p-3 text-right space-y-1">
+                  <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 ring-1 ring-violet-100 rounded-xl p-3 text-right space-y-1">
                     <p className="text-xs text-gray-500">Subtotal: RM {subtotal.toFixed(2)}</p>
                     {Number(form.tax_rate) > 0 && <p className="text-xs text-gray-500">Tax ({form.tax_rate}%): RM {taxAmount.toFixed(2)}</p>}
                     <p className="text-sm font-bold text-gray-900">Total: RM {total.toFixed(2)}</p>
@@ -329,9 +330,9 @@ ${inv.notes ? `<p style="margin-top:20px;font-size:12px;color:#555"><em>${inv.no
                 );
               })()}
             </div>
-            <div className="p-5 border-t flex gap-3">
-              <Button onClick={() => setShowCreate(false)} className="flex-1 bg-gray-100 text-gray-700 hover:bg-gray-200">Cancel</Button>
-              <Button onClick={handleSave} loading={saving} className="flex-1 bg-violet-600 hover:bg-violet-700">Create Invoice</Button>
+            <div className="p-5 border-t border-gray-100 flex gap-3">
+              <Button onClick={() => setShowCreate(false)} className="flex-1 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200">Cancel</Button>
+              <Button onClick={handleSave} loading={saving} className="flex-1 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-xl font-semibold shadow-lg shadow-violet-200 hover:-translate-y-0.5 hover:shadow-xl transition-all">Create Invoice</Button>
             </div>
           </div>
         </div>

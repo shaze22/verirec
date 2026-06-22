@@ -5,6 +5,7 @@ import { useAuthStore } from '../../store/authStore.js';
 import { supabase } from '../../lib/supabase.js';
 import { TopBar } from '../../components/layout/TopBar.jsx';
 import { Button } from '../../components/ui/Button.jsx';
+import Reveal from '../../components/ui/Reveal.jsx';
 import toast from 'react-hot-toast';
 
 function csvEscape(val) {
@@ -127,10 +128,10 @@ export default function KaunslorClientsPage() {
         <div className="max-w-2xl mx-auto space-y-4">
           <input type="text" placeholder="Search name, phone, or IC..." value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+            className="w-full rounded-xl px-4 py-2.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
           <div className="flex gap-2">
             <select value={filterRisk} onChange={e => setFilterRisk(e.target.value)}
-              className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white">
+              className="flex-1 rounded-xl px-4 py-2.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white">
               <option value="">All Risk Levels</option>
               <option value="suicidal">🔴 Critical</option>
               <option value="self_harm">🟠 High</option>
@@ -138,7 +139,7 @@ export default function KaunslorClientsPage() {
               <option value="none">🟢 Low</option>
             </select>
             <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-              className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white">
+              className="flex-1 rounded-xl px-4 py-2.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white">
               <option value="newest">Newest</option>
               <option value="risk">Highest Risk</option>
               <option value="name">Name A–Z</option>
@@ -149,13 +150,13 @@ export default function KaunslorClientsPage() {
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="bg-white rounded-2xl border p-5 animate-pulse h-28" />
+                <div key={i} className="rounded-2xl ring-1 ring-gray-100 bg-white shadow-sm p-5 animate-pulse h-28" />
               ))}
             </div>
           ) : filtered.length === 0 ? (
             <div className="text-center py-16">
-              <div className="w-16 h-16 bg-violet-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-violet-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-violet-50 to-fuchsia-50 ring-1 ring-violet-100">
+                <svg className="w-8 h-8 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
@@ -164,7 +165,7 @@ export default function KaunslorClientsPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {filtered.map(c => {
+              {filtered.map((c, i) => {
                 const riskColor = {
                   suicidal:     { avatar: 'bg-red-100 text-red-700',    badge: 'bg-red-100 text-red-700',    label: 'Critical' },
                   self_harm:    { avatar: 'bg-orange-100 text-orange-700', badge: 'bg-orange-100 text-orange-700', label: 'High' },
@@ -172,8 +173,9 @@ export default function KaunslorClientsPage() {
                   none:         { avatar: 'bg-violet-100 text-violet-700', badge: 'bg-green-100 text-green-700', label: 'Low' },
                 }[c.risk_level || 'none'];
                 return (
-                  <button key={c.id} onClick={() => navigate(`/kaunselor/clients/${c.id}`)}
-                    className="bg-white rounded-2xl border p-5 hover:border-violet-300 hover:shadow-md transition-all text-left group">
+                  <Reveal key={c.id} delay={(i % 6) * 70}>
+                  <button onClick={() => navigate(`/kaunselor/clients/${c.id}`)}
+                    className="w-full h-full rounded-2xl ring-1 ring-gray-100 bg-white shadow-sm p-5 hover:shadow-md transition-shadow text-left group">
                     <div className="flex items-start gap-3 mb-3">
                       <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-base flex-shrink-0 ${riskColor.avatar}`}>
                         {c.name?.charAt(0).toUpperCase()}
@@ -182,7 +184,7 @@ export default function KaunslorClientsPage() {
                         <p className="font-semibold text-gray-900 truncate">{c.name}</p>
                         <p className="text-xs text-gray-400 truncate">{c.phone || c.email || 'No contact'}</p>
                       </div>
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${riskColor.badge}`}>{riskColor.label}</span>
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-semibold flex-shrink-0 ${riskColor.badge}`}>{riskColor.label}</span>
                     </div>
                     {c.presenting_issue && (
                       <p className="text-xs text-gray-500 truncate mb-3 italic">"{c.presenting_issue}"</p>
@@ -192,6 +194,7 @@ export default function KaunslorClientsPage() {
                       <span className="text-xs text-violet-600 font-medium group-hover:text-violet-800">View File →</span>
                     </div>
                   </button>
+                  </Reveal>
                 );
               })}
             </div>
@@ -214,7 +217,7 @@ export default function KaunslorClientsPage() {
                   <label className="text-xs text-gray-500 mb-1 block">{f.label}</label>
                   <input type="text" value={addForm[f.k]} onChange={e => setAddForm(p => ({ ...p, [f.k]: e.target.value }))}
                     placeholder={f.placeholder} required={f.required}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                    className="w-full rounded-xl px-4 py-2.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
                 </div>
               ))}
               <div className="flex gap-3 pt-2">

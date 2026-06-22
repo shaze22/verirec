@@ -731,7 +731,7 @@ export default function KaunslorClientFilePage() {
       </div>
       <div className="bg-white border-b px-6 py-4">
         <div className="max-w-2xl mx-auto flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-gray-200 flex-shrink-0" />
+          <div className="w-14 h-14 rounded-2xl bg-gray-200 flex-shrink-0" />
           <div className="space-y-2 flex-1">
             <div className="w-40 h-5 bg-gray-200 rounded" />
             <div className="w-24 h-3 bg-gray-100 rounded" />
@@ -748,7 +748,7 @@ export default function KaunslorClientFilePage() {
       <div className="flex-1 p-4">
         <div className="max-w-2xl mx-auto space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-xl border p-4 space-y-2">
+            <div key={i} className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-4 space-y-2">
               <div className="w-24 h-3 bg-gray-200 rounded" />
               <div className="w-full h-4 bg-gray-100 rounded" />
               <div className="w-3/4 h-3 bg-gray-100 rounded" />
@@ -772,7 +772,7 @@ export default function KaunslorClientFilePage() {
         <aside className="hidden md:flex flex-col w-48 border-r bg-white flex-shrink-0">
           <div className="px-3 py-4 border-b">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-violet-700 font-bold text-sm flex-shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-50 to-fuchsia-50 ring-1 ring-violet-100 flex items-center justify-center text-violet-700 font-bold text-sm flex-shrink-0">
                 {client.name?.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0">
@@ -801,7 +801,7 @@ export default function KaunslorClientFilePage() {
                 className={`relative w-full flex items-center gap-2.5 px-3 py-2.5 text-sm transition-colors text-left ${
                   tab === t.id ? 'bg-violet-50 text-violet-700 font-semibold' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800 font-medium'
                 }`}>
-                {tab === t.id && <span className="absolute left-0 top-1 bottom-1 w-0.5 bg-violet-600 rounded-r" />}
+                {tab === t.id && <span className="absolute left-0 top-1 bottom-1 w-0.5 bg-gradient-to-b from-violet-600 to-fuchsia-600 rounded-r" />}
                 <span className="leading-none flex-shrink-0">{t.icon}</span>
                 <span className="flex-1 truncate">{t.label}</span>
                 {t.count > 0 && <span className="text-xs tabular-nums text-gray-400 font-normal flex-shrink-0">{t.count}</span>}
@@ -820,7 +820,7 @@ export default function KaunslorClientFilePage() {
           <div className="bg-white border-b px-4 py-3 flex-shrink-0">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="md:hidden w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center text-violet-700 font-bold text-base flex-shrink-0">
+                <div className="md:hidden w-10 h-10 rounded-xl bg-gradient-to-br from-violet-50 to-fuchsia-50 ring-1 ring-violet-100 flex items-center justify-center text-violet-700 font-bold text-base flex-shrink-0">
                   {client.name?.charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -838,7 +838,7 @@ export default function KaunslorClientFilePage() {
           {/* Mobile tab selector */}
           <div className="md:hidden bg-white border-b px-4 py-2.5 flex-shrink-0">
             <select value={tab} onChange={e => setTab(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500">
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500">
               {[
                 { id: 'overview',     label: 'Overview' },
                 { id: 'sessions',     label: `Sessions (${sessions.length})` },
@@ -864,15 +864,15 @@ export default function KaunslorClientFilePage() {
             <div className="space-y-4">
               {/* Summary cards */}
               <div className="grid grid-cols-3 gap-3">
-                <div className="bg-violet-50 rounded-xl p-4 text-center">
+                <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 ring-1 ring-violet-100 rounded-2xl p-4 text-center">
                   <p className="text-2xl font-bold text-violet-700">{sessions.length}</p>
                   <p className="text-xs text-violet-600">Sessions</p>
                 </div>
-                <div className="bg-blue-50 rounded-xl p-4 text-center">
+                <div className="bg-blue-50 ring-1 ring-blue-100 rounded-2xl p-4 text-center">
                   <p className="text-2xl font-bold text-blue-700">{Math.round(totalDuration / 60)}</p>
                   <p className="text-xs text-blue-600">Minutes</p>
                 </div>
-                <div className={`rounded-xl p-4 text-center ${RISK_CONFIG[client.risk_level || 'none']?.bg || 'bg-gray-50'}`}>
+                <div className={`rounded-2xl p-4 text-center ${RISK_CONFIG[client.risk_level || 'none']?.bg || 'bg-gray-50'}`}>
                   <p className={`text-sm font-bold ${RISK_CONFIG[client.risk_level || 'none']?.text || 'text-gray-600'}`}>
                     {RISK_CONFIG[client.risk_level || 'none']?.label}
                   </p>
@@ -881,7 +881,7 @@ export default function KaunslorClientFilePage() {
               </div>
 
               {/* Client Portal Access */}
-              <div className="bg-white rounded-xl border p-5">
+              <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-5">
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <h3 className="font-semibold text-gray-900">Client Portal Access</h3>
@@ -913,7 +913,7 @@ export default function KaunslorClientFilePage() {
               </div>
 
               {/* Risk level selector */}
-              <div className="bg-white rounded-xl border p-5">
+              <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-5">
                 <h3 className="font-semibold text-gray-900 mb-3">Client Risk Level</h3>
                 <div className="grid grid-cols-2 gap-2">
                   {Object.entries(RISK_CONFIG).map(([key, cfg]) => (
@@ -945,7 +945,7 @@ export default function KaunslorClientFilePage() {
               )}
 
               {/* Personal details */}
-              <div className="bg-white rounded-xl border p-5">
+              <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-5">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold text-gray-900">Personal Information</h3>
                   {editing
@@ -1040,14 +1040,14 @@ export default function KaunslorClientFilePage() {
                       <div key={f.k} className="grid grid-cols-3 gap-2 items-center">
                         <label className="text-sm text-gray-500">{f.label}</label>
                         <input type={f.type} value={editForm[f.k] || ''} onChange={e => setEditForm(p => ({ ...p, [f.k]: e.target.value }))}
-                          className="col-span-2 px-3 py-1.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                          className="col-span-2 px-3 py-1.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
                       </div>
                     ))}
                     {/* Selects */}
                     <div className="grid grid-cols-3 gap-2 items-center">
                       <label className="text-sm text-gray-500">Marital Status</label>
                       <select value={editForm.marital_status || 'single'} onChange={e => setEditForm(p => ({ ...p, marital_status: e.target.value }))}
-                        className="col-span-2 px-3 py-1.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        className="col-span-2 px-3 py-1.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                         <option value="single">Single</option>
                         <option value="married">Married</option>
                         <option value="divorced">Divorced</option>
@@ -1057,7 +1057,7 @@ export default function KaunslorClientFilePage() {
                     <div className="grid grid-cols-3 gap-2 items-center">
                       <label className="text-sm text-gray-500">Session Type</label>
                       <select value={editForm.session_type || 'voluntary'} onChange={e => setEditForm(p => ({ ...p, session_type: e.target.value }))}
-                        className="col-span-2 px-3 py-1.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        className="col-span-2 px-3 py-1.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                         <option value="voluntary">Voluntary</option>
                         <option value="referred">Referred</option>
                       </select>
@@ -1072,7 +1072,7 @@ export default function KaunslorClientFilePage() {
                       <div key={f.k} className="flex items-center justify-between">
                         <label className="text-sm text-gray-500">{f.label}</label>
                         <button type="button" onClick={() => setEditForm(p => ({ ...p, [f.k]: !p[f.k] }))}
-                          className={`w-10 h-5 rounded-full transition-colors ${editForm[f.k] ? 'bg-blue-600' : 'bg-gray-200'}`}>
+                          className={`w-10 h-5 rounded-full transition-colors ${editForm[f.k] ? 'bg-violet-600' : 'bg-gray-200'}`}>
                           <span className={`block w-4 h-4 rounded-full bg-white shadow transition-transform mx-0.5 ${editForm[f.k] ? 'translate-x-5' : 'translate-x-0'}`} />
                         </button>
                       </div>
@@ -1081,12 +1081,12 @@ export default function KaunslorClientFilePage() {
                     <div className="grid grid-cols-3 gap-2">
                       <label className="text-sm text-gray-500">Presenting Issue</label>
                       <textarea value={editForm.presenting_issue || ''} onChange={e => setEditForm(p => ({ ...p, presenting_issue: e.target.value }))} rows={2}
-                        className="col-span-2 px-3 py-1.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                        className="col-span-2 px-3 py-1.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       <label className="text-sm text-gray-500">Notes</label>
                       <textarea value={editForm.notes || ''} onChange={e => setEditForm(p => ({ ...p, notes: e.target.value }))} rows={2}
-                        className="col-span-2 px-3 py-1.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                        className="col-span-2 px-3 py-1.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
                     </div>
                   </div>
                 ) : (
@@ -1122,14 +1122,14 @@ export default function KaunslorClientFilePage() {
               </div>
 
               {/* Problem Types */}
-              <div className="bg-white rounded-xl border p-5">
+              <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-5">
                 <h3 className="font-semibold text-gray-900 mb-3">Problem Types (Case Session Note)</h3>
                 <div className="flex flex-wrap gap-2">
                   {PROBLEM_TYPES.map(type => (
                     <button key={type} onClick={() => toggleProblemType(type)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
                         (client.problem_types || []).includes(type)
-                          ? 'bg-blue-100 text-blue-700 border-blue-300'
+                          ? 'bg-violet-100 text-violet-700 border-violet-200'
                           : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
                       }`}>
                       {type}
@@ -1140,7 +1140,7 @@ export default function KaunslorClientFilePage() {
 
               {/* Activity log */}
               {activityLog.length > 0 && (
-                <div className="bg-white rounded-xl border p-5">
+                <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-5">
                   <h3 className="font-semibold text-gray-900 mb-3">Recent Activity</h3>
                   <div className="space-y-2">
                     {activityLog.slice(0, 8).map((log, i) => {
@@ -1167,7 +1167,7 @@ export default function KaunslorClientFilePage() {
 
               {/* Last session summary */}
               {lastSession?.report && (
-                <div className="bg-white rounded-xl border p-5">
+                <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-5">
                   <h3 className="font-semibold text-gray-900 mb-3">Last Session</h3>
                   <p className="text-xs text-gray-400 mb-2">{format(parseISO(lastSession.created_at), 'dd MMM yyyy')}</p>
                   {lastSession.report.summary && <p className="text-sm text-gray-700 mb-3">{lastSession.report.summary}</p>}
@@ -1190,7 +1190,7 @@ export default function KaunslorClientFilePage() {
 
               {/* Risk trend */}
               {sessions.length > 1 && sessions.some(s => s.risk_level && s.risk_level !== 'none') && (
-                <div className="bg-white rounded-xl border p-4">
+                <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-4">
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Risk Trend Across Sessions</p>
                   <div className="flex items-end gap-1.5 h-16">
                     {[...sessions].reverse().map((s, i) => {
@@ -1219,14 +1219,14 @@ export default function KaunslorClientFilePage() {
                   <p>No sessions yet for this client.</p>
                 </div>
               ) : sessions.map((s, i) => (
-                <div key={s.id} className="bg-white rounded-xl border hover:border-blue-200 transition-all">
+                <div key={s.id} className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm hover:ring-violet-200 transition-all">
                   <button onClick={() => navigate(`/session/${s.id}`)} className="w-full p-4 text-left">
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">Session {sessions.length - i}</span>
+                          <span className="text-xs bg-violet-100 text-violet-700 px-2.5 py-1 rounded-full font-semibold">Session {sessions.length - i}</span>
                           {s.risk_level && s.risk_level !== 'none' && (
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${RISK_CONFIG[s.risk_level]?.bg} ${RISK_CONFIG[s.risk_level]?.text}`}>
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${RISK_CONFIG[s.risk_level]?.bg} ${RISK_CONFIG[s.risk_level]?.text}`}>
                               {RISK_CONFIG[s.risk_level]?.label}
                             </span>
                           )}
@@ -1278,7 +1278,7 @@ export default function KaunslorClientFilePage() {
                   <p className="text-sm">No action plans yet.</p>
                 </div>
               ) : actionPlans.map(p => (
-                <div key={p.id} className="bg-white rounded-xl border p-4 space-y-2">
+                <div key={p.id} className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-4 space-y-2">
                   <p className="text-xs text-gray-400">{format(parseISO(p.created_at), 'dd MMM yyyy')}</p>
                   {p.goals?.length > 0 && (
                     <div>
@@ -1294,7 +1294,7 @@ export default function KaunslorClientFilePage() {
                       {p.interventions.map((iv, i) => <p key={i} className="text-sm text-gray-700">• {iv}</p>)}
                     </div>
                   )}
-                  {p.follow_up_date && <p className="text-xs text-blue-600">Follow-up: {format(parseISO(p.follow_up_date), 'dd MMM yyyy')}</p>}
+                  {p.follow_up_date && <p className="text-xs text-violet-600">Follow-up: {format(parseISO(p.follow_up_date), 'dd MMM yyyy')}</p>}
                   {p.notes && <p className="text-xs text-gray-500 italic">{p.notes}</p>}
                 </div>
               ))}
@@ -1305,16 +1305,16 @@ export default function KaunslorClientFilePage() {
                     <form onSubmit={handleAddPlan} className="space-y-3">
                       <div><label className="text-xs text-gray-500 mb-1 block">Goals *</label>
                         <textarea value={planForm.goals} onChange={e => setPlanForm(p => ({ ...p, goals: e.target.value }))} rows={2} required
-                          className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" placeholder="State client goals..." /></div>
+                          className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" placeholder="State client goals..." /></div>
                       <div><label className="text-xs text-gray-500 mb-1 block">Interventions</label>
                         <textarea value={planForm.interventions} onChange={e => setPlanForm(p => ({ ...p, interventions: e.target.value }))} rows={2}
-                          className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" placeholder="Approach / technique used..." /></div>
+                          className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" placeholder="Approach / technique used..." /></div>
                       <div><label className="text-xs text-gray-500 mb-1 block">Follow-up Date</label>
                         <input type="date" value={planForm.follow_up_date} onChange={e => setPlanForm(p => ({ ...p, follow_up_date: e.target.value }))}
-                          className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" /></div>
+                          className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" /></div>
                       <div><label className="text-xs text-gray-500 mb-1 block">Notes</label>
                         <input type="text" value={planForm.notes} onChange={e => setPlanForm(p => ({ ...p, notes: e.target.value }))}
-                          className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Additional notes..." /></div>
+                          className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="Additional notes..." /></div>
                       <div className="flex gap-3 pt-2">
                         <Button type="submit" loading={savingPlan} className="flex-1">Save</Button>
                         <Button type="button" variant="secondary" onClick={() => setShowAddPlan(false)}>Cancel</Button>
@@ -1337,15 +1337,15 @@ export default function KaunslorClientFilePage() {
                   <div className="space-y-2">
                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Team Referrals</p>
                     {teamReferrals.map(tr => (
-                      <div key={tr.id} className="bg-blue-50 border border-blue-100 rounded-xl p-3">
+                      <div key={tr.id} className="bg-violet-50 ring-1 ring-violet-100 rounded-xl p-3">
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <p className="text-sm font-medium text-blue-900">→ {tr.to_email}</p>
-                            <p className="text-xs text-blue-700 mt-0.5">{tr.reason}</p>
-                            {tr.notes && <p className="text-xs text-blue-600 italic mt-0.5">{tr.notes}</p>}
-                            <p className="text-xs text-blue-400 mt-1">{format(parseISO(tr.created_at), 'dd MMM yyyy')}</p>
+                            <p className="text-sm font-medium text-violet-900">→ {tr.to_email}</p>
+                            <p className="text-xs text-violet-700 mt-0.5">{tr.reason}</p>
+                            {tr.notes && <p className="text-xs text-violet-600 italic mt-0.5">{tr.notes}</p>}
+                            <p className="text-xs text-violet-400 mt-1">{format(parseISO(tr.created_at), 'dd MMM yyyy')}</p>
                           </div>
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${tr.status === 'accepted' ? 'bg-green-100 text-green-700' : tr.status === 'declined' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${tr.status === 'accepted' ? 'bg-green-100 text-green-700' : tr.status === 'declined' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
                             {tr.status === 'accepted' ? 'Accepted' : tr.status === 'declined' ? 'Declined' : 'Pending'}
                           </span>
                         </div>
@@ -1423,7 +1423,7 @@ export default function KaunslorClientFilePage() {
                     win.document.close();
                   };
                   return (
-                    <div key={r.id} className="bg-white rounded-xl border p-4">
+                    <div key={r.id} className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
                           <p className="font-medium text-gray-900">{r.referred_to}</p>
@@ -1449,15 +1449,15 @@ export default function KaunslorClientFilePage() {
                         <div><label className="text-xs text-gray-500 mb-1 block">Referred To *</label>
                           <input type="text" value={referralForm.referred_to} onChange={e => setReferralForm(p => ({ ...p, referred_to: e.target.value }))} required
                             placeholder="e.g. Hospital, Psychiatry..."
-                            className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" /></div>
+                            className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" /></div>
                         <div><label className="text-xs text-gray-500 mb-1 block">Referral Type</label>
                           <select value={referralForm.referral_type} onChange={e => setReferralForm(p => ({ ...p, referral_type: e.target.value }))}
-                            className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                             {[['psychiatry','Psychiatry'],['hospital','Hospital'],['social_welfare','Social Welfare'],['ngo','NGO / Charity'],['other','Others']].map(([v,l]) => <option key={v} value={v}>{l}</option>)}
                           </select></div>
                         <div><label className="text-xs text-gray-500 mb-1 block">Reason</label>
                           <textarea value={referralForm.reason} onChange={e => setReferralForm(p => ({ ...p, reason: e.target.value }))} rows={2}
-                            className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" /></div>
+                            className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" /></div>
                         <div className="flex gap-3 pt-2">
                           <Button type="submit" loading={savingReferral} className="flex-1">Save</Button>
                           <Button type="button" variant="secondary" onClick={() => setShowAddReferral(false)}>Cancel</Button>
@@ -1563,7 +1563,7 @@ export default function KaunslorClientFilePage() {
           {tab === 'notes' && (
             <div className="space-y-4">
               {/* Add note form */}
-              <div className="bg-white rounded-xl border p-4 space-y-3">
+              <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold text-gray-700">New Note</p>
                   <div className="flex gap-1">
@@ -1636,7 +1636,7 @@ export default function KaunslorClientFilePage() {
               ) : (
                 <div className="space-y-3">
                   {progressNotes.map(note => (
-                    <div key={note.id} className="bg-white rounded-xl border p-4">
+                    <div key={note.id} className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-4">
                       {editingNote === note.id ? (
                         <div className="space-y-2">
                           <textarea
@@ -1744,7 +1744,7 @@ export default function KaunslorClientFilePage() {
                 const d21   = done.filter(a => a.test_type === 'dass21').sort((a,b) => new Date(a.completed_at)-new Date(b.completed_at));
                 if (phq9.length < 2 && gad7.length < 2 && d21.length < 2) return null;
                 return (
-                  <div className="bg-white rounded-xl border p-4 space-y-4">
+                  <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-4 space-y-4">
                     <p className="text-sm font-semibold text-gray-800">Progress Trends</p>
                     {phq9.length >= 2 && (
                       <div>
@@ -1806,14 +1806,14 @@ export default function KaunslorClientFilePage() {
                 try { if (a.interpretation) interpretation = JSON.parse(a.interpretation); } catch {}
 
                 return (
-                  <div key={a.id} className="bg-white rounded-xl border p-4 space-y-3">
+                  <div key={a.id} className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-4 space-y-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <span className={`text-xs px-2 py-0.5 rounded-full font-semibold border ${BADGE_COLORS[test?.badgeColor] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
                             {test?.name || a.test_type}
                           </span>
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor}`}>
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${statusColor}`}>
                             {statusLabel}
                           </span>
                         </div>
@@ -1877,7 +1877,7 @@ export default function KaunslorClientFilePage() {
             <div className="space-y-4">
               <button
                 onClick={() => setShowAssignResource(true)}
-                className="w-full py-2.5 text-sm font-semibold rounded-xl bg-violet-600 hover:bg-violet-700 text-white transition-colors"
+                className="w-full py-2.5 text-sm font-semibold rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg shadow-violet-200 hover:-translate-y-0.5 hover:shadow-xl transition-all"
               >
                 + Assign Resource from Library
               </button>
@@ -1891,7 +1891,7 @@ export default function KaunslorClientFilePage() {
               ) : clientResources.map(r => {
                 const res = r.psychoed_resources;
                 return (
-                  <div key={r.id} className="bg-white rounded-xl border p-4 space-y-2">
+                  <div key={r.id} className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-4 space-y-2">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
@@ -1986,13 +1986,13 @@ export default function KaunslorClientFilePage() {
                 </div>
                 <button
                   onClick={() => navigate(`/kaunselor/billing?client=${id}`)}
-                  className="text-sm font-semibold bg-violet-600 text-white px-4 py-2 rounded-xl hover:bg-violet-700 transition-colors">
+                  className="text-sm font-semibold bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white px-4 py-2 rounded-xl shadow-lg shadow-violet-200 hover:-translate-y-0.5 hover:shadow-xl transition-all">
                   + New Invoice
                 </button>
               </div>
 
               {clientInvoices.length === 0 ? (
-                <div className="text-center py-12 text-gray-400 bg-white rounded-xl border">
+                <div className="text-center py-12 text-gray-400 bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm">
                   <div className="text-4xl mb-3">🧾</div>
                   <p className="text-sm font-medium text-gray-600 mb-1">No invoices yet</p>
                   <p className="text-xs mb-4">Create an invoice to send to {client.name}</p>
@@ -2013,7 +2013,7 @@ export default function KaunslorClientFilePage() {
                   cancelled: 'bg-red-100 text-red-600',
                 }[inv.status] || 'bg-gray-100 text-gray-600';
                 return (
-                  <div key={inv.id} className="bg-white rounded-xl border p-4">
+                  <div key={inv.id} className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="text-sm font-semibold text-gray-900">{inv.invoice_number}</p>
@@ -2024,7 +2024,7 @@ export default function KaunslorClientFilePage() {
                       </div>
                       <div className="text-right flex-shrink-0">
                         <p className="text-base font-bold text-gray-900">RM {total.toFixed(2)}</p>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${statusStyle}`}>{inv.status}</span>
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${statusStyle}`}>{inv.status}</span>
                       </div>
                     </div>
                     {inv.notes && <p className="text-xs text-gray-500 mt-2 pt-2 border-t">{inv.notes}</p>}
@@ -2090,7 +2090,7 @@ export default function KaunslorClientFilePage() {
                   {clientRecordings.map(rec => {
                     const isBeingTranscribed = transcribingRec?.id === rec.id;
                     return (
-                    <div key={rec.id} className="bg-white rounded-xl border p-4 space-y-2">
+                    <div key={rec.id} className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-4 space-y-2">
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-gray-900 text-sm truncate">{rec.file_name}</p>
@@ -2174,7 +2174,7 @@ export default function KaunslorClientFilePage() {
                         value={transcribeCounselorName}
                         onChange={e => setTranscribeCounselorName(e.target.value)}
                         placeholder="e.g. Pn. Siti Aminah"
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                        className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                       />
                     </div>
                     <div className="text-xs text-gray-500">
@@ -2196,7 +2196,7 @@ export default function KaunslorClientFilePage() {
           {tab === 'messages' && (
             <div className="space-y-4">
               {/* Message thread */}
-              <div className="bg-white rounded-xl border p-4 space-y-3 min-h-48 max-h-96 overflow-y-auto flex flex-col">
+              <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-4 space-y-3 min-h-48 max-h-96 overflow-y-auto flex flex-col">
                 {messages.length === 0 ? (
                   <div className="flex-1 flex flex-col items-center justify-center text-gray-400 py-8">
                     <div className="text-4xl mb-2">💬</div>
@@ -2270,7 +2270,7 @@ export default function KaunslorClientFilePage() {
                 const badgeColor = a.status === 'confirmed' ? 'green' : a.status === 'completed' ? 'blue' : a.status === 'cancelled' ? 'gray' : 'yellow';
                 const badgeLabel = a.status === 'confirmed' ? 'Confirmed' : a.status === 'completed' ? 'Completed' : a.status === 'cancelled' ? 'Cancelled' : 'Pending';
                 return (
-                  <div key={a.id} className="bg-white rounded-xl border p-4">
+                  <div key={a.id} className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-4">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium text-gray-900">{format(parseISO(displayDate), 'dd MMM yyyy')} · {displayTime?.slice(0, 5)}</p>
@@ -2335,7 +2335,7 @@ export default function KaunslorClientFilePage() {
                       win.document.close();
                     };
                     return (
-                      <div key={`consent-${a.id}`} className="bg-white rounded-xl border p-4">
+                      <div key={`consent-${a.id}`} className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-4">
                         <div className="flex items-center justify-between gap-3">
                           <div>
                             <p className="font-medium text-gray-900 text-sm">{a.client_name}</p>
@@ -2357,13 +2357,13 @@ export default function KaunslorClientFilePage() {
           {/* ── INSIGHTS TAB ── */}
           {tab === 'insights' && (
             <div className="space-y-4">
-              <div className="bg-white rounded-xl border p-5">
+              <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-5">
                 <h3 className="font-semibold text-gray-900 mb-1">Narrative Consistency</h3>
                 <p className="text-xs text-gray-400 mb-4">Analyse the last 5 sessions for factual contradictions in what the client has stated across different sessions.</p>
                 <button
                   onClick={handleAnalyseContradictions}
                   disabled={analysingInsights || (sessions.filter(s => s.report).length < 2 && progressNotes.length < 2)}
-                  className="w-full py-2.5 text-sm font-semibold rounded-xl bg-violet-600 hover:bg-violet-700 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-2.5 text-sm font-semibold rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg shadow-violet-200 hover:-translate-y-0.5 hover:shadow-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-lg flex items-center justify-center gap-2"
                 >
                   {analysingInsights ? (
                     <>
@@ -2445,7 +2445,7 @@ export default function KaunslorClientFilePage() {
               ) : (
                 <div className="space-y-3">
                   {homework.map(hw => (
-                    <div key={hw.id} className={`bg-white rounded-xl border p-4 ${hw.status === 'completed' ? 'opacity-70' : ''}`}>
+                    <div key={hw.id} className={`bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-4 ${hw.status === 'completed' ? 'opacity-70' : ''}`}>
                       <div className="flex items-start gap-3">
                         <button
                           onClick={async () => {
@@ -2470,7 +2470,7 @@ export default function KaunslorClientFilePage() {
                             {hw.due_date && (
                               <span className="text-xs text-gray-400">Due: {format(new Date(hw.due_date + 'T00:00:00'), 'dd MMM yyyy')}</span>
                             )}
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                            <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${
                               hw.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
                             }`}>
                               {hw.status === 'completed' ? '✓ Completed' : 'Pending'}
@@ -2529,11 +2529,11 @@ export default function KaunslorClientFilePage() {
                     const link = `${window.location.origin}/intake/${intake.token}`;
                     const isExpired = new Date(intake.expires_at) < new Date();
                     return (
-                      <div key={intake.id} className="bg-white rounded-xl border p-4 space-y-3">
+                      <div key={intake.id} className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-4 space-y-3">
                         <div className="flex items-start justify-between gap-2">
                           <div>
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                              <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${
                                 intake.status === 'completed' ? 'bg-green-100 text-green-700' :
                                 isExpired ? 'bg-gray-100 text-gray-500' : 'bg-amber-100 text-amber-700'
                               }`}>
@@ -2854,7 +2854,7 @@ export default function KaunslorClientFilePage() {
                 <select
                   value={teamReferralForm.to_email}
                   onChange={e => setTeamReferralForm(f => ({ ...f, to_email: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                 >
                   <option value="">-- Select team member --</option>
                   {teamMembers.map(m => (
@@ -2869,7 +2869,7 @@ export default function KaunslorClientFilePage() {
                   value={teamReferralForm.reason}
                   onChange={e => setTeamReferralForm(f => ({ ...f, reason: e.target.value }))}
                   placeholder="e.g. specialist expertise in family crisis"
-                  className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                 />
               </div>
               <div>
@@ -2878,7 +2878,7 @@ export default function KaunslorClientFilePage() {
                   value={teamReferralForm.notes}
                   onChange={e => setTeamReferralForm(f => ({ ...f, notes: e.target.value }))}
                   rows={2}
-                  className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
                 />
               </div>
               <div className="flex gap-3">
@@ -3007,7 +3007,7 @@ function AssessmentResultDetail({ test, scores, interpretation }) {
           <div key={key} className="bg-gray-50 rounded-xl p-3">
             <div className="flex items-center justify-between mb-1">
               <span className="text-sm font-medium text-gray-700">{labels[key]}</span>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${val.level === 'High' ? 'bg-violet-100 text-violet-700' : val.level === 'Moderate' ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-600'}`}>
+              <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${val.level === 'High' ? 'bg-violet-100 text-violet-700' : val.level === 'Moderate' ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-600'}`}>
                 {val.level} ({val.score})
               </span>
             </div>

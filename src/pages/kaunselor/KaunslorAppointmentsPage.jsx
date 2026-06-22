@@ -207,7 +207,7 @@ export default function KaunslorAppointmentsPage() {
 
   const bookingUrl = profile ? `${window.location.origin}/book/${profile.booking_code}` : '';
 
-  if (loading) return <div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" /></div>;
 
   const today = new Date().toISOString().split('T')[0];
   const pending = appointments.filter(a => a.status === 'pending');
@@ -298,9 +298,9 @@ export default function KaunslorAppointmentsPage() {
                         ? a.counselor_notes.replace('[Rescheduled] ', '')
                         : null;
                       return (
-                        <div key={a.id} className={`border rounded-2xl p-4 ${isRescheduled ? 'bg-violet-50 border-violet-200' : 'bg-white border-gray-100'}`}>
+                        <div key={a.id} className={`rounded-2xl p-4 ${isRescheduled ? 'bg-violet-50 ring-1 ring-violet-200' : 'bg-white ring-1 ring-gray-100 shadow-sm'}`}>
                           <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 bg-violet-100 rounded-xl flex items-center justify-center text-violet-700 font-bold text-sm flex-shrink-0">
+                            <div className="w-10 h-10 bg-gradient-to-br from-violet-50 to-fuchsia-50 ring-1 ring-violet-100 rounded-xl flex items-center justify-center text-violet-700 font-bold text-sm flex-shrink-0">
                               {a.client_name?.charAt(0).toUpperCase()}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -358,7 +358,7 @@ export default function KaunslorAppointmentsPage() {
                   <h3 className="font-semibold text-gray-500 text-sm mb-2">Past</h3>
                   <div className="space-y-2">
                     {past.map(a => (
-                      <div key={a.id} className="bg-gray-50 border border-gray-100 rounded-xl p-3 flex items-center justify-between gap-3 text-sm">
+                      <div key={a.id} className="bg-gray-50 ring-1 ring-gray-100 rounded-xl p-3 flex items-center justify-between gap-3 text-sm">
                         <div>
                           <span className="text-gray-700 font-medium">{a.client_name}</span>
                           <span className="text-gray-400"> · {format(parseISO(a.confirmed_date || a.requested_date), 'dd MMM yyyy')}</span>
@@ -398,13 +398,13 @@ export default function KaunslorAppointmentsPage() {
                     const dt = new Date(s.scheduled_at);
                     const isToday = dt.toDateString() === new Date().toDateString();
                     return (
-                      <div key={s.id} className={`rounded-xl border p-4 ${isToday ? 'bg-violet-50 border-violet-200' : 'bg-white'}`}>
+                      <div key={s.id} className={`rounded-2xl p-4 ${isToday ? 'bg-violet-50 ring-1 ring-violet-200' : 'bg-white ring-1 ring-gray-100 shadow-sm'}`}>
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1">
-                            {isToday && <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full font-medium mb-1 inline-block">Today</span>}
+                            {isToday && <span className="text-xs bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white px-2 py-0.5 rounded-full font-medium mb-1 inline-block">Today</span>}
                             <p className="font-medium text-gray-900">{s.title}</p>
                             {s.subject_name && <p className="text-sm text-gray-500">Client: {s.subject_name}</p>}
-                            <p className="text-sm text-blue-700 mt-0.5">
+                            <p className="text-sm text-violet-700 mt-0.5">
                               {format(dt, 'dd MMM yyyy')} · {format(dt, 'HH:mm')}
                             </p>
                             {s.notes && <p className="text-xs text-gray-400 mt-1 italic">{s.notes}</p>}
@@ -425,7 +425,7 @@ export default function KaunslorAppointmentsPage() {
                 <div className="space-y-2">
                   <p className="text-xs font-semibold text-gray-400 uppercase">Past</p>
                   {scheduledSessions.filter(s => s.status !== 'upcoming').slice(0, 5).map(s => (
-                    <div key={s.id} className="bg-gray-50 border border-gray-100 rounded-xl p-3 flex items-center justify-between text-sm">
+                    <div key={s.id} className="bg-gray-50 ring-1 ring-gray-100 rounded-xl p-3 flex items-center justify-between text-sm">
                       <div>
                         <p className="text-gray-600">{s.title}{s.subject_name ? `: ${s.subject_name}` : ''}</p>
                         <p className="text-xs text-gray-400">{format(new Date(s.scheduled_at), 'dd MMM yyyy · HH:mm')}</p>
@@ -446,24 +446,24 @@ export default function KaunslorAppointmentsPage() {
                         <label className="text-xs text-gray-500 mb-1 block">Session Title *</label>
                         <input type="text" value={scheduleForm.title} onChange={e => setScheduleForm(f => ({ ...f, title: e.target.value }))} required
                           placeholder="e.g. Counseling Session: John Doe"
-                          className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
                       </div>
                       <div>
                         <label className="text-xs text-gray-500 mb-1 block">Client Name</label>
                         <input type="text" value={scheduleForm.subject_name} onChange={e => setScheduleForm(f => ({ ...f, subject_name: e.target.value }))}
                           placeholder="Client name (optional)"
-                          className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
                       </div>
                       <div>
                         <label className="text-xs text-gray-500 mb-1 block">Date & Time *</label>
                         <input type="datetime-local" value={scheduleForm.scheduled_at} onChange={e => setScheduleForm(f => ({ ...f, scheduled_at: e.target.value }))} required
-                          className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
                       </div>
                       <div>
                         <label className="text-xs text-gray-500 mb-1 block">Notes</label>
                         <textarea value={scheduleForm.notes} onChange={e => setScheduleForm(f => ({ ...f, notes: e.target.value }))} rows={2}
                           placeholder="Notes for this session..."
-                          className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
                       </div>
                       <div className="flex gap-3 pt-2">
                         <Button type="submit" loading={savingSchedule} className="flex-1">Save</Button>
@@ -479,14 +479,14 @@ export default function KaunslorAppointmentsPage() {
           {/* ── SLOTS TAB ── */}
           {tab === 'slots' && (
             <div className="space-y-5">
-              <div className="bg-white rounded-xl border p-5">
+              <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-5">
                 <h3 className="font-semibold text-gray-900 mb-4">Add Time Slot</h3>
                 <form onSubmit={handleAddSlot} className="grid grid-cols-3 gap-3">
                   <div>
                     <label className="text-xs text-gray-500 mb-1 block">Day</label>
                     <select value={addSlotForm.day_of_week}
                       onChange={e => setAddSlotForm(f => ({ ...f, day_of_week: +e.target.value }))}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                       {DAYS_MS.map((d, i) => <option key={i} value={i}>{d}</option>)}
                     </select>
                   </div>
@@ -494,13 +494,13 @@ export default function KaunslorAppointmentsPage() {
                     <label className="text-xs text-gray-500 mb-1 block">Start</label>
                     <input type="time" value={addSlotForm.start_time}
                       onChange={e => setAddSlotForm(f => ({ ...f, start_time: e.target.value }))}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
                   </div>
                   <div>
                     <label className="text-xs text-gray-500 mb-1 block">End</label>
                     <input type="time" value={addSlotForm.end_time}
                       onChange={e => setAddSlotForm(f => ({ ...f, end_time: e.target.value }))}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
                   </div>
                   <div className="col-span-3">
                     <Button type="submit" variant="secondary" className="w-full">+ Add Slot</Button>
@@ -518,13 +518,13 @@ export default function KaunslorAppointmentsPage() {
                     const daySlots = slots.filter(s => s.day_of_week === i);
                     if (!daySlots.length) return null;
                     return (
-                      <div key={i} className="bg-white rounded-xl border p-4">
+                      <div key={i} className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-4">
                         <p className="text-sm font-semibold text-gray-700 mb-2">{day}</p>
                         <div className="flex flex-wrap gap-2">
                           {daySlots.map(s => (
-                            <div key={s.id} className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-full px-3 py-1">
-                              <span className="text-xs text-blue-700">{s.start_time?.slice(0, 5)} – {s.end_time?.slice(0, 5)}</span>
-                              <button onClick={() => handleDeleteSlot(s.id)} className="text-blue-400 hover:text-red-500 text-xs">✕</button>
+                            <div key={s.id} className="flex items-center gap-2 bg-violet-50 ring-1 ring-violet-100 rounded-full px-3 py-1">
+                              <span className="text-xs text-violet-700">{s.start_time?.slice(0, 5)} – {s.end_time?.slice(0, 5)}</span>
+                              <button onClick={() => handleDeleteSlot(s.id)} className="text-violet-400 hover:text-red-500 text-xs">✕</button>
                             </div>
                           ))}
                         </div>
@@ -539,7 +539,7 @@ export default function KaunslorAppointmentsPage() {
           {/* ── QR TAB ── */}
           {tab === 'qr' && (
             <div className="space-y-5">
-              <div className="bg-white rounded-xl border p-6 text-center">
+              <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-6 text-center">
                 {qrDataUrl ? (
                   <>
                     <img src={qrDataUrl} alt="Booking QR Code" className="mx-auto rounded-xl mb-4" style={{ width: 220 }} />
@@ -581,9 +581,9 @@ export default function KaunslorAppointmentsPage() {
                 ) : <p className="text-gray-400">QR code not available.</p>}
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800 space-y-2">
+              <div className="bg-violet-50 ring-1 ring-violet-100 rounded-2xl p-4 text-sm text-violet-800 space-y-2">
                 <p className="font-semibold">How to use this QR code:</p>
-                <ol className="list-decimal list-inside space-y-1 text-blue-700">
+                <ol className="list-decimal list-inside space-y-1 text-violet-700">
                   <li>Print or share the QR code with clients</li>
                   <li>Client scans QR → opens booking form</li>
                   <li>Client fills in details, selects date/time, signs consent</li>
@@ -602,7 +602,7 @@ export default function KaunslorAppointmentsPage() {
                   <p className="text-sm">No incoming team referrals.</p>
                 </div>
               ) : incomingReferrals.map(ref => (
-                <div key={ref.id} className={`bg-white rounded-xl border p-4 ${ref.status === 'pending' ? 'border-amber-200' : ''}`}>
+                <div key={ref.id} className={`bg-white rounded-2xl shadow-sm p-4 ${ref.status === 'pending' ? 'ring-1 ring-amber-200' : 'ring-1 ring-gray-100'}`}>
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="flex-1">
                       <p className="font-semibold text-gray-900">{ref.subjects?.name || 'Client'}</p>
@@ -679,13 +679,13 @@ export default function KaunslorAppointmentsPage() {
                 <label className="text-xs text-gray-500 mb-1 block">New Date</label>
                 <input type="date" value={rescheduleForm.new_date}
                   onChange={e => setRescheduleForm(f => ({ ...f, new_date: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">New Time</label>
                 <input type="time" value={rescheduleForm.new_time}
                   onChange={e => setRescheduleForm(f => ({ ...f, new_time: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
               </div>
             </div>
             <div>
@@ -693,7 +693,7 @@ export default function KaunslorAppointmentsPage() {
               <textarea value={rescheduleForm.reason}
                 onChange={e => setRescheduleForm(f => ({ ...f, reason: e.target.value }))}
                 rows={2} placeholder="e.g. Counselor has urgent matters..."
-                className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
             </div>
             <div className="bg-blue-50 rounded-lg p-3 text-xs text-blue-700">
               Email notification with the new date will be sent to the client automatically.
@@ -738,13 +738,13 @@ export default function KaunslorAppointmentsPage() {
                 <label className="text-xs text-gray-500 mb-1 block">Confirmed Date</label>
                 <input type="date" value={confirmForm.confirmed_date}
                   onChange={e => setConfirmForm(f => ({ ...f, confirmed_date: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Time</label>
                 <input type="time" value={confirmForm.confirmed_time}
                   onChange={e => setConfirmForm(f => ({ ...f, confirmed_time: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
               </div>
             </div>
             <div>
@@ -752,7 +752,7 @@ export default function KaunslorAppointmentsPage() {
               <textarea value={confirmForm.counselor_notes}
                 onChange={e => setConfirmForm(f => ({ ...f, counselor_notes: e.target.value }))}
                 rows={2} placeholder="Notes for records..."
-                className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
             </div>
             <div className="flex gap-3">
               <Button onClick={() => handleConfirm('confirmed')} className="flex-1">✓ Confirm</Button>
