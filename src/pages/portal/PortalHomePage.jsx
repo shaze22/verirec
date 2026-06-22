@@ -3,6 +3,7 @@ import { useAuthStore } from '../../store/authStore.js';
 import { supabase } from '../../lib/supabase.js';
 import { format, parseISO, isPast } from 'date-fns';
 import toast from 'react-hot-toast';
+import ScoreTrendChart from '../../components/portal/ScoreTrendChart.jsx';
 
 export default function PortalHomePage() {
   const { user, signOut } = useAuthStore();
@@ -26,10 +27,16 @@ export default function PortalHomePage() {
   const [refreshingMessages, setRefreshingMessages] = useState(false);
   const [payingInvoiceId, setPayingInvoiceId] = useState(null);
   const [paymentError, setPaymentError] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const tabRef = useRef(tab);
+  tabRef.current = tab;
 
   useEffect(() => {
     if (!user) return;
     linkAndLoad();
+    if ('Notification' in window && Notification.permission === 'default') {
+      try { Notification.requestPermission(); } catch { /* ignore */ }
+    }
     // Show success toast when redirected back from Stripe
     const params = new URLSearchParams(window.location.search);
     if (params.get('payment') === 'success') {
@@ -38,6 +45,29 @@ export default function PortalHomePage() {
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, [user]);
+
+  // Clear the unread badge when the client opens the Messages tab
+  useEffect(() => { if (tab === 'messages') setUnreadCount(0); }, [tab]);
+
+  // Realtime: live-append new messages; badge + notify on counselor replies
+  useEffect(() => {
+    if (!subjectIds.length || !user?.id) return;
+    const idSet = new Set(subjectIds);
+    const channel = supabase.channel(`portal-msgs-${user.id}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'portal_messages' }, (payload) => {
+        const m = payload.new;
+        if (!m || !idSet.has(m.subject_id)) return;
+        setMessages(prev => (prev.some(x => x.id === m.id) ? prev : [...prev, m]));
+        if (m.sender_role === 'counselor') {
+          if (tabRef.current !== 'messages') setUnreadCount(c => c + 1);
+          if ('Notification' in window && Notification.permission === 'granted') {
+            try { new Notification('Kaunselor', { body: 'New message from your counselor' }); } catch { /* ignore */ }
+          }
+        }
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [subjectIds, user?.id]);
 
   const handlePayInvoice = async (inv, total) => {
     if (payingInvoiceId) return;
@@ -212,13 +242,37 @@ export default function PortalHomePage() {
 
   const unpaidInvoices = invoices.filter(i => i.status === 'sent' || i.status === 'draft');
 
+  // ── Progress trends from completed assessments (lower score = improvement) ──
+  const seriesFor = (testType, pick) => assessments
+    .filter(a => a.test_type === testType && a.status === 'completed' && a.scores)
+    .map(a => ({ value: pick(a.scores), date: a.completed_at || a.assigned_at }))
+    .filter(p => typeof p.value === 'number')
+    .sort((x, y) => new Date(x.date) - new Date(y.date));
+
+  const trendCards = [];
+  [
+    { key: 'phq9', label: 'PHQ-9 · Depression', max: 27, pick: s => s?.total },
+    { key: 'gad7', label: 'GAD-7 · Anxiety', max: 21, pick: s => s?.total },
+  ].forEach(t => {
+    const s = seriesFor(t.key, t.pick);
+    if (s.length) trendCards.push({ ...t, series: s });
+  });
+  [
+    { sub: 'depression', label: 'DASS · Depression' },
+    { sub: 'anxiety', label: 'DASS · Anxiety' },
+    { sub: 'stress', label: 'DASS · Stress' },
+  ].forEach(d => {
+    const s = seriesFor('dass21', sc => sc?.[d.sub]);
+    if (s.length) trendCards.push({ key: `dass-${d.sub}`, label: d.label, max: 42, series: s });
+  });
+
   const TABS = [
     { id: 'overview',     label: 'Overview' },
     { id: 'appointments', label: `Appointments (${appointments.length})` },
     { id: 'homework',     label: `Tasks (${homework.length})` },
     { id: 'assessments',  label: `Assessments (${assessments.length})` },
     { id: 'resources',    label: `Resources (${resources.length})` },
-    { id: 'messages',     label: 'Messages' },
+    { id: 'messages',     label: `Messages${unreadCount ? ` (${unreadCount})` : ''}` },
     { id: 'invoices',     label: `Invoices${unpaidInvoices.length ? ` (${unpaidInvoices.length})` : ''}` },
   ];
 
@@ -264,16 +318,55 @@ export default function PortalHomePage() {
             {/* Summary cards */}
             <div className="grid grid-cols-3 gap-3">
               {[
-                ['Upcoming', upcomingAppts.length, 'violet'],
-                ['Tasks Due', pendingHw.length, 'amber'],
-                ['Assessments', assessments.length, 'blue'],
-              ].map(([label, val, color]) => (
-                <div key={label} className={`bg-${color}-50 rounded-xl p-4 text-center`}>
-                  <p className={`text-2xl font-bold text-${color}-700`}>{val}</p>
-                  <p className={`text-xs text-${color}-600 mt-0.5`}>{label}</p>
+                { label: 'Upcoming', val: upcomingAppts.length, cls: 'from-violet-50 to-fuchsia-50 ring-violet-100', num: 'text-violet-700', sub: 'text-violet-600' },
+                { label: 'Tasks Due', val: pendingHw.length, cls: 'from-amber-50 to-amber-50 ring-amber-100', num: 'text-amber-700', sub: 'text-amber-600' },
+                { label: 'Assessments', val: assessments.length, cls: 'from-blue-50 to-blue-50 ring-blue-100', num: 'text-blue-700', sub: 'text-blue-600' },
+              ].map(c => (
+                <div key={c.label} className={`bg-gradient-to-br ${c.cls} ring-1 rounded-2xl p-4 text-center`}>
+                  <p className={`text-2xl font-bold ${c.num}`}>{c.val}</p>
+                  <p className={`text-xs ${c.sub} mt-0.5`}>{c.label}</p>
                 </div>
               ))}
             </div>
+
+            {/* Progress trends */}
+            {trendCards.length > 0 && (
+              <div className="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm p-4">
+                <div className="flex items-center justify-between mb-0.5">
+                  <p className="text-sm font-semibold text-gray-800">Your Progress</p>
+                  <span className="text-[11px] text-gray-400">lower is better</span>
+                </div>
+                <p className="text-xs text-gray-400 mb-4">How your assessment scores have changed over time.</p>
+                <div className="space-y-5">
+                  {trendCards.map(tc => {
+                    const first = tc.series[0].value;
+                    const last = tc.series[tc.series.length - 1].value;
+                    const diff = last - first;
+                    const single = tc.series.length < 2;
+                    const improved = diff < 0;
+                    const tone = single ? 'text-gray-400' : improved ? 'text-emerald-600' : diff > 0 ? 'text-red-500' : 'text-gray-400';
+                    const chartTone = single ? 'text-violet-500' : improved ? 'text-emerald-500' : diff > 0 ? 'text-red-400' : 'text-violet-500';
+                    return (
+                      <div key={tc.key}>
+                        <div className="flex items-end justify-between mb-1">
+                          <p className="text-xs font-semibold text-gray-600">{tc.label}</p>
+                          <div className="text-right">
+                            <span className="text-lg font-bold text-gray-900">{last}</span>
+                            <span className="text-xs text-gray-400">/{tc.max}</span>
+                            {!single && (
+                              <span className={`ml-2 text-xs font-semibold ${tone}`}>
+                                {improved ? '↓' : diff > 0 ? '↑' : '→'} {Math.abs(diff)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <ScoreTrendChart series={tc.series} max={tc.max} className={chartTone} />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Pending tasks */}
             {pendingHw.length > 0 && (
