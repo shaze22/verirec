@@ -8,6 +8,7 @@ import { Sidebar } from './components/layout/Sidebar.jsx';
 import { BottomNav } from './components/layout/BottomNav.jsx';
 import { OfflineBanner } from './components/ui/OfflineBanner.jsx';
 import { CookieConsentBanner } from './components/CookieConsentBanner.jsx';
+import ReloadPrompt from './components/ReloadPrompt.jsx';
 import { useWindowSize } from './hooks/useWindowSize.js';
 import { isCounselorSubdomain, isRetiredSubdomain } from './lib/subdomain.js';
 
@@ -210,6 +211,7 @@ export default function App() {
           <PageTracker />
           <OfflineBanner />
           <CookieConsentBanner />
+          <ReloadPrompt />
           <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
