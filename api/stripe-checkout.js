@@ -17,6 +17,30 @@ const PRICE_IDS = {
   topup_10:          clean(process.env.STRIPE_PRICE_TOPUP_10),
 };
 
+// Source of truth for pricing (mirrors src/config.js — USD).
+// Used when the configured price ID is missing or no longer exists in the
+// live Stripe account, so checkout never dies on a stale env var.
+const PLAN_PRICING = {
+  pro:       { amount: 2200, name: 'VeriRec Unlimited', recurring: true },
+  counselor: { amount: 2200, name: 'Kaunselor Unlimited', recurring: true },
+  topup_1:   { amount: 300,  name: '1 Extra Session' },
+  topup_5:   { amount: 1200, name: '5 Extra Sessions' },
+  topup_10:  { amount: 2200, name: '10 Extra Sessions' },
+};
+
+function inlinePriceParams(plan) {
+  const p = PLAN_PRICING[plan];
+  if (!p) return null;
+  const params = {
+    'line_items[0][price_data][currency]': 'usd',
+    'line_items[0][price_data][unit_amount]': p.amount,
+    'line_items[0][price_data][product_data][name]': p.name,
+    'line_items[0][quantity]': 1,
+  };
+  if (p.recurring) params['line_items[0][price_data][recurring][interval]'] = 'month';
+  return params;
+}
+
 // Direct Stripe REST API calls — no SDK, no connection issues
 // Keys contain literal [] (e.g. line_items[0][price]) — must NOT be encoded
 function toFormBody(params) {
@@ -77,21 +101,45 @@ export default async function handler(req, res) {
 
     // Invoice payment — one-time MYR checkout for client portal
     if (plan === 'invoice') {
-      const { invoice_id, amount_cents, invoice_number } = body;
-      if (!invoice_id || !amount_cents || amount_cents < 200) {
-        return res.status(400).json({ error: 'Missing or invalid invoice_id / amount_cents (minimum MYR 2.00)' });
+      const { invoice_id } = body;
+      if (!invoice_id) return res.status(400).json({ error: 'Missing invoice_id' });
+
+      // Amount comes from the DB, never from the client — otherwise the payer
+      // could set their own price. Ownership is checked against the subject.
+      const { data: invoice, error: invErr } = await supabaseAdmin
+        .from('counselor_invoices')
+        .select('id, user_id, subject_id, invoice_number, total, status, subjects(portal_user_id, email)')
+        .eq('id', invoice_id)
+        .maybeSingle();
+      if (invErr) throw invErr;
+      if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
+      if (invoice.status === 'paid') return res.status(409).json({ error: 'This invoice is already paid.' });
+      if (invoice.status === 'cancelled') return res.status(409).json({ error: 'This invoice was cancelled.' });
+
+      const client = invoice.subjects;
+      const isClient = client && (client.portal_user_id === user.id ||
+        (client.email && user.email && client.email.toLowerCase() === user.email.toLowerCase()));
+      if (!isClient) return res.status(403).json({ error: 'This invoice does not belong to your account.' });
+
+      const amountCents = Math.round(Number(invoice.total) * 100);
+      if (!Number.isFinite(amountCents) || amountCents < 200) {
+        return res.status(400).json({ error: 'Invoice total is below the minimum chargeable amount (MYR 2.00).' });
       }
+
       const sessionParams = {
         'payment_method_types[0]': 'card',
         'line_items[0][price_data][currency]': 'myr',
-        'line_items[0][price_data][unit_amount]': Math.round(amount_cents),
-        'line_items[0][price_data][product_data][name]': invoice_number ? `Invoice ${invoice_number}` : 'Counseling Invoice',
+        'line_items[0][price_data][unit_amount]': amountCents,
+        'line_items[0][price_data][product_data][name]': invoice.invoice_number ? `Invoice ${invoice.invoice_number}` : 'Counseling Invoice',
         'line_items[0][quantity]': 1,
         mode: 'payment',
         customer_email: user.email,
         success_url: `${baseUrl}/portal/home?tab=invoices&payment=success`,
         cancel_url: `${baseUrl}/portal/home?tab=invoices`,
-        'metadata[invoice_id]': invoice_id,
+        'metadata[invoice_id]': invoice.id,
+        // The counselor owns the invoice row — the webhook matches on this,
+        // not on the paying client's id.
+        'metadata[counselor_id]': invoice.user_id,
         'metadata[user_id]': user.id,
         'metadata[plan]': 'invoice',
       };
@@ -106,7 +154,6 @@ export default async function handler(req, res) {
 
     const priceKey = isTopup ? plan : `${plan}_monthly`;
     const priceId = PRICE_IDS[priceKey];
-    if (!priceId) return res.status(400).json({ error: 'Price not configured: ' + priceKey });
 
     const { data: sub } = await supabaseAdmin
       .from('subscriptions')
@@ -133,11 +180,11 @@ export default async function handler(req, res) {
         .eq('user_id', user.id);
     }
 
+    // NOTE: Checkout Sessions do NOT accept `automatic_payment_methods` (that is a
+    // PaymentIntent parameter) — sending it makes Stripe reject every request.
+    // Leaving it out lets Checkout use the methods enabled in the dashboard.
     const sessionParams = {
       customer: customerId,
-      'automatic_payment_methods[enabled]': 'true',
-      'line_items[0][price]': priceId,
-      'line_items[0][quantity]': 1,
       success_url: `${baseUrl}/settings?payment=success&plan=${plan}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/pricing?payment=cancelled`,
       'metadata[user_id]': user.id,
@@ -150,7 +197,26 @@ export default async function handler(req, res) {
       sessionParams['subscription_data[metadata][plan]'] = plan;
     }
 
-    const session = await stripePost('/checkout/sessions', sessionParams);
+    const inline = inlinePriceParams(plan);
+    let session;
+    if (priceId) {
+      try {
+        session = await stripePost('/checkout/sessions', {
+          ...sessionParams,
+          'line_items[0][price]': priceId,
+          'line_items[0][quantity]': 1,
+        });
+      } catch (err) {
+        // Stale env var: the price was archived, deleted, or belongs to another
+        // Stripe account. Fall back to inline pricing instead of blocking the sale.
+        if (!/no such price/i.test(err.message) || !inline) throw err;
+        console.error(`Price ${priceId} (${priceKey}) not found in this Stripe account — using inline price_data`);
+        session = await stripePost('/checkout/sessions', { ...sessionParams, ...inline });
+      }
+    } else {
+      if (!inline) return res.status(400).json({ error: 'Price not configured: ' + priceKey });
+      session = await stripePost('/checkout/sessions', { ...sessionParams, ...inline });
+    }
 
     return res.status(200).json({ url: session.url });
   } catch (err) {

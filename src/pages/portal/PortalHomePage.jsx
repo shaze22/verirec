@@ -92,11 +92,11 @@ export default function PortalHomePage() {
       const res = await fetch('/api/stripe-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        // Amount and invoice number are read from the DB server-side — the
+        // client no longer states what it owes.
         body: JSON.stringify({
           plan: 'invoice',
           invoice_id: inv.id,
-          amount_cents: Math.round(total * 100),
-          invoice_number: inv.invoice_number,
           origin: window.location.origin,
         }),
       });
@@ -787,7 +787,8 @@ export default function PortalHomePage() {
             ) : invoices.map(inv => {
               const subtotal = (inv.line_items || []).reduce((s, l) => s + (Number(l.qty) || 0) * (Number(l.unit_price) || 0), 0);
               const tax = subtotal * ((Number(inv.tax_rate) || 0) / 100);
-              const total = subtotal + tax;
+              // Prefer the stored total — that is the amount Stripe will charge
+              const total = Number.isFinite(Number(inv.total)) ? Number(inv.total) : subtotal + tax;
               return (
                 <div key={inv.id} className="bg-white rounded-xl border p-4">
                   <div className="flex items-start justify-between gap-3">

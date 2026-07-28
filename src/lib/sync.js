@@ -40,11 +40,14 @@ export async function syncQueue() {
   if (!navigator.onLine) return;
   if (syncLock) return; // already running
   syncLock = true;
-  emit('sync:start', {});
 
   try {
     const queue = await getAll('queue');
-    if (!queue.length) { emit('sync:success', { count: 0 }); return; }
+    // Nothing queued — stay silent. Emitting here would flash the sync banners
+    // on every page load even when the user was never offline.
+    if (!queue.length) return;
+
+    emit('sync:start', {});
 
     let synced = 0;
     for (const item of queue) {
@@ -74,7 +77,9 @@ export async function syncQueue() {
       }
     }
 
-    emit('sync:success', { count: synced });
+    // Only claim success when something actually reached the server
+    if (synced > 0) emit('sync:success', { count: synced });
+    else emit('sync:error', new Error('All queued sessions failed to sync'));
   } catch (err) {
     emit('sync:error', err);
     console.error('syncQueue error:', err);

@@ -42,13 +42,33 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // Only precache HTML + CSS + fonts/icons — NOT all JS chunks (too heavy for first install)
-        globPatterns: ['**/*.{css,html,ico,svg,woff,woff2,ttf,eot}'],
-        // Serve index.html for all navigation requests (SPA fallback)
-        navigateFallback: '/index.html',
-        // Never intercept API or Supabase requests
-        navigateFallbackDenylist: [/^\/api\//],
+        // Only precache CSS + fonts/icons — NOT all JS chunks (too heavy for first install).
+        // index.html is deliberately NOT precached: a precached copy points at the
+        // hashed JS of the build it shipped with, and those files are gone after the
+        // next deploy, so returning visitors booted into a blank page.
+        globPatterns: ['**/*.{css,ico,svg,woff,woff2,ttf,eot}'],
+        // Must be disabled explicitly — the plugin defaults it to index.html, which
+        // would bind a navigation route to a URL that is no longer precached and
+        // throw on every navigation.
+        navigateFallback: null,
+        // Take control as soon as a new build is installed, so nobody is left on a
+        // stale HTML document waiting to click a prompt they cannot see.
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
         runtimeCaching: [
+          // HTML navigations — always try the network so the document and its
+          // asset hashes stay in sync. Falls back to the last good copy offline.
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'html-pages',
+              networkTimeoutSeconds: 5,
+              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 7 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
           // JS chunks — serve from cache immediately, refresh in background
           {
             urlPattern: /\.js$/,

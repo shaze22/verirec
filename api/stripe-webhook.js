@@ -91,13 +91,19 @@ export default async function handler(req, res) {
         const session = event.data.object;
         const { user_id, plan, invoice_id } = session.metadata || {};
 
-        // Invoice payment from client portal
+        // Invoice payment from client portal.
+        // Match on the invoice id alone — `user_id` in the metadata is the paying
+        // CLIENT, while counselor_invoices.user_id is the COUNSELOR who owns the
+        // row, so filtering by it silently matched zero rows and left paid
+        // invoices marked unpaid.
         if (plan === 'invoice' && invoice_id) {
-          const { error: invErr } = await supabaseAdmin.from('counselor_invoices')
-            .update({ status: 'paid' })
+          const { data: updated, error: invErr } = await supabaseAdmin.from('counselor_invoices')
+            .update({ status: 'paid', updated_at: new Date().toISOString() })
             .eq('id', invoice_id)
-            .eq('user_id', user_id);
+            .select('id')
+            .maybeSingle();
           if (invErr) throw invErr;
+          if (!updated) console.error('Paid checkout session had no matching invoice:', invoice_id);
           break;
         }
 
