@@ -809,21 +809,38 @@ export default function PortalHomePage() {
                     </div>
                   </div>
                   {(inv.status === 'sent' || inv.status === 'draft') && (
-                    <>
-                      <button
-                        onClick={() => handlePayInvoice(inv, total)}
-                        disabled={payingInvoiceId === inv.id}
-                        className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 disabled:opacity-50 transition-colors">
-                        {payingInvoiceId === inv.id ? (
-                          <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Opening payment page…</>
-                        ) : (
-                          <>💳 Pay RM {total.toFixed(2)} — Card / Google Pay</>
+                    counselorPaymentUrl ? (
+                      // The counselor's own payment link — money goes straight to them.
+                      // Preferred over platform checkout whenever it is configured.
+                      <>
+                        <a
+                          href={counselorPaymentUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 transition-colors">
+                          💳 Pay RM {total.toFixed(2)}
+                        </a>
+                        <p className="mt-2 text-[11px] text-gray-400 text-center">
+                          Opens your counselor's payment page. They will mark this invoice as paid once received.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => handlePayInvoice(inv, total)}
+                          disabled={payingInvoiceId === inv.id}
+                          className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 disabled:opacity-50 transition-colors">
+                          {payingInvoiceId === inv.id ? (
+                            <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Opening payment page…</>
+                          ) : (
+                            <>💳 Pay RM {total.toFixed(2)} — Card / Google Pay</>
+                          )}
+                        </button>
+                        {paymentError && (
+                          <p className="mt-2 text-xs text-red-600 text-center">{paymentError}</p>
                         )}
-                      </button>
-                      {paymentError && (
-                        <p className="mt-2 text-xs text-red-600 text-center">{paymentError}</p>
-                      )}
-                    </>
+                      </>
+                    )
                   )}
                 </div>
               );

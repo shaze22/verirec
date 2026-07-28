@@ -38,24 +38,28 @@ export default function PublicStatementPage() {
 
   useEffect(() => {
     if (!token) { setStatus('invalid'); return; }
+    // Token-gated read via SECURITY DEFINER function. It returns the session in
+    // the same call — the sessions table was never readable with the anon key,
+    // so the transcript used to come back empty.
     supabaseAnon
-      .from('statement_acknowledgements')
-      .select('id, session_id, subject_name, acknowledged, expires_at')
-      .eq('token', token)
-      .single()
-      .then(async ({ data, error }) => {
-        if (error || !data) { setStatus('invalid'); return; }
-        if (new Date(data.expires_at) < new Date()) { setStatus('expired'); return; }
-        if (data.acknowledged) { setStatus('done'); return; }
+      .rpc('get_statement_by_token', { p_token: token })
+      .then(({ data, error }) => {
+        const row = Array.isArray(data) ? data[0] : data;
+        if (error || !row) { setStatus('invalid'); return; }
+        if (new Date(row.expires_at) < new Date()) { setStatus('expired'); return; }
+        if (row.acknowledged) { setStatus('done'); return; }
 
-        const { data: s } = await supabaseAnon
-          .from('sessions')
-          .select('id, title, profession, subject_name, interviewer, transcript, sha256_hash, created_at')
-          .eq('id', data.session_id)
-          .single();
-
-        setRecord(data);
-        setSession(s || null);
+        setRecord(row);
+        setSession(row.session_id ? {
+          id: row.session_id,
+          title: row.session_title,
+          profession: row.session_profession,
+          subject_name: row.session_subject_name,
+          interviewer: row.session_interviewer,
+          transcript: row.session_transcript,
+          sha256_hash: row.session_hash,
+          created_at: row.session_created_at,
+        } : null);
         setStatus('ready');
       });
   }, [token]);
@@ -63,15 +67,11 @@ export default function PublicStatementPage() {
   const handleAcknowledge = async () => {
     setSubmitting(true);
     try {
-      const { error } = await supabaseAnon
-        .from('statement_acknowledgements')
-        .update({
-          acknowledged: true,
-          acknowledged_at: new Date().toISOString(),
-          corrections: corrections.trim() || null,
-        })
-        .eq('token', token);
+      const { data: saved, error } = await supabaseAnon.rpc('submit_statement_ack', {
+        p_token: token, p_corrections: corrections,
+      });
       if (error) throw error;
+      if (!saved) { setStatus('expired'); return; }
       setStatus('done');
     } catch {
       setStatus('error');

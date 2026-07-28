@@ -258,6 +258,46 @@ export function appointmentConfirmedEmail(counselorName, date, time, duration, i
   };
 }
 
+export function invoiceEmail(invoice, { counselorName = '', clientName = '', currency = 'RM', payUrl = '', counselorPhone = '', counselorEmail = '' } = {}) {
+  const amount = `${currency} ${(Number(invoice.total) || 0).toFixed(2)}`;
+  const lines = Array.isArray(invoice.line_items) ? invoice.line_items : [];
+  const fmt = (d) => {
+    if (!d) return '';
+    const dt = new Date(`${d}T00:00:00`);
+    return Number.isNaN(dt.getTime()) ? String(d) : dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  };
+  return {
+    subject: `Invoice ${invoice.invoice_number} — ${amount}`,
+    from: FROM_KAUNSELOR,
+    html: kaunsBase(`
+      <h1>Invoice ${invoice.invoice_number}</h1>
+      <p>Dear ${clientName || 'client'},</p>
+      <p>Please find your invoice from <strong>${counselorName || 'your counselor'}</strong> below. A PDF copy is attached for your records.</p>
+      <div class="info-box">
+        <p><strong>Amount due:</strong> ${amount}</p>
+        <p><strong>Invoice date:</strong> ${fmt(invoice.invoice_date)}</p>
+        ${invoice.due_date ? `<p><strong>Due date:</strong> ${fmt(invoice.due_date)}</p>` : ''}
+      </div>
+      ${lines.length ? `<table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:13px">
+        <thead><tr>
+          <th align="left" style="padding:8px;background:#f5f3ff;color:#5b21b6;font-size:11px;text-transform:uppercase">Description</th>
+          <th align="right" style="padding:8px;background:#f5f3ff;color:#5b21b6;font-size:11px;text-transform:uppercase">Qty</th>
+          <th align="right" style="padding:8px;background:#f5f3ff;color:#5b21b6;font-size:11px;text-transform:uppercase">Amount</th>
+        </tr></thead>
+        <tbody>${lines.map(l => `<tr>
+          <td style="padding:8px;border-bottom:1px solid #eee;color:#475569">${l.description || ''}</td>
+          <td align="right" style="padding:8px;border-bottom:1px solid #eee;color:#475569">${l.qty || 0}</td>
+          <td align="right" style="padding:8px;border-bottom:1px solid #eee;color:#475569">${currency} ${((Number(l.qty) || 0) * (Number(l.unit_price) || 0)).toFixed(2)}</td>
+        </tr>`).join('')}</tbody>
+      </table>` : ''}
+      ${payUrl ? `<div style="text-align:center"><a href="${payUrl}" class="btn">Pay ${amount} &rarr;</a></div>` : ''}
+      <p style="font-size:13px">You can also view this invoice anytime in your <a href="https://kaunselor.app/portal" style="color:#7c3aed">client portal</a>.</p>
+      ${(counselorPhone || counselorEmail) ? `<p style="font-size:13px;color:#94a3b8">Questions about this invoice? Contact ${counselorName || 'your counselor'}${counselorPhone ? ` at ${counselorPhone}` : ''}${counselorEmail ? ` (${counselorEmail})` : ''}.</p>` : ''}
+      <p style="font-size:12px;color:#94a3b8;text-align:center;margin-top:16px">This email was sent by Kaunselor on behalf of your counselor.</p>
+    `),
+  };
+}
+
 export function appointmentReminderEmail(clientName, counselorName, date, time, location) {
   return {
     subject: `⏰ Appointment Reminder — Tomorrow, ${date} at ${time}`,

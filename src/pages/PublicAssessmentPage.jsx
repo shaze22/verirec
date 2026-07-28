@@ -29,18 +29,18 @@ export default function PublicAssessmentPage() {
 
   useEffect(() => {
     if (!token) { setStatus('invalid'); return; }
+    // Token-gated read via SECURITY DEFINER function — the table itself is not
+    // readable with the anon key.
     supabaseAnon
-      .from('client_assessments')
-      .select('id, test_type, subject_name, status, expires_at')
-      .eq('token', token)
-      .single()
+      .rpc('get_assessment_by_token', { p_token: token })
       .then(({ data, error }) => {
-        if (error || !data) { setStatus('invalid'); return; }
-        if (data.status === 'completed') { setStatus('done'); return; }
-        if (new Date(data.expires_at) < new Date()) { setStatus('expired'); return; }
-        if (!ASSESSMENTS[data.test_type]) { setStatus('invalid'); return; }
-        setAssignment(data);
-        setAnswers(new Array(ASSESSMENTS[data.test_type].questions.length).fill(null));
+        const row = Array.isArray(data) ? data[0] : data;
+        if (error || !row) { setStatus('invalid'); return; }
+        if (row.status === 'completed') { setStatus('done'); return; }
+        if (new Date(row.expires_at) < new Date()) { setStatus('expired'); return; }
+        if (!ASSESSMENTS[row.test_type]) { setStatus('invalid'); return; }
+        setAssignment(row);
+        setAnswers(new Array(ASSESSMENTS[row.test_type].questions.length).fill(null));
         setStatus('ready');
       });
   }, [token]);
@@ -78,17 +78,14 @@ export default function PublicAssessmentPage() {
       if (!scoreRes.ok) throw new Error('Scoring failed');
       const { scores: computedScores, interpretation } = await scoreRes.json();
 
-      const { error } = await supabaseAnon
-        .from('client_assessments')
-        .update({
-          status: 'completed',
-          answers,
-          scores: computedScores,
-          interpretation: JSON.stringify(interpretation),
-          completed_at: new Date().toISOString(),
-        })
-        .eq('token', token);
+      const { data: saved, error } = await supabaseAnon.rpc('submit_assessment', {
+        p_token: token,
+        p_answers: answers,
+        p_scores: computedScores,
+        p_interpretation: JSON.stringify(interpretation),
+      });
       if (error) throw error;
+      if (!saved) throw new Error('This assessment link is no longer accepting answers.');
       setScores(computedScores);
       setResult(interpretation);
       setStatus('done');

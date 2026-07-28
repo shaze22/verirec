@@ -66,16 +66,16 @@ export default function PublicCounselorConsentPage() {
 
   useEffect(() => {
     if (!token) { setStatus('invalid'); return; }
+    // Token-gated read via SECURITY DEFINER function — the table itself is not
+    // readable with the anon key.
     supabaseAnon
-      .from('counselor_consent_requests')
-      .select('id, subject_name, counselor_name, purpose, consent_given, expires_at')
-      .eq('token', token)
-      .single()
+      .rpc('get_counselor_consent_by_token', { p_token: token })
       .then(({ data, error }) => {
-        if (error || !data) { setStatus('invalid'); return; }
-        if (data.consent_given) { setStatus('done'); return; }
-        if (new Date(data.expires_at) < new Date()) { setStatus('expired'); return; }
-        setRecord(data);
+        const row = Array.isArray(data) ? data[0] : data;
+        if (error || !row) { setStatus('invalid'); return; }
+        if (row.consent_given) { setStatus('done'); return; }
+        if (new Date(row.expires_at) < new Date()) { setStatus('expired'); return; }
+        setRecord(row);
         setStatus('ready');
       });
   }, [token]);
@@ -86,11 +86,9 @@ export default function PublicCounselorConsentPage() {
     if (!allChecked) return;
     setSubmitting(true);
     try {
-      const { error } = await supabaseAnon
-        .from('counselor_consent_requests')
-        .update({ consent_given: true, consented_at: new Date().toISOString() })
-        .eq('token', token);
+      const { data: saved, error } = await supabaseAnon.rpc('submit_counselor_consent', { p_token: token });
       if (error) throw error;
+      if (!saved) { setStatus('expired'); return; }
       setStatus('done');
     } catch {
       setStatus('error');

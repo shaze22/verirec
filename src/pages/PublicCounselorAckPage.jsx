@@ -29,16 +29,16 @@ export default function PublicCounselorAckPage() {
 
   useEffect(() => {
     if (!token) { setStatus('invalid'); return; }
+    // Token-gated read via SECURITY DEFINER function — the table itself is not
+    // readable with the anon key.
     supabaseAnon
-      .from('counselor_session_acks')
-      .select('id, client_name, session_summary, acknowledged, expires_at, created_at')
-      .eq('token', token)
-      .single()
+      .rpc('get_counselor_ack_by_token', { p_token: token })
       .then(({ data, error }) => {
-        if (error || !data) { setStatus('invalid'); return; }
-        if (new Date(data.expires_at) < new Date()) { setStatus('expired'); return; }
-        if (data.acknowledged) { setStatus('done'); return; }
-        setRecord(data);
+        const row = Array.isArray(data) ? data[0] : data;
+        if (error || !row) { setStatus('invalid'); return; }
+        if (new Date(row.expires_at) < new Date()) { setStatus('expired'); return; }
+        if (row.acknowledged) { setStatus('done'); return; }
+        setRecord(row);
         setStatus('ready');
       });
   }, [token]);
@@ -46,15 +46,11 @@ export default function PublicCounselorAckPage() {
   const handleAcknowledge = async () => {
     setSubmitting(true);
     try {
-      const { error } = await supabaseAnon
-        .from('counselor_session_acks')
-        .update({
-          acknowledged: true,
-          acknowledged_at: new Date().toISOString(),
-          corrections: corrections.trim() || null,
-        })
-        .eq('token', token);
+      const { data: saved, error } = await supabaseAnon.rpc('submit_counselor_ack', {
+        p_token: token, p_corrections: corrections,
+      });
       if (error) throw error;
+      if (!saved) { setStatus('expired'); return; }
       setStatus('done');
     } catch {
       setStatus('error');

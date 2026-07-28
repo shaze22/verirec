@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore.js';
 import { supabase } from '../../lib/supabase.js';
+import { getCounselorProfile } from '../../api/counselor.js';
+import { downloadInvoicePdf } from '../../lib/invoicePdf.js';
 import { format, parseISO } from 'date-fns';
 import { Button } from '../../components/ui/Button.jsx';
 import toast from 'react-hot-toast';
@@ -23,6 +25,18 @@ const EMPTY_FORM = {
   status: 'draft',
 };
 
+// wa.me needs an international number. "+601..." and "601..." are used as-is;
+// a local "01X..." is assumed Malaysian. Anything else opens WhatsApp's own
+// contact picker rather than guessing a wrong country code.
+function waNumber(raw) {
+  const digits = (raw || '').replace(/\D/g, '');
+  if (!digits) return '';
+  if ((raw || '').trim().startsWith('+')) return digits;
+  if (digits.startsWith('60')) return digits;
+  if (digits.startsWith('0') && digits.length >= 9 && digits.length <= 11) return `60${digits.slice(1)}`;
+  return '';
+}
+
 function calcTotals(lineItems, taxRate) {
   const subtotal = lineItems.reduce((s, l) => s + (Number(l.qty) || 0) * (Number(l.unit_price) || 0), 0);
   const taxAmount = subtotal * ((Number(taxRate) || 0) / 100);
@@ -39,15 +53,19 @@ export default function KaunslorBillingPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [profile, setProfile] = useState(null);
+  const [sendingId, setSendingId] = useState(null);
 
   useEffect(() => {
     if (!user) return;
     Promise.all([
-      supabase.from('counselor_invoices').select('*, subjects(name)').eq('user_id', user.id).order('invoice_date', { ascending: false }),
+      supabase.from('counselor_invoices').select('*, subjects(name, email, phone)').eq('user_id', user.id).order('invoice_date', { ascending: false }),
       supabase.from('subjects').select('id, name').eq('user_id', user.id).order('name'),
-    ]).then(([{ data: inv }, { data: sub }]) => {
+      getCounselorProfile(user.id).catch(err => { console.error('profile load failed:', err?.message); return null; }),
+    ]).then(([{ data: inv }, { data: sub }, prof]) => {
       setInvoices(inv || []);
       setClients(sub || []);
+      setProfile(prof);
       // Auto-open create form if ?client= param is set
       const clientId = searchParams.get('client');
       if (clientId) {
@@ -106,13 +124,68 @@ export default function KaunslorBillingPage() {
         notes: form.notes || null,
       };
       const { data, error } = await supabase.from('counselor_invoices').insert(payload)
-        .select('*, subjects(name)').single();
+        .select('*, subjects(name, email, phone)').single();
       if (error) throw error;
       setInvoices(prev => [data, ...prev]);
       setShowCreate(false);
       toast.success('Invoice created!');
-    } catch { toast.error('Failed to create invoice.'); }
+    } catch (err) {
+      console.error('create invoice failed:', err);
+      toast.error(`Failed to create invoice: ${err?.message || 'unknown error'}`);
+    }
     finally { setSaving(false); }
+  };
+
+  const pdfOpts = (inv) => ({
+    clientName: inv.subjects?.name || '',
+    clientEmail: inv.subjects?.email || '',
+    clientPhone: inv.subjects?.phone || '',
+    profile,
+    payUrl: profile?.payment_url || '',
+    counselorEmail: profile?.official_email || user?.email || '',
+  });
+
+  const handlePdf = async (inv) => {
+    try {
+      await downloadInvoicePdf(inv, pdfOpts(inv));
+    } catch (err) {
+      console.error('invoice pdf failed:', err);
+      toast.error('Could not build the PDF. Please try Print instead.');
+    }
+  };
+
+  const handleEmail = async (inv) => {
+    if (!inv.subjects?.email) {
+      toast.error('This client has no email address. Add one in their client file, or use WhatsApp.');
+      return;
+    }
+    if (!window.confirm(`Email invoice ${inv.invoice_number} to ${inv.subjects.email}?`)) return;
+    setSendingId(inv.id);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Your session expired. Please sign in again.');
+      const res = await fetch(`/api/user-notifications?type=invoice-sent&invoice_id=${inv.id}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed to send the invoice.');
+      setInvoices(prev => prev.map(i => i.id === inv.id ? { ...i, status: i.status === 'draft' ? 'sent' : i.status } : i));
+      toast.success(`Invoice emailed to ${data.to}${data.attached ? ' with PDF' : ''}.`);
+    } catch (err) {
+      console.error('email invoice failed:', err);
+      toast.error(err.message || 'Failed to send the invoice.');
+    } finally { setSendingId(null); }
+  };
+
+  const handleWhatsApp = (inv) => {
+    const clientName = inv.subjects?.name || 'there';
+    const due = inv.due_date ? ` (due ${format(parseISO(inv.due_date), 'dd MMM yyyy')})` : '';
+    const payLine = profile?.payment_url ? `\nPay here: ${profile.payment_url}` : '';
+    const msg = `Hi ${clientName}, here is your invoice ${inv.invoice_number} for RM ${Number(inv.total).toFixed(2)}${due}.${payLine}\nYou can also view it in your portal: ${window.location.origin}/portal`;
+    const wa = `https://wa.me/${waNumber(inv.subjects?.phone)}?text=${encodeURIComponent(msg)}`;
+    window.open(wa, '_blank');
+    if (inv.status === 'draft') updateStatus(inv, 'sent');
   };
 
   const updateStatus = async (inv, status) => {
@@ -125,6 +198,7 @@ export default function KaunslorBillingPage() {
     const clientName = inv.subjects?.name || 'Client';
     const lines = inv.line_items || [];
     const win = window.open('', '_blank');
+    if (!win) { toast.error('Your browser blocked the print window. Allow pop-ups, or use the PDF button.'); return; }
     win.document.write(`<!DOCTYPE html><html><head><title>Invoice ${inv.invoice_number}</title>
 <style>
   body{font-family:Arial,sans-serif;font-size:13px;color:#111;padding:40px;max-width:600px;margin:0 auto}
@@ -191,6 +265,23 @@ ${inv.notes ? `<p style="margin-top:20px;font-size:12px;color:#555"><em>${inv.no
           ))}
         </div>
 
+        {/* Payment link nudge — without it, clients have no way to pay you directly */}
+        {profile && !profile.payment_url && (
+          <div className="rounded-2xl ring-1 ring-amber-200 bg-amber-50 p-4 flex items-start gap-3">
+            <span className="text-lg leading-none">💳</span>
+            <div className="flex-1 text-sm">
+              <p className="font-semibold text-amber-900">Add your payment link</p>
+              <p className="text-amber-800 mt-0.5">
+                Set your own payment link (bank transfer page, Stripe, ToyyibPay) so clients can pay you directly.
+                It appears on emailed invoices, the PDF, and in the client portal.
+              </p>
+              <a href="/kaunselor/setup" className="inline-block mt-2 text-xs font-semibold text-amber-900 underline underline-offset-2">
+                Set it up in Practice Setup →
+              </a>
+            </div>
+          </div>
+        )}
+
         {/* Filter */}
         <div className="flex gap-2">
           {['all', 'draft', 'sent', 'paid', 'cancelled'].map(s => (
@@ -220,11 +311,21 @@ ${inv.notes ? `<p style="margin-top:20px;font-size:12px;color:#555"><em>${inv.no
                     <span className="text-sm font-bold text-gray-900">{inv.invoice_number}</span>
                     <span className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${STATUS_STYLES[inv.status]}`}>{inv.status}</span>
                   </div>
-                  <p className="text-xs text-gray-500">{clientName} · {format(parseISO(inv.invoice_date), 'dd MMM yyyy')}{inv.due_date ? ` · Due ${format(parseISO(inv.due_date), 'dd MMM yyyy')}` : ''}</p>
+                  <p className="text-xs text-gray-500">
+                    {clientName} · {format(parseISO(inv.invoice_date), 'dd MMM yyyy')}{inv.due_date ? ` · Due ${format(parseISO(inv.due_date), 'dd MMM yyyy')}` : ''}
+                    {!inv.subjects?.email && <span className="text-amber-600"> · no email on file</span>}
+                  </p>
                   <p className="text-base font-bold text-gray-900 mt-1">RM {inv.total.toFixed(2)}</p>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <button onClick={() => printInvoice(inv)} className="text-xs text-violet-600 ring-1 ring-violet-200 rounded-lg px-2.5 py-1.5 hover:bg-violet-50 transition-colors">Print</button>
+                <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+                  <button onClick={() => handleEmail(inv)} disabled={sendingId === inv.id}
+                    title={inv.subjects?.email || 'No email on file for this client'}
+                    className="text-xs font-semibold text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-lg px-2.5 py-1.5 shadow-sm shadow-violet-200 hover:-translate-y-0.5 hover:shadow-md transition-all disabled:opacity-50 disabled:translate-y-0">
+                    {sendingId === inv.id ? 'Sending…' : '✉ Email'}
+                  </button>
+                  <button onClick={() => handleWhatsApp(inv)} className="text-xs text-green-700 ring-1 ring-green-200 rounded-lg px-2.5 py-1.5 hover:bg-green-50 transition-colors">WhatsApp</button>
+                  <button onClick={() => handlePdf(inv)} className="text-xs text-violet-600 ring-1 ring-violet-200 rounded-lg px-2.5 py-1.5 hover:bg-violet-50 transition-colors">PDF</button>
+                  <button onClick={() => printInvoice(inv)} className="text-xs text-gray-500 ring-1 ring-gray-200 rounded-lg px-2.5 py-1.5 hover:bg-gray-50 transition-colors">Print</button>
                   {inv.status === 'draft' && (
                     <button onClick={() => updateStatus(inv, 'sent')} className="text-xs text-blue-600 ring-1 ring-blue-200 rounded-lg px-2.5 py-1.5 hover:bg-blue-50 transition-colors">Mark Sent</button>
                   )}

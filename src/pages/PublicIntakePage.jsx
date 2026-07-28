@@ -39,16 +39,16 @@ export default function PublicIntakePage() {
 
   useEffect(() => {
     if (!token) { setStatus('invalid'); return; }
+    // Token-gated read via SECURITY DEFINER function — the table itself is not
+    // readable with the anon key.
     supabaseAnon
-      .from('client_intake_forms')
-      .select('id, subject_name, status, expires_at')
-      .eq('token', token)
-      .single()
+      .rpc('get_intake_form_by_token', { p_token: token })
       .then(({ data, error }) => {
-        if (error || !data) { setStatus('invalid'); return; }
-        if (data.status === 'completed') { setStatus('done'); return; }
-        if (new Date(data.expires_at) < new Date()) { setStatus('expired'); return; }
-        setForm(data);
+        const row = Array.isArray(data) ? data[0] : data;
+        if (error || !row) { setStatus('invalid'); return; }
+        if (row.status === 'completed') { setStatus('done'); return; }
+        if (new Date(row.expires_at) < new Date()) { setStatus('expired'); return; }
+        setForm(row);
         setStatus('ready');
       });
   }, [token]);
@@ -65,15 +65,11 @@ export default function PublicIntakePage() {
   const handleSubmit = async () => {
     setStatus('submitting');
     try {
-      const { error } = await supabaseAnon
-        .from('client_intake_forms')
-        .update({
-          status: 'completed',
-          completed_at: new Date().toISOString(),
-          form_answers: answers,
-        })
-        .eq('token', token);
+      const { data: saved, error } = await supabaseAnon.rpc('submit_intake_form', {
+        p_token: token, p_answers: answers,
+      });
       if (error) throw error;
+      if (!saved) { setStatus('expired'); return; }
       setStatus('done');
     } catch {
       setStatus('error');

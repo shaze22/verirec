@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
-import { sendEmail, sendTelegram, welcomeEmail, limitWarningEmail, newAppointmentEmail, appointmentConfirmedEmail, buildCalendarUrl } from './_mailer.js';
+import { jsPDF } from 'jspdf';
+import { sendEmail, sendTelegram, welcomeEmail, limitWarningEmail, newAppointmentEmail, appointmentConfirmedEmail, invoiceEmail, buildCalendarUrl } from './_mailer.js';
+import { buildInvoiceDoc } from '../src/lib/invoicePdfDoc.js';
 
 const supabaseAdmin = createClient(
   process.env.VITE_SUPABASE_URL,
@@ -107,6 +109,67 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
+
+    // Email an invoice to the client, with a letterhead PDF attached.
+    if (type === 'invoice-sent') {
+      const invoice_id = req.query.invoice_id || req.body?.invoice_id;
+      if (!invoice_id) return res.status(400).json({ error: 'Missing invoice_id' });
+
+      const { data: invoice, error: invErr } = await supabaseAdmin
+        .from('counselor_invoices')
+        .select('id, user_id, invoice_number, invoice_date, due_date, line_items, subtotal, tax_rate, tax_amount, total, status, notes, subjects(name, email, phone)')
+        .eq('id', invoice_id)
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (invErr) throw invErr;
+      if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
+
+      const client = invoice.subjects;
+      if (!client?.email) {
+        return res.status(400).json({ error: 'This client has no email address. Add one in their client file, or share the invoice by WhatsApp instead.' });
+      }
+
+      const { data: profile } = await supabaseAdmin
+        .from('counselor_profiles')
+        .select('display_name, credentials, registration_number, klinik_name, klinik_address, phone, website, official_email, org_registration_no, payment_url, logo_data, signature_data')
+        .eq('user_id', user.id).maybeSingle();
+
+      const payUrl = profile?.payment_url || '';
+      let attachments;
+      try {
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        buildInvoiceDoc(doc, invoice, {
+          clientName: client.name || '', clientEmail: client.email, clientPhone: client.phone || '',
+          profile: profile || null, payUrl, counselorEmail: user.email || '',
+        });
+        const b64 = Buffer.from(doc.output('arraybuffer')).toString('base64');
+        attachments = [{ filename: `invoice-${invoice.invoice_number || invoice.id}.pdf`, content: b64 }];
+      } catch (e) {
+        // Non-fatal — the email body carries the same figures
+        console.error('invoice pdf gen failed:', e?.message);
+      }
+
+      const { subject, html, from } = invoiceEmail(invoice, {
+        counselorName: profile?.display_name || 'your counselor',
+        clientName: client.name || '',
+        payUrl,
+        counselorPhone: profile?.phone || '',
+        counselorEmail: profile?.official_email || user.email || '',
+      });
+      const sent = await sendEmail({ to: client.email, subject, html, from, attachments });
+      if (sent === null) return res.status(503).json({ error: 'Email service is not configured. Please try WhatsApp or PDF instead.' });
+      if (sent === false) return res.status(502).json({ error: 'The email provider rejected the message. Please try again.' });
+
+      // Draft invoices become "sent" once they actually reach the client
+      if (invoice.status === 'draft') {
+        const { error: updErr } = await supabaseAdmin.from('counselor_invoices')
+          .update({ status: 'sent', updated_at: new Date().toISOString() })
+          .eq('id', invoice.id);
+        if (updErr) console.error('invoice status update failed:', updErr.message);
+      }
+
+      return res.status(200).json({ ok: true, to: client.email, attached: !!attachments });
+    }
 
     if (type === 'welcome') {
       const name = user.user_metadata?.full_name || user.email?.split('@')[0];

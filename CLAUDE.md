@@ -114,6 +114,33 @@ Reusable letterhead/branding for ALL counselor documents (consent receipt, AI le
 - **Auto-email with PDF attachment (commit 0e7fe9f):** `seal-consent` (api/report.js) generates the consent PDF **server-side** (jsPDF runs in Node — tested) via the shared `buildConsentDoc(doc, ...)` in `src/lib/consentPdfDoc.js` (also used by the browser `consentPdf.js`), on the counselor's letterhead, and attaches it to the client email. `sendEmail` now supports Resend `attachments: [{ filename, content(base64) }]`. Fire-and-forget; if PDF gen fails it still sends the link-only email. Server fetches the counselor letterhead via supabaseAdmin from `counselor_profiles`.
 - Gotcha (caused a build fail): never put `await` inside a non-async inner arrow — `setProfileForm(fm => ({ ...fm, x: await f() }))` is a syntax error; await first, then setState.
 
+## Invoice delivery + token-gated RLS (2026-07-28)
+
+**Sending invoices** — counselors can Email / WhatsApp / PDF / Print an invoice from `/kaunselor/billing`.
+- `src/lib/invoicePdfDoc.js` `buildInvoiceDoc(doc, invoice, opts)` is shared by the browser
+  (`src/lib/invoicePdf.js` → download) and the server (`api/user-notifications.js` → email attachment),
+  exactly like the consent PDF pair. It renders on the counselor letterhead (`src/lib/letterhead.js`).
+- Email goes through `POST /api/user-notifications?type=invoice-sent&invoice_id=…` (a new *mode*, NOT a new
+  serverless function — still 12/12 on Hobby). Template `invoiceEmail()` in `api/_mailer.js`.
+  A `draft` invoice flips to `sent` only after the mail provider accepts it.
+- The counselor's own `counselor_profiles.payment_url` is the payment route: it appears on the PDF, in the
+  email, and as the portal Pay button. Platform Stripe checkout is the fallback when no payment_url is set —
+  that money lands in the PLATFORM account, so prefer payment_url. (Stripe Connect is still not built.)
+
+**Token-gated public pages must use RPCs, never table access.**
+Every `/assess/:token`, `/intake/:token`, `/consent/:token`, `/statement/:token`, `/counselor-consent/:token`
+and `/counselor-ack/:token` page calls `supabaseAnon.rpc('get_*_by_token' | 'submit_*', { p_token })`.
+The underlying tables have NO anon policy — previously they had `USING (true)`, which let anyone holding the
+(public) anon key read and modify every row, including PHQ-9/GAD-7 results. `counselor_profiles` likewise
+lost `public_read_profile USING (true)`; the booking page reads it through
+`get_counselor_by_booking_code()`, and portal clients get `portal_client_read_counselor`.
+- RPCs are `security definer set search_path = public, pg_temp`, granted to `anon, authenticated` only.
+- `counselor_consent_requests.token` and `counselor_session_acks.token` are **uuid**, the rest are text —
+  the functions compare `token::text = p_token` so a malformed token returns no row instead of raising.
+- `submit_*` returns boolean: `false` means expired/already-completed. Show that to the user, do not treat
+  it as success.
+- Supabase's `anon_security_definer_function_executable` warnings on these functions are expected by design.
+
 ## Peraturan Wajib
 1. **Jangan panggil OpenAI/Anthropic/Stripe/Gemini dari browser** — semua melalui `/api/` routes
 2. **Jangan simpan secrets dalam `src/`** — hanya `VITE_` prefix dibenarkan di frontend
